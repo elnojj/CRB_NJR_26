@@ -1,0 +1,57 @@
+/**
+ * CEREBRO UNIFIED DESIGN TOKENS (cerebro.tokens.css + cro-nxs-tokens.ref.css)
+ * Governance Hold: feat/ds-v1-1 (Locked until 39 signoff)
+ */
+:root {
+  /* Fonts */
+  --font-display: 'JaapokkiSubtract', 'Jaapokki', 'Sora', sans-serif;
+  --font-heading: 'Sora', sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Surfaces (CRO-NXS Dark Obsidian HUD) */
+  --surface-void: #05070B;
+  --surface-canvas: #080B11;
+  --surface-hud: rgba(12, 17, 26, 0.78);
+  --surface-hud-elevated: rgba(18, 25, 38, 0.88);
+  --surface-glass-border: rgba(148, 163, 184, 0.14);
+  --surface-glass-highlight: rgba(56, 189, 248, 0.28);
+
+  /* Text & Telemetry */
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+
+  /* Four-Tier Status Accents */
+  --status-planned: #64748B;
+  --status-running: #38BDF8;
+  --status-implemented: #818CF8;
+  --status-verified: #10B981;
+  --status-awaiting: #F59E0B;
+  --status-blocked: #EF4444;
+  --status-held: #A855F7;
+
+  /* HUD Layout & Effects */
+  --hud-blur: blur(16px);
+  --hud-radius-sm: 6px;
+  --hud-radius-md: 10px;
+  --hud-radius-lg: 14px;
+}
+
+.cerebro-hud-panel {
+  background: var(--surface-hud);
+  backdrop-filter: var(--hud-blur);
+  -webkit-backdrop-filter: var(--hud-blur);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--hud-radius-lg);
+  color: var(--text-primary);
+}
+
+.cerebro-hud-elevated {
+  background: var(--surface-hud-elevated);
+  backdrop-filter: var(--hud-blur);
+  -webkit-backdrop-filter: var(--hud-blur);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--hud-radius-md);
+  color: var(--text-primary);
+}

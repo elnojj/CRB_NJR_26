@@ -1,0 +1,61 @@
+﻿SEVEN × NOJARA KNOWLEDGE BASE
+01 - Verified Facts and Evidence
+
+
+CONFIRMED PORTAL STATE
+- The published page title is "SEVEN × NOJARA - A reason to return."
+- The published description presents a connected programme of family experiences, local creativity and destination storytelling.
+- The main navigation exposes: Our work, SEVEN proposal, NOJARA Studios, Tarek Nojara, Abu Hamdan, and Activations.
+- The published client creates one Seven dialog, one mount element, one phone launcher, one panel call button, one text input and one end-call control.
+- The page loads one module script at /seven-client.js.
+- The client bundle identifies ElevenLabs JS SDK version 1.27.0.
+
+
+CONFIRMED PROPOSAL POSITION
+- "A Reason to Return" is a NOJARA proposal connecting destination participation, creation, sharing and return.
+- The proposal describes a joined-up system across experience design, production leadership, content and audience, and execution intelligence.
+- The documents use conditional language around pilot choice, rewards, creator contribution, rights, approvals, data owners, targets and scaling.
+- The proposal requires approvals, permissions, responsibilities, rights, consent, release, safety, suppliers, quality, cost and ownership to be confirmed before delivery.
+- No reviewed source proves that SEVEN approved, commissioned, adopted or contracted the proposal.
+
+
+CONFIRMED NOJARA CONTEXT FROM THE PUBLISHED PROFILE
+- NOJARA Studios describes its practice across creative strategy, production, talent and media technology.
+- The profile says NOJARA Productions was founded in 2016 and gives operating context as Cairo and Riyadh.
+- It presents NJR+ as an execution-intelligence approach for decisions, versions, approvals, costs, delivery, results and learning.
+- It presents Young & Human, Drafteers, Museum of Almost, El Batron and Gondwana as distinct identities or programmes with project-defined roles.
+- These statements are published portal claims, not independently verified legal or commercial records in the supplied Drive folder.
+
+
+CONFIRMED PEOPLE CONTEXT FROM PUBLISHED PORTAL PDFS
+- Tarek Nojara is presented as founder, creative producer and strategist.
+- Mohammed Alhamdan is presented as a Saudi multidisciplinary practitioner across music, contemporary art, design, creative direction, acting and performance.
+- The Mohammed Alhamdan document expressly describes possible contribution to a SEVEN experience and says availability, rights, responsibilities, approvals and commercial terms must be agreed before production.
+- Inclusion in the portal is not proof of booking, representation, endorsement, license, availability or SEVEN approval.
+
+
+CONFIRMED ELEVENLABS STATE
+- The authenticated workspace contains an active, non-archived agent named Seven.
+- The current main-branch version reviewed is agtvrsn_6501m46z4kn7fz984kv5pkafk9p8.
+- Default language is Arabic.
+- LLM is qwen35-397b-a17b.
+- Voice output uses eleven_v4_turbo with a configured voice.
+- Voice conversations are enabled; agent text_only is false.
+- Agent authentication is enabled.
+- The agent has a populated Arabic first message and an English first-message preset.
+
+
+RECENT CONVERSATION EVIDENCE - 6 TO 13 OCTOBER 2026
+- Ten conversations were returned for the Seven agent in the audited window.
+- All ten had status done and call_successful=success.
+- Six terminated with client code 1000, two with 1001, and two with 1006.
+- Three were extremely short, with one message and durations of 3-4 seconds.
+- Every returned conversation summary begins with Seven introducing itself or delivering its opening message.
+- Therefore the configured first message is demonstrably functioning after a conversation connection begins.
+- Conversation summaries also show successful use of open_portal_page in several sessions.
+
+
+KNOWN EVIDENCE CONFLICT
+- The current Seven prompt and first message use an Arabic NOJARA spelling with the character چ.
+- Recent conversation summaries record users correcting the spelling/pronunciation toward ج.
+- This KB does not resolve the naming authority. An authorized brand-language record is required.

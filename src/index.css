@@ -1,0 +1,171 @@
+@import "tailwindcss";
+@import "./styles/cerebro.tokens.css";
+
+@font-face {
+  font-family: 'JaapokkiSubtract';
+  src: local('Jaapokki Subtract'), local('JaapokkiSubtract-Regular'), local('Jaapokki Regular'), local('Jaapokki');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Jaapokki';
+  src: local('Jaapokki Regular'), local('Jaapokki-Regular'), local('Jaapokki');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --bg-canvas: #080B11;
+    --bg-field-inner: #1B3444;
+    --bg-field-outer: #05070B;
+    --surface-glass: rgba(18, 25, 38, 0.88);
+    --surface-glass-solid: #0C111A;
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --text-coord: #D0DCE3;
+    --accent-cobalt: #38BDF8;
+    --focus-ring: #38BDF8;
+    --outline-control: rgba(148, 163, 184, 0.28);
+    --station-projects: #3D8BFF;
+    --station-project-detail: #FF7A59;
+    --station-tasks: #B8F04A;
+    --station-people: #E6A2B4;
+    --station-files: #3DDC97;
+    --station-media: #F2B66D;
+    --orb-teal: #3FD0E0;
+    --error-red: #FF5666;
+    --ease-unified: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* Token Aliases */
+    --token-bg-canvas: #101D27;
+    --token-surface-glass: rgba(20, 38, 50, 0.88);
+    --token-text-primary: #F2F6F8;
+    --token-text-secondary: #BDCBD3;
+    --token-accent-cobalt: #4C8DFF;
+    --token-focus-ring: #65ACFF;
+    --token-station-projects: #3D8BFF;
+    --token-station-tasks: #B8F04A;
+    --token-station-people: #E6A2B4;
+    --token-station-files: #3DDC97;
+    --token-station-media: #F2B66D;
+    --token-voice-orb: #9AFFE0;
+    --token-error-red: #FF5666;
+  }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow: hidden;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Jaapokki', 'Sora', sans-serif;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .font-arabic, [dir="rtl"] {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    line-height: 1.65;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* Token Utility Classes */
+.bg-token-amber {
+  background-color: var(--token-station-media);
+}
+.text-token-amber {
+  color: var(--token-station-media);
+}
+.border-token-amber {
+  border-color: var(--token-station-media);
+}
+.bg-token-emerald {
+  background-color: var(--token-station-people);
+}
+.text-token-emerald {
+  color: var(--token-station-people);
+}
+
+/* Safe area padding helpers */
+.safe-top {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+}
+.safe-bottom {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+@keyframes lockupShimmer {
+  0%, 100% {
+    opacity: 0.92;
+    filter: drop-shadow(0 0 5px rgba(242, 246, 248, 0.16));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 11px rgba(180, 221, 255, 0.36));
+  }
+}
+
+.lockup-shimmer {
+  animation: lockupShimmer 6s ease-in-out infinite;
+}
+
+@keyframes neuralReveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.neural-reveal {
+  animation: neuralReveal 240ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lockup-shimmer {
+    animation: none !important;
+  }
+  .neural-reveal {
+    animation: opacity 200ms linear !important;
+  }
+}
+
+/* Custom subtle scrollbars inside glass pockets */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(16, 29, 39, 0.4);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(189, 203, 211, 0.28);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(76, 141, 255, 0.6);
+}

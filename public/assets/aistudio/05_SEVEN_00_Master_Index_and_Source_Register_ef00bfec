@@ -1,0 +1,68 @@
+﻿SEVEN × NOJARA KNOWLEDGE BASE
+00 - Master Index and Source Register
+
+
+Status date: 13 October 2026 (Africa/Cairo)
+Purpose: source-bound operating context for the private SEVEN × NOJARA proposal portal and the ElevenLabs agent named Seven.
+
+
+CONTROL LEGEND
+CONFIRMED - directly read from the supplied Drive folder, the published portal, a live endpoint, the current ElevenLabs configuration, or recent ElevenLabs conversation metadata.
+INFERRED - best technical explanation supported by multiple confirmed observations, but not reproduced end-to-end in the audited browser session.
+PROPOSED - recommended future state; not approved, published, deployed, or tested.
+UNVERIFIED - evidence was unavailable or the required authenticated action was not performed.
+
+
+SOURCE OF TRUTH ORDER
+1. The exact Google Drive folder designated by the user for this task.
+2. Authorized, dated decision records placed in that folder.
+3. Current live ElevenLabs configuration and read-only conversation metadata.
+4. Current published portal code and published portal PDFs.
+5. Proposals and recommendations in this KB set.
+
+
+IMPORTANT SOURCE CONDITION
+CONFIRMED: The supplied Drive folder ID is 13OUNhwHFS6PuzJ2W3_07aSk0lK9JaizB.
+CONFIRMED: Its current title is INT-NASA-COMMS-26.
+CONFIRMED: Before this KB set was created, the folder contained zero direct children and reported is_empty=true.
+GAP: The folder title does not identify SEVEN × NOJARA. This may be an intentional destination or an incorrect link. No rename is authorized or performed.
+CONTROL: The folder was empty, so it could not substantiate historical approvals, permissions, rights, biographies, pricing, contracts, client decisions, or portal deployment state.
+
+
+DOCUMENT SET
+00 - Master Index and Source Register
+01 - Verified Facts and Evidence
+02 - Agent Identity, Conversation and Permissions
+03 - Portal Routes, Assets and Rights
+04 - Voice Agent Auto-Greet Technical Diagnosis
+05 - Current Gaps, Decisions and Validation Plan
+
+
+PUBLISHED PORTAL EVIDENCE REVIEWED
+- SEVEN_Full_Creative_Proposal_v03.pdf - 12 pages.
+- NOJARA_Full_Company_Profile_v04.pdf - 21 pages.
+- Tarek_Nojara_Full_Consultant_Profile_v04.pdf - 10 pages.
+- Tarek_Nojara_Full_Visual_Bio_v04.pdf - 10 pages.
+- Mohammed_Alhamdan_Profile_and_Involvement_v04.pdf - 9 pages.
+CONFIRMED: All five files were reachable as application/pdf on 13 October 2026.
+CONTROL: Reachability and publication do not prove client approval, rights clearance, or authority to reuse every claim or asset.
+
+
+LIVE SYSTEMS REVIEWED
+- Portal: https://seven-nojara-strategy.nojara.chatgpt.site/#gallery
+- ElevenLabs agent: Seven.
+- Live portal status endpoint.
+- Protected portal session endpoint without an access session.
+- Recent Seven conversation metadata from 6-13 October 2026.
+
+
+NOT REVIEWED OR NOT AVAILABLE
+- No pre-existing file from the supplied Drive folder, because it was empty.
+- No authenticated portal access-code session.
+- No successful signed URL issuance using a valid access cookie.
+- No browser microphone permission flow or audible playback reproduction in the audit browser, because the available browser connection failed before page interaction.
+- No private contracts, releases, consent records, licenses, budgets, rate cards, procurement records, SEVEN approvals, or authorized decision log.
+
+
+OPERATING RULE
+This set records context; it does not grant permission. Retrieval is not authorization. Proposal is not approval. Published is not rights-cleared. Configured is not deployed. A portal fix must be implemented, published, and tested before it can be called fixed.

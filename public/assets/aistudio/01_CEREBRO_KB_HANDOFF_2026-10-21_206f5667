@@ -1,0 +1,205 @@
+﻿Cerebro HQ — Knowledge Base Handoff
+Date: 21 October 2026 · Owner: 39 (Tarek Nojara), Founder and Culture and Design Engineer, NOJARA Studios · Prepared by: Cerebro (Claude orchestration layer)
+Purpose: one document any agent or builder can read to know what Cerebro is, what exists today, what is locked, what is next and where every artifact lives. No secrets are included.
+1. What Cerebro is
+* Cerebro is Claude acting as 39's master brain and orchestration layer for NOJARA HQ (X-Men Cerebro reference). Separate from Karsa (KR), the ChatGPT agent.
+* At its core Cerebro HQ is a project tracker and project-management dashboard. The 3D sphere and voice are how 39 interacts with it. The sphere IS the dashboard: projects, tasks, people, files, media and reports live inside it.
+* The voice widget is the only control on screen at rest. Panels appear when 39 calls them by voice (or taps), stay while he uses them, and several can be open at once.
+* Every meeting (Gemini Meet transcripts and voice calls with Cerebro) is parsed into minutes, decisions, tasks, owners and projects, and rolled up into progress.
+* Must work on phone, iPad and desktop (not iPad only). Test device: iPad16,10.
+* Cerebro orchestrates the Grok crew bots and sends email from me@nojara.com with tap-approved sends.
+2. People, agents and roles
+Name
+	Role
+	39 (Tarek Nojara)
+	Owner. Never titled CEO.
+	Cerebro (Claude, this chat)
+	Orchestrator. Writes every instruction block, audits returned work, edits the ElevenLabs agent and the knowledge base.
+	Cerebro HQ voice agent (ElevenLabs)
+	Internal voice pilot of the dashboard. Uses KAST's voice.
+	Public "Cerebro" ElevenLabs agent
+	Public website guide for the nojara.com company profile. Stays public and separate.
+	KR / Karsa (ChatGPT)
+	Reviews, validation briefs, speech policy, browser setup and Drive media index. Never called "Karsa" in speech by the agent (KR).
+	Cursor
+	Only builder on njr39/Cerebro-core.
+	Claude Code
+	Review only. Must not attach, clone or edit Cerebro-core.
+	Claude Design
+	Builds the Cerebro design system in the existing project, never a new one.
+	Baghira
+	Chief of Planning (Cursor planner agent).
+	Kinzo
+	Controls the Grok crew bots.
+	Grandy
+	COO Bot (Grok).
+	Zebda
+	Executive Coordinator (Grok).
+	Fakir, Bilal, Katib, Musa, Rasma
+	Grok crew bots; instructions, roles and automations live in 02_ORG_PACK under NOJARA_HQ_26.
+	Shweekar
+	PMO; 39's designated collaborator with PMO access.
+	3. Systems and identifiers
+System
+	Identifier / state
+	GitHub
+	njr39/Cerebro-core (private). Working branch feat/ds-v1-1 = PR #10 (draft). Design system committed at 2685c66 (docs/design-system/). Earlier tip ad22651. Rollback tags: rollback-pre-pm, rollback-pre-ds11.
+	Vercel
+	Project cerebro-core is the only Cerebro project (cerebro-nojara retired). Health check /api/health.
+	Supabase
+	Cerebro-core vzilgpgrwtiwpdzqggwz (NASA HQ org, London). Bucket cerebro-design-system has an anon-readable cds_read policy — not yet confirmed as intended.
+	Google Cloud
+	Project cerebro-512117 ("Cerebro", under nojara.com). Gmail, Calendar, Drive APIs on (Sheets enablement arc done earlier; YouTube skipped). Internal consent screen "Cerebro HQ". Google connect verified on preview.
+	Google scope
+	me@nojara.com only; read-only first; tap-approved sends; Drive allowlist: NOJARA_HQ_26, CEREBRO, refs. Write access only to the Mission System sheet. No tool may access admin.google.com.
+	Drive folders
+	NOJARA_HQ_26 151TXi5udU_tAWo-dyfOuzeufB1f4MBa0 · CEREBRO 1zFyG1ZaO1SfZmaL-mCVqiZuwt3xX4LLK · refs 1r3pNyv5gpHuIil5SLdRKvZQXHi-Izfs_ · media (LOCKED single source) Hotspot_26_media 1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh — not yet wired to the Drive tree.
+	ElevenLabs
+	Agent "Cerebro HQ — Internal" agent_7201m53ed3kred6ba17rvzmyv9q4, branch agtbrch_9701m53ed56jf9390jvqnnn0f9e4. Prompt v2.2 (version agtvrsn_8501m5eeet1xee79x9mrxqqfx1yq). Lexicon KB TmGdnoVBYaXtxmrlxfp9. 28 tools attached incl. ten PM tools (get_projects … confirm_action).
+	Voice settings
+	first_message "Welcome back, sir. Cerebro معاك." · turn_timeout -1 · soft timeout -1 · turn_eagerness patient · expressive_mode off · TTS speed 1.05 · stability 0.4 · voice r5MIwbFAImi03aWNBjQN · model eleven_v4_turbo.
+	Domains
+	nojara.com live; labs.nojara.com/cro and hq.nojara.com undecided.
+	4. Locked decisions
+* Media station colour amber #F2B66D. Ice retired for media.
+* Loader 8 seconds, four status lines, "Take off" button; reduced motion 1.2 s. 5.2 s version retired.
+* Voice widget always on top. Panels never cover the sphere centre.
+* No purple. Teal only for the voice orb (ramp v100–v700). Red #FF5666 only for errors and Blocked.
+* Glass never solid: solid surface token removed; readable surfaces use glass-lite 0.92 over a dim backing. Max blur 12 px, max two blurred surfaces.
+* Gate code 4 digits (3x4 keypad). Phone sheet snaps 50% / 92%. Tour hold 4000 ms. Lite tier below 720 px.
+* Insight yellow #FFD54A allowed as a flat panel colour. Budget = arc gauge; segmented bar on phone.
+* Sample names only in the design system. No Three.js script tag copied into the app.
+* Builder routing: Cursor builds, Claude Code reviews only, Claude Design designs. No Cursor upgrades until the design system was ready (now ready).
+* Build order: connectivity, motion and wiring first; visual polish last.
+* Voice behaviour: execute without narrating; silence is never a yes; "saved/sent" only after confirmation; masculine Arabic self-reference; Egyptian Arabic structure with English tech terms; "sir" sparingly.
+5. Voice agent (KR speech policy v1.0 applied as prompt v2.2)
+17 sections: self-reference, address rules, language mix, pacing, silent execution of screen commands, silence handling, autonomous tours, evidence before confidence (projects only from PM tools; never invent sign-offs), precise use of drafted/saved/sent, immediate corrections, page-tool mappings, boundaries, no bracketed directions in speech. Stale KB doc "Where things stand" removed (source of invented sign-offs). Runtime enforcement still needed in code (Cursor Phase 0).
+6. Design system — current state (v3 export, committed at 2685c66)
+* One master file Cerebro Design System.dc.html, pages 00–41 and 99; config/cerebro.config.json (447 tokens, 34 aliases, 35 of 35 policy checks); experience/*.js; assets/ref (8 references).
+* Pages 16–32: sections 4–20 (sculptural C, stations, cameras, zoom levels, project states, media, voice widget, hand tracking, HQ Room, gate, loader, dashboard panels and insights, portfolio 3/12/30, email and calendar, responsive, sound, data badges).
+* Pages 33–41: reference board, sphere interior and 17 routes, panel colours, panels iPad/phone/desktop, Google/media/data widgets, gestures and neural band, liquid glass and panel motion.
+* Coverage: blueprint 42 entries — 20 done, 22 partial, 0 missing. 17 panels — 2 done, 15 partial (drawn with states; not yet in the 3D app).
+* Page 02 prototype: white core, amber shell, 15 coloured station nodes, 17 routes done. Not done: coordinate tags on fan-out, mid-orbit arrival, true hex cells, true dash-dot.
+* Journey (step mode): gate, loader, portfolio, project, folder, file, Back ×3 restoring Portfolio — all pass. Lockout untested.
+* Label overlap at 3/12/30 projects: phone 1/0/1, iPad 1/0/1, desktop 0/0/1 — Cursor must reach 0.
+* A script error cut the main file mid-pass; Claude Design rebuilt it. Integrity verified afterwards: all pages present, all scripts parse.
+7. Panel system (17 panels, colours PROPOSED unless marked)
+#
+	Panel
+	Colour
+	As built (1c16a15)
+	1
+	Voice widget
+	teal ramp v500
+	Built; was hidden under GoogleFeeds z-90
+	2
+	Portfolio
+	#3D8BFF
+	Partial
+	3
+	Project page (9 tabs)
+	#FF7A59
+	Partial; fixed "Source not connected" body
+	4
+	Task board + detail
+	#B8F04A
+	Partial
+	5
+	Insight cards
+	#FFD54A
+	Voice only
+	6
+	Morning briefing
+	#FFB38A
+	Not built
+	7
+	Gmail
+	#FF6FA0
+	Server inbox + send; no thread/composer UI
+	8
+	Calendar
+	#54D2FF
+	Server list + create; no week view
+	9
+	Drive files
+	#3DDC97
+	Built (allowlist)
+	10
+	Media player
+	#F2B66D LOCKED
+	Not built
+	11
+	File viewer
+	#E8D5A8
+	Not built
+	12
+	People
+	#E6A2B4 LOCKED
+	Partial
+	13
+	Crew agents (max 4)
+	#3FD0E0
+	Partial
+	14
+	Baghira
+	#F4F4F0
+	Not built
+	15
+	Kinzo
+	#7FB34A
+	Not built
+	16
+	Settings (General, Camera, Hands)
+	#9AA7B2
+	Dev panels
+	17
+	Gate + loader
+	#C9D3DC
+	Built; loader must move to 8 s
+	Device layouts: phone — one bottom sheet (50% / 92%), minimised chips, docked voice; iPad — two side by side, crew 2x2; desktop — one at 560, two at 500, up to four in the corners. Esc closes; Back restores the previous panel set and camera.
+8. Build plan — Cursor, phase-gated (sent from this chat)
+1. Phase 0 runtime fixes: voice widget on top; pending confirmations in Supabase table pm_pending_actions (60 s expiry, single use, RLS); instant stop on "stop/wait/استنى"; truthful saved/sent with duplicate check; output filter for bracketed tags.
+2. Phase 1 tokens from config (447).
+3. Phase 2 sphere interior, routes, fan-out, 0 label overlaps.
+4. Phase 3 gate, 8 s loader, mid-orbit arrival.
+5. Phase 4 panel system on three devices.
+6. Phase 5 Gmail, Calendar, Drive, insights, charts, numerals, two-tap.
+7. Phase 6 media (YouTube, Vimeo, viewers).
+8. Phase 7 hands (thresholds 0.22 / 0.30, neural band off by default).
+Status at handoff: design system committed (2685c66, Cursor chat "Cerebro DS v1.1 build"). Build block pasted next; Phase 0 is the next report. Rule: one phase, stop, report; no settings/env/deploy changes; no merge.
+9. Open decisions (39)
+* Fonts: app Sora / Inter / JetBrains Mono vs design system IBM Plex (flagged).
+* Sound levels 0 / 0.18 / 0.35 vs brown-noise 0.50.
+* Panel colours other than media and people (PROPOSED).
+* Confirm the 17 project codes and supply real clients, contacts, owners, dates.
+* Overload threshold, accepted-counts-as-done, briefing window, archive restore.
+* Team Room: planned station or the five built stations.
+* Domains: labs.nojara.com/cro and hq.nojara.com.
+* TTS speed 1.05 — rushed or not.
+10. Pending actions
+39: paste build block, return each Cursor phase report; full P0 iPad test (PRD 6.4) before any merge, then tag, mark PR #10 ready, merge, check /api/health 200, roll back to rollback-pre-ds11 on failure; delete the exposed GitHub PAT and old VERCEL_TOKEN; add XAI_API_KEY; crew avatars, sound files, self-hosted IBM Plex woff2; Google revoke and reconnect for Sheets.
+Cerebro (Claude): check each Cursor phase; update note for KR; lexicon KB v1.2 and a replacement status doc for the voice agent; J1–J4 voice work; crew live block (crew.ts, xAI engine, Supabase crew_tasks/crew_messages/crew_reports, /api/crew/dispatch, max 4 panels, draft-only); wire Hotspot_26_media; confirm the cds_read bucket policy.
+11. Artifacts index
+Artifact
+	Where
+	Interactive wireframe v1.1 (17 panels, 3 devices, routes, references)
+	https://claude.ai/artifact/SHp5yUL1ynate1KVQaDQRU · also in repo docs/design-system/uploads
+	Panel and widget blueprint (42 entries)
+	https://claude.ai/artifact/9DRbe9BHQPW7AaEH5ddiyt
+	As-built journey
+	https://claude.ai/artifact/JFJLNTCP4j5TAdsFCTayRx
+	Design system v3 export
+	Repo njr39/Cerebro-core, branch feat/ds-v1-1, docs/design-system/ (commit 2685c66)
+	AS_BUILT_1c16a15 (spec of the code at 1c16a15)
+	Repo docs/AS_BUILT_1c16a15_2026-10-21.md and docs/design-system/uploads; PDF version in this folder when uploaded
+	Blueprint v1.1 PDF, Wireframes v1.1 PDF, AS_BUILT PDF
+	This folder (upload from the chat files)
+	Paste blocks (Cursor build block, Claude Design close-out)
+	CEREBRO_PASTE_BLOCKS_2026-10-21 in this folder
+	Earlier handoffs
+	CEREBRO_CLAUDE_CODE_HANDOFF_v1 (1cwrIUuJA9bgmm7Z29AGGVI9sRatBXeWQXpiCvbixhQc), v2 (1cxZjs8HcvRRJjJdjqaAMGN7v6-vwN5j8tRBdvp3GzV4); Master PRD v0.3.2 (1utDXxo160A1LDcH3BzjT_897B95AXUfIrrVolrkaRx0); design PRD v2 (1C_NKeZkz2a_2aYCuxwbFWZq7Xgt0mFYjcCstSaCj4L8)
+	12. How to work with 39
+* In voice calls answer only the exact question asked.
+* When he pastes another agent's report, reply with the next paste-ready artifact, no commentary.
+* One paste block per destination; say exactly where it goes.
+* Never claim something shipped until it is published, merged or verified.

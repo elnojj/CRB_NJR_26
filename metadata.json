@@ -1,0 +1,6 @@
+{
+  "name": "CEREBRO + CDE — NOJARA Studios",
+  "description": "3D cosmographic project management dashboard (Cerebro HQ) and interactive universe (CDE — Culture and Design Engineer) for NOJARA Studios.",
+  "requestFramePermissions": ["microphone", "camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
