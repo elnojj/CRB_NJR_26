@@ -76,7 +76,10 @@ class MediaRegistryImpl {
     if (filter?.kind && filter.kind !== 'all') {
       items = items.filter((a) => a.type === filter.kind);
     }
-    return items;
+    // Prefer locally cached textures so grid tiles render real media first.
+    return items.sort(
+      (a, b) => Number(Boolean(b.localCacheUrl)) - Number(Boolean(a.localCacheUrl))
+    );
   }
 
   getHotspot26Assets(kind: MediaFilterKind = 'all'): SpatialMediaAsset[] {

@@ -283,11 +283,13 @@ function seedToAsset(row: DriveSeedRow, kind: SpatialMediaAsset['type']): Spatia
 }
 
 export function buildHotspot26Assets(): SpatialMediaAsset[] {
-  return [
+  const assets = [
     ...IMAGE_SEEDS.map((r) => seedToAsset(r, 'image')),
     ...VIDEO_SEEDS.map((r) => seedToAsset(r, 'video')),
     ...PDF_SEEDS.map((r) => seedToAsset(r, 'pdf')),
   ];
+  // Locally cached textures first so the 24-slot WebGL grid shows real thumbs.
+  return assets.sort((a, b) => Number(Boolean(b.localCacheUrl)) - Number(Boolean(a.localCacheUrl)));
 }
 
 export function buildHotspot26Collection(): SpatialMediaCollection {
