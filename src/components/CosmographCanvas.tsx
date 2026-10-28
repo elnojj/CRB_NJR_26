@@ -25,9 +25,14 @@ import {
   computeSubFrustumOffset,
   quinticSmootherstep,
 } from '../gui/cameraPresets';
-import { GUI_TIMING_TOKENS, GUI_WORLD_MOTION_TOKENS } from '../gui/guiTokens';
+import {
+  GUI_OPTICAL_SHELL_PRESET,
+  GUI_TIMING_TOKENS,
+  GUI_WORLD_MOTION_TOKENS,
+} from '../gui/guiTokens';
 import { GuiRect } from '../gui/CollisionManager';
 import { ProjectedTargetScreenCoords } from '../gui/GuiFocusOverlay';
+import { CerebroSphere, createCerebroSphere } from '../three/CerebroSphere';
 
 export type CinemaLensId =
   | '5mm'
@@ -1283,7 +1288,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.12;
     renderer.setClearColor(0x101D27, 1);
-    renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+    // Blueprint V2.0: DPR capped at 1.5 (proposed initial GPU budget).
+    renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(1.5, window.devicePixelRatio || 1));
     renderer.setSize(initW, initH);
     renderer.shadowMap.enabled = !isSoftwareGl;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1328,12 +1334,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const renderPass = new RenderPass(scene, camera);
       composer.addPass(renderPass);
 
-      // Selective high-threshold bloom (v4.0: strength: 0.24, radius: 0.35, threshold: 0.9)
+      // Threshold-based bloom (Blueprint V2.0 proposed tuning — not true per-object selective bloom).
       bloomPass = new UnrealBloomPass(
         new THREE.Vector2(initW, initH),
-        0.24,
-        0.35,
-        0.9
+        GUI_OPTICAL_SHELL_PRESET.bloom.strength,
+        GUI_OPTICAL_SHELL_PRESET.bloom.radius,
+        GUI_OPTICAL_SHELL_PRESET.bloom.threshold
       );
       composer.addPass(bloomPass);
 
@@ -1424,21 +1430,38 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       // Sphere 01 (CEREBRO HQ): Cool Cobalt Refractive Liquid Glass (#4C8DFF, roughness: 0.06, opacity: 0.42, Fresnel rim #B4DDFF)
       // Sphere 02 (CDE UNIVERSE): Warm Amber Caustic Crystal (#F2B66D, roughness: 0.08, opacity: 0.46, rim #FFF1D4)
       const baseShellOpacity = isHq ? 0.42 : 0.46;
-      const baseShellRoughness = 0.09; // v4.0 shell roughness: 0.09
+      // HQ uses Blueprint V2.0 glass (transmission 0.92 / thickness 1.4 / ior 1.45).
+      const baseShellRoughness = isHq
+        ? GUI_OPTICAL_SHELL_PRESET.roughness
+        : 0.09;
       const frontShellMat = new THREE.MeshPhysicalMaterial({
         color: new THREE.Color(resolvedShellHex),
-        transmission: isSoftwareGl ? 0 : 0.88, // v4.0 transmission: 0.88
+        transmission: isSoftwareGl
+          ? 0
+          : isHq
+            ? GUI_OPTICAL_SHELL_PRESET.transmission
+            : 0.88,
         transparent: true,
         opacity: isSoftwareGl ? 0.22 : baseShellOpacity,
         roughness:
           (isHq && matPreset === 'cobalt-glass') || (!isHq && matPreset === 'amber-crystal')
             ? baseShellRoughness
             : matColors.roughness,
-        metalness: 0.08,
-        ior: 1.48,
-        thickness: 0.55,
-        clearcoat: 0.8,
-        clearcoatRoughness: 0.06,
+        metalness: isHq ? 0.1 : 0.08,
+        ior: isHq ? GUI_OPTICAL_SHELL_PRESET.ior : 1.48,
+        thickness: isHq ? GUI_OPTICAL_SHELL_PRESET.thickness : 0.55,
+        clearcoat: isHq ? GUI_OPTICAL_SHELL_PRESET.clearcoat : 0.8,
+        clearcoatRoughness: isHq
+          ? GUI_OPTICAL_SHELL_PRESET.clearcoatRoughness
+          : 0.06,
+        ...(isHq
+          ? {
+              attenuationColor: new THREE.Color(0x4c8dff),
+              attenuationDistance: 2.5,
+              emissive: new THREE.Color(0x1a3a6e),
+              emissiveIntensity: 0.35,
+            }
+          : {}),
         side: THREE.FrontSide,
         depthWrite: false,
         wireframe: matColors.wireframeOnly,
@@ -1460,6 +1483,26 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               float wave = sin(position.x * 0.65 + uTime * 1.15) * cos(position.y * 0.65 + uTime * 0.9) * sin(position.z * 0.65 + uTime * 1.05);
               transformed += normal * (wave * (0.048 + uAudioRms * 0.065));`
             );
+          // Blueprint V2.0: Fresnel rim via <opaque_fragment> (three r154+), with warn-on-miss guard.
+          const opaqueTarget = '#include <opaque_fragment>';
+          if (shader.fragmentShader.includes(opaqueTarget)) {
+            shader.fragmentShader = shader.fragmentShader.replace(
+              opaqueTarget,
+              /* glsl */ `
+              vec3 viewDir = normalize(vViewPosition);
+              float fresnelV2 = pow(
+                1.0 - clamp(dot(normalize(normal), viewDir), 0.0, 1.0),
+                2.5
+              );
+              outgoingLight += vec3(0.45, 0.7, 1.0) * fresnelV2 * 0.8;
+              #include <opaque_fragment>
+            `
+            );
+          } else {
+            console.warn(
+              `[CerebroSphere] ${opaqueTarget} not found (three r${THREE.REVISION}). Fresnel rim skipped.`
+            );
+          }
           shader.fragmentShader =
             `uniform float uTime;\nuniform float uAudioRms;\nuniform float uInteriorDome;\n` +
             shader.fragmentShader.replace(
@@ -2032,6 +2075,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     nodeRegistryRef.current.clear();
 
     const hqAssembly = buildSphereAssembly(HQ_CENTER, 'hq', COLOUR_TOKENS.cobaltAccent);
+    // Blueprint V2.0: closed orbital tubes + soft Points with bounded drift on the existing HQ shell.
+    let cerebroSphereFx: CerebroSphere | null = null;
+    if (!isSoftwareGl) {
+      cerebroSphereFx = createCerebroSphere(scene, {
+        omitCore: true,
+        parent: hqAssembly.root,
+        getAudioLevel: () => stateRef.current.audioRms,
+      });
+    }
     const allProjectIds = PROJECTS_DATA.map((p) => p.id);
     CEREBRO_STATIONS.forEach((st, idx) => {
       buildNodeWithSignal(
@@ -2682,6 +2734,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const h = container.clientHeight || window.innerHeight;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
+      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(1.5, window.devicePixelRatio || 1));
       renderer.setSize(w, h);
       if (composer) {
         composer.setSize(w, h);
@@ -2745,6 +2798,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         dt
       );
       const liveRms = glassUniforms.uAudioRms.value;
+      // Blueprint V2.0 sphere fx — called inside the existing loop (never replaces it).
+      cerebroSphereFx?.update(dt, s.reducedMotion);
+      if (hqAssembly.frontShellMat.emissiveIntensity !== undefined) {
+        hqAssembly.frontShellMat.emissiveIntensity = 0.35 + liveRms * 0.5;
+      }
 
       // Synchronize Cerebral Ambient Drone 8.0s breathing filter modulation
       soundEngine.updateBreathingModulation(elapsedTotal, liveRms);
@@ -3288,6 +3346,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       window.removeEventListener('pointercancel', onPointerUp);
       domEl.removeEventListener('wheel', onWheel);
       window.removeEventListener('resize', onResize);
+      cerebroSphereFx?.dispose();
+      cerebroSphereFx = null;
       if (composer) {
         composer.dispose();
       }

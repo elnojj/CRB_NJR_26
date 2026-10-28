@@ -75,6 +75,15 @@ import {
   PendingComposeTask,
   WidgetSnapEdge,
 } from './components/VoiceCard';
+import {
+  PersistentCerebroWidget,
+  ConnectionAxis,
+  InputAxis,
+  OutputAxis,
+  ExecutionAxis,
+  PersistenceAxis,
+} from './components/PersistentCerebroWidget';
+import { ProjectHealthStrip } from './components/ProjectHealthStrip';
 import { ProjectDownloadModal } from './components/ProjectDownloadModal';
 import {
   WorkspaceAction,
@@ -3130,6 +3139,70 @@ export default function App() {
     setExplicitScreenOverride(screenId);
   };
 
+  // Blueprint V2.0 PersistentCerebroWidget — five axes as readable text.
+  const widgetConnection: ConnectionAxis =
+    voiceState === 'Connecting'
+      ? 'connecting'
+      : voiceState === 'Reconnecting'
+        ? 'reconnecting'
+        : voiceState === 'Disconnected' || voiceState === 'Error'
+          ? 'disconnected'
+          : connectionState === 'Live' ||
+              voiceState === 'Ready' ||
+              voiceState === 'Listening' ||
+              voiceState === 'Speaking' ||
+              voiceState === 'Thinking' ||
+              voiceState === 'Muted' ||
+              voiceState === 'Idle'
+            ? 'connected'
+            : 'disconnected';
+
+  const widgetInput: InputAxis =
+    voiceState === 'Listening'
+      ? 'listening'
+      : voiceState === 'Thinking'
+        ? 'tentative'
+        : voiceState === 'Muted'
+          ? 'mic-off'
+          : 'mic-off';
+
+  const widgetOutput: OutputAxis =
+    voiceState === 'Speaking' ? 'speaking' : 'silent';
+
+  const widgetExecution: ExecutionAxis =
+    voiceState === 'Thinking'
+      ? 'running'
+      : voiceState === 'Connecting' || voiceState === 'Reconnecting'
+        ? 'waiting'
+        : voiceState === 'Error'
+          ? 'failed'
+          : 'idle';
+
+  const widgetPersistence: PersistenceAxis = pendingTaskProposal
+    ? 'submitting'
+    : 'draft';
+
+  const widgetActionLine = pendingTaskProposal
+    ? `Compose · ${pendingTaskProposal.summary}`
+    : tourState.active
+      ? `Tour · step ${tourState.step}/${tourState.total}`
+      : 'No active operation';
+
+  const latestTranscript =
+    transcripts.length > 0 ? transcripts[transcripts.length - 1]?.text || '' : '';
+
+  const healthProject =
+    PROJECTS_DATA.find((p) => p.id === selectedProjectId) || PROJECTS_DATA[0];
+  const healthProgress = healthProject?.progressLabel || 'unknown';
+  const healthBlockers = healthProject
+    ? healthProject.health === 'Blocked'
+      ? healthProject.healthNote || 'Blocked'
+      : healthProject.health === 'At risk'
+        ? healthProject.healthNote || 'At risk'
+        : 'none'
+    : 'unknown';
+  const healthDue = healthProject?.nextDeadline || 'unknown';
+
   return (
     <div
       dir={languageRtl === 'ar' ? 'rtl' : 'ltr'}
@@ -4132,6 +4205,48 @@ export default function App() {
           </div>
         );
       })()}
+
+      {/* 6C. Blueprint V2.0 screen-stable center widget (5-axis state) */}
+      <div className="widget-center fixed inset-x-0 top-[22%] z-[28] flex justify-center px-4 pointer-events-none md:top-[28%]">
+        <PersistentCerebroWidget
+          connection={widgetConnection}
+          inputState={widgetInput}
+          outputState={widgetOutput}
+          execution={widgetExecution}
+          persistence={widgetPersistence}
+          actionLine={widgetActionLine}
+          transcriptPreview={latestTranscript || captionBubble || ''}
+          transcriptProvisional={voiceState === 'Listening' || voiceState === 'Thinking'}
+          readinessLabel={voiceState}
+          onMicToggle={() => {
+            setActivePocket('tap-to-talk');
+            setVoiceState((prev) =>
+              prev === 'Listening' || prev === 'Speaking' ? 'Muted' : 'Listening'
+            );
+          }}
+          onStop={() => {
+            handleStopTourImmediately();
+            setVoiceState('Ready');
+            setPendingTaskProposal(null);
+          }}
+          onFullTranscript={() => {
+            setActivePocket('compose');
+            setVoiceExpanded(true);
+          }}
+        />
+      </div>
+
+      {/* 6D. Blueprint V2.0 bottom project health strip */}
+      <div className="fixed inset-x-0 bottom-0 z-[30] pointer-events-auto">
+        <ProjectHealthStrip
+          progress={healthProgress}
+          blockers={healthBlockers}
+          due={healthDue}
+          onExpand={() => {
+            ensurePanelOpen('project-detail', true);
+          }}
+        />
+      </div>
 
       {/* 7. Draggable, Collision-Managed, Resizable Voice Card */}
       <VoiceCard

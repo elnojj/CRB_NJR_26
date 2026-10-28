@@ -35,3 +35,13 @@ Copy `.env.example` → `.env`. The UI boots without live keys; Gemini / ElevenL
 ## Stack
 
 React 19 · Vite 8 · Three.js · Express · Tailwind 4 · Motion · MediaPipe · Firebase client
+
+## Blueprint V2.0 shared-screen upgrade
+
+Incremental GUI upgrade (does not migrate to R3F):
+
+- `src/three/CerebroSphere.ts` — transmission glass accents, Fresnel via `<opaque_fragment>`, closed orbital tubes, bounded particle drift + `dispose()`
+- `src/components/PersistentCerebroWidget.tsx` — center overlay with all five state axes
+- `src/components/ProjectHealthStrip.tsx` — bottom Progress / Blockers / Due strip (`unknown` when missing)
+- `src/styles/cerebro-shell.css` — gap-based responsive shell tokens
+- CosmographCanvas: DPR cap 1.5, threshold-based bloom tuning, sphere fx wired into the existing render loop

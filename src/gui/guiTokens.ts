@@ -154,16 +154,17 @@ export const GUI_WORLD_MOTION_TOKENS = {
 } as const;
 
 export const GUI_OPTICAL_SHELL_PRESET = {
-  ior: 1.48,
-  roughness: 0.09,
-  transmission: 0.88,
-  thickness: 0.55,
-  clearcoat: 0.8,
-  clearcoatRoughness: 0.06,
+  ior: 1.45,
+  roughness: 0.08,
+  transmission: 0.92,
+  thickness: 1.4,
+  clearcoat: 0.6,
+  clearcoatRoughness: 0.05,
   bloom: {
-    strength: 0.24,
-    radius: 0.35,
-    threshold: 0.9,
+    // Blueprint V2.0 proposed threshold-based bloom tuning (not selective per-object).
+    strength: 0.6,
+    radius: 0.5,
+    threshold: 0.85,
   },
   grain: {
     strength: 0.025,
