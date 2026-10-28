@@ -144,6 +144,13 @@ import {
   cerebroScreenStore,
 } from './utils/cerebroTourAndCtaStore';
 import {
+  TOUR_PACE,
+  calmSpeechScript,
+  isTourSpeechBlocking,
+  pacedStepDurationSec,
+  progressiveCaption,
+} from './tour/tourStepCoordinator';
+import {
   runtimeUIRegistry,
   TourControllerState,
   ActionReceipt,
@@ -414,7 +421,7 @@ export default function App() {
     paused: false,
     step: 1,
     total: CEREBRO_18_TOUR_CHOREOGRAPHY.length,
-    secondsLeft: CEREBRO_18_TOUR_CHOREOGRAPHY[0]?.durationSec || 10,
+    secondsLeft: pacedStepDurationSec(CEREBRO_18_TOUR_CHOREOGRAPHY[0]),
     autoAdvance: true,
     mode: 'full-18-screen',
     currentScreenId: 'S01',
@@ -901,15 +908,21 @@ export default function App() {
         });
       }
 
-      // Schedule timed sub-step CTA pulses & auto-clicks for this screen
+      // Schedule timed sub-step CTA pulses (scaled for calmer pacing)
       stop.subSteps.forEach((sub) => {
+        const delay = Math.round(sub.delayMs * TOUR_PACE.durationScale);
         const tid = window.setTimeout(() => {
           const res = pulseAndTriggerCta(sub.ctaId, sub.spokenNote, sub.autoClick);
           if (res.ok) {
-            setCaptionBubble(`${stop.screenId} · ${res.label} — ${sub.spokenNote}`);
+            const note = progressiveCaption(
+              `${stop.screenId} · ${res.label}. ${sub.spokenNote}`
+            );
+            setCaptionBubble(
+              [note.headline, ...note.bullets].filter(Boolean).join(' ')
+            );
           }
           cerebroScreenStore.setActiveScreenId(stop.screenId);
-        }, sub.delayMs);
+        }, delay);
         tourSubStepTimersRef.current.push(tid);
       });
 
@@ -922,24 +935,37 @@ export default function App() {
           : (document.querySelector('[data-testid="voice-card"]') as HTMLElement | null);
         const rect = panelEl?.getBoundingClientRect();
         const isVisible = Boolean(rect && rect.width > 0 && rect.height > 0);
-        const cameraReady = !telemetryRef.current.isMoving || reducedMotion || attempts >= 6;
+        // Camera settle gate (~1800ms / ~30 frames at 60ms poll)
+        const cameraReady =
+          !telemetryRef.current.isMoving ||
+          reducedMotion ||
+          attempts >= Math.ceil(TOUR_PACE.cameraSettleMs / 60);
 
-        if ((isVisible && cameraReady) || attempts >= 10) {
+        if ((isVisible && cameraReady) || attempts >= 14) {
           setTourControllerPhase('presenting');
           setTourHighlightId(stop.targetNodeId || stop.screenId);
-          setCaptionBubble(stop.captionBubbleText);
+          const cap = progressiveCaption(stop.captionBubbleText);
+          setCaptionBubble(
+            [cap.headline, ...cap.bullets].filter(Boolean).join(' ')
+          );
           cerebroScreenStore.setActiveScreenId(stop.screenId);
+          const narrationText = languageRtl === 'ar' ? stop.narrationAr : stop.narrationEn;
+          const pacedNarration = calmSpeechScript(narrationText);
+          const wordCount = narrationText.split(/\s+/).filter(Boolean).length;
+          // ~130 wpm calm rate + orient pause + reading cushion
+          const speakMs = Math.max(
+            2800,
+            Math.ceil((wordCount / 130) * 60_000) + TOUR_PACE.orientPauseMs
+          );
           if (!soundMuted) {
             setVoiceState('Speaking');
           }
-          const narrationText = languageRtl === 'ar' ? stop.narrationAr : stop.narrationEn;
           appendTranscript(
             'Cerebro',
-            `[${stop.screenId} · ${stop.panelNumber} · ${stop.title}] ${narrationText}`,
-            `start_tour(${activeMode} · ${stop.screenId} · step=${clampedIdx + 1}/${steps.length} · ctas=${stop.subSteps.length})`
+            `[${stop.screenId} · ${stop.panelNumber} · ${stop.title}] ${pacedNarration}`,
+            `start_tour(${activeMode} · ${stop.screenId} · step=${clampedIdx + 1}/${steps.length} · ctas=${stop.subSteps.length} · pace=calm)`
           );
-          // Hold after narration (minimumDwellMs: 1200 + postNarrationHoldMs: 900)
-          window.setTimeout(() => setVoiceState('Ready'), 1200);
+          window.setTimeout(() => setVoiceState('Ready'), speakMs);
         } else {
           window.setTimeout(verifyBoundsAndNarrate, 60);
         }
@@ -1002,7 +1028,7 @@ export default function App() {
           paused: false,
           step: 1,
           total: steps.length,
-          secondsLeft: steps[0]?.durationSec || 10,
+          secondsLeft: pacedStepDurationSec(steps[0] || CEREBRO_18_TOUR_CHOREOGRAPHY[0]),
           currentScreenId: steps[0]?.screenId || 'S01',
         };
       }
@@ -1014,7 +1040,7 @@ export default function App() {
         paused: false,
         step: nextStep,
         total: steps.length,
-        secondsLeft: nextStopObj.durationSec || 10,
+        secondsLeft: pacedStepDurationSec(nextStopObj),
         currentScreenId: nextStopObj.screenId,
       };
     });
@@ -1032,49 +1058,76 @@ export default function App() {
         paused: false,
         step: prevStep,
         total: steps.length,
-        secondsLeft: prevStopObj.durationSec || 10,
+        secondsLeft: pacedStepDurationSec(prevStopObj),
         currentScreenId: prevStopObj.screenId,
       };
     });
   }, [applyTourStop]);
 
-  // Guided Tour countdown timer (respects autoAdvance & paused)
+  // Dock agent island bottom-left during tours so dialogue doesn't cover scene cards
+  useEffect(() => {
+    if (tourState.active) {
+      setExternalSnapEdge('bottom-left');
+    } else {
+      setExternalSnapEdge(undefined);
+    }
+  }, [tourState.active]);
+
+  // Guided Tour countdown — hold while agent speaks; use paced durations + reading cushion
   useEffect(() => {
     if (!tourState.active || tourState.paused || !tourState.autoAdvance) return;
 
+    let cushionArmed = false;
     const timer = window.setInterval(() => {
+      // State-driven gate: never advance (or even tick down) while Cerebro is speaking
+      if (isTourSpeechBlocking(voiceState)) {
+        return;
+      }
       setTourState((prev) => {
         if (!prev.active || prev.paused || !prev.autoAdvance) return prev;
         if (prev.secondsLeft > 1) {
+          cushionArmed = false;
           return { ...prev, secondsLeft: prev.secondsLeft - 1 };
         }
-        const steps = getTourStepsForMode(prev.mode);
-        const nextStep = prev.step + 1;
-        if (nextStep > steps.length) {
-          clearTourSubStepTimers();
-          cerebroScreenStore.setPulsedCta(null);
-          setTourHighlightId(null);
-          setCaptionBubble('18-Screen Wireframe v1.1 Tour complete · Centred on HQ');
-          dispatchCamera('center', { targetSphere: 'hq' });
-          return {
-            ...prev,
-            active: false,
-            paused: false,
-            step: 1,
-            total: steps.length,
-            secondsLeft: steps[0]?.durationSec || 10,
-            currentScreenId: steps[0]?.screenId || 'S01',
-          };
+        // Reading cushion before advancing to the next waypoint
+        if (!cushionArmed) {
+          cushionArmed = true;
+          window.setTimeout(() => {
+            setTourState((inner) => {
+              if (!inner.active || inner.paused || !inner.autoAdvance) return inner;
+              if (inner.secondsLeft > 0) return inner;
+              const steps = getTourStepsForMode(inner.mode);
+              const nextStep = inner.step + 1;
+              if (nextStep > steps.length) {
+                clearTourSubStepTimers();
+                cerebroScreenStore.setPulsedCta(null);
+                setTourHighlightId(null);
+                setCaptionBubble('Tour complete · Centred on HQ');
+                dispatchCamera('center', { targetSphere: 'hq' });
+                return {
+                  ...inner,
+                  active: false,
+                  paused: false,
+                  step: 1,
+                  total: steps.length,
+                  secondsLeft: pacedStepDurationSec(steps[0] || CEREBRO_18_TOUR_CHOREOGRAPHY[0]),
+                  currentScreenId: steps[0]?.screenId || 'S01',
+                };
+              }
+              const nextStopObj = steps[nextStep - 1] || steps[0];
+              applyTourStop(nextStep, inner.mode);
+              return {
+                ...inner,
+                step: nextStep,
+                total: steps.length,
+                secondsLeft: pacedStepDurationSec(nextStopObj),
+                currentScreenId: nextStopObj.screenId,
+              };
+            });
+          }, TOUR_PACE.readingCushionMs);
+          return prev;
         }
-        const nextStopObj = steps[nextStep - 1] || steps[0];
-        applyTourStop(nextStep, prev.mode);
-        return {
-          ...prev,
-          step: nextStep,
-          total: steps.length,
-          secondsLeft: nextStopObj.durationSec || 10,
-          currentScreenId: nextStopObj.screenId,
-        };
+        return prev;
       });
     }, 1000);
 
@@ -1083,6 +1136,7 @@ export default function App() {
     tourState.active,
     tourState.paused,
     tourState.autoAdvance,
+    voiceState,
     applyTourStop,
     clearTourSubStepTimers,
     dispatchCamera,
@@ -1542,7 +1596,7 @@ export default function App() {
                   paused: false,
                   step: 1,
                   total: steps.length,
-                  secondsLeft: steps[0]?.durationSec || 10,
+                  secondsLeft: pacedStepDurationSec(steps[0] || CEREBRO_18_TOUR_CHOREOGRAPHY[0]),
                   currentScreenId: steps[0]?.screenId || 'S01',
                 };
               }
@@ -1583,7 +1637,7 @@ export default function App() {
               mode: nextMode,
               step: startStep,
               total: steps.length,
-              secondsLeft: firstStop?.durationSec || 10,
+              secondsLeft: pacedStepDurationSec(firstStop || CEREBRO_18_TOUR_CHOREOGRAPHY[0]),
               currentScreenId: firstStop?.screenId || 'S01',
             }));
             applyTourStop(startStep, nextMode);
@@ -1679,7 +1733,7 @@ export default function App() {
             mode: targetMode,
             step: finalStepNumber,
             total: stepsToUse.length,
-            secondsLeft: stopObj.durationSec || 10,
+            secondsLeft: pacedStepDurationSec(stopObj),
             currentScreenId: stopObj.screenId,
           }));
           applyTourStop(finalStepNumber, targetMode);

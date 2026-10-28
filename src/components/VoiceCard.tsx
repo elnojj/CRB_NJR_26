@@ -911,6 +911,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       <div
         data-testid="voice-card"
         data-snap-edge={snapEdge}
+        data-tour-active={tourState.active ? 'true' : 'false'}
         data-compacted={guiLayout?.voiceCompactedForSheet ? 'true' : 'false'}
         onPointerDown={(e) => e.stopPropagation()}
         onWheel={(e) => e.stopPropagation()}
@@ -923,15 +924,10 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
             !guiLayout && (dragDelta.x !== 0 || dragDelta.y !== 0)
               ? `translate(${dragDelta.x}px, ${dragDelta.y}px)`
               : undefined,
-          backgroundColor: GUI_GLASS_TOKENS.background,
-          backdropFilter: GUI_GLASS_TOKENS.backdropFilter,
-          WebkitBackdropFilter: GUI_GLASS_TOKENS.backdropFilter,
-          border: GUI_GLASS_TOKENS.border,
           borderRadius: `${GUI_GLASS_TOKENS.radiusPx}px`,
-          boxShadow: GUI_GLASS_TOKENS.shadow,
           zIndex: GUI_Z_LAYERS.voiceDock,
         }}
-        className={`lg-voice fixed pointer-events-auto cerebro-stellar-glass transition-all duration-200 ${
+        className={`lg-voice lg-role-agent fixed pointer-events-auto cerebro-stellar-glass transition-all duration-200 ${
           guiLayout
             ? ''
             : `${snapClasses[snapEdge]} ${

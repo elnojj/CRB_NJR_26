@@ -277,10 +277,14 @@ export class ElevenLabsConvaiBridge {
     }
     try {
       window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
-      const hasArabic = /[\u0600-\u06FF]/.test(text);
+      // Strip SSML break tags for browser TTS; keep sentence spacing as pauses via slower rate
+      const plain = text.replace(/<break\s+time="[^"]*"\s*\/>/gi, ' … ').replace(/\s+/g, ' ').trim();
+      const utter = new SpeechSynthesisUtterance(plain);
+      const hasArabic = /[\u0600-\u06FF]/.test(plain);
       utter.lang = hasArabic ? 'ar-EG' : 'en-GB';
-      utter.rate = 1.02;
+      // Calm pacing (0.88–0.92×) so UI cards remain readable during narration
+      utter.rate = 0.9;
+      utter.pitch = 0.96;
       utter.onstart = () => {
         this.setState('Speaking', 'Cerebro speaking');
       };

@@ -197,22 +197,24 @@ export const GUI_OPTICAL_SHELL_PRESET = {
   rimIntensity: 0.25,
   bloom: {
     // Selective bloom only — never on DOM/text/media content.
-    strength: 0.24,
-    radius: 0.35,
-    threshold: 0.9,
+    // Cinematic atmospheric bleed for neon/emissive scene highlights.
+    strength: 0.42,
+    radius: 0.4,
+    threshold: 0.78,
   },
   grain: {
-    strength: 0.025,
+    strength: 0.015,
     seedUpdatesHz: 24,
     pauseOnStop: true,
     pauseOnReducedMotion: true,
     monochromatic: true,
   },
-  chromaticAberration: 0,
-  vignetteStrength: 0.14,
-  toneMappingExposure: 1.0,
-  saturation: 0.96,
-  contrast: 1.04,
+  /** Micro lens CA — scene only; DOM/text stay sharp above compositor */
+  chromaticAberration: 0.001,
+  vignetteStrength: 0.22,
+  toneMappingExposure: 1.1,
+  saturation: 0.94,
+  contrast: 1.05,
 } as const;
 
 /**

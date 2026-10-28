@@ -3659,23 +3659,18 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
           {captionBubble && (
             <div
-              className="fixed left-1/2 top-[16%] -translate-x-1/2 z-20 max-w-md px-4 py-2.5 rounded-xl border neural-reveal pointer-events-none"
-              style={{
-                backgroundColor: 'rgba(16, 29, 39, 0.84)',
-                borderColor: 'rgba(255, 255, 255, 0.14)',
-                boxShadow: 'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-              }}
+              className="lg-role-agent lg-caption-progressive fixed left-1/2 top-[16%] -translate-x-1/2 z-20 px-4 py-2.5 rounded-xl neural-reveal pointer-events-none"
             >
               <div className="flex items-center gap-2 mb-0.5">
                 <span
                   className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: '#65ACFF' }}
+                  style={{ backgroundColor: '#6366F1' }}
                 />
-                <span className="font-mono text-[10px] uppercase tracking-wider text-[#B4DDFF]">
-                  Cerebro
+                <span className="font-mono text-[10px] uppercase tracking-wider text-indigo-200">
+                  Agent
                 </span>
               </div>
-              <p className="font-sans text-xs md:text-sm text-[#F2F6F8] leading-snug">
+              <p className="lg-caption-progressive__headline font-sans leading-snug">
                 {captionBubble}
               </p>
             </div>

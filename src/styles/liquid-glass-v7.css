@@ -366,3 +366,74 @@
   -webkit-backdrop-filter: blur(var(--lg-media-blur)) saturate(1.05) !important;
   border-radius: var(--lg-panel-radius) !important;
 }
+
+/* ----- Role elevation hierarchy (declutter anchors) ----- */
+:root {
+  --lg-accent-agent: #6366f1;
+  --lg-accent-agent-glow: rgba(99, 102, 241, 0.15);
+  --lg-accent-context: #1e293b;
+  --lg-accent-nav: rgba(255, 255, 255, 0.03);
+}
+
+/* Persistent navigation / HUD — low-profile frosted island */
+.lg-role-nav {
+  background: var(--lg-accent-nav) !important;
+  backdrop-filter: blur(12px) saturate(1.1) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Agent tour / dialogue — indigo accent, energetic but calm */
+.lg-role-agent,
+.lg-voice {
+  border: 1px solid rgba(99, 102, 241, 0.35) !important;
+  background: rgba(2, 6, 23, 0.82) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(165, 180, 252, 0.14),
+    0 0 30px var(--lg-accent-agent-glow),
+    0 16px 40px rgba(0, 0, 0, 0.28) !important;
+}
+
+.lg-role-agent[data-tour-active='true'] {
+  border-color: rgba(99, 102, 241, 0.55) !important;
+}
+
+/* Context / feature info cards — warm slate, distinct from agent speech */
+.lg-role-context,
+.lg-panel,
+.lg-card,
+.lg-inspector {
+  border-color: rgba(71, 85, 105, 0.65) !important;
+  background: rgba(15, 23, 42, 0.9) !important;
+}
+
+.lg-panel {
+  border-left: 2px solid rgba(148, 163, 184, 0.35) !important;
+}
+
+/* Inactive / past tour steps */
+.lg-dim-inactive {
+  opacity: 0.4;
+  pointer-events: none;
+  filter: saturate(0.7);
+}
+
+/* Progressive disclosure — tour caption stays short */
+.lg-caption-progressive {
+  max-width: min(420px, 92vw);
+}
+
+.lg-caption-progressive__headline {
+  font-weight: 600;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: var(--lg-text);
+}
+
+.lg-caption-progressive__bullet {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--lg-muted);
+}

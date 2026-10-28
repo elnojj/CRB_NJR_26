@@ -650,9 +650,12 @@ export function buildElevenLabsAgentPayload(voiceId?: string) {
       tts: {
         model_id: 'eleven_turbo_v2_5',
         voice_id: voiceId || 'r5MIwbFAImi03aWNBjQN',
-        optimize_streaming_latency: 3,
-        stability: 0.55,
-        similarity_boost: 0.8,
+        // Calm measured delivery — higher stability, softer similarity, slightly slower feel
+        optimize_streaming_latency: 2,
+        stability: 0.7,
+        similarity_boost: 0.65,
+        style: 0.15,
+        use_speaker_boost: false,
       },
       asr: {
         quality: 'high',
