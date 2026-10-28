@@ -1,0 +1,95 @@
+﻿SEVEN × NOJARA KNOWLEDGE BASE
+04 - Voice Agent Auto-Greet Technical Diagnosis
+
+
+EXECUTIVE DIAGNOSIS
+CONFIRMED: Seven's first message works after an ElevenLabs conversation starts.
+CONFIRMED: The published portal does not implement an automatic voice-session start on ordinary page load.
+INFERRED ROOT CAUSE: What appears to be a broken auto-greet is primarily a start-lifecycle and browser-permission design issue, not a missing ElevenLabs first message.
+
+
+1. BROWSER AUTOPLAY AND MICROPHONE RESTRICTIONS
+CONFIRMED:
+- The client probes navigator.mediaDevices.getUserMedia({audio:true}) before starting a voice session.
+- The client reports dedicated errors for blocked microphone, microphone in use and unavailable microphone.
+- Modern browsers normally require user interaction and permission before microphone capture and audible playback.
+INFERRED:
+- Starting automatically after asynchronous access-code and session-network requests can lose the clean user-gesture chain in stricter browsers. Even if a signed URL is valid, audio output or microphone capture may still be blocked.
+- A reliable design should use a visible "Start Seven" action after unlock and treat the first spoken message as occurring only after the visitor deliberately starts audio.
+UNVERIFIED:
+- The exact Chrome/Safari permission state for the user's current browser.
+- Audible playback in the audited browser. The browser connector failed before page interaction.
+
+
+2. AUTHENTICATION AND SIGNED SESSION ISSUANCE
+CONFIRMED:
+- Live /api/seven/status returned gateConfigured=true and voiceConfigured=true.
+- The same response returned unlocked=false without an authenticated portal session.
+- A same-origin POST to /api/seven/session without the access cookie returned HTTP 401 with error=locked.
+- The client requests /api/seven/session only when the portal gate is open, the session is unlocked and its expiry is still valid.
+- The response must contain signedUrl before ElevenLabs startSession is called.
+CONCLUSION:
+- The security gate is active and correctly blocks unauthenticated token issuance.
+- This is not proof that valid access-code verification or signed URL issuance succeeds. That path remains unverified because no access code was used.
+
+
+3. SDK CONNECTION LIFECYCLE
+CONFIRMED:
+- The published client uses ElevenLabs JS SDK 1.27.0.
+- It starts a WebSocket session with startSession({signedUrl, connectionType:"websocket"}).
+- Voice start order is: open panel -> read gate state -> require valid unlocked session -> check voice configuration -> probe microphone -> request signed URL -> start WebSocket session -> mark connected.
+- On connection error or disconnect it clears the active session and changes the portal status.
+- Page load initialization only builds controls, reads status and enables buttons. It does not call startSession by itself.
+- A custom seven:entry event can enter the access/start flow; phone buttons can also start it.
+CONCLUSION:
+- A first message cannot play until all prior gates succeed. Calling the feature "auto-greet" is misleading unless "automatic after a deliberate Start action" is the intended contract.
+
+
+4. DUPLICATE WIDGET INSTANCES
+CONFIRMED:
+- The published HTML contains one Seven dialog, one mount element and one /seven-client.js module include.
+- The bundle sets window.__sevenWidgetInitialized and throws "Seven widget already initialized" if initialized twice.
+- No second widget include or second mount was found in the published HTML.
+CONCLUSION:
+- Duplicate widget instances are not supported by the reviewed published source and are not the leading cause.
+RESIDUAL RISK:
+- If a framework or deployment layer injects the same bundle twice, the guard will throw. That would be visible as a console error and could stop initialization. Runtime console evidence was not available.
+
+
+5. FIRST-MESSAGE SETTINGS
+CONFIRMED:
+- The current agent has a populated Arabic first message.
+- The widget has a populated English first-message preset.
+- Client override of agent.first_message is disabled.
+- In ten recent conversations, every summary begins with the agent introduction/opening. Three one-message calls ended after only 3-4 seconds, yet still recorded the greeting.
+CONCLUSION:
+- Do not edit the first_message as the primary fix. The message is configured and is being delivered once a conversation starts.
+
+
+PRIMARY CAUSE RANKING
+1. CONFIRMED design behavior: no page-load voice session is started.
+2. CONFIRMED prerequisite: access gate and valid session cookie are required before signed URL issuance.
+3. HIGH-PROBABILITY browser factor: microphone/audio requires a deliberate visitor action and permission.
+4. UNVERIFIED authenticated path risk: valid unlock or signed URL issuance may fail for some users; not tested with a real code.
+5. LOW-PROBABILITY current cause: duplicate widget instance.
+6. RULED OUT AS PRIMARY CAUSE: absent or blank first message.
+
+
+RECOMMENDED REMEDIATION - PROPOSED, NOT DEPLOYED
+- Rename the behavior in product copy from auto-greet to "greet on start" unless a compliant browser-specific auto-start design is proven.
+- After successful access-code validation, show one explicit "Start Seven" button with a microphone disclosure.
+- Call getUserMedia and startSession directly from that button's user gesture.
+- Keep status stages visible: Access verified -> Microphone required -> Securing session -> Connecting -> Connected -> Seven speaking.
+- Log only non-sensitive lifecycle events and error classes; never log access codes or signed URLs.
+- Add a single-flight guard around unlock and start; the current tn and Ye controls already provide partial protection.
+- Add an end-to-end test matrix for Chrome desktop, Safari desktop, iOS Safari and Android Chrome.
+- Treat HTTP 401 locked as correct security behavior, not a voice-provider failure.
+- Do not publish a fix claim until the deployed portal is tested with a valid access code and the first audio is heard in each supported browser.
+
+
+STATUS
+DIAGNOSED: yes.
+PORTAL CODE CHANGED: no.
+ELEVENLABS CONFIG CHANGED: no.
+FIX DEPLOYED: no.
+AUTHENTICATED END-TO-END TEST PASSED: unverified.

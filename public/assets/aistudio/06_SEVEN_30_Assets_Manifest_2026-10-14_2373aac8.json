@@ -1,0 +1,791 @@
+{
+  "count": 30,
+  "batch_date_cairo": "2026-10-14",
+  "render_method": "Built-in image generation",
+  "processing": "Uniform resizing and transparent padding; exports do not certify native 4K detail.",
+  "source_folder": "https://drive.google.com/drive/folders/1Oz0SVCwUjz9QPmjP13ckCpD29mVsvJKZ",
+  "asset_type": "3D-rendered raster design elements; no editable meshes or separated geometry",
+  "assets": [
+    {
+      "number": 1,
+      "id": "A01_destination_constellation",
+      "name": "Destination constellation",
+      "group": "Identity",
+      "subject": "Seven differently proportioned polished metal nodes connected by bent solid rods in a compact asymmetrical branching sculpture, not a planetary diagram",
+      "material": "brushed stainless steel, fine directional scratches and polished bevels",
+      "companion_sticker": "Every destination has a story",
+      "motion": "Slow in-plane drift",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Destination constellation: Seven differently proportioned polished metal nodes connected by bent solid rods in a compact asymmetrical branching sculpture, not a planetary diagram.\nMaterial: brushed stainless steel, fine directional scratches and polished bevels. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Every destination has a story\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-dcab0487-2ce4-404d-a309-76bfdf3b9529.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A01_destination_constellation.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A01_destination_constellation__4K.png",
+      "file_name": "A01_destination_constellation__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 7545327
+    },
+    {
+      "number": 2,
+      "id": "A02_woven_culture_loop",
+      "name": "Woven culture loop",
+      "group": "Identity",
+      "subject": "A thick folded open-ended textile loop with restrained red ivory black diamond weaving embedded in its fabric, tactile geometric silhouette",
+      "material": "deep red woven wool with ivory and charcoal thread, short fibers",
+      "companion_sticker": "Find the cultural context",
+      "motion": "Gentle bob",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Woven culture loop: A thick folded open-ended textile loop with restrained red ivory black diamond weaving embedded in its fabric, tactile geometric silhouette.\nMaterial: deep red woven wool with ivory and charcoal thread, short fibers. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Find the cultural context\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-c0cf6ecb-3e5c-49c3-af70-d0e52137bad1.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A02_woven_culture_loop.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A02_woven_culture_loop__4K.png",
+      "file_name": "A02_woven_culture_loop__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 10351531
+    },
+    {
+      "number": 3,
+      "id": "A03_dune_ribbon",
+      "name": "Dune ribbon",
+      "group": "Identity",
+      "subject": "One sculptural sand-dune-shaped serpentine ribbon with three smooth crest waves and visibly thick edges",
+      "material": "anthracite cast concrete with fine pores",
+      "companion_sticker": "Listen to the place",
+      "motion": "Horizontal drift",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Dune ribbon: One sculptural sand-dune-shaped serpentine ribbon with three smooth crest waves and visibly thick edges.\nMaterial: anthracite cast concrete with fine pores. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Listen to the place\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-d59ee492-59d9-4b99-9668-2c6050499112.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A03_dune_ribbon.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A03_dune_ribbon__4K.png",
+      "file_name": "A03_dune_ribbon__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 4854216
+    },
+    {
+      "number": 4,
+      "id": "A04_identity_relief",
+      "name": "Identity relief",
+      "group": "Identity",
+      "subject": "A compact sculptural oval tile whose surface is a bold abstract concentric topographic relief, deep grooves and thick edges, not an actual fingerprint",
+      "material": "oxblood glazed ceramic #B4403F, subtle fired speckling",
+      "companion_sticker": "Start with its identity",
+      "motion": "Small in-plane tilt",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Identity relief: A compact sculptural oval tile whose surface is a bold abstract concentric topographic relief, deep grooves and thick edges, not an actual fingerprint.\nMaterial: oxblood glazed ceramic #B4403F, subtle fired speckling. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Start with its identity\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-ffe1bff8-553f-4df4-8582-d4fb7c1139e4.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A04_identity_relief.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A04_identity_relief__4K.png",
+      "file_name": "A04_identity_relief__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 10032183
+    },
+    {
+      "number": 5,
+      "id": "A05_different_together",
+      "name": "Different together",
+      "group": "Identity",
+      "subject": "Five distinct geometric solid units fitted into a compact asymmetric composition, cylinder wedge rounded cube prism and folded slab, visible gaps",
+      "material": "navy enamel #223C73 over thick metal, polished highlights",
+      "companion_sticker": "Scale without sameness",
+      "motion": "Grouped scale reveal",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Different together: Five distinct geometric solid units fitted into a compact asymmetric composition, cylinder wedge rounded cube prism and folded slab, visible gaps.\nMaterial: navy enamel #223C73 over thick metal, polished highlights. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Scale without sameness\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-6ba66c78-f717-4916-a357-cce833da0cc0.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A05_different_together.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A05_different_together__4K.png",
+      "file_name": "A05_different_together__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 6696865
+    },
+    {
+      "number": 6,
+      "id": "A06_destination_prism",
+      "name": "Destination prism",
+      "group": "Identity",
+      "subject": "A tall asymmetrical triangular prism with a split beveled tip and finely engraved abstract contour lines, collectible sculptural marker",
+      "material": "thick amber optical glass with internal refraction",
+      "companion_sticker": "Local knowledge shapes the work",
+      "motion": "Vertical rise",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Destination prism: A tall asymmetrical triangular prism with a split beveled tip and finely engraved abstract contour lines, collectible sculptural marker.\nMaterial: thick amber optical glass with internal refraction. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Local knowledge shapes the work\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-da406cd3-051e-478e-9d88-cb2d18048cc7.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A06_destination_prism.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A06_destination_prism__4K.png",
+      "file_name": "A06_destination_prism__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 5741310
+    },
+    {
+      "number": 7,
+      "id": "A07_journey_spline",
+      "name": "Journey spline",
+      "group": "Journey",
+      "subject": "A thick three-dimensional S-shaped route spline with three integrated round nodes and a solid arrow-shaped terminal, no map or text",
+      "material": "glossy navy enamel #223C73, visible sidewall depth",
+      "companion_sticker": "Map the visitor journey",
+      "motion": "Directional translation",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Journey spline: A thick three-dimensional S-shaped route spline with three integrated round nodes and a solid arrow-shaped terminal, no map or text.\nMaterial: glossy navy enamel #223C73, visible sidewall depth. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Map the visitor journey\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-d53d263f-1f4d-4b26-bb65-9e71b2e5ff97.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A07_journey_spline.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A07_journey_spline__4K.png",
+      "file_name": "A07_journey_spline__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 4170073
+    },
+    {
+      "number": 8,
+      "id": "A08_arrival_fold",
+      "name": "Arrival fold",
+      "group": "Journey",
+      "subject": "A freestanding heavy folded steel wedge whose planes form a welcoming open V silhouette, no door or rectangular frame",
+      "material": "brushed silver stainless steel",
+      "companion_sticker": "On arrival",
+      "motion": "Upward reveal",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Arrival fold: A freestanding heavy folded steel wedge whose planes form a welcoming open V silhouette, no door or rectangular frame.\nMaterial: brushed silver stainless steel. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"On arrival\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-426cdf3b-5d23-4412-8564-6ca0f482ee00.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A08_arrival_fold.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A08_arrival_fold__4K.png",
+      "file_name": "A08_arrival_fold__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 6747175
+    },
+    {
+      "number": 9,
+      "id": "A09_invitation_object",
+      "name": "Invitation object",
+      "group": "Journey",
+      "subject": "One folded sculptural invitation sheet opening into a shallow fan, thick ivory paper edges and debossed geometric diamond motif, completely blank",
+      "material": "heavy ivory cotton paper with embossed fibers",
+      "companion_sticker": "Build the invitation",
+      "motion": "Gentle tilt",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Invitation object: One folded sculptural invitation sheet opening into a shallow fan, thick ivory paper edges and debossed geometric diamond motif, completely blank.\nMaterial: heavy ivory cotton paper with embossed fibers. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Build the invitation\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-055b3d06-8eb7-4c45-9ca5-d0dc3cfbcbdb.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A09_invitation_object.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A09_invitation_object__4K.png",
+      "file_name": "A09_invitation_object__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 8383959
+    },
+    {
+      "number": 10,
+      "id": "A10_time_vessel",
+      "name": "Time vessel",
+      "group": "Journey",
+      "subject": "An elegant compact hourglass-shaped solid glass sculpture with a narrow waist and hollow upper chamber, no sand and no floating extras",
+      "material": "amber glass, thick edges and polished optical reflections",
+      "companion_sticker": "Before the visit",
+      "motion": "Subtle bob",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Time vessel: An elegant compact hourglass-shaped solid glass sculpture with a narrow waist and hollow upper chamber, no sand and no floating extras.\nMaterial: amber glass, thick edges and polished optical reflections. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Before the visit\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-e628c96e-9e0f-425e-895e-0227aa6e26fd.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A10_time_vessel.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A10_time_vessel__4K.png",
+      "file_name": "A10_time_vessel__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 6379908
+    },
+    {
+      "number": 11,
+      "id": "A11_memory_ripple",
+      "name": "Memory ripple",
+      "group": "Journey",
+      "subject": "An organic solid oval ceramic pebble with concentric raised ripple rings on its upper face, three-quarter view",
+      "material": "white glazed porcelain, delicate imperfect finish",
+      "companion_sticker": "Carry the memory forward",
+      "motion": "Scale pulse",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Memory ripple: An organic solid oval ceramic pebble with concentric raised ripple rings on its upper face, three-quarter view.\nMaterial: white glazed porcelain, delicate imperfect finish. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Carry the memory forward\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-2d2a06bc-4449-4ea2-9bd9-466d7472fd93.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A11_memory_ripple.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A11_memory_ripple__4K.png",
+      "file_name": "A11_memory_ripple__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 5230954
+    },
+    {
+      "number": 12,
+      "id": "A12_return_spiral",
+      "name": "Return spiral",
+      "group": "Journey",
+      "subject": "A single coiled sculptural spiral ribbon with a broad flat face, two turns and thick visible bevels, no arrow or letters",
+      "material": "oxblood translucent resin with fine inner reflections",
+      "companion_sticker": "Give return a reason",
+      "motion": "Small in-plane rotation",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Return spiral: A single coiled sculptural spiral ribbon with a broad flat face, two turns and thick visible bevels, no arrow or letters.\nMaterial: oxblood translucent resin with fine inner reflections. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Give return a reason\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-bc9047ca-c58d-4136-adc0-e3950093404b.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A12_return_spiral.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A12_return_spiral__4K.png",
+      "file_name": "A12_return_spiral__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 8657404
+    },
+    {
+      "number": 13,
+      "id": "A13_creator_interlock",
+      "name": "Creator interlock",
+      "group": "Participation",
+      "subject": "Three distinct interlocking sculptural links, a rounded triangle an oval and a squared open loop, compact diagonal cluster",
+      "material": "stainless steel with navy enamel inset",
+      "companion_sticker": "Let disciplines collide",
+      "motion": "Grouped diagonal entrance",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Creator interlock: Three distinct interlocking sculptural links, a rounded triangle an oval and a squared open loop, compact diagonal cluster.\nMaterial: stainless steel with navy enamel inset. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Let disciplines collide\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-01bb52c9-1f4a-4381-b682-278d96fb226f.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A13_creator_interlock.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A13_creator_interlock__4K.png",
+      "file_name": "A13_creator_interlock__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 8863423
+    },
+    {
+      "number": 14,
+      "id": "A14_play_burst",
+      "name": "Play burst",
+      "group": "Participation",
+      "subject": "A bold inflated asymmetric four-point starburst with restrained seam lines, substantial volume and no face",
+      "material": "silver inflatable metallic vinyl, tight seams and small wrinkles",
+      "companion_sticker": "Let the audience participate",
+      "motion": "Elastic scale entrance",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Play burst: A bold inflated asymmetric four-point starburst with restrained seam lines, substantial volume and no face.\nMaterial: silver inflatable metallic vinyl, tight seams and small wrinkles. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Let the audience participate\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-1d83c72c-5876-46ab-a593-2522e46f51a1.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A14_play_burst.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A14_play_burst__4K.png",
+      "file_name": "A14_play_burst__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 5107232
+    },
+    {
+      "number": 15,
+      "id": "A15_tournament_steps",
+      "name": "Tournament steps",
+      "group": "Participation",
+      "subject": "Three sculptural podium-like blocks at different heights fitted together with a sweeping chamfer, no numbers or trophy",
+      "material": "oxblood glazed ceramic #B4403F",
+      "companion_sticker": "Design the next moment",
+      "motion": "Staggered upward reveal as whole asset",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Tournament steps: Three sculptural podium-like blocks at different heights fitted together with a sweeping chamfer, no numbers or trophy.\nMaterial: oxblood glazed ceramic #B4403F. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Design the next moment\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-b2b37788-b77d-4c84-8999-39007bf308d0.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A15_tournament_steps.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A15_tournament_steps__4K.png",
+      "file_name": "A15_tournament_steps__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 3722613
+    },
+    {
+      "number": 16,
+      "id": "A16_touch_dome",
+      "name": "Touch dome",
+      "group": "Participation",
+      "subject": "A tactile circular touch dome protruding through a thick rectangular rounded rubber slab, a single integrated ripple groove",
+      "material": "graphite molded rubber #676767, fine satin micrograin",
+      "companion_sticker": "Make media interactive",
+      "motion": "Scale pulse",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Touch dome: A tactile circular touch dome protruding through a thick rectangular rounded rubber slab, a single integrated ripple groove.\nMaterial: graphite molded rubber #676767, fine satin micrograin. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Make media interactive\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-8a8f7b83-4581-44d7-96e8-c0d2f1e01fcc.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A16_touch_dome.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A16_touch_dome__4K.png",
+      "file_name": "A16_touch_dome__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 8497280
+    },
+    {
+      "number": 17,
+      "id": "A17_community_knot",
+      "name": "Community knot",
+      "group": "Participation",
+      "subject": "One substantial knot sculpture made from five tightly knitted tubular strands looping into a compact knot with open gaps",
+      "material": "deep red knitted wool, visible loops and clipped fibers",
+      "companion_sticker": "Understand its people",
+      "motion": "Gentle bob",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Community knot: One substantial knot sculpture made from five tightly knitted tubular strands looping into a compact knot with open gaps.\nMaterial: deep red knitted wool, visible loops and clipped fibers. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Understand its people\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-2de04bf5-09b8-4bd9-931d-c8f1a56ec1c3.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A17_community_knot.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A17_community_knot__4K.png",
+      "file_name": "A17_community_knot__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 11847212
+    },
+    {
+      "number": 18,
+      "id": "A18_participation_toggle",
+      "name": "Participation toggle",
+      "group": "Participation",
+      "subject": "A robust sculptural toggle lever resting at a diagonal on a compact circular pivot, abstract collectible control without labels",
+      "material": "navy glossy enamel and brushed silver hinge",
+      "companion_sticker": "Let the audience participate",
+      "motion": "Small whole-object tilt",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Participation toggle: A robust sculptural toggle lever resting at a diagonal on a compact circular pivot, abstract collectible control without labels.\nMaterial: navy glossy enamel and brushed silver hinge. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Let the audience participate\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-c06b7ace-770b-482d-9c8a-6af00f35234d.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A18_participation_toggle.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A18_participation_toggle__4K.png",
+      "file_name": "A18_participation_toggle__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 6175522
+    },
+    {
+      "number": 19,
+      "id": "A19_cinema_lens",
+      "name": "Cinema lens",
+      "group": "Media",
+      "subject": "A compact chunky cinematic lens object with concentric metal barrel rings and a thick clear amber optical core, no labels or camera body",
+      "material": "graphite satin rubber barrel, silver ridges, amber optical glass",
+      "companion_sticker": "Film meets experience",
+      "motion": "Slow scale reveal",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Cinema lens: A compact chunky cinematic lens object with concentric metal barrel rings and a thick clear amber optical core, no labels or camera body.\nMaterial: graphite satin rubber barrel, silver ridges, amber optical glass. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Film meets experience\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-b29f9cb4-93b1-4724-911e-56337b5807b0.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A19_cinema_lens.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A19_cinema_lens__4K.png",
+      "file_name": "A19_cinema_lens__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 8661140
+    },
+    {
+      "number": 20,
+      "id": "A20_film_ribbon",
+      "name": "Film ribbon",
+      "group": "Media",
+      "subject": "One thick curling film ribbon shaped as an open diagonal S with perforated edge holes and no photographs or rectangular image panels",
+      "material": "smoked navy translucent resin with chrome perforation edges",
+      "companion_sticker": "Films stills sound",
+      "motion": "Diagonal translation",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Film ribbon: One thick curling film ribbon shaped as an open diagonal S with perforated edge holes and no photographs or rectangular image panels.\nMaterial: smoked navy translucent resin with chrome perforation edges. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Films stills sound\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-33974341-5895-4d1a-a2ac-98ae25ccc751.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A20_film_ribbon.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A20_film_ribbon__4K.png",
+      "file_name": "A20_film_ribbon__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 6724169
+    },
+    {
+      "number": 21,
+      "id": "A21_sound_sculpture",
+      "name": "Sound sculpture",
+      "group": "Media",
+      "subject": "Seven vertically extruded rounded bars of varying height integrated onto a thin wave-shaped base, a compact sculptural sound form",
+      "material": "oxblood ceramic with glossy highlight and microtexture",
+      "companion_sticker": "Music meets design",
+      "motion": "Scale pulse",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Sound sculpture: Seven vertically extruded rounded bars of varying height integrated onto a thin wave-shaped base, a compact sculptural sound form.\nMaterial: oxblood ceramic with glossy highlight and microtexture. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Music meets design\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-b5b72ebb-5f2d-4505-a4cf-5766081e92c9.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A21_sound_sculpture.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A21_sound_sculpture__4K.png",
+      "file_name": "A21_sound_sculpture__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 4416117
+    },
+    {
+      "number": 22,
+      "id": "A22_particle_orbit",
+      "name": "Particle orbit",
+      "group": "Media",
+      "subject": "A tilted elliptical grouping of nineteen polished silver beads around one thick central amber glass sphere, clear separate silhouettes",
+      "material": "polished stainless steel beads and amber glass centre",
+      "companion_sticker": "Many audience perspectives",
+      "motion": "Grouped in-plane orbit",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Particle orbit: A tilted elliptical grouping of nineteen polished silver beads around one thick central amber glass sphere, clear separate silhouettes.\nMaterial: polished stainless steel beads and amber glass centre. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Many audience perspectives\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-b9c23c87-f00f-4a83-834b-fd15ca19ee12.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A22_particle_orbit.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A22_particle_orbit__4K.png",
+      "file_name": "A22_particle_orbit__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 6516829
+    },
+    {
+      "number": 23,
+      "id": "A23_iris_mechanism",
+      "name": "Iris mechanism",
+      "group": "Media",
+      "subject": "A robust circular aperture mechanism of six overlapping curved metallic blades with a large clear open centre and visible thickness",
+      "material": "brushed silver metal with navy enamel blade faces",
+      "companion_sticker": "Human judgement sets the direction",
+      "motion": "Small in-plane rotation",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Iris mechanism: A robust circular aperture mechanism of six overlapping curved metallic blades with a large clear open centre and visible thickness.\nMaterial: brushed silver metal with navy enamel blade faces. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Human judgement sets the direction\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-deda6f7c-667c-43b4-9086-fad95911c9ac.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A23_iris_mechanism.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A23_iris_mechanism__4K.png",
+      "file_name": "A23_iris_mechanism__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 8933413
+    },
+    {
+      "number": 24,
+      "id": "A24_media_collision",
+      "name": "Media collision",
+      "group": "Media",
+      "subject": "Two thick folded sculptural sheets crossing at different angles, one smooth one perforated, resembling an experimental editorial collision",
+      "material": "navy enamel and white porcelain with crisp edge highlights",
+      "companion_sticker": "One creative platform",
+      "motion": "Diagonal reveal",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Media collision: Two thick folded sculptural sheets crossing at different angles, one smooth one perforated, resembling an experimental editorial collision.\nMaterial: navy enamel and white porcelain with crisp edge highlights. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"One creative platform\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-695d7142-f782-4ea0-87e4-ec82f776bf13.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A24_media_collision.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A24_media_collision__4K.png",
+      "file_name": "A24_media_collision__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 7452470
+    },
+    {
+      "number": 25,
+      "id": "A25_production_layers",
+      "name": "Production layers",
+      "group": "Systems",
+      "subject": "A compact exploded stack of five differently sized thick rounded rectangular solid slabs separated by clean air gaps, aligned on one vertical axis, no text",
+      "material": "stainless steel, ivory paper, navy enamel, graphite rubber and amber glass layers",
+      "companion_sticker": "Build the production plan",
+      "motion": "Vertical reveal",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Production layers: A compact exploded stack of five differently sized thick rounded rectangular solid slabs separated by clean air gaps, aligned on one vertical axis, no text.\nMaterial: stainless steel, ivory paper, navy enamel, graphite rubber and amber glass layers. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Build the production plan\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-0a50eb59-a93c-4ec8-822e-f49c92c0a646.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A25_production_layers.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A25_production_layers__4K.png",
+      "file_name": "A25_production_layers__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 8528715
+    },
+    {
+      "number": 26,
+      "id": "A26_workflow_connector",
+      "name": "Workflow connector",
+      "group": "Systems",
+      "subject": "A solid three-way pipe junction with one bent branch and thick machined collars, compact asymmetrical industrial sculpture",
+      "material": "navy enamel over metal, polished silver collars",
+      "companion_sticker": "Connect intent to execution",
+      "motion": "Horizontal entrance",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Workflow connector: A solid three-way pipe junction with one bent branch and thick machined collars, compact asymmetrical industrial sculpture.\nMaterial: navy enamel over metal, polished silver collars. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Connect intent to execution\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-ccc0a969-fc2f-4486-93e8-03b60b37e7ff.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A26_workflow_connector.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A26_workflow_connector__4K.png",
+      "file_name": "A26_workflow_connector__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 8438147
+    },
+    {
+      "number": 27,
+      "id": "A27_approval_press",
+      "name": "Approval press",
+      "group": "Systems",
+      "subject": "A sculptural cylindrical hand press with a chunky tapered knob and thick circular blank base, engraved concentric grooves but no text",
+      "material": "brushed stainless steel and graphite rubber grip",
+      "companion_sticker": "Control the approvals",
+      "motion": "Downward settle",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Approval press: A sculptural cylindrical hand press with a chunky tapered knob and thick circular blank base, engraved concentric grooves but no text.\nMaterial: brushed stainless steel and graphite rubber grip. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Control the approvals\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-920d8484-b574-4825-89dc-96658d5e3a50.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A27_approval_press.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A27_approval_press__4K.png",
+      "file_name": "A27_approval_press__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 7824424
+    },
+    {
+      "number": 28,
+      "id": "A28_rights_lock",
+      "name": "Rights lock",
+      "group": "Systems",
+      "subject": "A bold padlock sculpture with a thick asymmetrical curved shackle and stepped rectangular body, no keyhole text or logos",
+      "material": "amber glass body with brushed silver shackle",
+      "companion_sticker": "Agree the rights",
+      "motion": "Upward reveal",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Rights lock: A bold padlock sculpture with a thick asymmetrical curved shackle and stepped rectangular body, no keyhole text or logos.\nMaterial: amber glass body with brushed silver shackle. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Agree the rights\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-bc71959a-136d-458e-99f3-f4ea60a28fb7.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A28_rights_lock.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A28_rights_lock__4K.png",
+      "file_name": "A28_rights_lock__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 8323136
+    },
+    {
+      "number": 29,
+      "id": "A29_precision_caliper",
+      "name": "Precision caliper",
+      "group": "Systems",
+      "subject": "A compact diagonal sculptural precision caliper with thick jaws and a smooth unmarked slider, no scales digits or labels",
+      "material": "brushed silver stainless steel, navy enamel slider",
+      "companion_sticker": "Deliver with precision",
+      "motion": "Diagonal slide",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Precision caliper: A compact diagonal sculptural precision caliper with thick jaws and a smooth unmarked slider, no scales digits or labels.\nMaterial: brushed silver stainless steel, navy enamel slider. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Deliver with precision\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-2975c4f1-f166-4688-a9d7-828e43686e73.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A29_precision_caliper.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A29_precision_caliper__4K.png",
+      "file_name": "A29_precision_caliper__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 5472208
+    },
+    {
+      "number": 30,
+      "id": "A30_learning_accordion",
+      "name": "Learning accordion",
+      "group": "Systems",
+      "subject": "A thick accordion-folded blank book-like sculptural paper object with seven planes, a deep red woven spine and visible paper fibers",
+      "material": "ivory cotton paper and deep red textile binding",
+      "companion_sticker": "Turn learning into a playbook",
+      "motion": "Gentle whole-object tilt",
+      "prompt": "Use case: stylized-concept. Asset type: transparent 3D design element for NOJARA \u00d7 SEVEN website and motion graphics.\nReference inputs show the existing folder's dimensional finish, cinematic studio highlights, thickness, depth and isolated-object presentation. Their LETTERING IS NOT part of the new subject. Do not reproduce any words.\nCreate ONE unique Learning accordion: A thick accordion-folded blank book-like sculptural paper object with seven planes, a deep red woven spine and visible paper fibers.\nMaterial: ivory cotton paper and deep red textile binding. Material realism is essential: real edge thickness, restrained physical bevels, microtexture at credible scale, clean reflections, local occlusion, shadows only on the object, detailed visible side surfaces. Premium contemporary cinema \u00d7 experimental editorial art direction. Crisp three-quarter perspective with modest angle and readable sculptural silhouette. Strong depth and tactile volume, no flat vector look. Entire composition fits square canvas with generous transparent margin, no cropped protrusions.\nGenuinely transparent alpha background, also through all holes and gaps. No floor, backdrop, panel, frame, black rectangle, white rectangle, checkerboard, pedestal, surrounding scene or cast shadow floating outside the object. No extra objects beyond those explicitly in the subject. No people, characters, faces, mascot, words, letters, digits, logos, signatures, watermarks or captions.\nThis is a standalone supporting asset for \"Turn learning into a playbook\" but that phrase must NOT appear in the image. Cinematic lighting from broad softbox upper left and restrained rim, polished realistic render, sharp focus, consistent premium product-render quality. Do not add sparks or particles unless the specified subject contains beads.",
+      "path": "/workspace/scratch/bb5e958f6bce/generated_images/exec-b5ae96f2-262c-4a48-8744-8bf72043e5a5.png",
+      "native_dimensions": [
+        1254,
+        1254
+      ],
+      "native_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/native/A30_learning_accordion.png",
+      "export_path": "/workspace/scratch/bb5e958f6bce/seven_assets_30/PNG_4K/A30_learning_accordion__4K.png",
+      "file_name": "A30_learning_accordion__4K.png",
+      "export_dimensions": [
+        3840,
+        3840
+      ],
+      "upscaled": true,
+      "alpha_validated": true,
+      "file_bytes": 7090329
+    }
+  ],
+  "visual_review": "All 30 inspected individually and in five contact sheets on ivory; subject, depth, material, no text, no people, no clipping reviewed."
+}

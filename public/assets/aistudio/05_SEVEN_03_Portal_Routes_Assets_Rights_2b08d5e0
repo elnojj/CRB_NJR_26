@@ -1,0 +1,78 @@
+﻿SEVEN × NOJARA KNOWLEDGE BASE
+03 - Portal Routes, Assets and Rights
+
+
+CONFIRMED PUBLISHED NAVIGATION
+User-facing hash routes:
+- #welcome - welcome state.
+- #gallery - Our work.
+- #proposal - SEVEN proposal.
+- #studio - NOJARA Studios.
+- #tarek - Tarek Nojara.
+- #hamdan - Abu Hamdan / Mohammed Alhamdan.
+- #activations - destination activations.
+- #proposal-downloads - proposal download area, reached through client aliases.
+
+
+CONFIRMED AGENT PAGE-KEY ALIASES
+- welcome -> #welcome.
+- portal, home, proposal -> #proposal.
+- intro, work, productions -> #gallery.
+- nojara, company, studio, batron, yah -> #studio.
+- tarek -> #tarek.
+- abu-hamdan, mohammed, mhe, hamdan -> #hamdan.
+- destination-activations, activations -> #activations.
+- pilot, next, downloads -> #proposal-downloads.
+
+
+CONTROL
+Some aliases group distinct entities under one visible route. That is an implementation mapping, not evidence that those entities are interchangeable. Seven must preserve project and person boundaries in its language.
+
+
+CONFIRMED PUBLISHED DOWNLOAD MAPPING
+- proposal -> SEVEN_Full_Creative_Proposal_v03.pdf.
+- company -> NOJARA_Full_Company_Profile_v04.pdf.
+- consultant -> Tarek_Nojara_Full_Consultant_Profile_v04.pdf.
+- biography -> Tarek_Nojara_Full_Visual_Bio_v04.pdf.
+- hamdan -> Mohammed_Alhamdan_Profile_and_Involvement_v04.pdf.
+- All five URLs responded successfully as application/pdf on 13 October 2026.
+
+
+ASSET AND RIGHTS STATUS
+CONFIRMED:
+- The five PDFs are publicly reachable from the published portal URL.
+- The proposal document itself requires rights, consent, release, approvals and ownership to be confirmed before delivery.
+- The Mohammed Alhamdan document says availability, rights, responsibilities, approvals and commercial terms must be agreed.
+
+
+UNVERIFIED:
+- Image licenses, photographer credits and model releases for every portal visual.
+- Talent approval for portal publication or SEVEN-facing use.
+- SEVEN logo-use permission and brand approval.
+- Rights to reuse Vimeo films, campaign stills, press screenshots, third-party article content or award imagery.
+- Whether every link labelled Read more, Watch the film or Explore the work points to an approved destination.
+- Whether contact information is approved for this audience.
+- Whether the five downloadable PDFs are the latest authorized versions.
+
+
+DO NOT INFER
+- Public reachability does not prove permission.
+- Inclusion does not prove endorsement, engagement, booking or availability.
+- A profile does not authorize the agent to disclose private commercial terms.
+- A portal route does not grant access to hidden records.
+
+
+RECOMMENDED RIGHTS REGISTER - PROPOSED
+For every image, film, logo, person, quotation and document:
+- asset identifier and exact source URL/file.
+- owner and licensor.
+- permitted audience and territories.
+- permitted channels and formats.
+- start and end date.
+- talent/model release status.
+- edit/crop/AI-use restrictions.
+- approval owner and dated evidence.
+- current status: cleared, conditional, expired, rejected or unknown.
+
+
+No rights register was present in the supplied Drive folder at the time of review.
