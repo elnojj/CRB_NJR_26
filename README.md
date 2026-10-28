@@ -36,12 +36,15 @@ Copy `.env.example` → `.env`. The UI boots without live keys; Gemini / ElevenL
 
 React 19 · Vite 8 · Three.js · Express · Tailwind 4 · Motion · MediaPipe · Firebase client
 
-## Blueprint V2.0 shared-screen upgrade
+## GUI Upgrade v5.0 (cinematic spatial OS)
 
-Incremental GUI upgrade (does not migrate to R3F):
+Full-system design-system pass on the existing app (no R3F rebuild):
 
-- `src/three/CerebroSphere.ts` — transmission glass accents, Fresnel via `<opaque_fragment>`, closed orbital tubes, bounded particle drift + `dispose()`
-- `src/components/PersistentCerebroWidget.tsx` — center overlay with all five state axes
-- `src/components/ProjectHealthStrip.tsx` — bottom Progress / Blockers / Due strip (`unknown` when missing)
-- `src/styles/cerebro-shell.css` — gap-based responsive shell tokens
-- CosmographCanvas: DPR cap 1.5, threshold-based bloom tuning, sphere fx wired into the existing render loop
+- `src/design/cerebroDesignSystem.ts` — locked palette, glass, type, render, camera, motion tokens
+- Unified liquid-glass CSS (`cerebro.tokens.css` / `cerebro-shell.css`)
+- CosmographCanvas: optical glass (IOR 1.48, metalness 0), cinematic bloom 0.24/0.9/0.35, adaptive DPR
+- Persistent voice status dock + bottom health strip (no center-scene occlusion)
+- Live tour registry (`liveTourRegistry.ts`) — “full tour” reads current CTAs / screens
+- Boot timer no longer resets on every App re-render; hosted preview skips gate by default (`?view=loader` to force)
+
+Build id: `cerebro-gui-v5.0.0`

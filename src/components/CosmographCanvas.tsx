@@ -1288,9 +1288,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.12;
     renderer.setClearColor(0x101D27, 1);
-    // Blueprint V2.0: DPR capped at 1.5 (proposed initial GPU budget).
-    renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(1.5, window.devicePixelRatio || 1));
+    // v5.0 adaptive DPR: desktop ≤1.75 · tablet ≤1.5 · phone ≤1.25
+    const dprCap =
+      initW < 768 ? 1.25 : initW < 1200 ? 1.5 : 1.75;
+    renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(dprCap, window.devicePixelRatio || 1));
     renderer.setSize(initW, initH);
+    renderer.toneMappingExposure = 1.0;
     renderer.shadowMap.enabled = !isSoftwareGl;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -1394,8 +1397,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       root.position.copy(center);
 
       const shellGroup = new THREE.Group();
-      // Sphere 01 (HQ) & Sphere 02 (CDE): radius 6.2u per Wireframes v1.1 spec
-      const shellGeo = new THREE.SphereGeometry(6.2, 56, 40);
+      // Sphere 01 (HQ) & Sphere 02 (CDE): radius 6.2u — v5.0 navigation geometry 64×48
+      const shellGeo = new THREE.SphereGeometry(6.2, 64, 48);
 
       const isHq = sphereTag === 'hq';
       const matPreset = isHq ? sphereMaterials.hq : sphereMaterials.cde;
@@ -1418,8 +1421,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         transparent: true,
         opacity: isSoftwareGl ? 0.14 : 0.54,
         roughness: 0.16,
-        metalness: 0.06,
-        ior: 1.48,
+        metalness: 0,
+        ior: GUI_OPTICAL_SHELL_PRESET.ior,
         thickness: 1.4,
         side: THREE.BackSide,
         depthWrite: false,
@@ -1447,21 +1450,24 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           (isHq && matPreset === 'cobalt-glass') || (!isHq && matPreset === 'amber-crystal')
             ? baseShellRoughness
             : matColors.roughness,
-        metalness: isHq ? 0.1 : 0.08,
-        ior: isHq ? GUI_OPTICAL_SHELL_PRESET.ior : 1.48,
-        thickness: isHq ? GUI_OPTICAL_SHELL_PRESET.thickness : 0.55,
-        clearcoat: isHq ? GUI_OPTICAL_SHELL_PRESET.clearcoat : 0.8,
-        clearcoatRoughness: isHq
-          ? GUI_OPTICAL_SHELL_PRESET.clearcoatRoughness
-          : 0.06,
+        metalness: 0,
+        ior: GUI_OPTICAL_SHELL_PRESET.ior,
+        thickness: isHq ? GUI_OPTICAL_SHELL_PRESET.thickness : 0.7,
+        clearcoat: GUI_OPTICAL_SHELL_PRESET.clearcoat,
+        clearcoatRoughness: GUI_OPTICAL_SHELL_PRESET.clearcoatRoughness,
         ...(isHq
           ? {
               attenuationColor: new THREE.Color(0x4c8dff),
-              attenuationDistance: 2.5,
+              attenuationDistance: 2.8,
               emissive: new THREE.Color(0x1a3a6e),
-              emissiveIntensity: 0.35,
+              emissiveIntensity: 0.28,
             }
-          : {}),
+          : {
+              attenuationColor: new THREE.Color(0xf2b66d),
+              attenuationDistance: 2.8,
+              emissive: new THREE.Color(0x2a1f14),
+              emissiveIntensity: 0.22,
+            }),
         side: THREE.FrontSide,
         depthWrite: false,
         wireframe: matColors.wireframeOnly,
@@ -2734,7 +2740,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const h = container.clientHeight || window.innerHeight;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(1.5, window.devicePixelRatio || 1));
+      const dprCap = w < 768 ? 1.25 : w < 1200 ? 1.5 : 1.75;
+      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(dprCap, window.devicePixelRatio || 1));
       renderer.setSize(w, h);
       if (composer) {
         composer.setSize(w, h);

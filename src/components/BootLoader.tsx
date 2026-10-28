@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { BrandLockup } from './BrandLockup';
 import { COLOUR_TOKENS } from '../tokens/colours';
 
@@ -33,6 +33,10 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
   const totalDurationMs = reducedMotion ? 800 : 8000;
   const [elapsedMs, setElapsedMs] = useState(0);
 
+  // Keep a stable ref so App re-renders (inline onTakeOff) cannot reset the 8s timer.
+  const onTakeOffRef = useRef(onTakeOff);
+  onTakeOffRef.current = onTakeOff;
+
   useEffect(() => {
     if (phase !== 'loader') return;
     const start = performance.now();
@@ -45,12 +49,12 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
         completed = true;
         window.clearInterval(interval);
         if (!lockOnComplete) {
-          onTakeOff();
+          onTakeOffRef.current();
         }
       }
     }, 50);
     return () => window.clearInterval(interval);
-  }, [phase, totalDurationMs, lockOnComplete, onTakeOff]);
+  }, [phase, totalDurationMs, lockOnComplete]);
 
   const handleDigitPress = (digit: string) => {
     setPinError(null);

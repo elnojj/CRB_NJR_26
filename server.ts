@@ -11,7 +11,7 @@ import {
 } from './src/data/croCdeGoogleAgentManifest.ts';
 
 const PORT = Number(process.env.PORT) || 3000;
-const BUILD_VERSION = '1.28.0';
+const BUILD_VERSION = '1.29.0';
 const BASELINE_CHECKPOINT_VERSION = '1.25.0';
 
 const DATA_DIR = path.resolve(process.cwd(), 'src/data');

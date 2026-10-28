@@ -85,6 +85,11 @@ import {
 } from './components/PersistentCerebroWidget';
 import { ProjectHealthStrip } from './components/ProjectHealthStrip';
 import { ProjectDownloadModal } from './components/ProjectDownloadModal';
+import { CEREBRO_BUILD_ID, mapVoiceVisualState } from './design/cerebroDesignSystem';
+import {
+  buildLiveTourItinerary,
+  isFullTourIntent,
+} from './utils/liveTourRegistry';
 import {
   WorkspaceAction,
   ActionResult,
@@ -167,6 +172,17 @@ export default function App() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const v = params.get('view')?.toLowerCase();
+      const skip =
+        params.get('skipBoot') === '1' ||
+        params.get('preview') === '1' ||
+        v === 'app' ||
+        v === 'hq' ||
+        v === 'cde';
+      // Hosted static previews should land in the spatial GUI, not the gate.
+      const hostedPreview =
+        /\.tmp\.now$|vercel\.app$|localhost|127\.0\.0\.1/.test(window.location.hostname) &&
+        !v;
+      if (skip || hostedPreview) return true;
       if (v && v !== 'boot' && v !== 'loader' && v !== 'keypad') {
         return true;
       }
@@ -1491,7 +1507,12 @@ export default function App() {
             setTourState((prev) => ({ ...prev, autoAdvance: false }));
           } else {
             const nextMode: TourMode = action.mode || 'full-18-screen';
-            const steps = getTourStepsForMode(nextMode);
+            // v5.0: itinerary from live UI registry, not a stale fixed narration list alone.
+            const liveItinerary = buildLiveTourItinerary(nextMode);
+            const steps =
+              liveItinerary.steps.length > 0
+                ? liveItinerary.steps
+                : getTourStepsForMode(nextMode);
             let startStep = 1;
             if (action.screenId) {
               const foundIdx = steps.findIndex(
@@ -1500,6 +1521,9 @@ export default function App() {
               if (foundIdx >= 0) startStep = foundIdx + 1;
             }
             const firstStop = steps[startStep - 1] || steps[0];
+            setCaptionBubble(
+              `Tour · ${liveItinerary.source} · ${steps.length} stops · ${liveItinerary.liveCtaCount} live CTAs`
+            );
             setTourState((prev) => ({
               ...prev,
               active: true,
@@ -2123,6 +2147,16 @@ export default function App() {
         ? text.replace('__user_voice__:', '').trim()
         : text;
       if (!cleanInput) return;
+
+      // v5.0: "Cerebro, take me on a full tour" → live registry itinerary (interruptible).
+      if (isFullTourIntent(cleanInput)) {
+        appendTranscript('39', cleanInput);
+        executeTypedAction(
+          { type: 'tour_control', action: 'start', mode: 'full-18-screen' },
+          'voice_nl'
+        );
+        return;
+      }
 
       appendTranscript('39', cleanInput);
 
@@ -4206,38 +4240,56 @@ export default function App() {
         );
       })()}
 
-      {/* 6C. Blueprint V2.0 screen-stable center widget (5-axis state) */}
-      <div className="widget-center fixed inset-x-0 top-[22%] z-[28] flex justify-center px-4 pointer-events-none md:top-[28%]">
-        <PersistentCerebroWidget
-          connection={widgetConnection}
-          inputState={widgetInput}
-          outputState={widgetOutput}
-          execution={widgetExecution}
-          persistence={widgetPersistence}
-          actionLine={widgetActionLine}
-          transcriptPreview={latestTranscript || captionBubble || ''}
-          transcriptProvisional={voiceState === 'Listening' || voiceState === 'Thinking'}
-          readinessLabel={voiceState}
-          onMicToggle={() => {
-            setActivePocket('tap-to-talk');
-            setVoiceState((prev) =>
-              prev === 'Listening' || prev === 'Speaking' ? 'Muted' : 'Listening'
-            );
-          }}
-          onStop={() => {
-            handleStopTourImmediately();
-            setVoiceState('Ready');
-            setPendingTaskProposal(null);
-          }}
-          onFullTranscript={() => {
-            setActivePocket('compose');
-            setVoiceExpanded(true);
-          }}
-        />
+      {/* 6C. v5.0 persistent CEREBRO voice status dock — bottom-center, outside scene safe frame */}
+      <div
+        className="fixed z-[28] pointer-events-none px-3"
+        style={{
+          insetInlineStart: '50%',
+          transform: 'translateX(-50%)',
+          bottom: '56px',
+          width: 'min(560px, calc(100% - 24px))',
+        }}
+        data-cerebro-build={CEREBRO_BUILD_ID}
+        data-voice-visual={mapVoiceVisualState(voiceState, {
+          tourActive: tourState.active && !tourState.paused,
+          cameraMoving: telemetry.isMoving,
+        })}
+      >
+        <div className="pointer-events-auto cerebro-glass-panel p-2.5">
+          <PersistentCerebroWidget
+            connection={widgetConnection}
+            inputState={widgetInput}
+            outputState={widgetOutput}
+            execution={widgetExecution}
+            persistence={widgetPersistence}
+            actionLine={widgetActionLine}
+            transcriptPreview={latestTranscript || captionBubble || ''}
+            transcriptProvisional={voiceState === 'Listening' || voiceState === 'Thinking'}
+            readinessLabel={mapVoiceVisualState(voiceState, {
+              tourActive: tourState.active && !tourState.paused,
+              cameraMoving: telemetry.isMoving,
+            })}
+            onMicToggle={() => {
+              setActivePocket('tap-to-talk');
+              setVoiceState((prev) =>
+                prev === 'Listening' || prev === 'Speaking' ? 'Muted' : 'Listening'
+              );
+            }}
+            onStop={() => {
+              handleStopTourImmediately();
+              setVoiceState('Ready');
+              setPendingTaskProposal(null);
+            }}
+            onFullTranscript={() => {
+              setActivePocket('compose');
+              setVoiceExpanded(true);
+            }}
+          />
+        </div>
       </div>
 
-      {/* 6D. Blueprint V2.0 bottom project health strip */}
-      <div className="fixed inset-x-0 bottom-0 z-[30] pointer-events-auto">
+      {/* 6D. v5.0 bottom project health strip */}
+      <div className="fixed inset-x-0 bottom-0 z-[26] pointer-events-auto">
         <ProjectHealthStrip
           progress={healthProgress}
           blockers={healthBlockers}

@@ -138,7 +138,8 @@ export const GUI_MOTION_TOKENS = {
 
 export const GUI_TIMING_TOKENS = {
   ...GUI_MOTION_TOKENS,
-  travelMotionAttenuation: 0.35,
+  // v5.0: reduce secondary motion by ~50% during camera travel.
+  travelMotionAttenuation: 0.5,
 } as const;
 
 export const GUI_WORLD_MOTION_TOKENS = {
@@ -154,17 +155,18 @@ export const GUI_WORLD_MOTION_TOKENS = {
 } as const;
 
 export const GUI_OPTICAL_SHELL_PRESET = {
-  ior: 1.45,
-  roughness: 0.08,
-  transmission: 0.92,
-  thickness: 1.4,
-  clearcoat: 0.6,
-  clearcoatRoughness: 0.05,
+  // CEREBRO GUI Upgrade v5.0 cinematic glass (physically coherent optical shell).
+  ior: 1.48,
+  roughness: 0.09,
+  transmission: 0.88,
+  thickness: 1.1,
+  clearcoat: 0.8,
+  clearcoatRoughness: 0.06,
   bloom: {
-    // Blueprint V2.0 proposed threshold-based bloom tuning (not selective per-object).
-    strength: 0.6,
-    radius: 0.5,
-    threshold: 0.85,
+    // Threshold-based bloom — v5.0 cinematic grade (not per-object selective).
+    strength: 0.24,
+    radius: 0.35,
+    threshold: 0.9,
   },
   grain: {
     strength: 0.025,
