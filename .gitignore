@@ -10,3 +10,4 @@ coverage/
 agent-tools/
 .env
 .vercel
+.vercel/
