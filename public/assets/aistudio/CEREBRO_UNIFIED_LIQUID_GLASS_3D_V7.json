@@ -1,0 +1,741 @@
+{
+  "schema": "cerebro.cinematic-liquid-glass.v7",
+  "target": "EXISTING_CEREBRO_CORE",
+  "instruction": "Audit current repo, preserve all routes, auth, data, 14-state machine, voice, WebGL scene and camera controls. Implement compatible chrome and shaders in place. Do not rebuild, fake functionality, or display technical parameters in public UI.",
+  "references": {
+    "A": "amber particle horizon, dark sparse field",
+    "B": "amber/white dual hemisphere particle sphere",
+    "C": "cobalt glass spheres with pink-blue contained atmosphere and thin orbital rings; PRIMARY"
+  },
+  "tokens": {
+    "canvas": "#101D27",
+    "glass": "#142632",
+    "text": "#F2F6F8",
+    "muted": "#BDCBD3",
+    "cobalt": "#4C8DFF",
+    "focus": "#65ACFF",
+    "rim": "#B4DDFF",
+    "amber": "#F2B66D",
+    "voice": "#9AFFE0",
+    "valid": "#36E88D",
+    "error": "#FF5666",
+    "panelGapPx": 14,
+    "innerGapPx": 12,
+    "panelRadiusPx": 18,
+    "cardRadiusPx": 16,
+    "controlRadiusPx": 10,
+    "pillRadiusPx": 9999,
+    "touchTargetMinPx": 44,
+    "fonts": {
+      "heading": "Sora",
+      "body": "Inter",
+      "mono": "JetBrains Mono",
+      "arabic": "IBM Plex Sans Arabic"
+    }
+  },
+  "glassSystem": {
+    "implementation": "Accessible DOM with translucent surface layers and pseudo-element specular highlight. Real Three.js mesh only for spatial objects. Never blur text or use overall element opacity.",
+    "base": {
+      "background": "rgba(20,38,50,.62)",
+      "backdropBlurPx": 14,
+      "saturate": 1.18,
+      "border": "1px solid rgba(180,221,255,.20)",
+      "innerHighlight": "inset 0 1px 0 rgba(242,246,248,.18)",
+      "shadow": "0 2px 8px rgba(0,0,0,.18),0 16px 40px rgba(0,0,0,.24)",
+      "specularOpacity": 0.1
+    },
+    "raised": {
+      "background": "rgba(20,38,50,.78)",
+      "backdropBlurPx": 16,
+      "specularOpacity": 0.16
+    },
+    "media": {
+      "background": "rgba(11,20,28,.90)",
+      "backdropBlurPx": 6,
+      "excludeMediaFromGrain": true,
+      "excludeMediaFromBloom": true
+    },
+    "fallback": {
+      "background": "rgba(20,38,50,.96)",
+      "backdropBlurPx": 0
+    },
+    "maxOverlappingBlurLayers": 2,
+    "contrast": "Check on brightest live scene and provide solid backing as necessary"
+  },
+  "components": {
+    "panel": {
+      "surface": "raised",
+      "radiusPx": 18,
+      "paddingPx": 20,
+      "phonePaddingPx": 16,
+      "gapPx": 14,
+      "headerHeightPx": 48,
+      "mountDurationMs": 180,
+      "mountTranslateYPx": 6,
+      "actions": [
+        "open",
+        "close",
+        "collapse",
+        "restore",
+        "focus"
+      ]
+    },
+    "card": {
+      "surface": "base",
+      "radiusPx": 16,
+      "paddingPx": 16,
+      "gapPx": 12,
+      "hoverTranslateYPx": -2,
+      "hoverDurationMs": 160,
+      "noNestedBlur": true
+    },
+    "button": {
+      "minSizePx": 44,
+      "radiusPx": 10,
+      "paddingInlinePx": 14,
+      "variants": {
+        "ghost": {
+          "background": "rgba(20,38,50,.32)",
+          "border": "rgba(180,221,255,.24)"
+        },
+        "glass": {
+          "background": "rgba(20,38,50,.64)",
+          "border": "rgba(180,221,255,.30)"
+        },
+        "primary": {
+          "background": "rgba(76,141,255,.84)",
+          "onePerSurface": true
+        },
+        "danger": {
+          "background": "rgba(255,86,102,.14)",
+          "onlyForDestructive": true
+        }
+      },
+      "focusRingPx": 2,
+      "hoverMs": 140,
+      "maxScale": 1.015
+    },
+    "chip": {
+      "heightPx": 32,
+      "radiusPx": 9999,
+      "paddingInlinePx": 12,
+      "selectedBackground": "rgba(76,141,255,.16)"
+    },
+    "tabs": {
+      "heightPx": 44,
+      "gapPx": 8,
+      "activeUnderlinePx": 2
+    },
+    "inspector": {
+      "desktopWidthPx": 340,
+      "tabletWidthPx": 304,
+      "scroll": "auto"
+    },
+    "voice": {
+      "orbDiameterPx": 48,
+      "collapsedDesktopPx": [
+        460,
+        76
+      ],
+      "collapsedTabletPx": [
+        360,
+        76
+      ],
+      "mobileWidth": "calc(100vw - 16px)",
+      "accent": "#9AFFE0",
+      "persistent": true,
+      "states": [
+        "idle",
+        "listening",
+        "thinking",
+        "executing",
+        "travelling",
+        "speaking",
+        "paused",
+        "interrupted",
+        "error"
+      ]
+    },
+    "mediaViewer": {
+      "maxDesktopPx": [
+        1080,
+        780
+      ],
+      "phoneMaxHeightDvh": 82,
+      "toolbarPx": 48,
+      "realPlayback": true,
+      "restorePreviousPosition": true
+    },
+    "dialog": {
+      "radiusPx": 20,
+      "maxWidthPx": 520,
+      "focusTrap": true
+    }
+  },
+  "responsive": [
+    {
+      "name": "phone",
+      "viewport": [
+        390,
+        844
+      ],
+      "panels": 1,
+      "sceneSafeRect": [
+        12,
+        120,
+        366,
+        288
+      ],
+      "voiceRect": [
+        8,
+        748,
+        374,
+        80
+      ]
+    },
+    {
+      "name": "ipadPortrait",
+      "viewport": [
+        820,
+        1180
+      ],
+      "panels": 1,
+      "sceneSafeRect": [
+        16,
+        80,
+        788,
+        620
+      ],
+      "voiceRect": [
+        176,
+        1080,
+        468,
+        76
+      ]
+    },
+    {
+      "name": "ipadLandscape",
+      "viewport": [
+        1180,
+        820
+      ],
+      "panels": 2,
+      "sceneSafeRect": [
+        280,
+        80,
+        620,
+        620
+      ],
+      "voiceRect": [
+        388,
+        724,
+        404,
+        72
+      ]
+    },
+    {
+      "name": "desktop",
+      "viewport": [
+        1440,
+        900
+      ],
+      "panels": 4,
+      "sceneSafeRect": [
+        344,
+        80,
+        752,
+        704
+      ],
+      "voiceRect": [
+        480,
+        804,
+        480,
+        72
+      ]
+    },
+    {
+      "name": "wide",
+      "viewport": [
+        1920,
+        1080
+      ],
+      "panels": 4,
+      "sceneSafeRect": [
+        376,
+        80,
+        1168,
+        876
+      ],
+      "voiceRect": [
+        704,
+        984,
+        512,
+        72
+      ]
+    }
+  ],
+  "webgl": {
+    "singleRenderer": true,
+    "renderer": "Preserve installed WebGL/R3F; test WebGPU/TSL separately, never blindly mix effects",
+    "sphere": {
+      "preserveCanonicalRadius": true,
+      "heroSegments": [
+        96,
+        64
+      ],
+      "navigationSegments": [
+        64,
+        48
+      ],
+      "mobileSegments": [
+        40,
+        32
+      ],
+      "interiorMaxRadiusRatio": 0.78,
+      "projectNodeRadiusRatio": [
+        0.08,
+        0.14
+      ]
+    },
+    "opticalGlass": {
+      "ior": 1.48,
+      "roughness": 0.08,
+      "transmission": 0.88,
+      "clearcoat": 0.8,
+      "clearcoatRoughness": 0.06,
+      "metalness": 0,
+      "fresnelExponent": 4,
+      "rimIntensity": 0.25
+    },
+    "particleHorizon": {
+      "countDesktop": 24000,
+      "countTablet": 12000,
+      "countPhone": 5000,
+      "pointSizePx": 1.4,
+      "densityExponent": 2.2,
+      "seed": 3939,
+      "horizonBandNormalized": 0.12,
+      "rotationRadPerSec": 0.012
+    },
+    "dualHemisphere": {
+      "upper": "#F2B66D",
+      "lower": "#F2F6F8",
+      "equatorDarkBandNormalized": 0.14,
+      "seed": 3939
+    },
+    "atmosphere": {
+      "blue": "#65ACFF",
+      "pink": "reference-only internal tint, not a global UI color",
+      "density": 0.38,
+      "noiseOctavesDesktop": 4,
+      "noiseOctavesPhone": 3,
+      "warpStrength": 0.12,
+      "cycleSeconds": 30
+    },
+    "rings": {
+      "count": 2,
+      "tubeRadiusWorldUnits": 0.035,
+      "segments": 96
+    },
+    "post": {
+      "exposure": 1.0,
+      "selectiveBloomStrength": 0.24,
+      "bloomThreshold": 0.9,
+      "bloomRadius": 0.35,
+      "saturation": 0.96,
+      "contrast": 1.04,
+      "vignetteStrength": 0.14,
+      "grainStrength": 0.025,
+      "grainUpdateHz": 24,
+      "chromaticAberration": 0,
+      "noDoubleToneMapping": true,
+      "excludeDOMAndMedia": true
+    },
+    "loopsSeconds": {
+      "sphere": 210,
+      "rings": 55,
+      "atmosphere": 30,
+      "particles": 36,
+      "fresnel": 8
+    }
+  },
+  "camera": {
+    "sensor": "36x24mm equivalent",
+    "presets": [
+      {
+        "id": "overview",
+        "lensMm": 28,
+        "verticalFovDeg": 46.4,
+        "durationMs": 3200
+      },
+      {
+        "id": "approach",
+        "lensMm": 35,
+        "verticalFovDeg": 37.8,
+        "durationMs": 2400
+      },
+      {
+        "id": "focus",
+        "lensMm": 50,
+        "verticalFovDeg": 27,
+        "durationMs": 1800
+      },
+      {
+        "id": "detail",
+        "lensMm": 85,
+        "verticalFovDeg": 16.1,
+        "durationMs": 1400
+      }
+    ],
+    "movement": "interruptible arc-length spline; quaternion orientation; save and restore pose",
+    "settleAngleDeg": 0.25,
+    "settlePositionRelativeRadius": 0.02,
+    "settleFrames": 3,
+    "publicTechnicalOverlay": false
+  },
+  "media": {
+    "reference": "https://tympanus.net/codrops/2026/09/08/building-an-infinite-liquid-glass-grid-with-three-js-webgpu-and-tsl/",
+    "tubeReference": "https://tympanus.net/Tutorials/3DImageTubeR3F/",
+    "testCollection": "Hotspot_26_media; verify authorized direct source URLs",
+    "tube": {
+      "radiusWorldUnits": 5.4,
+      "columns": 8,
+      "visibleRows": 3,
+      "maxTiles": 24,
+      "tileWidthWorldUnits": 3.2,
+      "rowPitchWorldUnits": 2.25,
+      "focusMs": 650,
+      "fullViewMs": 1100,
+      "returnMs": 850
+    },
+    "video": "VideoTexture only for playable direct video; use YouTube/Vimeo supported player APIs for embeds; never fake play state",
+    "documents": "PDF rasterized textures plus accessible text layer",
+    "restoreExactGalleryPosition": true
+  },
+  "agent": {
+    "oneActionRegistry": true,
+    "inputs": [
+      "mouse",
+      "touch",
+      "keyboard",
+      "voice",
+      "tour"
+    ],
+    "receipts": [
+      "accepted",
+      "running",
+      "completed",
+      "blocked",
+      "failed",
+      "cancelled"
+    ],
+    "completedOnlyAfterObservedState": true,
+    "tour": "derive from live UI; no obsolete fixed tour",
+    "stop": "cancel speech, cues, tour and autonomous camera movement",
+    "noFalseWrites": true
+  },
+  "screens": [
+    {
+      "id": "S01",
+      "name": "Gate and loader",
+      "chromePrimitive": "panel",
+      "cameraPreset": "overview",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "auth and original brand artwork preserved"
+    },
+    {
+      "id": "S02",
+      "name": "Arrival",
+      "chromePrimitive": "voice",
+      "cameraPreset": "overview",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "current UI action registry, no old tour"
+    },
+    {
+      "id": "S03",
+      "name": "Briefing",
+      "chromePrimitive": "panel",
+      "cameraPreset": "focus",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "preserve actual component behavior"
+    },
+    {
+      "id": "S04",
+      "name": "Portfolio",
+      "chromePrimitive": "panel",
+      "cameraPreset": "overview",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "preserve actual component behavior"
+    },
+    {
+      "id": "S05",
+      "name": "Project detail",
+      "chromePrimitive": "inspector",
+      "cameraPreset": "focus",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "WebGL media tube and real image/video/PDF full view"
+    },
+    {
+      "id": "S06",
+      "name": "Tasks",
+      "chromePrimitive": "panel",
+      "cameraPreset": "focus",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "preserve actual component behavior"
+    },
+    {
+      "id": "S07",
+      "name": "Insights",
+      "chromePrimitive": "card",
+      "cameraPreset": "focus",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "preserve actual component behavior"
+    },
+    {
+      "id": "S08",
+      "name": "Gmail",
+      "chromePrimitive": "panel",
+      "cameraPreset": "focus",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "preserve actual component behavior"
+    },
+    {
+      "id": "S09",
+      "name": "Calendar",
+      "chromePrimitive": "panel",
+      "cameraPreset": "focus",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "preserve actual component behavior"
+    },
+    {
+      "id": "S10",
+      "name": "Files",
+      "chromePrimitive": "panel",
+      "cameraPreset": "focus",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "preserve actual component behavior"
+    },
+    {
+      "id": "S11",
+      "name": "File viewer",
+      "chromePrimitive": "mediaViewer",
+      "cameraPreset": "detail",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "WebGL media tube and real image/video/PDF full view"
+    },
+    {
+      "id": "S12",
+      "name": "Media",
+      "chromePrimitive": "mediaViewer",
+      "cameraPreset": "focus",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "WebGL media tube and real image/video/PDF full view"
+    },
+    {
+      "id": "S13",
+      "name": "People and RACI",
+      "chromePrimitive": "panel",
+      "cameraPreset": "focus",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "preserve actual component behavior"
+    },
+    {
+      "id": "S14",
+      "name": "Crew",
+      "chromePrimitive": "panel",
+      "cameraPreset": "focus",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "preserve actual component behavior"
+    },
+    {
+      "id": "S15",
+      "name": "Baghira and Kinzo",
+      "chromePrimitive": "panel",
+      "cameraPreset": "focus",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "preserve actual component behavior"
+    },
+    {
+      "id": "S16",
+      "name": "Settings and hands",
+      "chromePrimitive": "panel",
+      "cameraPreset": "focus",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "preserve actual component behavior"
+    },
+    {
+      "id": "S17",
+      "name": "CDE world",
+      "chromePrimitive": "panel",
+      "cameraPreset": "approach",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "preserve actual component behavior"
+    },
+    {
+      "id": "S18",
+      "name": "Dynamic domains",
+      "chromePrimitive": "panel",
+      "cameraPreset": "overview",
+      "requirements": [
+        "use shared liquid glass tokens",
+        "detach surfaces by 14px or collapse when no room",
+        "retain existing real actions and data",
+        "keep real DOM text crisp and WebGL scene unobstructed",
+        "voice and touch use same registered actions",
+        "test phone, iPad and desktop"
+      ],
+      "special": "current UI action registry, no old tour"
+    }
+  ],
+  "phases": [
+    "read-only audit",
+    "canonical tokens and glass primitives",
+    "responsive panel collision manager",
+    "3D materials/particles/post",
+    "camera choreography",
+    "media viewers and WebGL gallery",
+    "voice/CTA alignment",
+    "responsive and regression QA"
+  ],
+  "acceptance": {
+    "mustPass": [
+      "typecheck",
+      "lint",
+      "tests",
+      "build",
+      "14-state model unchanged",
+      "voice/routes/auth preserved",
+      "all panels separated >=14px",
+      "media actually plays",
+      "no DOM interception by canvas",
+      "RTL and reduced motion",
+      "5 viewport captures"
+    ],
+    "report": [
+      "changed files",
+      "before/after screenshots",
+      "performance traces",
+      "unverified features",
+      "preview URL if authorized"
+    ]
+  }
+}

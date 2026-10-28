@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { LG_V7_OPTICAL, LG_V7_PARTICLES } from '../design/liquidGlassV7';
 import { WEBGL_RENDER_ORDER } from './renderOrder';
 
 export interface CerebroSphere {
@@ -39,16 +40,17 @@ export function createCerebroSphere(
   let material: THREE.MeshPhysicalMaterial | null = null;
 
   if (!omitCore) {
-    const geometry = new THREE.SphereGeometry(6.2, 64, 64);
+    const [segW, segH] = LG_V7_PARTICLES.sphereSegments.navigation;
+    const geometry = new THREE.SphereGeometry(6.2, segW, segH);
     material = new THREE.MeshPhysicalMaterial({
       color: 0x4c8dff,
-      metalness: 0.1,
-      roughness: 0.08,
-      transmission: 0.92,
-      thickness: 1.4,
-      ior: 1.45,
-      clearcoat: 0.6,
-      clearcoatRoughness: 0.05,
+      metalness: LG_V7_OPTICAL.metalness,
+      roughness: LG_V7_OPTICAL.roughness,
+      transmission: LG_V7_OPTICAL.transmission,
+      thickness: LG_V7_OPTICAL.thickness,
+      ior: LG_V7_OPTICAL.ior,
+      clearcoat: LG_V7_OPTICAL.clearcoat,
+      clearcoatRoughness: LG_V7_OPTICAL.clearcoatRoughness,
       attenuationColor: new THREE.Color(0x4c8dff),
       attenuationDistance: 2.5,
       emissive: new THREE.Color(0x1a3a6e),
@@ -71,9 +73,9 @@ export function createCerebroSphere(
         vec3 viewDir = normalize(vViewPosition);
         float fresnel = pow(
           1.0 - clamp(dot(normalize(normal), viewDir), 0.0, 1.0),
-          2.5
+          ${LG_V7_OPTICAL.fresnelExponent.toFixed(1)}
         );
-        outgoingLight += vec3(0.45, 0.7, 1.0) * fresnel * 0.8;
+        outgoingLight += vec3(0.45, 0.7, 1.0) * fresnel * ${LG_V7_OPTICAL.rimIntensity.toFixed(2)};
         #include <opaque_fragment>
       `
       );
@@ -86,17 +88,24 @@ export function createCerebroSphere(
     group.add(sphere);
   }
 
-  const arcRadii = [7.8, 8.6, 9.4];
+  // v7: exactly two thin orbital rings
+  const arcRadii = [7.8, 8.9].slice(0, LG_V7_PARTICLES.rings.count);
   arcRadii.forEach((r, i) => {
     const curve = new THREE.EllipseCurve(0, 0, r, r * 0.35, 0, Math.PI * 2, false, 0);
     const points3D = curve
-      .getPoints(80)
+      .getPoints(LG_V7_PARTICLES.rings.segments)
       .slice(0, -1)
       .map((p) => new THREE.Vector3(p.x, p.y, 0));
     const path = new THREE.CatmullRomCurve3(points3D, true);
-    const tubeGeo = new THREE.TubeGeometry(path, 64, 0.018, 8, true);
+    const tubeGeo = new THREE.TubeGeometry(
+      path,
+      LG_V7_PARTICLES.rings.segments,
+      LG_V7_PARTICLES.rings.tubeRadiusWorldUnits,
+      8,
+      true
+    );
     const arcMat = new THREE.MeshBasicMaterial({
-      color: i === 1 ? 0x7ce0b8 : 0xb4ddff,
+      color: i === 1 ? 0xb4ddff : 0x65acff,
       transparent: true,
       opacity: 0.55,
       depthWrite: false,

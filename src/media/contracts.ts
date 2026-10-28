@@ -42,7 +42,7 @@ export const MEDIA_GLASS_PARAMS = {
   fresnelF0: 0.04,
   environmentIntensity: 0.18,
   rimWidthRatio: 0.018,
-  rimIntensity: 0.22,
+  rimIntensity: 0.25,
   hoverRimMultiplier: 1.35,
   selectedRimMultiplier: 1.6,
   tintRgb: [0.95, 0.98, 1.0] as const,

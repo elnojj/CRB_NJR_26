@@ -95,21 +95,19 @@
   --type-technical: 12px;
   --type-button: 13.5px;
 
-  /* v5.0 geometry */
-  --radius-panel: 16px;
-  --radius-card: 12px;
+  /* Liquid Glass v7 geometry + surfaces */
+  --radius-panel: 18px;
+  --radius-card: 16px;
   --radius-button: 10px;
-  --radius-chip: 8px;
+  --radius-chip: 9999px;
   --touch-min: 44px;
-  --control-gap: 8px;
-
-  /* v5.0 liquid glass */
-  --glass-primary: rgba(20, 38, 50, 0.68);
-  --glass-focused: rgba(20, 38, 50, 0.82);
-  --glass-media: rgba(16, 29, 39, 0.94);
-  --glass-blur-desktop: 12px;
-  --glass-blur-mobile: 8px;
-  --glass-inner-highlight: rgba(255, 255, 255, 0.14);
+  --control-gap: 14px;
+  --glass-primary: rgba(20, 38, 50, 0.62);
+  --glass-focused: rgba(20, 38, 50, 0.78);
+  --glass-media: rgba(11, 20, 28, 0.9);
+  --glass-blur-desktop: 16px;
+  --glass-blur-mobile: 14px;
+  --glass-inner-highlight: rgba(242, 246, 248, 0.18);
 }
 
 .cerebro-glass-panel {

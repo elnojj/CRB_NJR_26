@@ -72,29 +72,33 @@ export const GUI_PALETTE_ROLES = {
   error: '#FF5666', // Actual error, blocked/destructive state only; ordinary Stop uses neutral/focus styling
 } as const;
 
+/** Liquid Glass v7 DOM chrome — see src/design/liquidGlassV7.ts */
 export const GUI_GLASS_TOKENS = {
-  background: 'rgba(20, 38, 50, 0.76)',
-  chromeBackground: 'rgba(20, 38, 50, 0.58)',
-  contentBackground: 'rgba(20, 38, 50, 0.76)',
-  fallbackBackground: 'rgba(20, 38, 50, 0.94)',
-  chromeAlpha: 0.58,
-  contentAlpha: 0.76,
-  fallbackAlpha: 0.94,
-  borderAlpha: 0.14,
-  blurDesktopPx: 12,
-  blurMobilePx: 8,
-  saturate: 1.2,
-  backdropFilter: 'blur(12px) saturate(1.2)',
-  backdropFilterMobile: 'blur(8px) saturate(1.2)',
-  border: '1px solid rgba(255, 255, 255, 0.14)',
+  background: 'rgba(20, 38, 50, 0.78)',
+  chromeBackground: 'rgba(20, 38, 50, 0.62)',
+  contentBackground: 'rgba(20, 38, 50, 0.78)',
+  fallbackBackground: 'rgba(20, 38, 50, 0.96)',
+  chromeAlpha: 0.62,
+  contentAlpha: 0.78,
+  fallbackAlpha: 0.96,
+  borderAlpha: 0.2,
+  blurDesktopPx: 16,
+  blurMobilePx: 14,
+  saturate: 1.18,
+  backdropFilter: 'blur(16px) saturate(1.18)',
+  backdropFilterMobile: 'blur(14px) saturate(1.18)',
+  border: '1px solid rgba(180, 221, 255, 0.20)',
   shadow:
-    '0 18px 48px rgba(4, 10, 16, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.10)',
-  radiusPx: 16,
+    '0 2px 8px rgba(0, 0, 0, 0.18), 0 16px 40px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(242, 246, 248, 0.18)',
+  radiusPx: 18,
   controlRadiusPx: 10,
-  chipRadiusPx: 8,
-  headerH: 52,
-  tabRowH: 40,
-  bodyPadPx: 16,
+  chipRadiusPx: 9999,
+  headerH: 48,
+  tabRowH: 44,
+  bodyPadPx: 20,
+  panelGapPx: 14,
+  innerGapPx: 12,
+  cardRadiusPx: 16,
 } as const;
 
 export const GUI_TYPOGRAPHY_TOKENS = {
@@ -139,8 +143,9 @@ export const GUI_TOUCH_TOKENS = {
   minTargetPx: 44,
   preferredTargetPx: 48,
   minControlGapPx: 8,
-  minGapPx: 16,
-  panelCollisionMarginPx: 16,
+  /** v7: detach surfaces by ≥14px */
+  minGapPx: 14,
+  panelCollisionMarginPx: 14,
   sphereSafePaddingPx: 24,
 } as const;
 
@@ -178,31 +183,36 @@ export const GUI_WORLD_MOTION_TOKENS = {
 } as const;
 
 export const GUI_OPTICAL_SHELL_PRESET = {
-  // Neural Observatory v1.1 cinematic glass (physically coherent optical shell).
+  // Liquid Glass v7 optical shell (reference C primary atmospheric glass).
   ior: 1.48,
-  roughness: 0.07, // HQ 0.06 · CDE 0.08 (midpoint for shared presets)
-  roughnessHq: 0.06,
+  roughness: 0.08,
+  roughnessHq: 0.08,
   roughnessCde: 0.08,
   transmission: 0.88,
   thickness: 1.1,
   clearcoat: 0.8,
   clearcoatRoughness: 0.06,
+  metalness: 0,
+  fresnelExponent: 4,
+  rimIntensity: 0.25,
   bloom: {
-    // Neural Observatory v1.1 selective bloom — Fresnel / voice / pulses / valid only.
-    strength: 0.45,
+    // Selective bloom only — never on DOM/text/media content.
+    strength: 0.24,
     radius: 0.35,
-    threshold: 0.82,
+    threshold: 0.9,
   },
   grain: {
-    strength: 0.022,
+    strength: 0.025,
     seedUpdatesHz: 24,
     pauseOnStop: true,
     pauseOnReducedMotion: true,
     monochromatic: true,
   },
-  chromaticAberration: 0.0018,
+  chromaticAberration: 0,
   vignetteStrength: 0.14,
-  toneMappingExposure: 1.05,
+  toneMappingExposure: 1.0,
+  saturation: 0.96,
+  contrast: 1.04,
 } as const;
 
 /**

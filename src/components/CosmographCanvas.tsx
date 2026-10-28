@@ -34,7 +34,9 @@ import {
 import { GuiRect } from '../gui/CollisionManager';
 import { ProjectedTargetScreenCoords } from '../gui/GuiFocusOverlay';
 import { CerebroSphere, createCerebroSphere } from '../three/CerebroSphere';
+import { createParticleHorizon } from '../three/particleHorizon';
 import { WEBGL_RENDER_ORDER } from '../three/renderOrder';
+import { LG_V7_PARTICLES } from '../design/liquidGlassV7';
 import {
   HOTSPOT26_COLLECTION_ID,
   MediaGrid3D,
@@ -390,6 +392,8 @@ const CinemaFilmGrainVignetteShader = {
     uGrainIntensity: { value: GUI_OPTICAL_SHELL_PRESET.grain.strength },
     uChromaticAmount: { value: GUI_OPTICAL_SHELL_PRESET.chromaticAberration },
     uVignetteStrength: { value: GUI_OPTICAL_SHELL_PRESET.vignetteStrength },
+    uSaturation: { value: GUI_OPTICAL_SHELL_PRESET.saturation ?? 0.96 },
+    uContrast: { value: GUI_OPTICAL_SHELL_PRESET.contrast ?? 1.04 },
   },
   vertexShader: `
     varying vec2 vUv;
@@ -404,6 +408,8 @@ const CinemaFilmGrainVignetteShader = {
     uniform float uGrainIntensity;
     uniform float uChromaticAmount;
     uniform float uVignetteStrength;
+    uniform float uSaturation;
+    uniform float uContrast;
     varying vec2 vUv;
 
     float hash12(vec2 p) {
@@ -416,7 +422,7 @@ const CinemaFilmGrainVignetteShader = {
       vec2 dir = vUv - 0.5;
       float dist = length(dir);
 
-      // Pass 3 — refractive chromatic aberration (edge-weighted)
+      // Liquid Glass v7: chromaticAberration defaults to 0 (no edge CA on readable scenes)
       float ca = uChromaticAmount * smoothstep(0.15, 0.72, dist);
       vec2 caDir = dist > 0.0001 ? normalize(dir) : vec2(0.0);
       float r = texture2D(tDiffuse, vUv + caDir * ca).r;
@@ -424,12 +430,15 @@ const CinemaFilmGrainVignetteShader = {
       float b = texture2D(tDiffuse, vUv - caDir * ca).b;
       vec3 graded = vec3(r, g, b);
 
-      // Controlled dark navy vignette (#05090E)
+      // Saturation / contrast (scene only — DOM is composited above)
+      float luma = dot(graded, vec3(0.2126, 0.7152, 0.0722));
+      graded = mix(vec3(luma), graded, uSaturation);
+      graded = (graded - 0.5) * uContrast + 0.5;
+
       float vig = smoothstep(0.34, 0.88, dist);
       vec3 navyVignette = vec3(0.0196, 0.0353, 0.0549);
       graded = mix(graded, navyVignette, vig * uVignetteStrength);
 
-      // Pass 4 — 35mm anamorphic micro-grain @ 24Hz
       float quantizedTime = floor(uTime * 24.0) / 24.0;
       float grain = (hash12(vUv * 512.0 + vec2(quantizedTime * 37.0, -quantizedTime * 23.0)) - 0.5) * uGrainIntensity;
       graded += vec3(grain);
@@ -456,26 +465,15 @@ function buildLiquidGlassGalaxySphere(
   const sizes = new Float32Array(particleCount);
   const phases = new Float32Array(particleCount);
 
+  // Reference B dual-hemisphere (CDE) / Reference C cobalt atmosphere (HQ)
+  const dual = LG_V7_PARTICLES.dualHemisphere;
   const paletteHex =
     sphereTag === 'hq'
-      ? [
-          '#B4DDFF',
-          '#4C8DFF',
-          '#65ACFF',
-          '#5CC8D7',
-          '#7CE0B8',
-          '#9DB8D6',
-        ]
-      : [
-          '#F2B66D',
-          '#FFF1D4',
-          '#B4DDFF',
-          '#5CC8D7',
-          '#7CE0B8',
-          '#4C8DFF',
-        ];
+      ? ['#B4DDFF', '#4C8DFF', '#65ACFF', '#5CC8D7', '#7CE0B8', '#9DB8D6']
+      : [dual.upper, dual.lower, '#FFF1D4', dual.upper, dual.lower, '#3A2A18'];
 
   const arms = 4;
+  const equatorBand = dual.equatorDarkBandNormalized;
   for (let i = 0; i < particleCount; i++) {
     const layer = i % 3; // 3-layer vertical thickness & orbital stratification
     const armIndex = i % arms;
@@ -493,7 +491,7 @@ function buildLiquidGlassGalaxySphere(
 
     const x = Math.cos(spinAngle + armSpread) * radius + rand2 * 0.25;
     const z = Math.sin(spinAngle + armSpread) * radius + rand1 * 0.25;
-    const y = rand3 * layerSpreadY * (1 - t * 0.38);
+    let y = rand3 * layerSpreadY * (1 - t * 0.38);
 
     // Clamp strictly inside the 7.8u interior of the 8.2u liquid glass sphere
     const vLen = Math.hypot(x, y, z);
@@ -503,7 +501,19 @@ function buildLiquidGlassGalaxySphere(
     positions[i * 3 + 1] = y * scaleClamp;
     positions[i * 3 + 2] = z * scaleClamp;
 
-    _scratchColor.set(paletteHex[i % paletteHex.length]);
+    y = positions[i * 3 + 1];
+    if (sphereTag === 'cde') {
+      // Dual hemisphere: upper amber, lower ivory, dark equator band
+      if (Math.abs(y) < equatorBand * 7.65) {
+        _scratchColor.set('#1A1410');
+      } else if (y >= 0) {
+        _scratchColor.set(dual.upper);
+      } else {
+        _scratchColor.set(dual.lower);
+      }
+    } else {
+      _scratchColor.set(paletteHex[i % paletteHex.length]);
+    }
     colors[i * 3] = _scratchColor.r;
     colors[i * 3 + 1] = _scratchColor.g;
     colors[i * 3 + 2] = _scratchColor.b;
@@ -1339,6 +1349,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x101D27, 0.015);
+    // Liquid Glass v7 reference A — amber particle horizon behind dual spheres
+    let particleHorizon = createParticleHorizon(scene, initW);
 
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
     scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
@@ -1421,7 +1433,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       const shellGroup = new THREE.Group();
       // Sphere 01 (HQ) & Sphere 02 (CDE): radius 6.2u — v5.0 navigation geometry 64×48
-      const shellGeo = new THREE.SphereGeometry(6.2, 64, 48);
+      const [segW, segH] =
+        initW < 768
+          ? LG_V7_PARTICLES.sphereSegments.mobile
+          : initW < 1280
+            ? LG_V7_PARTICLES.sphereSegments.navigation
+            : LG_V7_PARTICLES.sphereSegments.hero;
+      const shellGeo = new THREE.SphereGeometry(6.2, segW, segH);
 
       const isHq = sphereTag === 'hq';
       const matPreset = isHq ? sphereMaterials.hq : sphereMaterials.cde;
@@ -1523,9 +1541,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               vec3 viewDir = normalize(vViewPosition);
               float fresnelV2 = pow(
                 1.0 - clamp(dot(normalize(normal), viewDir), 0.0, 1.0),
-                2.5
+                ${GUI_OPTICAL_SHELL_PRESET.fresnelExponent.toFixed(1)}
               );
-              outgoingLight += vec3(0.45, 0.7, 1.0) * fresnelV2 * 0.8;
+              outgoingLight += vec3(0.45, 0.7, 1.0) * fresnelV2 * ${GUI_OPTICAL_SHELL_PRESET.rimIntensity.toFixed(2)};
               #include <opaque_fragment>
             `
             );
@@ -1540,12 +1558,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               '#include <dithering_fragment>',
               `#include <dithering_fragment>
               float fresnel = pow(1.0 - abs(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0))), ${
-                isBack ? '1.9' : '2.6'
+                isBack ? '2.2' : GUI_OPTICAL_SHELL_PRESET.fresnelExponent.toFixed(1)
               });
               vec3 causticRim = vec3(${rimColVec.r.toFixed(3)}, ${rimColVec.g.toFixed(3)}, ${rimColVec.b.toFixed(3)});
               vec3 causticBody = vec3(${bodyColVec.r.toFixed(3)}, ${bodyColVec.g.toFixed(3)}, ${bodyColVec.b.toFixed(3)});
               float causticWave = 0.5 + 0.5 * sin(uTime * 1.6 + gl_FragCoord.x * 0.012 + gl_FragCoord.y * 0.012);
-              vec3 rimTint = mix(causticBody, causticRim, causticWave) * fresnel * (0.34 + uAudioRms * 0.45);
+              vec3 rimTint = mix(causticBody, causticRim, causticWave) * fresnel * (${GUI_OPTICAL_SHELL_PRESET.rimIntensity.toFixed(2)} + uAudioRms * 0.35);
               gl_FragColor.rgb += rimTint;`
             );
         };
@@ -2747,6 +2765,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       if (bloomPass) {
         bloomPass.resolution.set(w, h);
       }
+      particleHorizon.resize(w);
     };
     window.addEventListener('resize', onResize);
 
@@ -3043,6 +3062,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       cdeAssembly.galaxy.uniforms.uTime.value = s.reducedMotion ? 0 : elapsedTotal;
       cdeAssembly.galaxy.uniforms.uFocalDistance.value = focalDist;
       cdeAssembly.galaxy.uniforms.uAudioRms.value = liveRms;
+      particleHorizon.update(dt, s.reducedMotion || s.stoppedExplicitly);
 
       // v7.0 Spatial Media Grid (SDF glass) — dim shell, inertia, Hotspot rebind
       const tubeProp = mediaTubeStateRef.current;
@@ -3357,6 +3377,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       window.removeEventListener('resize', onResize);
       cerebroSphereFx?.dispose();
       cerebroSphereFx = null;
+      particleHorizon.dispose();
       spatialMediaGrid.dispose();
       if (composer) {
         composer.dispose();

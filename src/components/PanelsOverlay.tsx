@@ -869,7 +869,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
         dir={languageRtl === 'ar' ? 'rtl' : 'ltr'}
         onPointerDown={(e) => e.stopPropagation()}
         onWheel={(e) => e.stopPropagation()}
-        className="fixed pointer-events-auto flex flex-col overflow-hidden neural-reveal cerebro-stellar-glass transition-opacity duration-200"
+        className="lg-panel fixed pointer-events-auto flex flex-col overflow-hidden neural-reveal cerebro-stellar-glass transition-opacity duration-200"
         style={{
           left: `${rect.x}px`,
           top: `${rect.y}px`,
@@ -883,6 +883,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           boxShadow: GUI_GLASS_TOKENS.shadow,
           opacity: isCameraInFlight ? 0.62 : 1,
           zIndex: GUI_Z_LAYERS.panels,
+          padding: 0,
         }}
       >
         {/* Multi-Panel Slot Tab Bar (when 2+ open panels share this single layout slot) */}

@@ -931,7 +931,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
           boxShadow: GUI_GLASS_TOKENS.shadow,
           zIndex: GUI_Z_LAYERS.voiceDock,
         }}
-        className={`fixed pointer-events-auto cerebro-stellar-glass transition-all duration-200 ${
+        className={`lg-voice fixed pointer-events-auto cerebro-stellar-glass transition-all duration-200 ${
           guiLayout
             ? ''
             : `${snapClasses[snapEdge]} ${

@@ -242,8 +242,10 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
         Math.abs(eMid - 0.5) < 1e-6 &&
         e1 === 1 &&
         GUI_TOUCH_TOKENS.minTargetPx >= 44 &&
-        GUI_GLASS_TOKENS.headerH === 52,
-      detail: `e(0.5)=${eMid}, minTarget=${GUI_TOUCH_TOKENS.minTargetPx}px, headerH=${GUI_GLASS_TOKENS.headerH}px`,
+        GUI_GLASS_TOKENS.headerH === 48 &&
+        GUI_GLASS_TOKENS.panelGapPx === 14 &&
+        GUI_TOUCH_TOKENS.panelCollisionMarginPx === 14,
+      detail: `e(0.5)=${eMid}, minTarget=${GUI_TOUCH_TOKENS.minTargetPx}px, headerH=${GUI_GLASS_TOKENS.headerH}px, gap=${GUI_GLASS_TOKENS.panelGapPx}`,
     });
   }
 
