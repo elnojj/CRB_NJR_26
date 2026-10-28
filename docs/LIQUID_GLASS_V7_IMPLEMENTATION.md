@@ -3,7 +3,8 @@
 **Schema:** `cerebro.cinematic-liquid-glass.v7`  
 **Source:** `public/assets/aistudio/CEREBRO_UNIFIED_LIQUID_GLASS_3D_V7.json`  
 **Canonical TS:** `src/design/liquidGlassV7.ts`  
-**DOM CSS:** `src/styles/liquid-glass-v7.css`
+**DOM CSS:** `src/styles/liquid-glass-v7.css`  
+**Commit:** `3c48242`
 
 ## Applied
 
@@ -27,12 +28,36 @@
 - Auth, routes, 14 core / blueprint registry, voice bridge, project register
 - DOM text composited above WebGL (no grain/bloom on text or media DOM)
 
+## Verification evidence (2026-10-28 Africa/Cairo)
+
+### Automated
+
+| Check | Result |
+| --- | --- |
+| `npm run lint` (`tsc --noEmit`) | **pass** (exit 0) |
+| `npm run build` | **pass** (exit 0, Vite 8.3.5) |
+| `runGuiLayoutSelfTests()` | **9/9 pass** (phone / iPad / landscape / desktop / wide / optics / motion) |
+
+### Screenshots
+
+| Shot | Path | Size | Notes |
+| --- | --- | --- | --- |
+| Before desktop | `/opt/cursor/artifacts/screenshots/v7-before-desktop.webp` | 1440-class | Pre-final capture; glass + dual particle spheres visible |
+| After desktop | `…/v7-after-desktop.png` (+ `.webp`) | **1440×900** | H03 glass panels, optics, voice, sharp text |
+| After iPad | `…/v7-after-ipad.png` (+ `.webp`) | **820×1180** | Single left inspector, voice dock, no DevTools |
+| After phone | `…/v7-after-phone.png` (+ `.webp`) | **390×844** | Bottom sheet + voice; sharp text |
+| Phone + sphere (GPU) | `…/v7-after-phone-devtools.webp` | ~400×1017 | Confirms dual-hemisphere particle sphere through glass |
+
+URL exercised: `/?preview=1&blueprint=H03` on `127.0.0.1:3847` and Cloudflare tunnel.
+
 ## Reference images
 
 JSON describes references A/B/C textually; binary image files were not attached to the upload folder. Visual authority taken from those descriptions + numeric material settings.
 
-## Unverified / next
+## Unresolved limitations
 
-- Automated Playwright viewport suite (manual captures used)
-- Performance traces under load
-- Full 18-screen action matrix pass
+- Binary reference stills A/B/C were not in the upload set — numeric JSON + textual refs used
+- Headless Chrome soft-WebGL undersamples dense particle spheres vs interactive GPU session
+- Full 18-screen / 60-blueprint action matrix not re-run as a single automated pass this iteration
+- Live Google Calendar / some Drive streams remain auth-gated (honest empty states, no invented media)
+- Master Blueprint PDF (149p) still unavailable for page-level mapping
