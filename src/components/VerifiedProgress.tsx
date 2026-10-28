@@ -19,7 +19,7 @@ interface VerifiedProgressProps {
 /**
  * VerifiedProgress.tsx:
  * Driven by useSpring(completed / total) showing exact verified acceptance criteria count.
- * Supports RTL transformOrigin: "right center".
+ * Uses Sacred Reservation --token-tracking-valid (#36E88D) for verified progress bars.
  */
 export const VerifiedProgress: React.FC<VerifiedProgressProps> = ({
   completed,
@@ -42,16 +42,16 @@ export const VerifiedProgress: React.FC<VerifiedProgressProps> = ({
       className="flex items-center gap-2.5 min-w-[180px]"
       dir={rtl ? 'rtl' : 'ltr'}
     >
-      <div className="flex-1 h-2 rounded-full bg-[#05070B] border border-[rgba(148,163,184,0.2)] overflow-hidden">
+      <div className="flex-1 h-2 rounded-full bg-[#101D27] border border-[rgba(180,221,255,0.16)] overflow-hidden">
         <motion.div
           style={{
             scaleX,
             transformOrigin: rtl ? 'right center' : 'left center',
           }}
-          className="h-full w-full bg-[#10B981]"
+          className="h-full w-full bg-[#36E88D]"
         />
       </div>
-      <span className="font-mono text-[11px] text-[#F8FAFC] whitespace-nowrap">
+      <span className="font-mono tabular-nums text-[11px] text-[#F2F6F8] whitespace-nowrap">
         {completed}/{total} Verified
       </span>
     </div>
@@ -78,8 +78,7 @@ interface BuildActivityHeaderProps {
 
 /**
  * BuildActivityHeader.tsx & ConnectionStatus.tsx:
- * Plain-language summary bar with durable 1Hz elapsed timer (currentTime - recordedStartTime - recordedPausedDuration).
- * Never uses fake looping spinners.
+ * Neural Observatory v1.1 Optical HUD summary bar with durable 1Hz elapsed timer.
  */
 export const BuildActivityHeader: React.FC<BuildActivityHeaderProps> = ({
   projectName,
@@ -116,36 +115,45 @@ export const BuildActivityHeader: React.FC<BuildActivityHeaderProps> = ({
   const formattedElapsed = `${String(mins).padStart(2, '0')}m ${String(secs).padStart(2, '0')}s`;
 
   const stateColorMap: Record<ConnectionLivenessState, string> = {
-    Live: '#10B981',
-    Reconnecting: '#F59E0B',
-    Polling: '#38BDF8',
-    Stale: '#F59E0B',
-    Disconnected: '#EF4444',
-    'Demo playback': '#A855F7',
+    Live: '#36E88D',
+    Reconnecting: '#F2B66D',
+    Polling: '#5CC8D7',
+    Stale: '#F2B66D',
+    Disconnected: '#FF5666',
+    'Demo playback': '#7CE0B8',
   };
 
   return (
     <div
       data-testid="build-activity-header"
       onPointerDown={(e) => e.stopPropagation()}
-      className="fixed top-16 left-4 right-4 z-30 pointer-events-auto flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-[#0C111A]/85 border border-[rgba(148,163,184,0.18)] backdrop-blur-md text-xs"
+      className="fixed top-16 left-4 right-4 z-30 pointer-events-auto flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl border text-xs"
+      style={{
+        backgroundColor: 'rgba(16, 29, 39, 0.84)',
+        backdropFilter: 'blur(12px) saturate(1.2)',
+        WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
+        borderColor: 'rgba(255, 255, 255, 0.14)',
+        boxShadow:
+          'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
+      }}
     >
       {/* Left: Active Project & Checkpoint */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="font-display font-semibold text-[#F8FAFC] tracking-wide">
+        <span className="w-2 h-2 rounded-full bg-[#4C8DFF] shrink-0" />
+        <span className="font-display font-semibold text-xs tracking-[0.08em] uppercase text-[#F2F6F8]">
           {projectName}
         </span>
-        <span className="text-[#64748B]" aria-hidden="true">
+        <span className="text-[#BDCBD3]" aria-hidden="true">
           —
         </span>
-        <span className="font-mono text-[11px] text-[#38BDF8]">
+        <span className="font-mono tabular-nums text-[11px] text-[#65ACFF]">
           Checkpoint {checkpointId} ({gitHash})
         </span>
         {isHistoricalMode && (
           <button
             type="button"
             onClick={onReturnToLive}
-            className="px-2 py-0.5 rounded bg-[#F59E0B]/20 border border-[#F59E0B] font-mono text-[10px] text-[#F59E0B] hover:bg-[#F59E0B]/30 cursor-pointer"
+            className="px-2 py-0.5 rounded-lg bg-[#F2B66D]/20 border border-[#F2B66D] font-mono text-[10px] text-[#F2B66D] hover:bg-[#F2B66D]/30 cursor-pointer"
           >
             Historical Mode · Return to Live (View Diff)
           </button>
@@ -153,7 +161,7 @@ export const BuildActivityHeader: React.FC<BuildActivityHeaderProps> = ({
       </div>
 
       {/* Center: Connection State Pill & Durable 1Hz Elapsed Timer */}
-      <div className="flex flex-wrap items-center gap-3 font-mono text-[11px]">
+      <div className="flex flex-wrap items-center gap-3 font-mono tabular-nums text-[11px]">
         <div className="flex items-center gap-1.5">
           <span
             className="w-2 h-2 rounded-full inline-block"
@@ -165,7 +173,7 @@ export const BuildActivityHeader: React.FC<BuildActivityHeaderProps> = ({
             onChange={(e) =>
               onChangeConnectionState(e.target.value as ConnectionLivenessState)
             }
-            className="bg-[#121926] text-[#F8FAFC] border border-[rgba(148,163,184,0.22)] rounded px-1.5 py-0.5 text-[10px] cursor-pointer"
+            className="bg-[#142632] text-[#F2F6F8] border border-[rgba(180,221,255,0.16)] rounded-lg px-1.5 py-0.5 text-[10px] cursor-pointer"
           >
             {(
               [
@@ -182,18 +190,18 @@ export const BuildActivityHeader: React.FC<BuildActivityHeaderProps> = ({
               </option>
             ))}
           </select>
-          <span className="text-[#94A3B8] hidden sm:inline">
+          <span className="text-[#BDCBD3] hidden sm:inline">
             Last event {lastEventIso.slice(11, 19)} UTC
           </span>
         </div>
 
-        <span className="text-[#64748B]" aria-hidden="true">
+        <span className="text-[#BDCBD3]" aria-hidden="true">
           ·
         </span>
 
         <span
           data-testid="durable-elapsed-timer"
-          className="text-[#94A3B8]"
+          className="text-[#BDCBD3]"
           title="Computed strictly from durable timestamps (currentTime - recordedStartTime - recordedPausedDuration)"
         >
           Elapsed {formattedElapsed}
@@ -213,8 +221,8 @@ export const BuildActivityHeader: React.FC<BuildActivityHeaderProps> = ({
           onClick={onTogglePortalHud}
           className={`min-h-[32px] px-3 py-1 rounded-lg font-mono text-[11px] border transition-colors cursor-pointer ${
             portalHudOpen
-              ? 'bg-[#38BDF8] text-[#05070B] border-[#38BDF8] font-semibold'
-              : 'bg-[#121926] text-[#F8FAFC] border-[rgba(148,163,184,0.28)] hover:border-[#38BDF8]'
+              ? 'bg-[#4C8DFF] text-[#101D27] border-[#4C8DFF] font-semibold'
+              : 'bg-[#142632] text-[#F2F6F8] border-[rgba(180,221,255,0.16)] hover:border-[#65ACFF]'
           }`}
         >
           {portalHudOpen ? 'Hide Portal HUD' : 'Observation Portal (v1.5)'}

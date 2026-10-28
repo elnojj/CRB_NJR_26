@@ -2,8 +2,10 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
+import { GoogleGenAI } from '@google/genai';
 import {
   CRO_CDE_GOOGLE_AGENT_MANIFEST,
+  CRO_CDE_GOOGLE_TOOLS_SCHEMA,
   DEFAULT_INTERNAL_AGENT_ID,
   buildElevenLabsAgentPayload,
 } from './src/data/croCdeGoogleAgentManifest.ts';
@@ -12,10 +14,10 @@ const PORT = Number(process.env.PORT) || 3000;
 const BUILD_VERSION = '1.28.0';
 const BASELINE_CHECKPOINT_VERSION = '1.25.0';
 
-const DATA_DIR = path.resolve(process.cwd(), '.cerebro-data');
-const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
+const DATA_DIR = path.resolve(process.cwd(), 'src/data');
 const STORE_PATH = path.join(DATA_DIR, 'store.json');
-const CHECKPOINT_PATH = path.join(DATA_DIR, `checkpoint_v${BASELINE_CHECKPOINT_VERSION}.json`);
+const CHECKPOINT_PATH = path.join(DATA_DIR, 'checkpoint_v1_25_0.json');
+const memoryUploadBuffers = new Map<string, Buffer>();
 
 export interface PersistedMessage {
   id: string;
@@ -99,9 +101,49 @@ export interface PersistedAttachment {
   isTest?: boolean;
 }
 
+export interface DualSphereDomainState {
+  checkpointId: string;
+  activeSphere: 'hq' | 'cde';
+  panelAvoidanceClear: boolean;
+  spheres: {
+    hq: {
+      id: 'hq';
+      label: string;
+      position: [number, number, number];
+      radius: number;
+      materialPreset: string;
+      coreColor: string;
+      rimColor: string;
+      projectSunsCount: number;
+    };
+    cde: {
+      id: 'cde';
+      label: string;
+      position: [number, number, number];
+      radius: number;
+      materialPreset: string;
+      coreColor: string;
+      rimColor: string;
+      dimensionsCount: number;
+    };
+  };
+  cardiacBridge: {
+    curveType: string;
+    dofParticles: number;
+    zoomRange: [number, number];
+  };
+  customDomains: Array<Record<string, unknown>>;
+  screenAmendments: Array<Record<string, unknown>>;
+}
+
 interface DataStore {
   version: string;
   baselineCheckpoint: string;
+  checkpointId: string;
+  dualSphereState: DualSphereDomainState;
+  projects: Array<Record<string, unknown>>;
+  crewRoster: Array<Record<string, unknown>>;
+  insightsSignals: Array<Record<string, unknown>>;
   messages: PersistedMessage[];
   notes: PersistedNote[];
   tasks: PersistedTask[];
@@ -111,48 +153,48 @@ interface DataStore {
   idempotency: Record<string, unknown>;
 }
 
-function ensureStorageDirs(): void {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-  if (!fs.existsSync(UPLOADS_DIR)) {
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-  }
-  if (!fs.existsSync(CHECKPOINT_PATH)) {
-    fs.writeFileSync(
-      CHECKPOINT_PATH,
-      JSON.stringify(
-        {
-          checkpointVersion: BASELINE_CHECKPOINT_VERSION,
-          upgradedToVersion: BUILD_VERSION,
-          recordedAt: new Date().toISOString(),
-          preservedFiles: [
-            'src/App.tsx',
-            'src/components/CosmographCanvas.tsx',
-            'src/components/PanelsOverlay.tsx',
-            'src/components/VoiceCard.tsx',
-            'src/components/HandsOverlay.tsx',
-            'src/components/BrandLockup.tsx',
-            'src/data/croCdeGoogleAgentManifest.ts',
-            'src/data/sourceData.ts',
-            'src/utils/elevenLabsBridge.ts',
-            'src/index.css',
-            'src/tokens/colours.ts',
-            'server.ts',
-          ],
-        },
-        null,
-        2
-      ),
-      'utf-8'
-    );
-  }
-}
-
 function createInitialStore(): DataStore {
   return {
     version: BUILD_VERSION,
     baselineCheckpoint: BASELINE_CHECKPOINT_VERSION,
+    checkpointId: 'CP-04',
+    dualSphereState: {
+      checkpointId: 'CP-04',
+      activeSphere: 'hq',
+      panelAvoidanceClear: true,
+      spheres: {
+        hq: {
+          id: 'hq',
+          label: 'Sphere 01: CEREBRO HQ',
+          position: [0, 0, 0],
+          radius: 6.2,
+          materialPreset: 'cobalt_glass',
+          coreColor: '#4C8DFF',
+          rimColor: '#B4DDFF',
+          projectSunsCount: 6,
+        },
+        cde: {
+          id: 'cde',
+          label: 'Sphere 02: CDE Universe',
+          position: [38, 4, -22],
+          radius: 6.2,
+          materialPreset: 'amber_caustic',
+          coreColor: '#F2B66D',
+          rimColor: '#FFF1D4',
+          dimensionsCount: 4,
+        },
+      },
+      cardiacBridge: {
+        curveType: 'CatmullRomCurve3',
+        dofParticles: 6400,
+        zoomRange: [9.2, 42],
+      },
+      customDomains: [],
+      screenAmendments: [],
+    },
+    projects: [],
+    crewRoster: [],
+    insightsSignals: [],
     messages: [
       {
         id: 'MSG-INIT-01',
@@ -174,8 +216,8 @@ function createInitialStore(): DataStore {
         id: 'NOTE-INIT-01',
         opId: 'OP-NOTE-01',
         title: 'NOJARA_HQ_26 Snapshot Readiness',
-        text: 'Workspace operating on local durable persistence (.cerebro-data/store.json). External Cursor and Gmail webhooks remain disabled until configured.',
-        body: 'Workspace operating on local durable persistence (.cerebro-data/store.json). External Cursor and Gmail webhooks remain disabled until configured.',
+        text: 'Workspace operating on tracked canonical persistence (src/data/store.json). External Cursor webhooks remain disabled until configured.',
+        body: 'Workspace operating on tracked canonical persistence (src/data/store.json). External Cursor webhooks remain disabled until configured.',
         projectId: 'SEVEN',
         projectCode: 'SEVEN',
         authorId: '39',
@@ -191,16 +233,24 @@ function createInitialStore(): DataStore {
   };
 }
 
+let persistenceMode: 'disk' | 'memory-fallback' = 'disk';
+
 function loadStore(): DataStore {
-  ensureStorageDirs();
+  const initial = createInitialStore();
   try {
     if (fs.existsSync(STORE_PATH)) {
       const raw = fs.readFileSync(STORE_PATH, 'utf-8');
       const parsed = JSON.parse(raw) as Partial<DataStore>;
-      const initial = createInitialStore();
       return {
         version: BUILD_VERSION,
         baselineCheckpoint: BASELINE_CHECKPOINT_VERSION,
+        checkpointId: parsed.checkpointId || initial.checkpointId,
+        dualSphereState: parsed.dualSphereState || initial.dualSphereState,
+        projects: Array.isArray(parsed.projects) ? parsed.projects : initial.projects,
+        crewRoster: Array.isArray(parsed.crewRoster) ? parsed.crewRoster : initial.crewRoster,
+        insightsSignals: Array.isArray(parsed.insightsSignals)
+          ? parsed.insightsSignals
+          : initial.insightsSignals,
         messages: Array.isArray(parsed.messages) ? parsed.messages : initial.messages,
         notes: Array.isArray(parsed.notes) ? parsed.notes : initial.notes,
         tasks: Array.isArray(parsed.tasks) ? parsed.tasks : initial.tasks,
@@ -211,18 +261,25 @@ function loadStore(): DataStore {
       };
     }
   } catch (err) {
-    console.error('[CEREBRO STORE] Failed to load store.json, initializing fresh store:', err);
+    console.warn('[CEREBRO STORE] Failed to read src/data/store.json, falling back to in-memory seed:', err);
+    persistenceMode = 'memory-fallback';
   }
-  const fresh = createInitialStore();
-  saveStore(fresh);
-  return fresh;
+  return initial;
 }
 
-function saveStore(store: DataStore): void {
-  ensureStorageDirs();
-  const tmpPath = `${STORE_PATH}.tmp`;
-  fs.writeFileSync(tmpPath, JSON.stringify(store, null, 2), 'utf-8');
-  fs.renameSync(tmpPath, STORE_PATH);
+function saveStore(nextStore: DataStore): void {
+  store = nextStore;
+  try {
+    if (fs.existsSync(DATA_DIR)) {
+      fs.writeFileSync(STORE_PATH, JSON.stringify(nextStore, null, 2), 'utf-8');
+      persistenceMode = 'disk';
+    } else {
+      persistenceMode = 'memory-fallback';
+    }
+  } catch {
+    // Ephemeral / read-only filesystem: keep authoritative state in memory
+    persistenceMode = 'memory-fallback';
+  }
 }
 
 let store: DataStore = loadStore();
@@ -302,8 +359,11 @@ async function startServer() {
       service: 'CEREBRO_CDE_WORKSPACE_SERVER',
       version: BUILD_VERSION,
       baselineCheckpoint: BASELINE_CHECKPOINT_VERSION,
+      checkpointId: store.checkpointId || 'CP-04',
       defaultAgentId: DEFAULT_INTERNAL_AGENT_ID,
-      persistenceFile: '.cerebro-data/store.json',
+      persistenceFile: 'src/data/store.json',
+      checkpointFile: 'src/data/checkpoint_v1_25_0.json',
+      persistenceMode,
       timestamp: new Date().toISOString(),
     });
   });
@@ -334,7 +394,14 @@ async function startServer() {
       ok: true,
       version: BUILD_VERSION,
       baselineCheckpoint: BASELINE_CHECKPOINT_VERSION,
+      checkpointId: store.checkpointId || 'CP-04',
+      persistenceFile: 'src/data/store.json',
+      persistenceMode,
       audience,
+      dualSphereState: store.dualSphereState,
+      projects: store.projects,
+      crewRoster: audience === 'Public' ? [] : store.crewRoster,
+      insightsSignals: audience === 'Public' ? [] : store.insightsSignals,
       messages: audience === 'Public' ? [] : filterTest(store.messages),
       notes: audience === 'Public' ? [] : filterTest(store.notes),
       tasks: audience === 'Public' ? [] : filterTest(store.tasks),
@@ -523,9 +590,9 @@ async function startServer() {
       const sha256 = crypto.createHash('sha256').update(buffer).digest('hex');
       const id = `ATT-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
       const safeFilename = path.basename(String(resolvedFilename)).replace(/[^a-zA-Z0-9._-]/g, '_');
-      const storedPath = path.join(UPLOADS_DIR, `${id}_${safeFilename}`);
+      const storedPath = `memory://${id}/${safeFilename}`;
 
-      fs.writeFileSync(storedPath, buffer);
+      memoryUploadBuffers.set(id, buffer);
 
       const attachment: PersistedAttachment = {
         id,
@@ -565,11 +632,15 @@ async function startServer() {
 
   app.get('/api/uploads/:id', requireInternalAccess, (req, res) => {
     const att = store.attachments[req.params.id];
-    if (!att || !fs.existsSync(att.storedPath)) {
+    const memBuf = memoryUploadBuffers.get(req.params.id);
+    if (!att || (!memBuf && !fs.existsSync(att.storedPath))) {
       return res.status(404).json({ ok: false, error: 'Attachment not found' });
     }
     res.setHeader('Content-Type', att.mimeType);
     res.setHeader('Content-Length', String(att.sizeBytes));
+    if (memBuf) {
+      return res.end(memBuf);
+    }
     return fs.createReadStream(att.storedPath).pipe(res);
   });
 
@@ -746,17 +817,19 @@ async function startServer() {
     });
   });
 
-  app.get('/api/tasks', (req, res) => {
+  const handleGetTasks = (req: express.Request, res: express.Response) => {
     const audience = getRequestAudience(req);
     if (audience === 'Public') {
       return res.status(403).json({ ok: false, error: 'Forbidden in Public mode' });
     }
     const includeTest = req.query.includeTest === 'true';
     const tasks = includeTest ? store.tasks : store.tasks.filter((t) => !t.isTest);
-    return res.json({ ok: true, tasks });
-  });
+    return res.json({ ok: true, tasks, persistenceMode });
+  };
+  app.get('/api/tasks', handleGetTasks);
+  app.get('/api/pm/tasks', handleGetTasks);
 
-  app.post('/api/tasks', requireInternalAccess, (req, res) => {
+  const handlePostTask = (req: express.Request, res: express.Response) => {
     const {
       opId,
       title,
@@ -764,6 +837,7 @@ async function startServer() {
       projectId,
       owner = '39 (Tarek Nojara) — Founder and Culture and Design Engineer',
       priority = 'HIGH',
+      status = 'IN_PROGRESS',
       attachmentName,
       isTest = false,
       simulateFailure = false,
@@ -791,13 +865,16 @@ async function startServer() {
       });
     }
 
+    const normalizedStatus: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' =
+      status === 'PENDING' || status === 'COMPLETED' ? status : 'IN_PROGRESS';
+
     const task: PersistedTask = {
       id: `TASK-LOCAL-${Date.now()}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`,
       opId: resolvedOpId,
       title: String(title).trim(),
       projectCode: String(projectId || projectCode || 'SEVEN'),
       owner: String(owner),
-      status: 'IN_PROGRESS',
+      status: normalizedStatus,
       priority: priority === 'LOW' || priority === 'MEDIUM' ? priority : 'HIGH',
       attachmentName: attachmentName ? String(attachmentName) : undefined,
       createdAt: new Date().toISOString(),
@@ -813,6 +890,32 @@ async function startServer() {
       deduplicated: false,
       task,
       tasks: store.tasks.filter((t) => (isTest ? true : !t.isTest)),
+      persistenceMode,
+    });
+  };
+  app.post('/api/tasks', requireInternalAccess, handlePostTask);
+  app.post('/api/pm/tasks', requireInternalAccess, handlePostTask);
+
+  app.get('/api/checkpoints', (_req, res) => {
+    let checkpointData: Record<string, unknown> = {
+      checkpointId: store.checkpointId || 'CP-04',
+      checkpointVersion: BASELINE_CHECKPOINT_VERSION,
+      upgradedToVersion: BUILD_VERSION,
+      dualSphereDomainState: store.dualSphereState,
+    };
+    try {
+      if (fs.existsSync(CHECKPOINT_PATH)) {
+        checkpointData = JSON.parse(fs.readFileSync(CHECKPOINT_PATH, 'utf-8')) as Record<string, unknown>;
+      }
+    } catch {
+      // Fall back to in-memory checkpoint representation
+    }
+    return res.json({
+      ok: true,
+      checkpointFile: 'src/data/checkpoint_v1_25_0.json',
+      checkpoint: checkpointData,
+      decisions: store.decisions,
+      dualSphereState: store.dualSphereState,
     });
   });
 
@@ -878,6 +981,7 @@ async function startServer() {
   };
   app.post('/api/decisions', requireInternalAccess, handleDecisionPost);
   app.post('/api/checkpoints/decide', requireInternalAccess, handleDecisionPost);
+  app.post('/api/checkpoints', requireInternalAccess, handleDecisionPost);
 
   // 6. Meeting Notes Draft & Truthful Email Resolution (`/api/minutes/send`)
   app.post('/api/minutes/send', requireInternalAccess, (req, res) => {
@@ -960,11 +1064,7 @@ async function startServer() {
     }
     for (const [k, v] of Object.entries(store.attachments)) {
       if (v.isTest) {
-        try {
-          if (fs.existsSync(v.storedPath)) fs.unlinkSync(v.storedPath);
-        } catch {
-          // ignore
-        }
+        memoryUploadBuffers.delete(k);
         delete store.attachments[k];
       }
     }
@@ -1024,6 +1124,239 @@ async function startServer() {
 
   app.get('/api/download-source', requireInternalAccess, (_req, res) => {
     res.redirect('/api/project/files');
+  });
+
+  // 9. Gemini Live Screen & 3D Domain Orchestrator (`POST /api/gemini/orchestrate`)
+  app.post('/api/gemini/orchestrate', async (req, res) => {
+    const userCommand = String(req.body?.userCommand || '').trim();
+    const pageState = (req.body?.pageState || {}) as Record<string, unknown>;
+
+    if (!userCommand) {
+      return res.status(400).json({ ok: false, error: 'userCommand is required' });
+    }
+
+    const lower = userCommand.toLowerCase();
+    const fallbackToolCalls: Array<{ toolName: string; parameters: Record<string, unknown> }> = [];
+
+    // Deterministic fast-path & fallback parser for 3D domain creation, shader material switch & screen mutation
+    if (lower.includes('create domain') || lower.includes('spawn domain') || lower.includes('new domain')) {
+      const nameMatch = userCommand.match(/(?:domain|node)\s+(?:called|named)?\s*["']?([A-Za-z0-9 _-]+)["']?/i);
+      const label = nameMatch?.[1]?.trim() || 'RIYADH LAB';
+      const parentSphere = lower.includes('cde') ? 'cde' : 'hq';
+      const materialPreset = lower.includes('amber')
+        ? 'amber_caustic'
+        : lower.includes('emerald')
+        ? 'emerald_verified'
+        : lower.includes('crimson')
+        ? 'crimson_alert'
+        : 'cobalt_glass';
+      fallbackToolCalls.push({
+        toolName: 'create_domain',
+        parameters: {
+          id: `dom-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+          label,
+          parentSphere,
+          materialPreset,
+        },
+      });
+    } else if (lower.includes('material') || lower.includes('shader')) {
+      const targetSphere = lower.includes('cde') ? 'cde' : 'hq';
+      const materialPreset = lower.includes('amber')
+        ? 'amber_caustic'
+        : lower.includes('emerald')
+        ? 'emerald_verified'
+        : lower.includes('obsidian')
+        ? 'obsidian_wireframe'
+        : 'cobalt_glass';
+      fallbackToolCalls.push({
+        toolName: 'update_domain_material',
+        parameters: { targetSphere, materialPreset },
+      });
+    } else if (lower.includes('amend') || lower.includes('filter') || lower.includes('highlight')) {
+      fallbackToolCalls.push({
+        toolName: 'amend_screen_element',
+        parameters: {
+          panelId: String(pageState.activePanel || 'portfolio'),
+          elementTarget: 'filter',
+          operation: 'filter',
+          value: lower.includes('blocked')
+            ? 'Blocked'
+            : lower.includes('waiting')
+            ? 'Waiting on 39'
+            : 'Active',
+        },
+      });
+    }
+
+    const applyOrchestrationCallsToStore = (
+      calls: Array<{ toolName: string; parameters: Record<string, unknown> }>
+    ) => {
+      if (!Array.isArray(calls) || calls.length === 0) return;
+      let mutated = false;
+      for (const call of calls) {
+        if (call.toolName === 'create_domain') {
+          store.dualSphereState.customDomains.push({
+            ...call.parameters,
+            createdAt: new Date().toISOString(),
+          });
+          mutated = true;
+        } else if (call.toolName === 'update_domain_material') {
+          const targetSphere = call.parameters.targetSphere === 'cde' ? 'cde' : 'hq';
+          if (typeof call.parameters.materialPreset === 'string') {
+            store.dualSphereState.spheres[targetSphere].materialPreset = call.parameters.materialPreset;
+            mutated = true;
+          }
+        } else if (call.toolName === 'amend_screen_element') {
+          store.dualSphereState.screenAmendments.push({
+            ...call.parameters,
+            updatedAt: new Date().toISOString(),
+          });
+          mutated = true;
+        }
+      }
+      if (mutated) {
+        saveStore(store);
+      }
+    };
+
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (geminiKey) {
+      try {
+        const ai = new GoogleGenAI({
+          apiKey: geminiKey,
+          httpOptions: { headers: { 'User-Agent': 'aistudio-build' } },
+        });
+        const prompt = `You are the CEREBRO + CDE Spatial OS Orchestrator for Owner 39 (Tarek Nojara — Founder and Culture and Design Engineer).
+Current page state JSON: ${JSON.stringify(pageState)}
+Available 22 tools: ${CRO_CDE_GOOGLE_TOOLS_SCHEMA.map((t) => t.name).join(', ')}.
+User command: "${userCommand}"
+Return a JSON object with keys:
+- "spokenReply": concise response in English or Egyptian Arabic (never call owner "39" in Arabic)
+- "toolCalls": array of { "toolName": string, "parameters": object }`;
+
+        const response = await ai.models.generateContent({
+          model: 'gemini-3.8-flash',
+          contents: prompt,
+          config: {
+            responseMimeType: 'application/json',
+          },
+        });
+        const rawText = response.text || '';
+        const parsed = JSON.parse(rawText) as {
+          spokenReply?: string;
+          toolCalls?: Array<{ toolName: string; parameters: Record<string, unknown> }>;
+        };
+        const resolvedCalls =
+          Array.isArray(parsed.toolCalls) && parsed.toolCalls.length > 0
+            ? parsed.toolCalls
+            : fallbackToolCalls;
+        applyOrchestrationCallsToStore(resolvedCalls);
+        return res.json({
+          ok: true,
+          spokenReply: parsed.spokenReply || `Executed "${userCommand}".`,
+          toolCalls: resolvedCalls,
+          dualSphereState: store.dualSphereState,
+          pageState,
+        });
+      } catch {
+        // Fall through to deterministic orchestrator response
+      }
+    }
+
+    applyOrchestrationCallsToStore(fallbackToolCalls);
+    return res.json({
+      ok: true,
+      spokenReply:
+        fallbackToolCalls.length > 0
+          ? `Executed ${fallbackToolCalls.map((t) => t.toolName).join(', ')} on the live workspace.`
+          : `Processed command "${userCommand}".`,
+      toolCalls: fallbackToolCalls,
+      dualSphereState: store.dualSphereState,
+      pageState,
+    });
+  });
+
+  // 10. Panel #13 — 2x2 Crew Live SSE Streaming Grid (`GET /api/crew/stream`)
+  const CREW_STREAM_AGENTS = [
+    {
+      code: 'GD',
+      name: 'Ghada (Executive Ops)',
+      project: 'SEVEN',
+      status: 'STREAMING',
+      badge: 'Draft only · needs your approval',
+      chunks: [
+        ' Auditing SEVEN KSA milestone gates against 23 Oct 2025 register...',
+        ' 14 open tasks verified; 3 owner checkpoints queued for 39 sign-off.',
+        ' RACI lock confirmed: 39 Accountable (A), GD & RS Responsible (R).',
+      ],
+    },
+    {
+      code: 'BL',
+      name: 'Belal (Spatial WebGL)',
+      project: 'CEREBRO-HQ',
+      status: 'STREAMING',
+      badge: 'Draft only · needs your approval',
+      chunks: [
+        ' DualSphereCanvas WebGL shader telemetry locked at 60fps.',
+        ' Sphere 01 HQ [0,0,0] Cobalt #4C8DFF <-> Sphere 02 CDE [38,4,-22] Amber #F2B66D.',
+        ' CatmullRomCurve3 cardiac bridge & 6,400 DOF spiral galaxy particles verified.',
+      ],
+    },
+    {
+      code: 'RS',
+      name: 'Rasma (Creative Direction)',
+      project: 'YAH',
+      status: 'STREAMING',
+      badge: 'Draft only · needs your approval',
+      chunks: [
+        ' Preparing Young & Human brand identity & Tabuk 4K concept boards...',
+        ' Locked 15-token Neural Observatory v1.1 palette (#101D27 canvas, #142632 glass).',
+        ' Ready for 39 visual review in ProjectDetailPanel Approvals tab.',
+      ],
+    },
+    {
+      code: 'KT',
+      name: 'Kaito (Voice & CV Rig)',
+      project: 'CDE-ENGINE',
+      status: 'STREAMING',
+      badge: 'Draft only · needs your approval',
+      chunks: [
+        ' Cro-cde-google 22-tool schema & 8s reconnect timeout active.',
+        ' 21-landmark MediaPipe hand rig running OneEuroFilter with 0.22/0.30 pinch hysteresis.',
+        ' Pentatonic C4–A4 glass-marimba fingertip synth calibrated.',
+      ],
+    },
+  ];
+
+  app.get('/api/crew/stream', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders?.();
+
+    let tick = 0;
+    const sendFrame = () => {
+      const payload = CREW_STREAM_AGENTS.map((ag) => {
+        const chunkIdx = tick % ag.chunks.length;
+        return {
+          code: ag.code,
+          name: ag.name,
+          project: ag.project,
+          badge: ag.badge,
+          status: 'LIVE_SSE',
+          text: ag.chunks.slice(0, chunkIdx + 1).join(''),
+          timestamp: new Date().toISOString().slice(11, 19),
+        };
+      });
+      res.write(`data: ${JSON.stringify({ tick, agents: payload })}\n\n`);
+      tick += 1;
+    };
+
+    sendFrame();
+    const timer = setInterval(sendFrame, 2600);
+    req.on('close', () => {
+      clearInterval(timer);
+    });
   });
 
   if (process.env.NODE_ENV !== 'production') {

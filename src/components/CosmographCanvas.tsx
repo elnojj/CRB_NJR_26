@@ -13,6 +13,21 @@ import {
   ProjectHealth,
 } from '../data/sourceData';
 import { soundEngine } from '../utils/soundEngine';
+import {
+  CustomDomain3D,
+  DomainMaterialPreset,
+  getDomainMaterialColors,
+} from '../utils/geminiScreenOrchestrator';
+import {
+  GUI_CAMERA_PRESETS,
+  GuiCameraPresetId,
+  computeFittedCameraDistance,
+  computeSubFrustumOffset,
+  quinticSmootherstep,
+} from '../gui/cameraPresets';
+import { GUI_TIMING_TOKENS, GUI_WORLD_MOTION_TOKENS } from '../gui/guiTokens';
+import { GuiRect } from '../gui/CollisionManager';
+import { ProjectedTargetScreenCoords } from '../gui/GuiFocusOverlay';
 
 export type CinemaLensId =
   | '5mm'
@@ -233,7 +248,77 @@ export interface CameraCommandPayload {
   loopMode?: CameraLoopMode;
 }
 
-interface CosmographCanvasProps {
+export interface ProjectMediaTubeItem {
+  index: number;
+  id: string;
+  projectId: string;
+  title: string;
+  subtitle: string;
+  kind: 'image' | 'video' | 'pdf';
+  aspect: '16:9' | '4:3' | '1:1' | 'A4';
+  accentHex: string;
+  url?: string;
+}
+
+export const PROJECT_MEDIA_TUBE_SPECS = {
+  radiusU: 5.4,
+  columns: 8,
+  visibleRows: 3,
+  maxMountedTiles: 24,
+  slotSizeU: [3.2, 1.8] as const,
+  rowPitchU: 2.25,
+  idleRadPerSec: 0.025,
+  spinClampRadPerSec: 2.0,
+  damping60Hz: 0.92,
+  hoverSpeedMultiplier: 0.35,
+  focusMs: 650,
+  fullviewMs: 1100,
+  returnMs: 850,
+} as const;
+
+export function buildProjectMediaTubeItems(projectId: string): ProjectMediaTubeItem[] {
+  const cleanProj = (projectId || 'SEVEN').toUpperCase();
+  const baseKinds: Array<'image' | 'video' | 'pdf'> = ['image', 'video', 'pdf', 'image'];
+  const baseAspects: Array<'16:9' | '4:3' | '1:1' | 'A4'> = ['16:9', '16:9', 'A4', '4:3'];
+  const baseTitles = [
+    `${cleanProj} · Hero Architectural Keyframe`,
+    `${cleanProj} · Spatial Walkthrough Reel`,
+    `${cleanProj} · Executive Deck & RACI Spec`,
+    `${cleanProj} · Lighting & Material Study`,
+    `${cleanProj} · Crowd Flow Simulation`,
+    `${cleanProj} · Acoustic & AV Rig Cutaway`,
+    `${cleanProj} · Masterplan Elevation Plate`,
+    `${cleanProj} · Stakeholder Sign-off Dossier`,
+  ];
+
+  return Array.from({ length: PROJECT_MEDIA_TUBE_SPECS.maxMountedTiles }).map((_, idx) => {
+    const kind = baseKinds[idx % baseKinds.length];
+    const aspect = baseAspects[idx % baseAspects.length];
+    const row = Math.floor(idx / PROJECT_MEDIA_TUBE_SPECS.columns) + 1;
+    const col = (idx % PROJECT_MEDIA_TUBE_SPECS.columns) + 1;
+    const accentHex =
+      kind === 'video' ? '#F2B66D' : kind === 'pdf' ? '#9DB8D6' : '#65ACFF';
+    return {
+      index: idx,
+      id: `tube-${cleanProj.toLowerCase()}-${String(idx + 1).padStart(2, '0')}`,
+      projectId: cleanProj,
+      title: `${baseTitles[idx % baseTitles.length]} (${row}.${col})`,
+      subtitle: `${kind.toUpperCase()} · Row ${row} Col ${col} · ${aspect}`,
+      kind,
+      aspect,
+      accentHex,
+    };
+  });
+}
+
+export interface MediaTubeStateProp {
+  active: boolean;
+  projectId: string;
+  focusedTileIndex: number | null;
+  filterKind?: 'all' | 'image' | 'video' | 'pdf';
+}
+
+export interface CosmographCanvasProps {
   activeSphere: 'hq' | 'cde';
   focusedNodeId: string | null;
   tourHighlightId: string | null;
@@ -242,18 +327,27 @@ interface CosmographCanvasProps {
   audioRms?: number;
   forceWebglFallback?: boolean;
   cameraCommand: CameraCommandPayload | null;
+  customDomains?: CustomDomain3D[];
+  sphereMaterials?: { hq: DomainMaterialPreset; cde: DomainMaterialPreset };
   onSelectNode: (id: string, nodeType: AnchoredLabel2D['nodeType'], sphere: 'hq' | 'cde') => void;
   onUserTouchPauseTour: () => void;
   onTelemetryChange: (telemetry: CameraTelemetry) => void;
   onCameraSettled?: (commandId: number, telemetry: CameraTelemetry) => void;
+  unobstructedRect?: GuiRect;
+  guiCameraPreset?: GuiCameraPresetId;
+  onProjectedTargetChange?: (target: ProjectedTargetScreenCoords | null) => void;
+  onHoverNodeChange?: (nodeId: string | null) => void;
+  mediaTubeState?: MediaTubeStateProp | null;
+  onSelectMediaTubeTile?: (tileIndex: number, tile: ProjectMediaTubeItem) => void;
+  onOpenMediaTubeFullView?: (tileOrIndex: ProjectMediaTubeItem | number, tile?: ProjectMediaTubeItem) => void;
+  onCloseMediaTube?: () => void;
 }
 
-const HQ_CENTER = new THREE.Vector3(0, 0, 0);
-const CDE_CENTER = new THREE.Vector3(32, 0, 0);
+export const HQ_CENTER = new THREE.Vector3(0, 0, 0);
+export const CDE_CENTER = new THREE.Vector3(38, 4, -22);
 
 function unifiedEaseOut(t: number): number {
-  const clamped = Math.max(0, Math.min(1, t));
-  return 1 - Math.pow(1 - clamped, 3.2);
+  return quinticSmootherstep(t);
 }
 
 function getProjectHealthColour(health: ProjectHealth): string {
@@ -270,17 +364,18 @@ const _scratchForward = new THREE.Vector3();
 const _scratchColor = new THREE.Color();
 
 /**
- * Post-Processing Custom Cinema ShaderPass:
- * - 3.5% animated 35mm film grain
- * - Subtle radial chromatic aberration at viewport edges
- * - Controlled dark navy vignette (#05090E)
+ * Post-Processing Custom Cinema ShaderPass (v4.0):
+ * - 2.5% monochromatic grain updated at 24Hz (paused when stopped or reduced-motion)
+ * - 0% radial chromatic aberration (keeps UI & 3D text razor sharp)
+ * - Controlled dark navy vignette (#05090E, strength 0.14)
  */
 const CinemaFilmGrainVignetteShader = {
   uniforms: {
     tDiffuse: { value: null },
     uTime: { value: 0.0 },
-    uGrainIntensity: { value: 0.035 },
-    uChromaticAmount: { value: 0.0022 },
+    uGrainIntensity: { value: 0.025 },
+    uChromaticAmount: { value: 0.0 },
+    uVignetteStrength: { value: 0.14 },
   },
   vertexShader: `
     varying vec2 vUv;
@@ -294,6 +389,7 @@ const CinemaFilmGrainVignetteShader = {
     uniform float uTime;
     uniform float uGrainIntensity;
     uniform float uChromaticAmount;
+    uniform float uVignetteStrength;
     varying vec2 vUv;
 
     float hash12(vec2 p) {
@@ -305,22 +401,16 @@ const CinemaFilmGrainVignetteShader = {
     void main() {
       vec2 dir = vUv - 0.5;
       float dist = length(dir);
-      float edgeMask = smoothstep(0.18, 0.72, dist);
+      vec4 baseCol = texture2D(tDiffuse, vUv);
 
-      // Radial chromatic aberration at viewport edges
-      vec2 caOffset = dir * uChromaticAmount * edgeMask;
-      float r = texture2D(tDiffuse, vUv - caOffset).r;
-      float g = texture2D(tDiffuse, vUv).g;
-      float b = texture2D(tDiffuse, vUv + caOffset).b;
-      vec4 baseCol = vec4(r, g, b, texture2D(tDiffuse, vUv).a);
-
-      // Controlled dark navy vignette (#05090E)
-      float vig = smoothstep(0.32, 0.86, dist);
+      // Controlled dark navy vignette (#05090E, v4.0 strength 0.14)
+      float vig = smoothstep(0.34, 0.88, dist);
       vec3 navyVignette = vec3(0.0196, 0.0353, 0.0549);
-      vec3 graded = mix(baseCol.rgb, navyVignette, vig * 0.42);
+      vec3 graded = mix(baseCol.rgb, navyVignette, vig * uVignetteStrength);
 
-      // 3.5% animated 35mm film grain
-      float grain = (hash12(vUv * 512.0 + vec2(uTime * 37.0, -uTime * 23.0)) - 0.5) * uGrainIntensity;
+      // 2.5% monochromatic film grain quantized at 24Hz
+      float quantizedTime = floor(uTime * 24.0) / 24.0;
+      float grain = (hash12(vUv * 512.0 + vec2(quantizedTime * 37.0, -quantizedTime * 23.0)) - 0.5) * uGrainIntensity;
       graded += vec3(grain);
 
       gl_FragColor = vec4(clamp(graded, 0.0, 1.0), baseCol.a);
@@ -350,17 +440,17 @@ function buildLiquidGlassGalaxySphere(
       ? [
           '#B4DDFF',
           '#4C8DFF',
-          '#9AFFE0',
-          '#3DDC97',
-          '#F2B66D',
-          '#E6A2B4',
+          '#65ACFF',
+          '#5CC8D7',
+          '#7CE0B8',
+          '#9DB8D6',
         ]
       : [
           '#F2B66D',
+          '#FFF1D4',
           '#B4DDFF',
-          '#3FD0E0',
-          '#B8F04A',
-          '#E6A2B4',
+          '#5CC8D7',
+          '#7CE0B8',
           '#4C8DFF',
         ];
 
@@ -491,10 +581,20 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   audioRms = 0,
   forceWebglFallback = false,
   cameraCommand,
+  customDomains = [],
+  sphereMaterials = { hq: 'cobalt-glass', cde: 'amber-crystal' },
   onSelectNode,
   onUserTouchPauseTour,
   onTelemetryChange,
   onCameraSettled,
+  unobstructedRect,
+  guiCameraPreset,
+  onProjectedTargetChange,
+  onHoverNodeChange,
+  mediaTubeState = null,
+  onSelectMediaTubeTile,
+  onOpenMediaTubeFullView,
+  onCloseMediaTube,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const [labels2D, setLabels2D] = useState<AnchoredLabel2D[]>([]);
@@ -512,13 +612,29 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     onUserTouchPauseTour,
     onTelemetryChange,
     onCameraSettled,
+    onProjectedTargetChange,
+    onHoverNodeChange,
+    onSelectMediaTubeTile,
+    onOpenMediaTubeFullView,
+    onCloseMediaTube,
   });
   callbacksRef.current = {
     onSelectNode,
     onUserTouchPauseTour,
     onTelemetryChange,
     onCameraSettled,
+    onProjectedTargetChange,
+    onHoverNodeChange,
+    onSelectMediaTubeTile,
+    onOpenMediaTubeFullView,
+    onCloseMediaTube,
   };
+
+  const mediaTubeStateRef = useRef<MediaTubeStateProp | null>(mediaTubeState);
+  mediaTubeStateRef.current = mediaTubeState;
+
+  const unobstructedRectRef = useRef<GuiRect | undefined>(unobstructedRect);
+  unobstructedRectRef.current = unobstructedRect;
 
   const stateRef = useRef({
     activeSphere,
@@ -561,6 +677,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     lastCommandName: 'arrival',
     lastCommandId: 1,
     settledCommandId: 0,
+    stableArrivalFrames: 0,
+    tubeRotationY: 0,
+    tubeAngularVel: 0.025,
+    tubeHoveredTileIdx: null as number | null,
   });
 
   stateRef.current.activeSphere = activeSphere;
@@ -711,9 +831,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       );
 
       if (isInterSphere) {
-        // 4-Phase Inter-World Travel (HQ <-> CDE):
-        // 5-control-point CatmullRomCurve3 (Start -> Pull-back crane rise -> Bridge apex (16, 5.4, 7.2) -> Destination approach -> Settle)
-        const bridgeApex = new THREE.Vector3(16.0, 5.4, 7.2);
+        // 4-Phase Inter-World Travel (HQ [0,0,0] <-> CDE [38,4,-22]):
+        // 5-control-point CatmullRomCurve3 (Start -> Pull-back crane rise -> Bridge apex (19, 7.2, -4.5) -> Destination approach -> Settle)
+        const bridgeApex = new THREE.Vector3(19.0, 7.2, -4.5);
         const cranePullback = startCam
           .clone()
           .lerp(bridgeApex, 0.34)
@@ -734,8 +854,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         // Separate 4-point CatmullRomCurve3 for lookAt target
         const startLookAt = s.currentCenter.clone().add(s.panOffset);
         const endLookAt = destCenter.clone().add(s.targetPanOffset);
-        const lookMid1 = startLookAt.clone().lerp(new THREE.Vector3(16.0, 1.2, 0), 0.48);
-        const lookMid2 = new THREE.Vector3(16.0, 0.8, 0).lerp(endLookAt, 0.52);
+        const lookMid1 = startLookAt.clone().lerp(new THREE.Vector3(19.0, 2.2, -11.0), 0.48);
+        const lookMid2 = new THREE.Vector3(19.0, 2.0, -11.0).lerp(endLookAt, 0.52);
         s.flightLookAtCurve = new THREE.CatmullRomCurve3([
           startLookAt,
           lookMid1,
@@ -1082,6 +1202,35 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     s.targetCenter.copy(sphereCenter);
   }, [activeSphere, focusedNodeId]);
 
+  // Synchronize 4 canonical GUI camera presets (universe 28mm, approach 35mm, focused 50mm, detail 85mm) & unobstructed viewport fitting
+  useEffect(() => {
+    if (!guiCameraPreset) return;
+    const s = stateRef.current;
+    if (s.stoppedExplicitly) return;
+    const spec = GUI_CAMERA_PRESETS[guiCameraPreset];
+    if (!spec) return;
+    s.targetFocalLengthMm = spec.focalMm;
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 1440;
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 900;
+    const safeRect: GuiRect = unobstructedRect ?? {
+      id: 'centerSafe',
+      x: 384,
+      y: 96,
+      w: Math.max(320, vw - 768),
+      h: Math.max(280, vh - 226),
+    };
+    const fittedDist = computeFittedCameraDistance({
+      sphereRadius: 6.2,
+      preset: spec,
+      viewportW: vw,
+      viewportH: vh,
+      unobstructedRect: safeRect,
+    });
+    if (!s.flightActive) {
+      s.targetRadius = fittedDist;
+    }
+  }, [guiCameraPreset, unobstructedRect?.w, unobstructedRect?.h]);
+
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
@@ -1133,6 +1282,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.12;
+    renderer.setClearColor(0x101D27, 1);
     renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
     renderer.setSize(initW, initH);
     renderer.shadowMap.enabled = !isSoftwareGl;
@@ -1161,7 +1311,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     domEl.addEventListener('webglcontextrestored', handleContextRestored, false);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(COLOUR_TOKENS.canvas, 0.014);
+    scene.fog = new THREE.FogExp2(0x101D27, 0.015);
 
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
     scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
@@ -1178,12 +1328,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const renderPass = new RenderPass(scene, camera);
       composer.addPass(renderPass);
 
-      // Selective high-threshold bloom (threshold: 0.78, strength: 0.58, radius: 0.5) for Suns, Core, and Pulse Beads
+      // Selective high-threshold bloom (v4.0: strength: 0.24, radius: 0.35, threshold: 0.9)
       bloomPass = new UnrealBloomPass(
         new THREE.Vector2(initW, initH),
-        0.58,
-        0.5,
-        0.78
+        0.24,
+        0.35,
+        0.9
       );
       composer.addPass(bloomPass);
 
@@ -1192,15 +1342,19 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       composer.addPass(cinemaPass);
     }
 
-    const hemiLight = new THREE.HemisphereLight(0xb4ddff, 0x101d27, 0.85);
-    scene.add(hemiLight);
+    // Locked Three-Point Cinema Rig ("THE SET"):
+    // 1. Deep slate ambient fill (#142632, intensity 1.4)
+    const ambientFill = new THREE.AmbientLight(0x142632, 1.4);
+    scene.add(ambientFill);
 
-    const keyLight = new THREE.DirectionalLight(0xfff4e0, 1.65);
-    keyLight.position.set(16, 24, 18);
+    // 2. Cool ivory key light (#F2F6F8, intensity 1.6 at [16, 22, 20])
+    const keyLight = new THREE.DirectionalLight(0xF2F6F8, 1.6);
+    keyLight.position.set(16, 22, 20);
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0x4c8dff, 1.15);
-    rimLight.position.set(-18, -12, -14);
+    // 3. Cobalt rim back-light (#65ACFF, intensity 1.25 at [-18, -14, -16])
+    const rimLight = new THREE.DirectionalLight(0x65ACFF, 1.25);
+    rimLight.position.set(-18, -14, -16);
     scene.add(rimLight);
 
     const glassUniforms = {
@@ -1234,11 +1388,26 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       root.position.copy(center);
 
       const shellGroup = new THREE.Group();
-      const shellGeo = new THREE.SphereGeometry(8.2, 56, 40);
+      // Sphere 01 (HQ) & Sphere 02 (CDE): radius 6.2u per Wireframes v1.1 spec
+      const shellGeo = new THREE.SphereGeometry(6.2, 56, 40);
+
+      const isHq = sphereTag === 'hq';
+      const matPreset = isHq ? sphereMaterials.hq : sphereMaterials.cde;
+      const matColors = getDomainMaterialColors(matPreset);
+      const primaryShellColor = isHq ? '#4C8DFF' : '#F2B66D';
+      const primaryRimColor = isHq ? '#B4DDFF' : '#FFF1D4';
+      const resolvedShellHex =
+        (isHq && matPreset === 'cobalt-glass') || (!isHq && matPreset === 'amber-crystal')
+          ? primaryShellColor
+          : matColors.shellHex;
+      const resolvedRimHex =
+        (isHq && matPreset === 'cobalt-glass') || (!isHq && matPreset === 'amber-crystal')
+          ? primaryRimColor
+          : matColors.rimHex;
 
       // 1. BackSide Inner Refraction & Interior Planetary Dome Shell
       const backShellMat = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color('#132836'),
+        color: new THREE.Color(isHq ? '#132836' : '#2A1F14'),
         transmission: isSoftwareGl ? 0 : 0.78,
         transparent: true,
         opacity: isSoftwareGl ? 0.14 : 0.54,
@@ -1248,23 +1417,35 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         thickness: 1.4,
         side: THREE.BackSide,
         depthWrite: false,
+        wireframe: matColors.wireframeOnly,
       });
 
-      // 2. FrontSide Outer Chromatic Fresnel Caustic Shell (#B4DDFF / #4C8DFF)
+      // 2. FrontSide Outer Chromatic Fresnel Caustic Shell
+      // Sphere 01 (CEREBRO HQ): Cool Cobalt Refractive Liquid Glass (#4C8DFF, roughness: 0.06, opacity: 0.42, Fresnel rim #B4DDFF)
+      // Sphere 02 (CDE UNIVERSE): Warm Amber Caustic Crystal (#F2B66D, roughness: 0.08, opacity: 0.46, rim #FFF1D4)
+      const baseShellOpacity = isHq ? 0.42 : 0.46;
+      const baseShellRoughness = 0.09; // v4.0 shell roughness: 0.09
       const frontShellMat = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color('#1B3444'),
-        transmission: isSoftwareGl ? 0 : 0.88,
+        color: new THREE.Color(resolvedShellHex),
+        transmission: isSoftwareGl ? 0 : 0.88, // v4.0 transmission: 0.88
         transparent: true,
-        opacity: isSoftwareGl ? 0.22 : 0.92,
-        roughness: 0.11,
+        opacity: isSoftwareGl ? 0.22 : baseShellOpacity,
+        roughness:
+          (isHq && matPreset === 'cobalt-glass') || (!isHq && matPreset === 'amber-crystal')
+            ? baseShellRoughness
+            : matColors.roughness,
         metalness: 0.08,
         ior: 1.48,
-        thickness: 1.2,
-        clearcoat: 1.0,
-        clearcoatRoughness: 0.08,
+        thickness: 0.55,
+        clearcoat: 0.8,
+        clearcoatRoughness: 0.06,
         side: THREE.FrontSide,
         depthWrite: false,
+        wireframe: matColors.wireframeOnly,
       });
+
+      const rimColVec = new THREE.Color(resolvedRimHex);
+      const bodyColVec = new THREE.Color(resolvedShellHex);
 
       const injectCausticShader = (mat: THREE.MeshPhysicalMaterial, isBack: boolean) => {
         mat.onBeforeCompile = (shader) => {
@@ -1287,10 +1468,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               float fresnel = pow(1.0 - abs(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0))), ${
                 isBack ? '1.9' : '2.6'
               });
-              vec3 causticIce = vec3(0.706, 0.867, 1.0); // #B4DDFF
-              vec3 causticCobalt = vec3(0.298, 0.553, 1.0); // #4C8DFF
+              vec3 causticRim = vec3(${rimColVec.r.toFixed(3)}, ${rimColVec.g.toFixed(3)}, ${rimColVec.b.toFixed(3)});
+              vec3 causticBody = vec3(${bodyColVec.r.toFixed(3)}, ${bodyColVec.g.toFixed(3)}, ${bodyColVec.b.toFixed(3)});
               float causticWave = 0.5 + 0.5 * sin(uTime * 1.6 + gl_FragCoord.x * 0.012 + gl_FragCoord.y * 0.012);
-              vec3 rimTint = mix(causticCobalt, causticIce, causticWave) * fresnel * (0.24 + uAudioRms * 0.45);
+              vec3 rimTint = mix(causticBody, causticRim, causticWave) * fresnel * (0.34 + uAudioRms * 0.45);
               gl_FragColor.rgb += rimTint;`
             );
         };
@@ -1309,10 +1490,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       // Interior Planetary Dome Constellation / Hex Horizon Grid (visible when camera.radius < 8.2u)
       const domeGridGroup = new THREE.Group();
-      const domeWireGeo = new THREE.IcosahedronGeometry(8.05, 2);
+      const domeWireGeo = new THREE.IcosahedronGeometry(6.05, 2);
       const domeEdges = new THREE.EdgesGeometry(domeWireGeo);
       const domeGridMat = new THREE.LineBasicMaterial({
-        color: new THREE.Color('#B4DDFF'),
+        color: new THREE.Color(resolvedRimHex),
         transparent: true,
         opacity: 0.0,
         depthWrite: false,
@@ -1323,35 +1504,63 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       root.add(shellGroup);
 
-      // 6,400-Particle Multi-Layer Spiral Galaxy with GPU Bokeh (3,200 per sphere on GPU)
+      // 6,400-Particle Multi-Layer Spiral Galaxy with GPU Bokeh (3,200 per sphere on GPU = 6,400 total)
       const galaxy = buildLiquidGlassGalaxySphere(root, sphereTag, isSoftwareGl);
 
-      const wireMat = new THREE.LineBasicMaterial({
-        color: new THREE.Color(COLOUR_TOKENS.sphereWireframe),
+      // 420 Spiral Shell Particles (#65ACFF for Sphere 01 HQ, #F2B66D for Sphere 02 CDE)
+      const spiralCount = 420;
+      const spiralPos = new Float32Array(spiralCount * 3);
+      for (let sp = 0; sp < spiralCount; sp++) {
+        const u = sp / spiralCount;
+        const theta = sp * 2.3999632; // Golden angle spiral
+        const y = 1 - u * 2;
+        const rSlice = Math.sqrt(Math.max(0, 1 - y * y));
+        const shellR = 5.85 + (sp % 5) * 0.06;
+        spiralPos[sp * 3] = Math.cos(theta) * rSlice * shellR;
+        spiralPos[sp * 3 + 1] = y * shellR;
+        spiralPos[sp * 3 + 2] = Math.sin(theta) * rSlice * shellR;
+      }
+      const spiralGeo = new THREE.BufferGeometry();
+      spiralGeo.setAttribute('position', new THREE.BufferAttribute(spiralPos, 3));
+      const spiralMat = new THREE.PointsMaterial({
+        color: new THREE.Color(isHq ? '#65ACFF' : '#F2B66D'),
+        size: 0.09,
         transparent: true,
-        opacity: 0.24,
+        opacity: 0.72,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      });
+      const spiralPoints = new THREE.Points(spiralGeo, spiralMat);
+      shellGroup.add(spiralPoints);
+
+      const wireMat = new THREE.LineBasicMaterial({
+        color: new THREE.Color(resolvedRimHex),
+        transparent: true,
+        opacity: 0.28,
       });
       const rimMat = new THREE.LineBasicMaterial({
-        color: new THREE.Color(COLOUR_TOKENS.sphereWireframe),
+        color: new THREE.Color(resolvedRimHex),
         transparent: true,
-        opacity: 0.52,
+        opacity: 0.62,
       });
 
+      // 2 Tilted Orbital Rings (counter-rotating #FFF1D4 rings on Sphere 02 CDE, #B4DDFF on Sphere 01 HQ) + structural meridians
+      const orbitalRingsGroup = new THREE.Group();
       const ringRadii = [
-        { rx: 8.22, rotX: 0, rotY: 0, rotZ: 0, mat: rimMat },
-        { rx: 8.2, rotX: Math.PI / 2, rotY: 0, rotZ: 0, mat: wireMat },
-        { rx: 8.18, rotX: 0.32, rotY: 0.65, rotZ: -0.31, mat: wireMat },
-        { rx: 8.18, rotX: -0.32, rotY: -0.65, rotZ: -0.31, mat: wireMat },
-        { rx: 6.4, rotX: Math.PI / 2, rotY: 0.2, rotZ: 0, mat: wireMat },
+        { rx: 6.24, rotX: 0.34, rotY: 0.64, rotZ: -0.28, mat: rimMat },
+        { rx: 6.24, rotX: -0.34, rotY: -0.64, rotZ: 0.28, mat: rimMat },
+        { rx: 6.2, rotX: Math.PI / 2, rotY: 0, rotZ: 0, mat: wireMat },
+        { rx: 4.85, rotX: Math.PI / 2, rotY: 0.2, rotZ: 0, mat: wireMat },
       ];
       ringRadii.forEach((cfg, idx) => {
         const curve = new THREE.EllipseCurve(0, 0, cfg.rx, cfg.rx, 0, Math.PI * 2, false, 0);
         const pts = curve.getPoints(72).map((p) => new THREE.Vector3(p.x, p.y, 0));
         const geo = new THREE.BufferGeometry().setFromPoints(pts);
-        const line = new THREE.LineLoop(geo, idx === 0 ? rimMat : wireMat);
+        const line = new THREE.LineLoop(geo, idx < 2 ? rimMat : wireMat);
         line.rotation.set(cfg.rotX, cfg.rotY, cfg.rotZ);
-        shellGroup.add(line);
+        orbitalRingsGroup.add(line);
       });
+      shellGroup.add(orbitalRingsGroup);
 
       // Audio-Reactive Core Crystal Assembly (high emissive intensity for selective UnrealBloomPass)
       const coreGroup = new THREE.Group();
@@ -1563,11 +1772,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         edgeFrame.rotation.set(0.22, -0.35, Math.PI / 4 + 0.08);
         group.add(edgeFrame);
       } else if (idLower === 'tasks') {
-        // Archetype 4: Tasks & Meetings — Sculptural bead surrounded by segmented radial progress arc (#B8F04A) + etched waveform disc (C24)
-        const limeCol = new THREE.Color('#B8F04A');
+        // Archetype 4: Tasks & Meetings — Cyan Acoustic Resonator (#5CC8D7) + etched waveform disc
+        const cyanCol = new THREE.Color('#5CC8D7');
         const taskCoreMat = new THREE.MeshStandardMaterial({
-          color: limeCol,
-          emissive: limeCol,
+          color: cyanCol,
+          emissive: cyanCol,
           emissiveIntensity: 1.15,
           roughness: 0.2,
           metalness: 0.78,
@@ -1575,7 +1784,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         emissiveMats.push(taskCoreMat);
         group.add(new THREE.Mesh(new THREE.DodecahedronGeometry(0.3, 0), taskCoreMat));
 
-        // Segmented radial progress arcs (#B8F04A)
+        // Segmented radial progress arcs (#5CC8D7)
         for (let seg = 0; seg < 4; seg++) {
           const arcMesh = new THREE.Mesh(
             new THREE.TorusGeometry(0.54, 0.028, 10, 18, Math.PI * 0.36),
@@ -1588,7 +1797,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         // Etched waveform disc (C24) for Meetings
         const discMat = new THREE.MeshStandardMaterial({
           color: new THREE.Color('#B4DDFF'),
-          emissive: limeCol,
+          emissive: cyanCol,
           emissiveIntensity: 0.38,
           roughness: 0.3,
           metalness: 0.85,
@@ -1599,27 +1808,27 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         waveformDisc.rotation.x = Math.PI / 2.2;
         group.add(waveformDisc);
       } else if (idLower === 'people') {
-        // Archetype 5: People — Rose-gold/pink (#E6A2B4) gimbals with orbital satellite beads
-        const roseCol = new THREE.Color('#E6A2B4');
-        const roseMat = new THREE.MeshStandardMaterial({
-          color: roseCol,
-          emissive: roseCol,
+        // Archetype 5: People — Mint Plasma / Faceted Prism (#7CE0B8) gimbals with orbital satellite beads
+        const mintCol = new THREE.Color('#7CE0B8');
+        const mintMat = new THREE.MeshStandardMaterial({
+          color: mintCol,
+          emissive: mintCol,
           emissiveIntensity: 1.12,
           roughness: 0.2,
           metalness: 0.88,
         });
-        emissiveMats.push(roseMat);
-        group.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.32, 1), roseMat));
+        emissiveMats.push(mintMat);
+        group.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.32, 1), mintMat));
 
         for (let g = 0; g < 3; g++) {
           const gimbal = new THREE.Mesh(
             new THREE.TorusGeometry(0.48 + g * 0.11, 0.022, 12, 40),
-            roseMat
+            mintMat
           );
           gimbal.rotation.set(g * 0.9, g * 1.1, 0.4);
           group.add(gimbal);
 
-          const sat = new THREE.Mesh(new THREE.SphereGeometry(0.065, 12, 12), roseMat);
+          const sat = new THREE.Mesh(new THREE.SphereGeometry(0.065, 12, 12), mintMat);
           const a = g * 2.09;
           sat.position.set(Math.cos(a) * (0.48 + g * 0.11), Math.sin(a) * (0.48 + g * 0.11), 0);
           gimbal.add(sat);
@@ -1937,30 +2146,129 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       );
     });
 
-    const bridgeCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(8.2, 1.2, 0),
-      new THREE.Vector3(16.0, 4.2, 3.5),
-      new THREE.Vector3(23.8, -1.2, 0),
-    ]);
-    const bridgeGeo = new THREE.BufferGeometry().setFromPoints(bridgeCurve.getPoints(64));
-    const bridgeMat = new THREE.LineDashedMaterial({
-      color: new THREE.Color(COLOUR_TOKENS.cobaltAccent),
-      dashSize: 0.6,
-      gapSize: 0.3,
-      transparent: true,
-      opacity: 0.45,
-    });
-    const bridgeLine = new THREE.Line(bridgeGeo, bridgeMat);
-    bridgeLine.computeLineDistances();
-    scene.add(bridgeLine);
+    // Spawn Sphere 03+ (Voice-spawned domains like MISSION LOTUS OPS via `create_domain`):
+    // Mint Plasma Membrane (#7CE0B8, rim #5CC8D7, r = 4.4u), connected to its parent sphere with an
+    // arched CatmullRomCurve3 cardiac tube (#65ACFF, opacity: 0.55) carrying a synchronized #FFF1D4 traveling light pulse bead.
+    const childDomainShells: THREE.Group[] = [];
+    customDomains.forEach((dom, dIdx) => {
+      const targetAssembly = dom.sphere === 'cde' ? cdeAssembly : hqAssembly;
+      const targetCenter = dom.sphere === 'cde' ? CDE_CENTER : HQ_CENTER;
+      const domMatColors = getDomainMaterialColors(dom.materialPreset || 'emerald-plasma');
 
-    for (let b = 0; b < 3; b++) {
-      const bridgeBead = new THREE.Mesh(
-        new THREE.SphereGeometry(0.11, 10, 10),
+      // Child Sphere 03+ outer position at satellite orbit so r=4.4u Mint Plasma Membrane is clearly distinct
+      const dirVec = new THREE.Vector3(...dom.position);
+      if (dirVec.lengthSq() < 0.01) dirVec.set(1, 0.35, -0.4);
+      dirVec.normalize().multiplyScalar(14.6 + dIdx * 3.2);
+      const childLocalCenter: [number, number, number] = [dirVec.x, dirVec.y, dirVec.z];
+
+      const childSphereGroup = new THREE.Group();
+      childSphereGroup.position.copy(dirVec);
+
+      const childShellMat = new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color(domMatColors.shellHex || '#7CE0B8'),
+        transmission: isSoftwareGl ? 0 : 0.82,
+        transparent: true,
+        opacity: isSoftwareGl ? 0.24 : 0.44,
+        roughness: 0.12,
+        metalness: 0.08,
+        ior: 1.46,
+        thickness: 1.1,
+        clearcoat: 1.0,
+        side: THREE.FrontSide,
+        depthWrite: false,
+      });
+      const childShellMesh = new THREE.Mesh(new THREE.SphereGeometry(4.4, 40, 28), childShellMat);
+      childSphereGroup.add(childShellMesh);
+
+      // Mint/Cyan rim ring (#5CC8D7) on child sphere r = 4.4u
+      const childRimCurve = new THREE.EllipseCurve(0, 0, 4.42, 4.42, 0, Math.PI * 2, false, 0);
+      const childRimGeo = new THREE.BufferGeometry().setFromPoints(
+        childRimCurve.getPoints(64).map((p) => new THREE.Vector3(p.x, p.y, 0))
+      );
+      const childRimMat = new THREE.LineBasicMaterial({
+        color: new THREE.Color(domMatColors.rimHex || '#5CC8D7'),
+        transparent: true,
+        opacity: 0.62,
+      });
+      const childRimRing = new THREE.LineLoop(childRimGeo, childRimMat);
+      childRimRing.rotation.set(0.38, -0.52, 0.24);
+      childSphereGroup.add(childRimRing);
+
+      targetAssembly.root.add(childSphereGroup);
+      childDomainShells.push(childSphereGroup);
+
+      buildNodeWithSignal(
+        targetAssembly.root,
+        targetCenter,
+        dom.sphere,
+        dom.id,
+        dom.id,
+        dom.name,
+        `Sphere 0${dIdx + 3} · ${dom.materialPreset}`,
+        '#7CE0B8',
+        childLocalCenter,
+        'subdomain',
+        1.05,
+        dIdx + 70,
+        [dom.parentNodeId]
+      );
+
+      // Arched CatmullRomCurve3 cardiac tube (#65ACFF, opacity: 0.55) with synchronized #FFF1D4 pulse bead
+      const startPt = new THREE.Vector3(0, 0, 0);
+      const endPt = dirVec.clone();
+      const midArch = startPt.clone().lerp(endPt, 0.5);
+      midArch.y += 3.6;
+      const childCardiacCurve = new THREE.CatmullRomCurve3([startPt, midArch, endPt]);
+      const childTubeGeo = new THREE.TubeGeometry(childCardiacCurve, 48, 0.032, 8, false);
+      const childTubeMat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color('#65ACFF'),
+        transparent: true,
+        opacity: 0.55,
+        depthWrite: false,
+      });
+      targetAssembly.root.add(new THREE.Mesh(childTubeGeo, childTubeMat));
+
+      const childPulseBead = new THREE.Mesh(
+        new THREE.SphereGeometry(0.12, 10, 10),
         new THREE.MeshBasicMaterial({
-          color: new THREE.Color(COLOUR_TOKENS.voiceOrbMint),
+          color: new THREE.Color('#FFF1D4'),
           transparent: true,
-          opacity: 0.9,
+          opacity: 0.96,
+        })
+      );
+      targetAssembly.root.add(childPulseBead);
+      pulseBeads.push({
+        mesh: childPulseBead,
+        curve: childCardiacCurve,
+        speed: 0.18,
+        offset: (dIdx * 0.25) % 1,
+      });
+    });
+
+    // Inter-Sphere CatmullRomCurve3 Cardiac Spline connecting HQ [0,0,0] and CDE [38,4,-22]
+    // Styled with #65ACFF (opacity: 0.55) carrying synchronized #FFF1D4 traveling light pulse beads
+    const bridgeCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(6.2, 0.8, -2.5),
+      new THREE.Vector3(19.0, 5.8, -11.0),
+      new THREE.Vector3(31.8, 3.2, -19.5),
+    ]);
+    const bridgeTubeGeo = new THREE.TubeGeometry(bridgeCurve, 64, 0.036, 8, false);
+    const bridgeMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color('#65ACFF'),
+      transparent: true,
+      opacity: 0.55,
+      depthWrite: false,
+    });
+    const bridgeMesh = new THREE.Mesh(bridgeTubeGeo, bridgeMat);
+    scene.add(bridgeMesh);
+
+    for (let b = 0; b < 4; b++) {
+      const bridgeBead = new THREE.Mesh(
+        new THREE.SphereGeometry(0.13, 10, 10),
+        new THREE.MeshBasicMaterial({
+          color: new THREE.Color('#FFF1D4'),
+          transparent: true,
+          opacity: 0.95,
         })
       );
       scene.add(bridgeBead);
@@ -1968,7 +2276,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         mesh: bridgeBead,
         curve: bridgeCurve,
         speed: 0.18,
-        offset: b / 3,
+        offset: b / 4,
       });
     }
 
@@ -1979,7 +2287,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const cometGeo = new THREE.BufferGeometry();
     cometGeo.setAttribute('position', new THREE.BufferAttribute(cometPositions, 3));
     const cometMat = new THREE.LineBasicMaterial({
-      color: new THREE.Color(COLOUR_TOKENS.voiceOrbMint),
+      color: new THREE.Color('#B4DDFF'),
       transparent: true,
       opacity: 0.68,
     });
@@ -1989,12 +2297,102 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const cometWeaveGeo = new THREE.BufferGeometry();
     cometWeaveGeo.setAttribute('position', new THREE.BufferAttribute(cometWeavePositions, 3));
     const cometWeaveMat = new THREE.LineBasicMaterial({
-      color: new THREE.Color('#4C8DFF'),
+      color: new THREE.Color('#65ACFF'),
       transparent: true,
       opacity: 0.48,
     });
     const cometWeaveLine = new THREE.Line(cometWeaveGeo, cometWeaveMat);
     scene.add(cometWeaveLine);
+
+    // -------------------------------------------------------------------------
+    // v4.0 3D Cylindrical Project Media Tube (`project.open_tube`) inside single WebGL scene
+    // radiusU: 5.4, columns: 8, visibleRows: 3, maxMountedTiles: 24, slotSizeU: [3.2, 1.8], rowPitchU: 2.25
+    // -------------------------------------------------------------------------
+    const mediaTubeGroup = new THREE.Group();
+    mediaTubeGroup.visible = false;
+    scene.add(mediaTubeGroup);
+
+    const mediaTubeTileMeshes: THREE.Mesh[] = [];
+    const buildTileCanvasTexture = (tile: ProjectMediaTubeItem): THREE.CanvasTexture => {
+      const c = document.createElement('canvas');
+      c.width = 320;
+      c.height = 180;
+      const ctx = c.getContext('2d');
+      if (ctx) {
+        const grad = ctx.createLinearGradient(0, 0, 320, 180);
+        grad.addColorStop(0, '#142632');
+        grad.addColorStop(1, '#101D27');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 320, 180);
+
+        // Subtle radial glow inside tile
+        const rad = ctx.createRadialGradient(160, 84, 10, 160, 84, 130);
+        rad.addColorStop(0, `${tile.accentHex}44`);
+        rad.addColorStop(1, 'rgba(16, 29, 39, 0)');
+        ctx.fillStyle = rad;
+        ctx.fillRect(0, 0, 320, 180);
+
+        // Outer glass frame
+        ctx.strokeStyle = tile.accentHex;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(4, 4, 312, 172);
+
+        // Kind badge
+        ctx.fillStyle = tile.accentHex;
+        ctx.font = 'bold 13px "JetBrains Mono", monospace';
+        ctx.fillText(`${tile.kind.toUpperCase()} · #${String(tile.index + 1).padStart(2, '0')}`, 18, 30);
+
+        // Title & subtitle
+        ctx.fillStyle = '#F2F6F8';
+        ctx.font = 'bold 15px "Space Grotesk", sans-serif';
+        ctx.fillText(tile.title.slice(0, 32), 18, 96);
+        ctx.fillStyle = '#BDCBD3';
+        ctx.font = '12px "JetBrains Mono", monospace';
+        ctx.fillText(tile.subtitle, 18, 126);
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    };
+
+    const initialTubeItems = buildProjectMediaTubeItems('SEVEN');
+    const [tileW, tileH] = PROJECT_MEDIA_TUBE_SPECS.slotSizeU;
+    for (let idx = 0; idx < PROJECT_MEDIA_TUBE_SPECS.maxMountedTiles; idx++) {
+      const col = idx % PROJECT_MEDIA_TUBE_SPECS.columns;
+      const row = Math.floor(idx / PROJECT_MEDIA_TUBE_SPECS.columns);
+      const theta = (col / PROJECT_MEDIA_TUBE_SPECS.columns) * Math.PI * 2;
+      const y = (1 - row) * PROJECT_MEDIA_TUBE_SPECS.rowPitchU;
+      const r = PROJECT_MEDIA_TUBE_SPECS.radiusU;
+
+      const tileGeo = new THREE.PlaneGeometry(tileW * 0.62, tileH * 0.62, 8, 1);
+      // Gently curve tile vertices along cylinder arc
+      const posAttr = tileGeo.attributes.position;
+      for (let v = 0; v < posAttr.count; v++) {
+        const vx = posAttr.getX(v);
+        const arcAngle = vx / r;
+        posAttr.setZ(v, (1 - Math.cos(arcAngle)) * r * 0.35);
+      }
+      tileGeo.computeVertexNormals();
+
+      const tileMat = new THREE.MeshBasicMaterial({
+        map: buildTileCanvasTexture(initialTubeItems[idx]),
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.94,
+      });
+
+      const tileMesh = new THREE.Mesh(tileGeo, tileMat);
+      tileMesh.position.set(Math.sin(theta) * r, y, Math.cos(theta) * r);
+      tileMesh.lookAt(0, y, 0);
+      // Flip so front face points outward/inward cleanly
+      tileMesh.rotateY(Math.PI);
+      tileMesh.userData = {
+        isMediaTubeTile: true,
+        tileIndex: idx,
+      };
+      mediaTubeGroup.add(tileMesh);
+      mediaTubeTileMeshes.push(tileMesh);
+    }
 
     if (!isSoftwareGl) {
       renderer.compile(scene, camera);
@@ -2145,14 +2543,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             }
           }
 
-          // Two-finger pinch (zoom)
+          // Two-finger pinch-to-zoom (9.2u to 42u on iPad/touch)
           if (lastPinchDist !== null) {
             const distDelta = tf.dist - lastPinchDist;
             if (Math.abs(distDelta) > 0.2) {
               s.targetRadius = THREE.MathUtils.clamp(
                 s.targetRadius - distDelta * 0.045,
-                3.2,
-                38.0
+                9.2,
+                42.0
               );
               setTouchIndicator({ active: true, x: tf.midX, y: tf.midY, mode: 'pinch' });
             }
@@ -2172,6 +2570,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           const nextHovered = hit ? hit.nodeId : null;
           if (nextHovered !== prevHovered) {
             stateRef.current.HoveredNodeId = nextHovered;
+            callbacksRef.current.onHoverNodeChange?.(nextHovered);
             if (nextHovered) {
               const panX = (e.clientX / Math.max(1, window.innerWidth)) * 2 - 1;
               soundEngine.playNodeHover(panX);
@@ -2230,6 +2629,25 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       domEl.style.cursor = 'grab';
 
       if (!dragMoved && e.target === domEl) {
+        // First check if 3D Media Tube is active and a tile was clicked
+        if (mediaTubeStateRef.current?.active && mediaTubeGroup.visible) {
+          const rect = domEl.getBoundingClientRect();
+          pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+          pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+          raycaster.setFromCamera(pointer, camera);
+          const tubeHits = raycaster.intersectObjects(mediaTubeTileMeshes, false);
+          if (tubeHits.length > 0) {
+            const tIdx = tubeHits[0].object.userData?.tileIndex;
+            if (typeof tIdx === 'number') {
+              const items = buildProjectMediaTubeItems(mediaTubeStateRef.current.projectId);
+              const tile = items[tIdx] || items[0];
+              soundEngine.playNodeSelect(0);
+              callbacksRef.current.onSelectMediaTubeTile?.(tIdx, tile);
+              return;
+            }
+          }
+        }
+
         const hit = findHitNode(e.clientX, e.clientY);
         if (hit) {
           const panX = (e.clientX / Math.max(1, window.innerWidth)) * 2 - 1;
@@ -2246,7 +2664,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const s = stateRef.current;
       s.flightActive = false;
       s.activeLoopMode = 'off';
-      s.targetRadius = THREE.MathUtils.clamp(s.targetRadius + e.deltaY * 0.012, 3.2, 38.0);
+      s.targetRadius = THREE.MathUtils.clamp(s.targetRadius + e.deltaY * 0.012, 9.2, 42.0);
       setTouchIndicator({ active: true, x: e.clientX, y: e.clientY, mode: 'pinch' });
       window.setTimeout(() => setTouchIndicator((prev) => ({ ...prev, active: false })), 350);
     };
@@ -2308,12 +2726,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     }
 
     function tick() {
-      if (isPageHidden) {
+      if (isPageHidden && GUI_WORLD_MOTION_TOKENS.freezeIfHidden) {
         frameId = window.setTimeout(tick, 250);
         return;
       }
 
-      const dt = Math.min(clock.getDelta(), 0.1);
+      // Clamp dt to 33ms (GUI_WORLD_MOTION_TOKENS.dtClampMs)
+      const dt = Math.min(clock.getDelta(), GUI_WORLD_MOTION_TOKENS.dtClampMs / 1000);
       const elapsedTotal = clock.getElapsedTime();
       const now = performance.now();
       const s = stateRef.current;
@@ -2330,8 +2749,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       // Synchronize Cerebral Ambient Drone 8.0s breathing filter modulation
       soundEngine.updateBreathingModulation(elapsedTotal, liveRms);
 
-      // 8-Second Breathing Liquid-Glass Shell Cycle (1.000 -> 1.006)
-      const breathPhase = 0.5 + 0.5 * Math.sin((elapsedTotal * Math.PI * 2) / 8.0);
+      // 8-Second Breathing Liquid-Glass Shell Cycle (periodsSec.rimBreath = 8s)
+      const breathPhase =
+        0.5 +
+        0.5 *
+          Math.sin(
+            (elapsedTotal * Math.PI * 2) / GUI_WORLD_MOTION_TOKENS.periodsSec.rimBreath
+          );
       const breathScale = s.reducedMotion ? 1.0 : 1.0 + 0.006 * breathPhase + liveRms * 0.012;
       hqAssembly.shellGroup.scale.setScalar(breathScale);
       cdeAssembly.shellGroup.scale.setScalar(breathScale);
@@ -2347,11 +2771,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       if (s.stoppedExplicitly) {
         s.currentAngularVel = 0;
       } else {
+        const baseSphereRate = GUI_WORLD_MOTION_TOKENS.rates.sphereRadPerSec; // 0.02992 rad/s (210s period)
         const desiredVel = s.reducedMotion
           ? 0
           : s.autoOrbit
           ? (Math.PI * 2) / Math.max(4, s.turnSeconds)
-          : 0.022;
+          : s.flightActive
+          ? baseSphereRate * GUI_TIMING_TOKENS.travelMotionAttenuation
+          : baseSphereRate;
         s.currentAngularVel = THREE.MathUtils.damp(s.currentAngularVel, desiredVel, 3.8, dt);
 
         if (
@@ -2415,9 +2842,16 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         }
       }
 
-      const dampFactor = s.reducedMotion ? 25 : 6.0;
-      s.currentCenter.lerp(s.targetCenter, 1 - Math.exp(-dampFactor * dt));
-      s.panOffset.lerp(s.targetPanOffset, 1 - Math.exp(-dampFactor * dt));
+      // Synchronized breathing across Sphere 01 (HQ), Sphere 02 (CDE), and Sphere 03+ (childDomainShells)
+      for (let cs = 0; cs < childDomainShells.length; cs++) {
+        childDomainShells[cs].scale.setScalar(breathScale);
+      }
+
+      // Damped CatmullRomCurve3 spline camera interpolation (damp = 1 - Math.exp(-4.2 * dt))
+      const dampFactor = s.reducedMotion ? 25 : 4.2;
+      const damp = 1 - Math.exp(-dampFactor * dt);
+      s.currentCenter.lerp(s.targetCenter, damp);
+      s.panOffset.lerp(s.targetPanOffset, damp);
       s.azimuth = THREE.MathUtils.damp(s.azimuth, s.targetAzimuth, dampFactor, dt);
       s.polar = THREE.MathUtils.damp(s.polar, s.targetPolar, dampFactor, dt);
       s.radius = THREE.MathUtils.damp(s.radius, s.targetRadius, dampFactor, dt);
@@ -2524,8 +2958,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const domeMix = glassUniforms.uInteriorDome.value;
       hqAssembly.frontShellMat.opacity = isSoftwareGl
         ? 0.22 * (1 - domeMix * 0.75)
-        : 0.92 * (1 - domeMix * 0.72);
-      cdeAssembly.frontShellMat.opacity = hqAssembly.frontShellMat.opacity;
+        : 0.42 * (1 - domeMix * 0.72);
+      cdeAssembly.frontShellMat.opacity = isSoftwareGl
+        ? 0.22 * (1 - domeMix * 0.75)
+        : 0.46 * (1 - domeMix * 0.72);
       hqAssembly.domeGridMat.opacity = domeMix * 0.24;
       cdeAssembly.domeGridMat.opacity = domeMix * 0.24;
 
@@ -2545,8 +2981,49 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       cdeAssembly.galaxy.uniforms.uFocalDistance.value = focalDist;
       cdeAssembly.galaxy.uniforms.uAudioRms.value = liveRms;
 
+      // v4.0 3D Cylindrical Project Media Tube update & enclosing shell dimming
+      const tubeProp = mediaTubeStateRef.current;
+      const tubeActive = Boolean(tubeProp?.active);
+      mediaTubeGroup.visible = tubeActive;
+      if (tubeActive) {
+        const activeCenter = s.activeSphere === 'cde' ? CDE_CENTER : HQ_CENTER;
+        mediaTubeGroup.position.copy(activeCenter);
+
+        // Dim enclosing sphere shell so the 3D cylindrical tube is crystal clear
+        hqAssembly.frontShellMat.opacity *= 0.22;
+        cdeAssembly.frontShellMat.opacity *= 0.22;
+
+        if (typeof tubeProp?.focusedTileIndex === 'number') {
+          const col = tubeProp.focusedTileIndex % PROJECT_MEDIA_TUBE_SPECS.columns;
+          const targetRotY = -((col / PROJECT_MEDIA_TUBE_SPECS.columns) * Math.PI * 2);
+          s.tubeRotationY = THREE.MathUtils.damp(s.tubeRotationY, targetRotY, 6.2, dt);
+        } else if (!s.stoppedExplicitly && !s.reducedMotion) {
+          const hoverMult =
+            s.tubeHoveredTileIdx !== null ? PROJECT_MEDIA_TUBE_SPECS.hoverSpeedMultiplier : 1.0;
+          const clampedVel = THREE.MathUtils.clamp(
+            s.tubeAngularVel * hoverMult,
+            -PROJECT_MEDIA_TUBE_SPECS.spinClampRadPerSec,
+            PROJECT_MEDIA_TUBE_SPECS.spinClampRadPerSec
+          );
+          s.tubeRotationY += clampedVel * dt;
+          s.tubeAngularVel = THREE.MathUtils.lerp(
+            s.tubeAngularVel,
+            PROJECT_MEDIA_TUBE_SPECS.idleRadPerSec,
+            1 - PROJECT_MEDIA_TUBE_SPECS.damping60Hz
+          );
+        }
+        mediaTubeGroup.rotation.y = s.tubeRotationY;
+
+        for (let ti = 0; ti < mediaTubeTileMeshes.length; ti++) {
+          const m = mediaTubeTileMeshes[ti];
+          const isFocusedTile = tubeProp?.focusedTileIndex === ti;
+          m.scale.setScalar(isFocusedTile ? 1.18 : 1.0);
+        }
+      }
+
       if (cinemaPass) {
-        cinemaPass.uniforms.uTime.value = elapsedTotal;
+        cinemaPass.uniforms.uTime.value =
+          s.stoppedExplicitly || s.reducedMotion ? 0 : elapsedTotal;
       }
 
       // 28-Segment Comet Navigation Weave trailing ribbon
@@ -2654,10 +3131,48 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         );
       }
 
+      // Align camera optical center to unobstructed centerSafeRect when panels are open
+      const curW = domEl.clientWidth || window.innerWidth;
+      const curH = domEl.clientHeight || window.innerHeight;
+      if (unobstructedRectRef.current && curW > 0 && curH > 0) {
+        const sub = computeSubFrustumOffset(curW, curH, unobstructedRectRef.current);
+        if (Math.abs(sub.offsetX) > 2 || Math.abs(sub.offsetY) > 2) {
+          camera.setViewOffset(
+            sub.fullWidth,
+            sub.fullHeight,
+            sub.offsetX,
+            sub.offsetY,
+            sub.width,
+            sub.height
+          );
+        } else {
+          camera.clearViewOffset();
+        }
+      }
+
       if (isSoftwareGl || !composer) {
         renderer.render(scene, camera);
       } else {
         composer.render();
+      }
+
+      // Project active 3D target (hovered, focused, or tour highlight) to 2D screen coordinates every frame for GuiFocusOverlay (z-35)
+      if (callbacksRef.current.onProjectedTargetChange) {
+        if (activeEntry) {
+          _scratchVec.copy(activeEntry.worldPos).project(camera);
+          const visible = _scratchVec.z <= 1;
+          const sx = (_scratchVec.x * 0.5 + 0.5) * curW;
+          const sy = (-_scratchVec.y * 0.5 + 0.5) * curH;
+          callbacksRef.current.onProjectedTargetChange({
+            id: activeEntry.canonicalId,
+            label: activeEntry.label,
+            x: Math.round(sx),
+            y: Math.round(sy),
+            visible,
+          });
+        } else {
+          callbacksRef.current.onProjectedTargetChange(null);
+        }
       }
 
       frameCounter++;
@@ -2726,7 +3241,26 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
         const tel = buildCurrentTelemetry(s);
         callbacksRef.current.onTelemetryChange(tel);
-        if (!tel.isMoving && s.settledCommandId !== s.lastCommandId) {
+        const posDiff =
+          Math.abs(s.targetRadius - s.radius) + s.panOffset.distanceTo(s.targetPanOffset);
+        const angDiffDeg = THREE.MathUtils.radToDeg(
+          Math.hypot(s.targetAzimuth - s.azimuth, s.targetPolar - s.polar)
+        );
+        if (
+          !s.flightActive &&
+          s.activeLoopMode === 'off' &&
+          posDiff <= 0.02 &&
+          angDiffDeg <= 0.25
+        ) {
+          s.stableArrivalFrames += 1;
+        } else {
+          s.stableArrivalFrames = 0;
+        }
+        if (
+          !tel.isMoving &&
+          s.stableArrivalFrames >= 3 &&
+          s.settledCommandId !== s.lastCommandId
+        ) {
           s.settledCommandId = s.lastCommandId;
           callbacksRef.current.onCameraSettled?.(s.lastCommandId, tel);
         }
@@ -2759,7 +3293,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       }
       renderer.dispose();
     };
-  }, []);
+  }, [customDomains.length, sphereMaterials.hq, sphereMaterials.cde]);
 
   const showReducedGraphicsFallback =
     forceWebglFallback || webglStatus === 'FALLBACK' || webglStatus === 'CONTEXT_LOST';
@@ -2938,18 +3472,19 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
           {captionBubble && (
             <div
-              className="fixed left-1/2 top-[16%] -translate-x-1/2 z-20 max-w-md px-4 py-2.5 rounded-2xl border neural-reveal pointer-events-none"
+              className="fixed left-1/2 top-[16%] -translate-x-1/2 z-20 max-w-md px-4 py-2.5 rounded-xl border neural-reveal pointer-events-none"
               style={{
-                backgroundColor: COLOUR_TOKENS.glassRgba,
-                borderColor: COLOUR_TOKENS.voiceOrbTeal,
+                backgroundColor: 'rgba(16, 29, 39, 0.84)',
+                borderColor: 'rgba(255, 255, 255, 0.14)',
+                boxShadow: 'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
               }}
             >
               <div className="flex items-center gap-2 mb-0.5">
                 <span
                   className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: COLOUR_TOKENS.voiceOrbTeal }}
+                  style={{ backgroundColor: '#65ACFF' }}
                 />
-                <span className="font-mono text-[10px] uppercase tracking-wider text-[#9AFFE0]">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-[#B4DDFF]">
                   Cerebro
                 </span>
               </div>
@@ -2958,6 +3493,78 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               </p>
             </div>
           )}
+
+          {/* v4.0 3D Cylindrical Project Media Tube Floating HUD Controls */}
+          {mediaTubeState?.active && (() => {
+            const tubeItems = buildProjectMediaTubeItems(mediaTubeState.projectId);
+            const focusedIdx = mediaTubeState.focusedTileIndex ?? 0;
+            const focusedTile = tubeItems[focusedIdx] || tubeItems[0];
+            return (
+              <div
+                data-testid="project-media-tube-hud"
+                data-ui-id="project-media-tube-hud"
+                onPointerDown={(e) => e.stopPropagation()}
+                className="fixed left-1/2 bottom-28 -translate-x-1/2 z-30 pointer-events-auto flex flex-wrap items-center gap-2 px-4 py-2.5 rounded-2xl border backdrop-blur-xl shadow-2xl max-w-[94vw]"
+                style={{
+                  backgroundColor: 'rgba(20, 38, 50, 0.86)',
+                  borderColor: 'rgba(255, 255, 255, 0.18)',
+                }}
+              >
+                <div className="pr-2 border-r border-white/15">
+                  <div className="font-mono text-[10px] text-[#F2B66D] uppercase">
+                    3D MEDIA TUBE · {mediaTubeState.projectId} (8×3 CYLINDER · 5.4u)
+                  </div>
+                  <div className="font-sans text-xs font-semibold text-[#F2F6F8]">
+                    Tile #{focusedIdx + 1}/24 · {focusedTile.title}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    data-cta-id="media-tube-prev"
+                    data-action-id="media.previous"
+                    onClick={() => {
+                      const prevIdx = (focusedIdx - 1 + tubeItems.length) % tubeItems.length;
+                      onSelectMediaTubeTile?.(prevIdx, tubeItems[prevIdx]);
+                    }}
+                    className="min-h-[38px] px-2.5 py-1 rounded-lg font-mono text-xs bg-[#101D27] border border-white/20 text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
+                  >
+                    ‹ Prev Tile
+                  </button>
+                  <button
+                    type="button"
+                    data-cta-id="media-tube-next"
+                    data-action-id="media.next"
+                    onClick={() => {
+                      const nextIdx = (focusedIdx + 1) % tubeItems.length;
+                      onSelectMediaTubeTile?.(nextIdx, tubeItems[nextIdx]);
+                    }}
+                    className="min-h-[38px] px-2.5 py-1 rounded-lg font-mono text-xs bg-[#101D27] border border-white/20 text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
+                  >
+                    Next Tile ›
+                  </button>
+                  <button
+                    type="button"
+                    data-cta-id="media-tube-fullview"
+                    data-action-id="media.open"
+                    onClick={() => onOpenMediaTubeFullView?.(focusedTile)}
+                    className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-xs bg-[#F2B66D] text-[#101D27] font-semibold cursor-pointer"
+                  >
+                    Open Full View
+                  </button>
+                  <button
+                    type="button"
+                    data-cta-id="media-tube-close"
+                    data-action-id="media.close"
+                    onClick={() => onCloseMediaTube?.()}
+                    className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-xs bg-[#101D27] border border-[#65ACFF] text-[#B4DDFF] hover:bg-[#4C8DFF] hover:text-[#101D27] cursor-pointer"
+                  >
+                    ← Return to Project
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>

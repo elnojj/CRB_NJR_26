@@ -3,15 +3,7 @@
 
 @font-face {
   font-family: 'JaapokkiSubtract';
-  src: local('Jaapokki Subtract'), local('JaapokkiSubtract-Regular'), local('Jaapokki Regular'), local('Jaapokki');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Jaapokki';
-  src: local('Jaapokki Regular'), local('Jaapokki-Regular'), local('Jaapokki');
+  src: local('Jaapokki Subtract'), local('JaapokkiSubtract-Regular'), local('Jaapokki'), local('Sora');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -19,153 +11,214 @@
 
 @layer base {
   :root {
-    --bg-canvas: #080B11;
-    --bg-field-inner: #1B3444;
-    --bg-field-outer: #05070B;
-    --surface-glass: rgba(18, 25, 38, 0.88);
-    --surface-glass-solid: #0C111A;
-    --text-primary: #F8FAFC;
-    --text-secondary: #94A3B8;
-    --text-coord: #D0DCE3;
-    --accent-cobalt: #38BDF8;
-    --focus-ring: #38BDF8;
-    --outline-control: rgba(148, 163, 184, 0.28);
-    --station-projects: #3D8BFF;
-    --station-project-detail: #FF7A59;
-    --station-tasks: #B8F04A;
-    --station-people: #E6A2B4;
-    --station-files: #3DDC97;
-    --station-media: #F2B66D;
-    --orb-teal: #3FD0E0;
-    --error-red: #FF5666;
-    --ease-unified: cubic-bezier(0.22, 1, 0.36, 1);
-
-    /* Token Aliases */
-    --token-bg-canvas: #101D27;
-    --token-surface-glass: rgba(20, 38, 50, 0.88);
-    --token-text-primary: #F2F6F8;
-    --token-text-secondary: #BDCBD3;
-    --token-accent-cobalt: #4C8DFF;
-    --token-focus-ring: #65ACFF;
-    --token-station-projects: #3D8BFF;
-    --token-station-tasks: #B8F04A;
-    --token-station-people: #E6A2B4;
-    --token-station-files: #3DDC97;
-    --token-station-media: #F2B66D;
-    --token-voice-orb: #9AFFE0;
-    --token-error-red: #FF5666;
+    --bg-canvas: var(--token-canvas);
+    --bg-glass-solid: var(--token-glass-solid);
+    --bg-glass-rgba: var(--token-glass);
+    --text-primary: var(--token-text-primary);
+    --text-secondary: var(--token-text-secondary);
+    --accent-cobalt: var(--token-cobalt);
+    --focus-ring: var(--token-focus);
+    --station-projects: var(--token-cobalt);
+    --station-tasks: var(--token-station-tasks);
+    --station-people: var(--token-station-people);
+    --station-files: var(--token-station-files);
+    --station-media: var(--token-station-media);
+    --voice-orb-mint: var(--token-voice-orb);
+    --voice-orb-teal: var(--token-voice-orb-mid);
+    --voice-orb-deep: var(--token-voice-orb-deep);
+    --sphere-wireframe: var(--token-focus-glow);
+    --ease-cerebro: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  body {
-    background-color: var(--bg-canvas);
-    color: var(--text-primary);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  html,
+  body,
+  #root {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: var(--token-canvas);
+    color: var(--token-text-primary);
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    line-height: 1.45;
     overflow: hidden;
-    user-select: none;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    user-select: none;
   }
 
-  h1, h2, h3, h4, .font-display {
-    font-family: 'Jaapokki', 'Sora', sans-serif;
-  }
-
-  code, pre, .font-mono {
-    font-family: 'JetBrains Mono', monospace;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .font-arabic, [dir="rtl"] {
-    font-family: 'IBM Plex Sans Arabic', sans-serif;
-    line-height: 1.65;
-  }
-
-  button:focus-visible,
-  a:focus-visible,
-  input:focus-visible,
-  textarea:focus-visible,
-  select:focus-visible,
-  [role="button"]:focus-visible {
-    outline: 2px solid var(--focus-ring);
+  /* Focus ring locked to #65ACFF */
+  *:focus-visible {
+    outline: 2px solid var(--token-focus);
     outline-offset: 2px;
   }
 }
 
-/* Token Utility Classes */
-.bg-token-amber {
-  background-color: var(--token-station-media);
-}
-.text-token-amber {
-  color: var(--token-station-media);
-}
-.border-token-amber {
-  border-color: var(--token-station-media);
-}
-.bg-token-emerald {
-  background-color: var(--token-station-people);
-}
-.text-token-emerald {
-  color: var(--token-station-people);
+.font-display {
+  font-family: var(--font-display);
 }
 
-/* Safe area padding helpers */
-.safe-top {
-  padding-top: max(0.75rem, env(safe-area-inset-top));
-}
-.safe-bottom {
-  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+.font-sans {
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.45;
 }
 
-@keyframes lockupShimmer {
-  0%, 100% {
-    opacity: 0.92;
-    filter: drop-shadow(0 0 5px rgba(242, 246, 248, 0.16));
+.font-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.font-arabic {
+  font-family: var(--font-arabic);
+  letter-spacing: 0 !important;
+}
+
+/* Enforce zero letter-spacing across Arabic RTL switches */
+[dir='rtl'],
+[dir='rtl'] * {
+  font-family: var(--font-arabic);
+  letter-spacing: 0 !important;
+}
+
+[dir='rtl'] .font-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0 !important;
+}
+
+/* Neural Observatory v1.1 floating optical glass surface */
+.glass-panel,
+.cerebro-stellar-glass {
+  background: rgba(20, 38, 50, 0.72);
+  backdrop-filter: blur(18px) saturate(1.18);
+  -webkit-backdrop-filter: blur(18px) saturate(1.18);
+  border: 1px solid rgba(232, 251, 255, 0.24);
+  border-radius: 18px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+}
+
+@supports not ((backdrop-filter: blur(18px)) or (-webkit-backdrop-filter: blur(18px))) {
+  .glass-panel,
+  .cerebro-stellar-glass {
+    background: rgba(20, 38, 50, 0.94);
+  }
+}
+
+/* Voice Pilot Orb (#9AFFE0 -> #359D8E -> #133A44) — SACRED RESERVATION */
+.voice-orb-gradient {
+  background: radial-gradient(
+    circle at 34% 30%,
+    var(--token-voice-orb) 0%,
+    var(--token-voice-orb-mid) 56%,
+    var(--token-voice-orb-deep) 100%
+  );
+  box-shadow:
+    0 0 28px rgba(154, 255, 224, 0.36),
+    inset 0 1px 2px rgba(242, 246, 248, 0.45);
+}
+
+@keyframes orbPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 24px rgba(154, 255, 224, 0.34);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 38px rgba(154, 255, 224, 0.56);
+  }
+}
+
+.voice-orb-speaking {
+  animation: orbPulse 2.2s var(--ease-cerebro) infinite;
+}
+
+@keyframes shimmerSweep {
+  0% {
+    opacity: 0.72;
+    filter: drop-shadow(0 0 6px rgba(180, 221, 255, 0.16));
   }
   50% {
     opacity: 1;
-    filter: drop-shadow(0 0 11px rgba(180, 221, 255, 0.36));
+    filter: drop-shadow(0 0 14px rgba(180, 221, 255, 0.44));
+  }
+  100% {
+    opacity: 0.72;
+    filter: drop-shadow(0 0 6px rgba(180, 221, 255, 0.16));
   }
 }
 
 .lockup-shimmer {
-  animation: lockupShimmer 6s ease-in-out infinite;
+  animation: shimmerSweep 4s var(--ease-cerebro) infinite;
 }
 
-@keyframes neuralReveal {
-  from {
+@keyframes neuralPanelReveal {
+  0% {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(10px) scale(0.985);
   }
-  to {
+  100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 .neural-reveal {
-  animation: neuralReveal 240ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: neuralPanelReveal 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .lockup-shimmer {
-    animation: none !important;
+@keyframes pulseRing {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.75;
   }
-  .neural-reveal {
-    animation: opacity 200ms linear !important;
+  70% {
+    transform: scale(1.32);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.32);
+    opacity: 0;
   }
 }
 
-/* Custom subtle scrollbars inside glass pockets */
+.neural-pulse-ring::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 1.5px solid var(--token-focus);
+  animation: pulseRing 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  pointer-events: none;
+}
+
+/* Scrollbar styling inside floating optical glass cards */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
 }
+
 ::-webkit-scrollbar-track {
-  background: rgba(16, 29, 39, 0.4);
+  background: rgba(16, 29, 39, 0.45);
 }
+
 ::-webkit-scrollbar-thumb {
-  background: rgba(189, 203, 211, 0.28);
-  border-radius: 3px;
+  background: rgba(180, 221, 255, 0.24);
+  border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(76, 141, 255, 0.6);
+  background: rgba(101, 172, 255, 0.52);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 120ms !important;
+  }
 }

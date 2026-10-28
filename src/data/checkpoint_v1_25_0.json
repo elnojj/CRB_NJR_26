@@ -1,0 +1,103 @@
+{
+  "checkpointId": "CP-04",
+  "checkpointVersion": "1.25.0",
+  "upgradedToVersion": "1.28.0",
+  "recordedAt": "2026-10-27T16:40:00.000Z",
+  "canonicalStorePath": "src/data/store.json",
+  "dualSphereDomainState": {
+    "checkpointId": "CP-04",
+    "paletteLock": {
+      "canvas": "#101D27",
+      "glass": "#142632",
+      "voiceOrb": "#9AFFE0",
+      "blockedRed": "#FF5666"
+    },
+    "sphere01": {
+      "id": "hq",
+      "label": "Sphere 01: CEREBRO HQ",
+      "coordinates": [0, 0, 0],
+      "radius": 6.2,
+      "material": "Refractive Cobalt Liquid Glass",
+      "coreColor": "#4C8DFF",
+      "rimColor": "#B4DDFF",
+      "projectSuns": ["SEVEN", "YAH", "MHE", "BSOCIAL", "AL-AHRAM", "EL-BATRON"]
+    },
+    "sphere02": {
+      "id": "cde",
+      "label": "Sphere 02: CDE Universe",
+      "coordinates": [38, 4, -22],
+      "radius": 6.2,
+      "material": "Warm Amber Caustic Crystal",
+      "coreColor": "#F2B66D",
+      "rimColor": "#FFF1D4",
+      "dimensions": ["Strategy", "Spatial Architecture", "Sonic & Showreel", "Execution Intelligence"]
+    },
+    "bridge": {
+      "curve": "CatmullRomCurve3",
+      "dofSpiralGalaxyParticles": 6400,
+      "pinchZoomRange": [9.2, 42.0]
+    }
+  },
+  "projectsCount": 17,
+  "projects": [
+    { "id": "SEVEN", "code": "PRJ-01 · SEVEN", "status": "Waiting on 39", "ownerCode": "39" },
+    { "id": "YAH", "code": "PRJ-02 · YAH", "status": "Active", "ownerCode": "39" },
+    { "id": "MHE", "code": "PRJ-03 · MHE", "status": "Waiting on 39", "ownerCode": "39" },
+    { "id": "BSOCIAL", "code": "PRJ-04 · BSOCIAL", "status": "Blocked", "ownerCode": "39" },
+    { "id": "AL-AHRAM", "code": "PRJ-05 · AL-AHRAM", "status": "Active", "ownerCode": "GD" },
+    { "id": "EL-BATRON", "code": "PRJ-06 · EL-BATRON", "status": "Active", "ownerCode": "RS" },
+    { "id": "MUSEUM-OF-ALMOST", "code": "PRJ-07 · MOA", "status": "Waiting on 39", "ownerCode": "39" },
+    { "id": "GONDWANA", "code": "PRJ-08 · GND", "status": "Active", "ownerCode": "FK" },
+    { "id": "DRAFTEERS", "code": "PRJ-09 · DRF", "status": "Active", "ownerCode": "BL" },
+    { "id": "NJR-PLUS", "code": "PRJ-10 · NJR+", "status": "Active", "ownerCode": "39" },
+    { "id": "MISSION-LOTUS", "code": "PRJ-11 · LOTUS", "status": "Active", "ownerCode": "WS" },
+    { "id": "LALIGA-MENA", "code": "PRJ-12 · LALIGA", "status": "Waiting on 39", "ownerCode": "39" },
+    { "id": "RIYADH-METRO-ART", "code": "PRJ-13 · RMA", "status": "Active", "ownerCode": "NQ" },
+    { "id": "CAIRO-DESIGN-WEEK", "code": "PRJ-14 · CDW", "status": "Active", "ownerCode": "RS" },
+    { "id": "DIRIYAH-SOUQ", "code": "PRJ-15 · DRY", "status": "Waiting on 39", "ownerCode": "39" },
+    { "id": "SOUND-OF-NILE", "code": "PRJ-16 · NILE", "status": "Blocked", "ownerCode": "WS" },
+    { "id": "RED-SEA-PAVILION", "code": "PRJ-17 · RSP", "status": "Active", "ownerCode": "GD" }
+  ],
+  "crewRaciRoster": [
+    { "code": "39", "name": "Tarek Nojara (39)", "tier": "Owner", "raciRole": "A" },
+    { "code": "GD", "name": "Grandy (GD)", "tier": "Core Crew", "raciRole": "R" },
+    { "code": "BL", "name": "Bilal (BL)", "tier": "Core Crew", "raciRole": "R" },
+    { "code": "RS", "name": "Rasma (RS)", "tier": "Core Crew", "raciRole": "R" },
+    { "code": "MU", "name": "Musa (MU)", "tier": "Core Crew", "raciRole": "R" },
+    { "code": "KT", "name": "Katib (KT)", "tier": "Specialist", "raciRole": "C" },
+    { "code": "FK", "name": "Fakir (FK)", "tier": "Specialist", "raciRole": "C" },
+    { "code": "NQ", "name": "Nasaq (NQ)", "tier": "Specialist", "raciRole": "R" },
+    { "code": "WS", "name": "Waseem (WS)", "tier": "Specialist", "raciRole": "R" },
+    { "code": "ZB", "name": "Zebda (ZB)", "tier": "Specialist", "raciRole": "I" },
+    { "code": "BG", "name": "Baghira (BG)", "tier": "Planner & Orchestrator", "raciRole": "R" },
+    { "code": "KZ", "name": "Kinzo (KZ)", "tier": "Planner & Orchestrator", "raciRole": "R" }
+  ],
+  "insightsSignals": [
+    { "id": "SIG-01", "projectCode": "BSOCIAL", "severity": "BLOCKED", "title": "B-Social Acoustic Permit & Array Substitution Hold" },
+    { "id": "SIG-02", "projectCode": "SOUND-OF-NILE", "severity": "BLOCKED", "title": "Sound of the Nile Hydrophone Array Carnet Hold" },
+    { "id": "SIG-03", "projectCode": "SEVEN", "severity": "WAITING_ON_39", "title": "SEVEN × NOJARA Arabic Orthography & Rights Gate" },
+    { "id": "SIG-04", "projectCode": "MHE", "severity": "WAITING_ON_39", "title": "Abu Hamdan × Floward Q4 Term Sheet Sign-Off" },
+    { "id": "SIG-05", "projectCode": "LALIGA-MENA", "severity": "TIMELINE_WATCH", "title": "LaLiga MENA Interactive LED Floor Air-Freight Window" },
+    { "id": "SIG-06", "projectCode": "MUSEUM-OF-ALMOST", "severity": "WAITING_ON_39", "title": "Museum of Almost Curatorial Plinth & Riyadh Tour Gate" }
+  ],
+  "preservedFiles": [
+    "src/App.tsx",
+    "src/components/DualSphereCanvas.tsx",
+    "src/components/WireframesV11Panels.tsx",
+    "src/components/CosmographCanvas.tsx",
+    "src/components/PanelsOverlay.tsx",
+    "src/components/VoiceCard.tsx",
+    "src/components/HandsOverlay.tsx",
+    "src/components/BrandLockup.tsx",
+    "src/data/cerebroData.ts",
+    "src/data/store.json",
+    "src/data/checkpoint_v1_25_0.json",
+    "src/data/croCdeGoogleAgentManifest.ts",
+    "src/data/sourceData.ts",
+    "src/utils/elevenLabsBridge.ts",
+    "src/utils/googleWorkspaceClient.ts",
+    "src/index.css",
+    "src/tokens/colours.ts",
+    "server.ts"
+  ]
+}

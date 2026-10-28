@@ -31,6 +31,7 @@ export interface ElevenLabsBridgeCallbacks {
     toolCallId?: string
   ) => Promise<string | Record<string, unknown>> | string | Record<string, unknown>;
   onAudioLevel?: (rms: number) => void;
+  onWordAlignment?: (word: string, scheduledAudioTimeSec: number) => void;
 }
 
 interface SpeechRecognitionEventLike {
@@ -124,6 +125,7 @@ export class ElevenLabsConvaiBridge {
   private activeAgentId: string = DEFAULT_INTERNAL_AGENT_ID;
   private intentionalDisconnect = false;
   private hasReceivedWsTraffic = false;
+  private connectTimeoutId: number | null = null;
 
   constructor(callbacks: ElevenLabsBridgeCallbacks) {
     this.callbacks = callbacks;
@@ -150,6 +152,17 @@ export class ElevenLabsConvaiBridge {
       (this.ws !== null && this.ws.readyState === WebSocket.OPEN) ||
       this.usingBrowserSpeechFallback
     );
+  }
+
+  public isLiveWebSocketOpen(): boolean {
+    return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
+  }
+
+  public getNegotiatedSampleRates(): { inputHz: number; outputHz: number } {
+    return {
+      inputHz: this.negotiatedInputSampleRate,
+      outputHz: this.negotiatedOutputSampleRate,
+    };
   }
 
   private setState(state: VoiceBridgeState, detail?: string): void {
@@ -425,7 +438,36 @@ export class ElevenLabsConvaiBridge {
     try {
       this.ws = new WebSocket(wsUrl);
 
+      if (typeof window !== 'undefined') {
+        if (this.connectTimeoutId !== null) {
+          window.clearTimeout(this.connectTimeoutId);
+        }
+        this.connectTimeoutId = window.setTimeout(() => {
+          if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
+            this.setState('Reconnecting', '8s handshake timeout — switching to fallback');
+            try {
+              this.ws.close();
+            } catch {
+              // ignore
+            }
+            const started = this.startBrowserSpeechFallback(
+              '8s Reconnect Timeout Fallback'
+            );
+            if (started) {
+              this.callbacks.onTranscript(
+                'agent',
+                'Welcome back, sir. Anyone with you?'
+              );
+            }
+          }
+        }, 8000);
+      }
+
       this.ws.onopen = () => {
+        if (typeof window !== 'undefined' && this.connectTimeoutId !== null) {
+          window.clearTimeout(this.connectTimeoutId);
+          this.connectTimeoutId = null;
+        }
         // Send clean initiation payload WITHOUT conversation_config_override so agents
         // without override permissions enabled in ElevenLabs Security never reject with code 1008.
         try {
@@ -514,6 +556,27 @@ export class ElevenLabsConvaiBridge {
             const b64 = msg.audio_event?.audio_base_64 ?? msg.audio_base_64;
             if (b64) {
               this.playPcm16Base64(b64, this.negotiatedOutputSampleRate);
+            }
+            const align = msg.audio_event?.alignment || msg.alignment;
+            if (align && Array.isArray(align.chars) && Array.isArray(align.char_start_times_ms)) {
+              const baseTime = this.audioCtx?.currentTime ?? 0;
+              const word = align.chars.join('').trim();
+              if (word) {
+                const startMs = Number(align.char_start_times_ms[0] || 0);
+                this.callbacks.onWordAlignment?.(word, baseTime + startMs / 1000);
+              }
+            }
+          } else if (msg.type === 'audio_alignment' || msg.type === 'alignment') {
+            const align = msg.audio_alignment_event || msg.alignment || msg;
+            if (align && Array.isArray(align.chars)) {
+              const baseTime = this.audioCtx?.currentTime ?? 0;
+              const word = align.chars.join('').trim();
+              const startMs = Array.isArray(align.char_start_times_ms)
+                ? Number(align.char_start_times_ms[0] || 0)
+                : 0;
+              if (word) {
+                this.callbacks.onWordAlignment?.(word, baseTime + startMs / 1000);
+              }
             }
           } else if (msg.type === 'interruption') {
             this.stopOutputAudioImmediately();
@@ -765,6 +828,10 @@ export class ElevenLabsConvaiBridge {
   disconnect(silent = false): void {
     this.intentionalDisconnect = true;
     this.usingBrowserSpeechFallback = false;
+    if (typeof window !== 'undefined' && this.connectTimeoutId !== null) {
+      window.clearTimeout(this.connectTimeoutId);
+      this.connectTimeoutId = null;
+    }
     if (this.speechRec) {
       try {
         this.speechRec.onend = null;

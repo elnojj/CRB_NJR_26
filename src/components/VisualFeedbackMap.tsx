@@ -61,16 +61,16 @@ export const PLAIN_LANGUAGE_CONCERNS: ConcernMindMapNode[] = [
     id: 'cheap',
     labelEn: 'It looks cheap',
     labelAr: 'يبدو رخيصاً أو غير متقن',
-    diagnosis: 'Excessive candy badges or low-contrast borders dilute the CRO-NXS Obsidian architectural aesthetic.',
+    diagnosis: 'Excessive candy badges or low-contrast borders dilute the Neural Observatory v1.1 cryo-glass aesthetic.',
     optionA: {
       title: 'Zero-Pill Unboxed Typography',
-      tokensApplied: '--surface-hud: rgba(12,17,26,0.78) · typographic separators (·)',
+      tokensApplied: '--surface-hud: rgba(16,29,39,0.84) · typographic separators (·)',
       previewDesc: 'Replaces rounded badge chips with crisp tabular-nums monospace text.',
     },
     optionB: {
       title: 'Machined Specular Hairline',
-      tokensApplied: '--surface-glass-border: rgba(148,163,184,0.14) · 16px backdrop blur',
-      previewDesc: 'Uses 1px optical slate borders with subtle sky-blue focus highlights.',
+      tokensApplied: '--token-divider: rgba(255,255,255,0.14) · 12px backdrop blur',
+      previewDesc: 'Uses 1px optical cryo-glass borders with subtle #65ACFF focus highlights.',
     },
   },
   {
@@ -112,7 +112,7 @@ export const PLAIN_LANGUAGE_CONCERNS: ConcernMindMapNode[] = [
     diagnosis: 'Generic SaaS card layouts fail to reflect NOJARA Studios and Cerebro HQ identity.',
     optionA: {
       title: 'JaapokkiSubtract + Bilingual Masri/Arabic Lockup',
-      tokensApplied: '--font-display: JaapokkiSubtract · bespoke orbital telemetry',
+      tokensApplied: '--font-display: Sora · bespoke orbital telemetry',
       previewDesc: 'Anchors layout around the custom wordmark, 20-seat v1.5 crew callsigns, and 4-tier honesty rubric.',
     },
     optionB: {
@@ -128,7 +128,7 @@ export const PLAIN_LANGUAGE_CONCERNS: ConcernMindMapNode[] = [
     diagnosis: 'Blocking executive decisions (ASK_OF_39) or failed verification gates are buried below the fold.',
     optionA: {
       title: 'Pin ASK_OF_39 & 4-Tier Gate to Top',
-      tokensApplied: '--status-awaiting: #F59E0B · top-dock Decision Queue badge',
+      tokensApplied: '--status-awaiting: #F2B66D · top-dock Decision Queue badge',
       previewDesc: 'Surfaces pending decisions for 39 directly in the top bar and bottom dock with 1-click signoff.',
     },
     optionB: {
@@ -231,19 +231,22 @@ export const VisualFeedbackMap: React.FC<VisualFeedbackMapProps> = ({
       onWheel={(e) => e.stopPropagation()}
       className="cerebro-hud-panel p-4 space-y-3.5 max-h-[76vh] overflow-y-auto"
     >
-      <div className="flex items-center justify-between border-b border-[rgba(148,163,184,0.14)] pb-2.5">
+      <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.14)] pb-2.5">
         <div>
-          <div className="font-mono text-[10px] text-[#38BDF8] uppercase">
-            PLAIN-LANGUAGE VISUAL FEEDBACK INSPECTOR (UI-103 · RASMA GATE)
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#4C8DFF] shrink-0" />
+            <h3 className="font-display text-xs font-semibold tracking-[0.08em] uppercase text-[#F2F6F8]">
+              UI-103 · RASMA VISUAL FEEDBACK INSPECTOR
+            </h3>
           </div>
-          <h3 className="font-display text-sm font-semibold text-[#F8FAFC]">
+          <div className="font-mono tabular-nums text-[10px] text-[#BDCBD3] pl-4 mt-0.5">
             Critique Any HUD Element & Compare Visual Remedies
-          </h3>
+          </div>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="px-2.5 py-1 rounded bg-[#121926] border border-[rgba(148,163,184,0.25)] font-mono text-[10px] text-[#94A3B8] hover:text-[#F8FAFC] cursor-pointer"
+          className="px-2.5 py-1 rounded-lg bg-[#142632] border border-[rgba(180,221,255,0.16)] font-mono text-[10px] text-[#BDCBD3] hover:text-[#F2F6F8] cursor-pointer"
         >
           Close ✕
         </button>
@@ -251,7 +254,7 @@ export const VisualFeedbackMap: React.FC<VisualFeedbackMapProps> = ({
 
       {/* Target Element Selector */}
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="font-mono text-[10px] text-[#94A3B8] uppercase">
+        <span className="font-mono text-[10px] text-[#BDCBD3] uppercase">
           Target Element:
         </span>
         {[
@@ -265,10 +268,10 @@ export const VisualFeedbackMap: React.FC<VisualFeedbackMapProps> = ({
             key={el}
             type="button"
             onClick={() => setTargetElement(el)}
-            className={`px-2.5 py-1 rounded font-mono text-[10px] border cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg font-mono text-[10px] border cursor-pointer ${
               targetElement === el
-                ? 'bg-[#38BDF8]/20 border-[#38BDF8] text-[#F8FAFC]'
-                : 'bg-[#05070B] border-[rgba(148,163,184,0.18)] text-[#94A3B8]'
+                ? 'bg-[#4C8DFF]/20 border-[#65ACFF] text-[#F2F6F8]'
+                : 'bg-[#101D27] border-[rgba(180,221,255,0.16)] text-[#BDCBD3]'
             }`}
           >
             {el}
@@ -278,7 +281,7 @@ export const VisualFeedbackMap: React.FC<VisualFeedbackMapProps> = ({
 
       {/* 8 Plain-Language Concern Mind Map Nodes */}
       <div>
-        <div className="font-mono text-[10px] text-[#94A3B8] uppercase mb-1.5">
+        <div className="font-mono text-[10px] text-[#BDCBD3] uppercase mb-1.5">
           Select Plain-Language Concern (Mind Map):
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -292,14 +295,14 @@ export const VisualFeedbackMap: React.FC<VisualFeedbackMapProps> = ({
                 onClick={() => setSelectedConcernId(c.id)}
                 className={`p-2 rounded-lg border text-left transition-colors cursor-pointer ${
                   active
-                    ? 'bg-[#121926] border-[#38BDF8] text-[#F8FAFC]'
-                    : 'bg-[#05070B]/80 border-[rgba(148,163,184,0.16)] text-[#94A3B8] hover:text-[#F8FAFC]'
+                    ? 'bg-[rgba(20,38,50,0.88)] border-[#65ACFF] text-[#F2F6F8]'
+                    : 'bg-[rgba(20,38,50,0.72)] border-[rgba(180,221,255,0.16)] text-[#BDCBD3] hover:text-[#F2F6F8]'
                 }`}
               >
                 <div className="font-display text-xs font-semibold">
                   {locale === 'ar' ? c.labelAr : c.labelEn}
                 </div>
-                <div className="font-mono text-[9px] text-[#64748B] mt-0.5">
+                <div className="font-mono text-[9px] text-[#BDCBD3]/80 mt-0.5">
                   {locale === 'ar' ? c.labelEn : c.labelAr}
                 </div>
               </button>
@@ -309,8 +312,8 @@ export const VisualFeedbackMap: React.FC<VisualFeedbackMapProps> = ({
       </div>
 
       {/* Side-by-Side Visual Alternatives Comparison */}
-      <div className="p-3 rounded-xl bg-[#05070B]/80 border border-[rgba(148,163,184,0.16)] space-y-2.5">
-        <div className="font-mono text-[10px] text-[#F59E0B]">
+      <div className="p-3 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] space-y-2.5">
+        <div className="font-mono text-[10px] text-[#F2B66D]">
           Diagnosis: {activeConcern.diagnosis}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
@@ -327,22 +330,22 @@ export const VisualFeedbackMap: React.FC<VisualFeedbackMapProps> = ({
                 }}
                 className={`p-3 rounded-lg border text-left transition-colors cursor-pointer ${
                   isSelected
-                    ? 'bg-[#121926] border-[#10B981]'
-                    : 'bg-[#0C111A] border-[rgba(148,163,184,0.16)] hover:border-[#38BDF8]'
+                    ? 'bg-[#142632] border-[#36E88D]'
+                    : 'bg-[#101D27] border-[rgba(180,221,255,0.16)] hover:border-[#65ACFF]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-display text-xs font-semibold text-[#F8FAFC]">
+                  <span className="font-display text-xs font-semibold text-[#F2F6F8]">
                     Alternative {optKey}: {opt.title}
                   </span>
-                  <span className="font-mono text-[10px] text-[#10B981]">
+                  <span className="font-mono text-[10px] text-[#36E88D]">
                     {isSelected ? 'Selected' : 'Preview'}
                   </span>
                 </div>
-                <div className="font-mono text-[10px] text-[#38BDF8] mb-1">
+                <div className="font-mono text-[10px] text-[#65ACFF] mb-1">
                   {opt.tokensApplied}
                 </div>
-                <p className="text-xs text-[#94A3B8]">{opt.previewDesc}</p>
+                <p className="text-xs text-[#BDCBD3]">{opt.previewDesc}</p>
               </button>
             );
           })}
@@ -355,13 +358,13 @@ export const VisualFeedbackMap: React.FC<VisualFeedbackMapProps> = ({
             value={customNote}
             onChange={(e) => setCustomNote(e.target.value)}
             placeholder="Optional note for Rasma & Banna (bound to checkpoint & locale)..."
-            className="flex-1 min-w-[220px] px-3 py-1.5 rounded-lg bg-[#0C111A] border border-[rgba(148,163,184,0.24)] text-xs text-[#F8FAFC]"
+            className="flex-1 min-w-[220px] px-3 py-1.5 rounded-lg bg-[#142632] border border-[rgba(180,221,255,0.16)] text-xs text-[#F2F6F8]"
           />
           <button
             type="button"
             data-testid="save-feedback-annotation-btn"
             onClick={handleSave}
-            className="px-3.5 py-1.5 rounded-lg bg-[#10B981] text-[#05070B] font-mono text-xs font-semibold cursor-pointer"
+            className="px-3.5 py-1.5 rounded-lg bg-[#36E88D] text-[#101D27] font-mono text-xs font-semibold cursor-pointer"
           >
             Save FeedbackAnnotation ({checkpointId})
           </button>
@@ -371,21 +374,21 @@ export const VisualFeedbackMap: React.FC<VisualFeedbackMapProps> = ({
       {/* Saved Annotations Log */}
       {annotations.length > 0 && (
         <div className="space-y-1.5">
-          <div className="font-mono text-[10px] text-[#94A3B8] uppercase">
+          <div className="font-mono text-[10px] text-[#BDCBD3] uppercase">
             Saved Feedback Annotations ({annotations.length}):
           </div>
           <div className="max-h-28 overflow-y-auto space-y-1 pr-1">
             {annotations.map((ann) => (
               <div
                 key={ann.id}
-                className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded bg-[#05070B] border border-[rgba(148,163,184,0.14)] font-mono text-[10px]"
+                className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-[#101D27] border border-[rgba(180,221,255,0.16)] font-mono tabular-nums text-[10px]"
               >
-                <span className="text-[#F8FAFC]">
+                <span className="text-[#F2F6F8]">
                   [{ann.checkpointId} · {ann.locale.toUpperCase()}] {ann.targetElement} →{' '}
-                  <strong className="text-[#38BDF8]">{ann.concernLabel}</strong> (Alt{' '}
+                  <strong className="text-[#65ACFF]">{ann.concernLabel}</strong> (Alt{' '}
                   {ann.chosenAlternative})
                 </span>
-                <span className="text-[#94A3B8] truncate max-w-[260px]">
+                <span className="text-[#BDCBD3] truncate max-w-[260px]">
                   {ann.note}
                 </span>
               </div>

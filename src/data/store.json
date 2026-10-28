@@ -1,0 +1,513 @@
+{
+  "version": "1.28.0",
+  "baselineCheckpoint": "1.25.0",
+  "checkpointId": "CP-04",
+  "dualSphereState": {
+    "checkpointId": "CP-04",
+    "activeSphere": "hq",
+    "panelAvoidanceClear": true,
+    "spheres": {
+      "hq": {
+        "id": "hq",
+        "label": "Sphere 01: CEREBRO HQ",
+        "position": [0, 0, 0],
+        "radius": 6.2,
+        "materialPreset": "cobalt_glass",
+        "coreColor": "#4C8DFF",
+        "rimColor": "#B4DDFF",
+        "projectSunsCount": 6
+      },
+      "cde": {
+        "id": "cde",
+        "label": "Sphere 02: CDE Universe",
+        "position": [38, 4, -22],
+        "radius": 6.2,
+        "materialPreset": "amber_caustic",
+        "coreColor": "#F2B66D",
+        "rimColor": "#FFF1D4",
+        "dimensionsCount": 4
+      }
+    },
+    "cardiacBridge": {
+      "curveType": "CatmullRomCurve3",
+      "dofParticles": 6400,
+      "zoomRange": [9.2, 42]
+    },
+    "customDomains": [],
+    "screenAmendments": []
+  },
+  "projects": [
+    {
+      "id": "SEVEN",
+      "code": "PRJ-01 · SEVEN",
+      "name": "SEVEN × NOJARA — Tabuk & Kingdom Destinations",
+      "nameAr": "سفن × نوجارا — وجهة تبوك",
+      "client": "Saudi Entertainment Ventures (SEVEN)",
+      "location": "Riyadh · Tabuk, KSA",
+      "status": "Waiting on 39",
+      "health": "At risk",
+      "ownerCode": "39",
+      "leadName": "Tarek Nojara (39) · Khalid Al-Shaalan",
+      "sunIndex": 0
+    },
+    {
+      "id": "YAH",
+      "code": "PRJ-02 · YAH",
+      "name": "Young & Human (YAH) — Youth Culture Platform",
+      "nameAr": "يانج آند هيومان — منصة الثقافة الشبابية",
+      "client": "NOJARA Cultural Ventures",
+      "location": "Cairo · Riyadh",
+      "status": "Active",
+      "health": "On track",
+      "ownerCode": "39",
+      "leadName": "Shweekar · KR",
+      "sunIndex": 1
+    },
+    {
+      "id": "MHE",
+      "code": "PRJ-03 · MHE",
+      "name": "Abu Hamdan × Wahag / Floward / Barry",
+      "nameAr": "أبو حمدان × وهج / فلاورد / باري",
+      "client": "Mohammed Alhamdan (MHE) Strategic Partnerships",
+      "location": "Riyadh · GCC",
+      "status": "Waiting on 39",
+      "health": "On track",
+      "ownerCode": "39",
+      "leadName": "Mohammed Alhamdan · Tarek Nojara (39)",
+      "sunIndex": 2
+    },
+    {
+      "id": "BSOCIAL",
+      "code": "PRJ-04 · BSOCIAL",
+      "name": "B-Social — Experiential Community & Hospitality",
+      "nameAr": "بي سوشيال — مجتمع الضيافة والتجارب",
+      "client": "B-Social Holding",
+      "location": "Cairo · El Gouna",
+      "status": "Blocked",
+      "health": "Blocked",
+      "ownerCode": "39",
+      "leadName": "Shweekar · Bilal (BL)",
+      "sunIndex": 3
+    },
+    {
+      "id": "AL-AHRAM",
+      "code": "PRJ-05 · AL-AHRAM",
+      "name": "Al-Ahram Heritage & Giza Cultural Activation",
+      "nameAr": "الأهرام — تفعيل التراث الثقافي بالجيزة",
+      "client": "Cultural Heritage Consortium",
+      "location": "Giza Plateau, Egypt",
+      "status": "Active",
+      "health": "On track",
+      "ownerCode": "GD",
+      "leadName": "Grandy (GD) · Rasma (RS)",
+      "sunIndex": 4
+    },
+    {
+      "id": "EL-BATRON",
+      "code": "PRJ-06 · EL-BATRON",
+      "name": "El Batron — Coastal Architecture & Sonic Sanctuary",
+      "nameAr": "البترون — الملاذ الصوتي والمعماري الساحلي",
+      "client": "NOJARA Hospitality & Spatial Design",
+      "location": "North Coast · Mediterranean",
+      "status": "Active",
+      "health": "On track",
+      "ownerCode": "RS",
+      "leadName": "Rasma (RS) · Musa (MU)",
+      "sunIndex": 5
+    },
+    {
+      "id": "MUSEUM-OF-ALMOST",
+      "code": "PRJ-07 · MOA",
+      "name": "Museum of Almost — Speculative Futures Exhibition",
+      "nameAr": "متحف التقريب — معرض المستقبل التأملي",
+      "client": "NOJARA Curatorial Lab",
+      "location": "Cairo · Traveling",
+      "status": "Waiting on 39",
+      "health": "At risk",
+      "ownerCode": "39",
+      "leadName": "Tarek Nojara (39) · Katib (KT)"
+    },
+    {
+      "id": "GONDWANA",
+      "code": "PRJ-08 · GND",
+      "name": "Gondwana — Deep-Time Botanical & Land Art Reserve",
+      "nameAr": "جوندوانا — محمية الفن الأرضي والنباتي",
+      "client": "Red Sea Ecological Arts Initiative",
+      "location": "Red Sea · Sinai",
+      "status": "Active",
+      "health": "On track",
+      "ownerCode": "FK",
+      "leadName": "Fakir (FK) · Nasaq (NQ)"
+    },
+    {
+      "id": "DRAFTEERS",
+      "code": "PRJ-09 · DRF",
+      "name": "Drafteers — Architectural & Engineering Talent Guild",
+      "nameAr": "درافتيرز — نقابة المواهب الهندسية والمعمارية",
+      "client": "NOJARA Talent & Practice",
+      "location": "Cairo · Riyadh",
+      "status": "Active",
+      "health": "On track",
+      "ownerCode": "BL",
+      "leadName": "Bilal (BL) · Kinzo (KZ)"
+    },
+    {
+      "id": "NJR-PLUS",
+      "code": "PRJ-10 · NJR+",
+      "name": "NJR+ Execution Intelligence & Spatial OS Core",
+      "nameAr": "إن جي آر بلس — ذكاء التنفيذ ونظام التشغيل المكاني",
+      "client": "NOJARA Internal R&D",
+      "location": "Cairo · Cloud",
+      "status": "Active",
+      "health": "On track",
+      "ownerCode": "39",
+      "leadName": "Tarek Nojara (39) · Baghira (BG)"
+    },
+    {
+      "id": "MISSION-LOTUS",
+      "code": "PRJ-11 · LOTUS",
+      "name": "Mission Lotus — Autonomous Kinetic Stage & Film",
+      "nameAr": "مهمة لوتس — المسرح الحركي والفيلم المستقل",
+      "client": "NOJARA Originals",
+      "location": "Cairo Studio 01",
+      "status": "Active",
+      "health": "On track",
+      "ownerCode": "WS",
+      "leadName": "Waseem (WS) · Zebda (ZB)"
+    },
+    {
+      "id": "LALIGA-MENA",
+      "code": "PRJ-12 · LALIGA",
+      "name": "LaLiga MENA Fan Zone & Interactive Pitch",
+      "nameAr": "لاليجا الشرق الأوسط — منطقة المشجعين التفاعلية",
+      "client": "LaLiga Regional Partner",
+      "location": "Riyadh · Jeddah",
+      "status": "Waiting on 39",
+      "health": "At risk",
+      "ownerCode": "39",
+      "leadName": "Bilal (BL) · Waseem (WS)"
+    },
+    {
+      "id": "RIYADH-METRO-ART",
+      "code": "PRJ-13 · RMA",
+      "name": "Riyadh Transit Wayfinding & Kinetic Light Gates",
+      "nameAr": "بوابات الضوء الحركية والإرشاد البصري بالرياض",
+      "client": "Urban Mobility & Public Art Commission",
+      "location": "Riyadh, KSA",
+      "status": "Active",
+      "health": "On track",
+      "ownerCode": "NQ",
+      "leadName": "Nasaq (NQ) · Musa (MU)"
+    },
+    {
+      "id": "CAIRO-DESIGN-WEEK",
+      "code": "PRJ-14 · CDW",
+      "name": "Cairo Design Week — Citadel & Downtown Pavilion",
+      "nameAr": "أسبوع القاهرة للتصميم — جناح القلعة ووسط البلد",
+      "client": "CDW Curatorial Board",
+      "location": "Historic Cairo",
+      "status": "Active",
+      "health": "On track",
+      "ownerCode": "RS",
+      "leadName": "Rasma (RS) · Katib (KT)"
+    },
+    {
+      "id": "DIRIYAH-SOUQ",
+      "code": "PRJ-15 · DRY",
+      "name": "Diriyah Artisanal Craft & Perfumery Atelier",
+      "nameAr": "الدرعية — مشغل الحرف والعطور التراثية",
+      "client": "Heritage Retail Development",
+      "location": "Diriyah, KSA",
+      "status": "Waiting on 39",
+      "health": "On track",
+      "ownerCode": "39",
+      "leadName": "Tarek Nojara (39) · Fakir (FK)"
+    },
+    {
+      "id": "SOUND-OF-NILE",
+      "code": "PRJ-16 · NILE",
+      "name": "Sound of the Nile — Hydro-Acoustic Documentary & Spatial Installation",
+      "nameAr": "صوت النيل — التثبيت الصوتي والفيلم الوثائقي",
+      "client": "NOJARA Audio & Film Lab",
+      "location": "Aswan · Luxor · Cairo",
+      "status": "Blocked",
+      "health": "Blocked",
+      "ownerCode": "WS",
+      "leadName": "Waseem (WS) · Zebda (ZB)"
+    },
+    {
+      "id": "RED-SEA-PAVILION",
+      "code": "PRJ-17 · RSP",
+      "name": "Red Sea Coral Bio-Acoustic & Glass Pavilion",
+      "nameAr": "جناح البحر الأحمر الزجاجي والصوتي الحيوي",
+      "client": "Coastal Regenerative Tourism",
+      "location": "Red Sea Coast, KSA",
+      "status": "Active",
+      "health": "On track",
+      "ownerCode": "GD",
+      "leadName": "Grandy (GD) · Baghira (BG)"
+    }
+  ],
+  "crewRoster": [
+    {
+      "code": "39",
+      "id": "p-39",
+      "name": "Tarek Nojara (39)",
+      "nameAr": "طارق نوجارا",
+      "title": "Founder and Culture and Design Engineer",
+      "tier": "Owner",
+      "status": "ONLINE",
+      "activeProject": "ALL 17 PROJECTS",
+      "raciRole": "A"
+    },
+    {
+      "code": "GD",
+      "id": "p-grandy",
+      "name": "Grandy (GD)",
+      "nameAr": "جراندي",
+      "title": "Executive Technical & Spatial Director",
+      "tier": "Core Crew",
+      "status": "STREAMING",
+      "activeProject": "SEVEN · AL-AHRAM · RSP",
+      "raciRole": "R"
+    },
+    {
+      "code": "BL",
+      "id": "p-bilal",
+      "name": "Bilal (BL)",
+      "nameAr": "بلال",
+      "title": "Production & Field Operations Lead",
+      "tier": "Core Crew",
+      "status": "STREAMING",
+      "activeProject": "BSOCIAL · LALIGA-MENA · DRAFTEERS",
+      "raciRole": "R"
+    },
+    {
+      "code": "RS",
+      "id": "p-rasma",
+      "name": "Rasma (RS)",
+      "nameAr": "رسمة",
+      "title": "Spatial Wireframe & Visual Architecture Lead",
+      "tier": "Core Crew",
+      "status": "STREAMING",
+      "activeProject": "SEVEN · EL-BATRON · CDW",
+      "raciRole": "R"
+    },
+    {
+      "code": "MU",
+      "id": "p-musa",
+      "name": "Musa (MU)",
+      "nameAr": "موسى",
+      "title": "Industrial, Material & Provenance Architect",
+      "tier": "Core Crew",
+      "status": "ONLINE",
+      "activeProject": "EL-BATRON · SEVEN · RMA",
+      "raciRole": "R"
+    },
+    {
+      "code": "KT",
+      "id": "p-katib",
+      "name": "Katib (KT)",
+      "nameAr": "كاتب",
+      "title": "Editorial, Bilingual Copy & Legal Register Lead",
+      "tier": "Specialist",
+      "status": "STREAMING",
+      "activeProject": "SEVEN · YAH · MOA",
+      "raciRole": "C"
+    },
+    {
+      "code": "FK",
+      "id": "p-fakir",
+      "name": "Fakir (FK)",
+      "nameAr": "فكير",
+      "title": "Cultural Strategy & Research Lead",
+      "tier": "Specialist",
+      "status": "ONLINE",
+      "activeProject": "SEVEN · GONDWANA · DIRIYAH-SOUQ",
+      "raciRole": "C"
+    },
+    {
+      "code": "NQ",
+      "id": "p-nasaq",
+      "name": "Nasaq (NQ)",
+      "nameAr": "نسق",
+      "title": "Token Governance, Contrast & Accessibility Lead",
+      "tier": "Specialist",
+      "status": "ONLINE",
+      "activeProject": "NJR-PLUS · RMA",
+      "raciRole": "R"
+    },
+    {
+      "code": "WS",
+      "id": "p-waseem",
+      "name": "Waseem (WS)",
+      "nameAr": "وسيم",
+      "title": "Sonic Architecture, Showreel & Atmos Director",
+      "tier": "Specialist",
+      "status": "ONLINE",
+      "activeProject": "MISSION-LOTUS · MHE · SOUND-OF-NILE",
+      "raciRole": "R"
+    },
+    {
+      "code": "ZB",
+      "id": "p-zebda",
+      "name": "Zebda (ZB)",
+      "nameAr": "زبدة",
+      "title": "Executive Briefing & Synthesis Engine",
+      "tier": "Specialist",
+      "status": "ONLINE",
+      "activeProject": "ALL 17 PROJECTS",
+      "raciRole": "I"
+    },
+    {
+      "code": "BG",
+      "id": "p-baghira",
+      "name": "Baghira (BG)",
+      "nameAr": "باغيرا",
+      "title": "Master Planner, Critical Path & Gantt Engine",
+      "tier": "Planner & Orchestrator",
+      "status": "ONLINE",
+      "activeProject": "SEVEN · YAH · MHE · BSOCIAL",
+      "raciRole": "R"
+    },
+    {
+      "code": "KZ",
+      "id": "p-kinzo",
+      "name": "Kinzo (KZ)",
+      "nameAr": "كينزو",
+      "title": "Crew-Bot Roster Controller & Dispatch Orchestrator",
+      "tier": "Planner & Orchestrator",
+      "status": "ONLINE",
+      "activeProject": "NJR-PLUS · DRAFTEERS",
+      "raciRole": "R"
+    }
+  ],
+  "insightsSignals": [
+    {
+      "id": "SIG-01",
+      "code": "SIGNAL 01 · BLOCKED",
+      "title": "B-Social Acoustic Permit & Array Substitution Hold",
+      "projectCode": "BSOCIAL",
+      "severity": "BLOCKED",
+      "metricBadge": "BLOCKED · 14d impact",
+      "targetPanel": "project-detail",
+      "targetProjectId": "BSOCIAL"
+    },
+    {
+      "id": "SIG-02",
+      "code": "SIGNAL 02 · BLOCKED",
+      "title": "Sound of the Nile Hydrophone Array Carnet Hold",
+      "projectCode": "SOUND-OF-NILE",
+      "severity": "BLOCKED",
+      "metricBadge": "BLOCKED · Customs",
+      "targetPanel": "project-detail",
+      "targetProjectId": "SOUND-OF-NILE"
+    },
+    {
+      "id": "SIG-03",
+      "code": "SIGNAL 03 · WAITING ON 39",
+      "title": "SEVEN × NOJARA Arabic Orthography & Rights Gate",
+      "projectCode": "SEVEN",
+      "severity": "WAITING_ON_39",
+      "metricBadge": "39 GATE · 3 items",
+      "targetPanel": "project-detail",
+      "targetProjectId": "SEVEN"
+    },
+    {
+      "id": "SIG-04",
+      "code": "SIGNAL 04 · WAITING ON 39",
+      "title": "Abu Hamdan × Floward Q4 Term Sheet Sign-Off",
+      "projectCode": "MHE",
+      "severity": "WAITING_ON_39",
+      "metricBadge": "39 GATE · Commercial",
+      "targetPanel": "project-detail",
+      "targetProjectId": "MHE"
+    },
+    {
+      "id": "SIG-05",
+      "code": "SIGNAL 05 · TIMELINE WATCH",
+      "title": "LaLiga MENA Interactive LED Floor Air-Freight Window",
+      "projectCode": "LALIGA-MENA",
+      "severity": "TIMELINE_WATCH",
+      "metricBadge": "48h WINDOW",
+      "targetPanel": "project-detail",
+      "targetProjectId": "LALIGA-MENA"
+    },
+    {
+      "id": "SIG-06",
+      "code": "SIGNAL 06 · WAITING ON 39",
+      "title": "Museum of Almost Curatorial Plinth & Riyadh Tour Gate",
+      "projectCode": "MUSEUM-OF-ALMOST",
+      "severity": "WAITING_ON_39",
+      "metricBadge": "39 GATE · Curatorial",
+      "targetPanel": "file-viewer",
+      "targetProjectId": "MUSEUM-OF-ALMOST"
+    }
+  ],
+  "messages": [
+    {
+      "id": "MSG-INIT-01",
+      "opId": "OP-INIT-01",
+      "sender": "Cerebro",
+      "authorId": "p-cerebro",
+      "projectId": "SEVEN",
+      "channel": "General",
+      "text": "HQ and CDE spheres synced with 52 read-only register records from 23 Oct 2026.",
+      "body": "HQ and CDE spheres synced with 52 read-only register records from 23 Oct 2026.",
+      "attachments": [],
+      "status": "SAVED_LOCALLY",
+      "timestamp": "2026-10-23T22:00:00.000Z",
+      "createdAt": "2026-10-23T22:00:00.000Z"
+    }
+  ],
+  "notes": [
+    {
+      "id": "NOTE-INIT-01",
+      "opId": "OP-NOTE-01",
+      "title": "NOJARA_HQ_26 Snapshot Readiness",
+      "text": "Workspace operating on tracked canonical persistence (src/data/store.json). External Cursor webhooks remain disabled until configured.",
+      "body": "Workspace operating on tracked canonical persistence (src/data/store.json). External Cursor webhooks remain disabled until configured.",
+      "projectId": "SEVEN",
+      "projectCode": "SEVEN",
+      "authorId": "39",
+      "attachments": [],
+      "createdAt": "2026-10-23T21:30:00.000Z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "TSK-101",
+      "opId": "OP-TSK-101",
+      "title": "Lock Arabic NOJARA orthography (نوجارا vs نوچارا) on SEVEN cover",
+      "projectCode": "SEVEN",
+      "owner": "39 (Tarek Nojara)",
+      "status": "PENDING",
+      "priority": "HIGH",
+      "createdAt": "2026-10-23T20:00:00.000Z"
+    },
+    {
+      "id": "TSK-102",
+      "opId": "OP-TSK-102",
+      "title": "Approve Tabuk 4K Concept Renders (Desktop 3840×2160 & Mobile 1080×1920)",
+      "projectCode": "SEVEN",
+      "owner": "Rasma (RS)",
+      "status": "IN_PROGRESS",
+      "priority": "HIGH",
+      "createdAt": "2026-10-23T20:15:00.000Z"
+    },
+    {
+      "id": "TSK-103",
+      "opId": "OP-TSK-103",
+      "title": "Clear B-Social acoustic hardware procurement hold",
+      "projectCode": "BSOCIAL",
+      "owner": "Bilal (BL)",
+      "status": "PENDING",
+      "priority": "HIGH",
+      "createdAt": "2026-10-23T20:30:00.000Z"
+    }
+  ],
+  "decisions": {},
+  "minutesDrafts": [],
+  "attachments": {},
+  "idempotency": {}
+}

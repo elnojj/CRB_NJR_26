@@ -76,27 +76,27 @@ export const BlueprintNode: React.FC<BlueprintNodeProps> = ({
       }
       className={`${
         asMapPin ? 'absolute -translate-x-1/2 -translate-y-1/2 w-52' : 'w-full'
-      } p-2.5 rounded-xl text-left transition-colors cursor-pointer border ${
+      } p-2.5 rounded-lg text-left transition-colors cursor-pointer border ${
         isSelected
-          ? 'bg-[#121926]/95 border-[#38BDF8] shadow-[0_0_20px_rgba(56,189,248,0.22)]'
-          : 'bg-[#0C111A]/90 border-[rgba(148,163,184,0.18)] hover:border-[#38BDF8]/60'
+          ? 'bg-[rgba(20,38,50,0.88)] border-[#65ACFF] shadow-[0_0_20px_rgba(101,172,255,0.22)]'
+          : 'bg-[rgba(20,38,50,0.72)] border-[rgba(180,221,255,0.16)] hover:border-[#65ACFF]'
       }`}
     >
       <div className="flex items-center justify-between gap-1.5 mb-1">
-        <span className="font-mono text-[10px] font-semibold text-[#38BDF8]">
+        <span className="font-mono tabular-nums text-[10px] font-semibold text-[#4C8DFF]">
           {node.code}
         </span>
-        <span className="font-mono text-[9px] text-[#94A3B8]">
+        <span className="font-mono tabular-nums text-[9px] text-[#BDCBD3]">
           {owner.callsign} · {node.criteriaVerified}/{node.criteriaTotal}
         </span>
       </div>
 
-      <div className="font-display text-xs font-semibold text-[#F8FAFC] line-clamp-1 mb-1.5">
+      <div className="font-display text-xs font-semibold text-[#F2F6F8] line-clamp-1 mb-1.5">
         {node.title}
       </div>
 
       {/* 4-Tier Truthful Status Dots + Text (Never collapsed into "Done") */}
-      <div className="grid grid-cols-2 gap-x-2 gap-y-1 font-mono text-[9px] text-[#94A3B8] border-t border-white/10 pt-1.5">
+      <div className="grid grid-cols-2 gap-x-2 gap-y-1 font-mono tabular-nums text-[9px] text-[#BDCBD3] border-t border-[rgba(255,255,255,0.14)] pt-1.5">
         <div className="flex items-center gap-1 truncate">
           <span
             className="w-1.5 h-1.5 rounded-full shrink-0"
@@ -147,7 +147,7 @@ export const BlueprintNode: React.FC<BlueprintNodeProps> = ({
         </div>
       </div>
 
-      <div className="mt-1.5 font-mono text-[9px] text-[#10B981] truncate">
+      <div className="mt-1.5 font-mono tabular-nums text-[9px] text-[#36E88D] truncate">
         Honesty: {effectiveFourTier.honestyLabel}
       </div>
     </motion.button>
@@ -190,7 +190,7 @@ export const DependencyEdgeSvg: React.FC<DependencyEdgeProps> = ({
               y1={fromNode.position2D.y}
               x2={toNode.position2D.x}
               y2={toNode.position2D.y}
-              stroke={isHighlighted ? '#38BDF8' : 'rgba(148, 163, 184, 0.28)'}
+              stroke={isHighlighted ? '#65ACFF' : 'rgba(180, 221, 255, 0.24)'}
               strokeWidth={isHighlighted ? '0.45' : '0.25'}
             />
           </g>
@@ -232,25 +232,28 @@ export const BlueprintMap: React.FC<BlueprintMapProps> = ({
       className="cerebro-hud-panel flex flex-col h-full overflow-hidden p-3.5"
     >
       {/* Header & 1-Click Map / Accessible Keyboard List Toggle */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-[rgba(148,163,184,0.14)] shrink-0">
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-[rgba(255,255,255,0.14)] shrink-0">
         <div>
-          <div className="font-mono text-[10px] text-[#38BDF8] uppercase">
-            BLUEPRINT v0.2 · TASK_REGISTER.md ({nodes.length} NODES)
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#4C8DFF] shrink-0" />
+            <h2 className="font-display text-xs font-semibold tracking-[0.08em] uppercase text-[#F2F6F8]">
+              BLUEPRINT v0.2 ·Four-Tier Topology
+            </h2>
           </div>
-          <h2 className="font-display text-sm font-semibold text-[#F8FAFC]">
-            Four-Tier Truthful Dependency Topology
-          </h2>
+          <div className="font-mono tabular-nums text-[10px] text-[#BDCBD3] pl-4 mt-0.5">
+            TASK_REGISTER.md ({nodes.length} NODES)
+          </div>
         </div>
 
-        <div className="flex items-center gap-1 bg-[#05070B] p-1 rounded-lg border border-[rgba(148,163,184,0.18)]">
+        <div className="flex items-center gap-1 bg-[#101D27] p-1 rounded-lg border border-[rgba(180,221,255,0.16)]">
           <button
             type="button"
             data-testid="blueprint-view-map-btn"
             onClick={() => onToggleViewMode('map')}
             className={`px-2.5 py-1 rounded font-mono text-[10px] transition-colors cursor-pointer ${
               viewMode === 'map'
-                ? 'bg-[#38BDF8] text-[#05070B] font-semibold'
-                : 'text-[#94A3B8] hover:text-[#F8FAFC]'
+                ? 'bg-[#4C8DFF] text-[#101D27] font-semibold'
+                : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
             }`}
           >
             Spatial 2D/3D Map
@@ -261,8 +264,8 @@ export const BlueprintMap: React.FC<BlueprintMapProps> = ({
             onClick={() => onToggleViewMode('list')}
             className={`px-2.5 py-1 rounded font-mono text-[10px] transition-colors cursor-pointer ${
               viewMode === 'list'
-                ? 'bg-[#38BDF8] text-[#05070B] font-semibold'
-                : 'text-[#94A3B8] hover:text-[#F8FAFC]'
+                ? 'bg-[#4C8DFF] text-[#101D27] font-semibold'
+                : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
             }`}
           >
             Accessible Keyboard List
@@ -272,7 +275,7 @@ export const BlueprintMap: React.FC<BlueprintMapProps> = ({
 
       {/* Body: Spatial 2D/3D Map vs Accessible Keyboard List View */}
       {viewMode === 'map' ? (
-        <div className="relative flex-1 min-h-[360px] rounded-xl bg-[#05070B]/70 border border-[rgba(148,163,184,0.12)] overflow-auto">
+        <div className="relative flex-1 min-h-[360px] rounded-lg bg-[#101D27]/75 border border-[rgba(180,221,255,0.16)] overflow-auto">
           <div className="relative w-full h-full min-w-[680px] min-h-[380px]">
             <DependencyEdgeSvg
               edges={edges}

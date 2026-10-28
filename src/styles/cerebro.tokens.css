@@ -1,57 +1,96 @@
-/**
- * CEREBRO UNIFIED DESIGN TOKENS (cerebro.tokens.css + cro-nxs-tokens.ref.css)
- * Governance Hold: feat/ds-v1-1 (Locked until 39 signoff)
- */
+/* ==========================================================================
+   NEURAL OBSERVATORY v1.1 — NOCTURNAL CRYO-GLASS & WARM CAUSTIC CINEMA
+   Locked 15-Token Color Script & 3 Sacred Semantic Reservations
+   Zero Purple · Zero Gold · Zero Default Tailwind Grays
+   ========================================================================== */
+
 :root {
-  /* Fonts */
-  --font-display: 'JaapokkiSubtract', 'Jaapokki', 'Sora', sans-serif;
-  --font-heading: 'Sora', sans-serif;
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* ------------------------------------------------------------------------
+     15 LOCKED NEURAL OBSERVATORY v1.1 TOKENS
+     ------------------------------------------------------------------------ */
+  --token-canvas: #101D27;                      /* 01. Primary deep-space viewport void */
+  --token-glass-solid: #142632;                 /* 02. Solid telemetry pills, inputs, and fallback surfaces */
+  --token-glass: rgba(20, 38, 50, 0.78);        /* 03. Primary floating optical glass plate (blur 12px saturate 1.2) */
+  --token-glass-subtle: rgba(11, 20, 28, 0.82); /* 04. Nested sub-drawers, code blocks, and inspection wells */
+  --token-divider: rgba(255, 255, 255, 0.14);   /* 05. 1px structural hairlines + top-edge specular catchlight */
+  --token-text-primary: #F2F6F8;                /* 06. Primary headlines, active values, and body copy */
+  --token-text-secondary: #BDCBD3;              /* 07. Muted metadata, timestamps, and secondary labels */
+  --token-cobalt: #4C8DFF;                      /* 08. Sphere 01 (CEREBRO HQ) refractive liquid-glass & ST-01 Projects */
+  --token-focus: #65ACFF;                       /* 09. 2px focus rings, active pocket borders & Cryo-Silica Lattice */
+  --token-focus-glow: #B4DDFF;                  /* 10. Fresnel rim glow and specular highlights */
+  --token-highlight: #FFF1D4;                   /* 11. Warm ivory cardiac spline pulse beads, countdowns & callouts */
+  --token-station-tasks: #5CC8D7;               /* 12. ST-02 Tasks station accent & Cyan Acoustic Resonator shader */
+  --token-station-people: #7CE0B8;              /* 13. ST-03 People/RACI accent & Mint Plasma / Faceted Prism shader */
+  --token-station-files: #9DB8D6;               /* 14. ST-04 Drive Files accent & Brushed Steel Archive shader */
+  --token-station-media: #F2B66D;               /* 15. Sphere 02 (CDE Universe) Warm Amber Caustic Crystal & ST-05 Media */
 
-  /* Surfaces (CRO-NXS Dark Obsidian HUD) */
-  --surface-void: #05070B;
-  --surface-canvas: #080B11;
-  --surface-hud: rgba(12, 17, 26, 0.78);
-  --surface-hud-elevated: rgba(18, 25, 38, 0.88);
-  --surface-glass-border: rgba(148, 163, 184, 0.14);
-  --surface-glass-highlight: rgba(56, 189, 248, 0.28);
+  /* ------------------------------------------------------------------------
+     3 SACRED SEMANTIC RESERVATIONS (STRICTLY EXCLUSIVE)
+     ------------------------------------------------------------------------ */
+  --token-voice-orb: #9AFFE0;                   /* Strictly exclusive to z-110 Voice Pilot Orb */
+  --token-voice-orb-mid: #359D8E;               /* Voice Orb radial mid ramp */
+  --token-voice-orb-deep: #133A44;              /* Voice Orb radial deep core */
+  --token-tracking-valid: #36E88D;              /* Strictly exclusive to valid 21-landmark hand tracking, verified progress & Two-Tap Confirm */
+  --token-system-error: #FF5666;                /* Strictly exclusive to Blocked insight badges & Voice Stop button */
 
-  /* Text & Telemetry */
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
+  /* ------------------------------------------------------------------------
+     OPTICAL HUD ANATOMY SURFACES
+     ------------------------------------------------------------------------ */
+  --token-hud-outer-bg: rgba(16, 29, 39, 0.84);
+  --token-hud-outer-border: rgba(255, 255, 255, 0.14);
+  --token-hud-outer-shadow: inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55);
+  --token-hud-pocket-bg: rgba(20, 38, 50, 0.72);
+  --token-hud-pocket-border: rgba(180, 221, 255, 0.16);
 
-  /* Four-Tier Status Accents */
-  --status-planned: #64748B;
-  --status-running: #38BDF8;
-  --status-implemented: #818CF8;
-  --status-verified: #10B981;
-  --status-awaiting: #F59E0B;
-  --status-blocked: #EF4444;
-  --status-held: #A855F7;
+  /* ------------------------------------------------------------------------
+     UNIFIED ALIAS MAPPINGS (Backwards-compatible with Portal v1.5 tokens,
+     purged of all purple/gold/slate off-palette values)
+     ------------------------------------------------------------------------ */
+  --surface-void: var(--token-canvas);
+  --surface-canvas: var(--token-canvas);
+  --surface-hud: var(--token-hud-outer-bg);
+  --surface-elevated: var(--token-glass-solid);
+  --surface-glass-border: var(--token-divider);
 
-  /* HUD Layout & Effects */
-  --hud-blur: blur(16px);
-  --hud-radius-sm: 6px;
-  --hud-radius-md: 10px;
-  --hud-radius-lg: 14px;
+  --text-primary: var(--token-text-primary);
+  --text-secondary: var(--token-text-secondary);
+  --text-muted: var(--token-station-files);
+
+  /* 4-Tier Truthful Status Colors (Mapped strictly to Neural Observatory v1.1) */
+  --status-planned: var(--token-station-files);      /* #9DB8D6 Brushed Steel */
+  --status-running: var(--token-focus);              /* #65ACFF Cryo Focus */
+  --status-implemented: var(--token-cobalt);         /* #4C8DFF Cobalt (Zero Purple) */
+  --status-verified: var(--token-tracking-valid);    /* #36E88D Verified Emerald */
+  --status-awaiting: var(--token-station-media);     /* #F2B66D Warm Caustic Amber */
+  --status-blocked: var(--token-system-error);       /* #FF5666 System Error */
+  --status-held: var(--token-station-tasks);         /* #5CC8D7 Cyan Resonator (Zero Purple) */
+
+  /* Locked 4-Font Typographic Hierarchy */
+  --font-display: 'Sora', 'JaapokkiSubtract', 'Inter', system-ui, sans-serif;
+  --font-sans: 'Inter', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-arabic: 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif;
 }
 
-.cerebro-hud-panel {
-  background: var(--surface-hud);
-  backdrop-filter: var(--hud-blur);
-  -webkit-backdrop-filter: var(--hud-blur);
-  border: 1px solid var(--surface-glass-border);
-  border-radius: var(--hud-radius-lg);
-  color: var(--text-primary);
+.cerebro-hud-panel,
+.optical-hud-panel {
+  background: var(--token-hud-outer-bg);
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  border: 1px solid var(--token-hud-outer-border);
+  border-radius: 12px;
+  box-shadow: var(--token-hud-outer-shadow);
+  color: var(--token-text-primary);
 }
 
-.cerebro-hud-elevated {
-  background: var(--surface-hud-elevated);
-  backdrop-filter: var(--hud-blur);
-  -webkit-backdrop-filter: var(--hud-blur);
-  border: 1px solid var(--surface-glass-border);
-  border-radius: var(--hud-radius-md);
-  color: var(--text-primary);
+.optical-sub-pocket {
+  background: var(--token-hud-pocket-bg);
+  border: 1px solid var(--token-hud-pocket-border);
+  border-radius: 8px;
+  transition: border-color 180ms cubic-bezier(0.22, 1, 0.36, 1), background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.optical-sub-pocket[data-active='true'],
+.optical-sub-pocket:focus-within {
+  border-color: var(--token-focus);
 }

@@ -15,6 +15,9 @@ import {
   CameraAnglePresetId,
   CameraLoopMode,
 } from '../components/CosmographCanvas';
+import { CEREBRO_17_PROJECTS } from '../data/cerebroData';
+import { DomainMaterialPreset } from './geminiScreenOrchestrator';
+import { TourMode } from './cerebroTourAndCtaStore';
 
 export type CameraVerb =
   | 'orbit'
@@ -106,6 +109,17 @@ export type WorkspaceAction =
   | {
       type: 'tour_control';
       action: TourActionType;
+      mode?: TourMode;
+      screenId?: string;
+    }
+  | {
+      type: 'step_tour';
+      directionOrScreen: string;
+    }
+  | {
+      type: 'trigger_cta';
+      ctaId: string;
+      spokenReason?: string;
     }
   | {
       type: 'checkpoint_action';
@@ -114,7 +128,37 @@ export type WorkspaceAction =
       comment?: string;
     }
   | { type: 'get_briefing' }
-  | { type: 'get_page_state' };
+  | { type: 'get_page_state' }
+  | {
+      type: 'create_domain';
+      name: string;
+      sphere: 'hq' | 'cde';
+      colour: string;
+      parentNodeId: string;
+    }
+  | {
+      type: 'update_domain_material';
+      target: string;
+      materialPreset: DomainMaterialPreset;
+    }
+  | {
+      type: 'amend_screen_element';
+      elementId: string;
+      operation: 'set_text' | 'set_filter' | 'highlight' | 'switch_view';
+      value: string;
+    }
+  | {
+      type: 'workspace_sync';
+      service: 'gmail' | 'calendar' | 'drive' | 'docs' | 'sheets' | 'meet';
+      action: 'open' | 'refresh' | 'draft' | 'create_meet';
+      query?: string;
+    }
+  | {
+      type: 'project_media_tube';
+      action: 'open' | 'close' | 'focus_tile' | 'fullview';
+      projectId?: string;
+      tileIndex?: number;
+    };
 
 export interface ActionResult {
   ok: boolean;
@@ -168,13 +212,27 @@ export function buildActionDedupeKey(action: WorkspaceAction): string {
     case 'search_files':
       return `search_files:${action.query}`;
     case 'tour_control':
-      return `tour_control:${action.action}`;
+      return `tour_control:${action.action}:${action.mode || ''}:${action.screenId || ''}`;
+    case 'step_tour':
+      return `step_tour:${action.directionOrScreen}`;
+    case 'trigger_cta':
+      return `trigger_cta:${action.ctaId}`;
     case 'checkpoint_action':
       return `checkpoint_action:${action.checkpointId}:${action.decision}`;
     case 'get_briefing':
       return `get_briefing`;
     case 'get_page_state':
       return `get_page_state`;
+    case 'create_domain':
+      return `create_domain:${action.sphere}:${action.name}`;
+    case 'update_domain_material':
+      return `update_domain_material:${action.target}:${action.materialPreset}`;
+    case 'amend_screen_element':
+      return `amend_screen_element:${action.elementId}:${action.operation}:${action.value}`;
+    case 'workspace_sync':
+      return `workspace_sync:${action.service}:${action.action}:${action.query || ''}`;
+    case 'project_media_tube':
+      return `project_media_tube:${action.action}:${action.projectId || ''}:${action.tileIndex ?? ''}`;
   }
 }
 
@@ -208,6 +266,14 @@ export function resolveProjectId(raw: string): string | null {
   if (s === 'el-batron' || s === 'el batron' || s === 'batron' || s === 'bat' || s.includes('باترون')) return 'EL-BATRON';
   if (s === 'gondwana' || s === 'gnd' || s.includes('جوندوانا')) return 'GONDWANA';
 
+  const exact17 = CEREBRO_17_PROJECTS.find(
+    (p) =>
+      p.id.toLowerCase() === s ||
+      p.code.toLowerCase().includes(s) ||
+      p.name.toLowerCase().includes(s)
+  );
+  if (exact17) return exact17.id;
+
   const exact = PROJECTS_DATA.find(
     (p) => p.id.toLowerCase() === s || p.code.toLowerCase() === s || p.name.toLowerCase() === s
   );
@@ -218,14 +284,20 @@ export function resolvePersonId(raw: string): string | null {
   const s = String(raw || '').trim().toLowerCase();
   if (!s) return null;
   if (s === '39' || s === 'p-39' || s.includes('tarek') || s.includes('طارق')) return 'p-39';
+  if (s === 'gd' || s === 'grandy' || s === 'p-grandy' || s.includes('جراندي')) return 'p-grandy';
+  if (s === 'bl' || s === 'bilal' || s === 'p-bilal' || s.includes('بلال')) return 'p-fakir-bilal-katib-musa';
+  if (s === 'rs' || s === 'rasma' || s === 'p-rasma' || s.includes('رسمة')) return 'p-rasma';
+  if (s === 'mu' || s === 'musa' || s === 'p-musa' || s.includes('موسى')) return 'p-fakir-bilal-katib-musa';
+  if (s === 'kt' || s === 'katib' || s === 'p-katib' || s.includes('كاتب')) return 'p-fakir-bilal-katib-musa';
+  if (s === 'fk' || s === 'fakir' || s === 'p-fakir' || s.includes('فكير')) return 'p-fakir-bilal-katib-musa';
+  if (s === 'nq' || s === 'nasaq' || s === 'p-nasaq' || s.includes('نسق')) return 'p-rasma';
+  if (s === 'ws' || s === 'waseem' || s === 'p-waseem' || s.includes('وسيم')) return 'p-kr';
+  if (s === 'zb' || s === 'zebda' || s === 'p-zebda' || s.includes('زبدة')) return 'p-zebda';
+  if (s === 'bg' || s === 'baghira' || s === 'p-baghira' || s.includes('باغيرا')) return 'p-baghira';
+  if (s === 'kz' || s === 'kinzo' || s === 'p-kinzo' || s.includes('كينزو')) return 'p-kinzo';
   if (s === 'shweekar' || s === 'p-shweekar' || s.includes('شويكار')) return 'p-shweekar';
   if (s === 'cerebro' || s === 'p-cerebro') return 'p-cerebro';
   if (s === 'kr' || s === 'p-kr') return 'p-kr';
-  if (s === 'baghira' || s === 'p-baghira' || s.includes('باغيرا')) return 'p-baghira';
-  if (s === 'kinzo' || s === 'p-kinzo' || s.includes('كينزو')) return 'p-kinzo';
-  if (s === 'grandy' || s === 'p-grandy' || s.includes('جراندي')) return 'p-grandy';
-  if (s === 'zebda' || s === 'p-zebda' || s.includes('زبدة')) return 'p-zebda';
-  if (s === 'rasma' || s === 'p-rasma' || s.includes('رسمة')) return 'p-rasma';
   if (
     s.includes('fakir') ||
     s.includes('bilal') ||
@@ -430,7 +502,44 @@ export function parseStructuredToolCall(
     case 'stop_tour': {
       const defaultAct = name === 'start_tour' ? 'start' : name === 'stop_tour' ? 'stop' : 'start';
       const act = String(params.action || defaultAct).toLowerCase() as TourActionType;
-      return { ok: true, action: { type: 'tour_control', action: act } };
+      const rawMode = String(params.mode || '').toLowerCase();
+      const validModes: TourMode[] = ['full-18-screen', 'hq-ops', 'cde-bio', 'executive-fast'];
+      const mode: TourMode | undefined = validModes.includes(rawMode as TourMode)
+        ? (rawMode as TourMode)
+        : name === 'start_tour'
+        ? 'full-18-screen'
+        : undefined;
+      const screenId = params.screenId ? String(params.screenId).toUpperCase() : undefined;
+      return { ok: true, action: { type: 'tour_control', action: act, mode, screenId } };
+    }
+
+    case 'step_tour': {
+      const directionOrScreen = String(
+        params.directionOrScreen || params.direction || params.screenId || 'next'
+      ).trim();
+      return {
+        ok: true,
+        action: {
+          type: 'step_tour',
+          directionOrScreen,
+        },
+      };
+    }
+
+    case 'trigger_cta': {
+      const ctaId = String(params.ctaId || params.id || params.target || '').trim();
+      if (!ctaId) {
+        return { ok: false, error: 'Missing required ctaId parameter for trigger_cta' };
+      }
+      const spokenReason = params.spokenReason ? String(params.spokenReason) : undefined;
+      return {
+        ok: true,
+        action: {
+          type: 'trigger_cta',
+          ctaId,
+          spokenReason,
+        },
+      };
     }
 
     case 'checkpoint_action': {
@@ -462,8 +571,405 @@ export function parseStructuredToolCall(
       return { ok: true, action: { type: 'get_page_state' } };
     }
 
-    default:
+    case 'create_domain': {
+      const domainName = String(params.name || 'New Orbital Domain').trim();
+      const sphere = String(params.sphere || 'hq').toLowerCase() === 'cde' ? 'cde' : 'hq';
+      const colour = String(params.colour || (sphere === 'hq' ? '#4C8DFF' : '#F2B66D'));
+      const parentNodeId = String(
+        params.parentNodeId || (sphere === 'hq' ? 'projects' : 'strategy')
+      );
+      return {
+        ok: true,
+        action: {
+          type: 'create_domain',
+          name: domainName,
+          sphere,
+          colour,
+          parentNodeId,
+        },
+      };
+    }
+
+    case 'update_domain_material': {
+      const target = String(params.target || 'hq').toLowerCase();
+      const rawMat = String(params.materialPreset || 'cobalt-glass').toLowerCase();
+      const validPresets: DomainMaterialPreset[] = [
+        'cobalt-glass',
+        'amber-crystal',
+        'emerald-plasma',
+        'wireframe-obsidian',
+        'pearl-iridescent',
+      ];
+      const materialPreset: DomainMaterialPreset = validPresets.includes(
+        rawMat as DomainMaterialPreset
+      )
+        ? (rawMat as DomainMaterialPreset)
+        : 'cobalt-glass';
+      return {
+        ok: true,
+        action: {
+          type: 'update_domain_material',
+          target,
+          materialPreset,
+        },
+      };
+    }
+
+    case 'amend_screen_element': {
+      const elementId = String(params.elementId || 'header-banner').trim();
+      const rawOp = String(params.operation || 'set_text').toLowerCase();
+      const operation: 'set_text' | 'set_filter' | 'highlight' | 'switch_view' =
+        rawOp === 'set_filter' || rawOp === 'highlight' || rawOp === 'switch_view'
+          ? rawOp
+          : 'set_text';
+      const value = String(params.value || '');
+      return {
+        ok: true,
+        action: {
+          type: 'amend_screen_element',
+          elementId,
+          operation,
+          value,
+        },
+      };
+    }
+
+    case 'workspace_sync': {
+      const rawSvc = String(params.service || 'gmail').toLowerCase();
+      const service: 'gmail' | 'calendar' | 'drive' | 'docs' | 'sheets' | 'meet' =
+        rawSvc === 'calendar' ||
+        rawSvc === 'drive' ||
+        rawSvc === 'docs' ||
+        rawSvc === 'sheets' ||
+        rawSvc === 'meet'
+          ? rawSvc
+          : 'gmail';
+      const rawAct = String(params.action || 'open').toLowerCase();
+      const action: 'open' | 'refresh' | 'draft' | 'create_meet' =
+        rawAct === 'refresh' || rawAct === 'draft' || rawAct === 'create_meet'
+          ? rawAct
+          : 'open';
+      return {
+        ok: true,
+        action: {
+          type: 'workspace_sync',
+          service,
+          action,
+          query: params.query ? String(params.query) : undefined,
+        },
+      };
+    }
+
+    case 'open_project_tube': {
+      const act = String(params.action || 'open').toLowerCase() as
+        | 'open'
+        | 'close'
+        | 'focus_tile'
+        | 'fullview';
+      const projectId = params.projectId
+        ? resolveProjectId(String(params.projectId)) || String(params.projectId)
+        : undefined;
+      const tileIndex = typeof params.tileIndex === 'number' ? params.tileIndex : undefined;
+      return {
+        ok: true,
+        action: { type: 'project_media_tube', action: act, projectId, tileIndex },
+      };
+    }
+
+    case 'dispatch_ui_action': {
+      const actionId = String(params.actionId || params.action || '').trim();
+      const payload =
+        params.payload && typeof params.payload === 'object'
+          ? (params.payload as Record<string, unknown>)
+          : params;
+      return mapCanonicalActionIdToWorkspaceAction(actionId, payload);
+    }
+
+    default: {
+      if (name.includes('.')) {
+        return mapCanonicalActionIdToWorkspaceAction(name, params);
+      }
       return { ok: false, error: `Unsupported tool call: ${toolName}` };
+    }
+  }
+}
+
+export function mapCanonicalActionIdToWorkspaceAction(
+  actionId: string,
+  params: Record<string, unknown> = {}
+): { ok: boolean; action?: WorkspaceAction; error?: string } {
+  const id = String(actionId || '').trim().toLowerCase();
+  switch (id) {
+    case 'auth.sign_in':
+      return {
+        ok: true,
+        action: { type: 'trigger_cta', ctaId: 'gate-key-9', spokenReason: 'Unlocking Gate 3939' },
+      };
+    case 'boot.skip':
+      return {
+        ok: true,
+        action: { type: 'trigger_cta', ctaId: 'loader-take-off', spokenReason: 'Take off bypass' },
+      };
+    case 'voice.connect':
+      return {
+        ok: true,
+        action: { type: 'trigger_cta', ctaId: 'connect-elevenlabs-btn', spokenReason: 'Connecting voice' },
+      };
+    case 'audience.set_presentation_mode': {
+      const mode = String(params.mode || 'owner').toLowerCase();
+      const ctaId =
+        mode.includes('public')
+          ? 'privacy-public'
+          : mode.includes('partner')
+          ? 'privacy-partner'
+          : 'privacy-owner-only';
+      return { ok: true, action: { type: 'trigger_cta', ctaId } };
+    }
+    case 'tour.start':
+      return {
+        ok: true,
+        action: {
+          type: 'tour_control',
+          action: 'start',
+          mode: (params.mode as TourMode) || 'full-18-screen',
+        },
+      };
+    case 'tour.pause':
+      return { ok: true, action: { type: 'tour_control', action: 'pause' } };
+    case 'tour.resume':
+      return { ok: true, action: { type: 'tour_control', action: 'resume' } };
+    case 'tour.next':
+      return { ok: true, action: { type: 'step_tour', directionOrScreen: 'next' } };
+    case 'tour.previous':
+      return { ok: true, action: { type: 'step_tour', directionOrScreen: 'prev' } };
+    case 'tour.stop':
+      return { ok: true, action: { type: 'tour_control', action: 'stop' } };
+    case 'briefing.open':
+      return { ok: true, action: { type: 'open_panel', action: 'open', panel: 'briefing' } };
+    case 'briefing.inspect_source':
+      return {
+        ok: true,
+        action: { type: 'trigger_cta', ctaId: 'briefing-approve-chk-seven-pack' },
+      };
+    case 'projects.open':
+      return { ok: true, action: { type: 'open_station', station: 'projects' } };
+    case 'projects.filter':
+      return {
+        ok: true,
+        action: {
+          type: 'amend_screen_element',
+          elementId: 'portfolio-filter',
+          operation: 'set_filter',
+          value: String(params.filter || 'Waiting on 39'),
+        },
+      };
+    case 'project.open': {
+      const pid = resolveProjectId(String(params.projectId || 'SEVEN')) || 'SEVEN';
+      return { ok: true, action: { type: 'focus_project', projectId: pid } };
+    }
+    case 'project.select_tab': {
+      const pid = resolveProjectId(String(params.projectId || 'SEVEN')) || 'SEVEN';
+      return {
+        ok: true,
+        action: {
+          type: 'focus_project',
+          projectId: pid,
+          tab: (params.tab as ProjectWorkspaceTab) || 'decisions',
+        },
+      };
+    }
+    case 'project.open_tube': {
+      const pid = params.projectId ? resolveProjectId(String(params.projectId)) || undefined : undefined;
+      return {
+        ok: true,
+        action: {
+          type: 'project_media_tube',
+          action: (params.action as 'open' | 'close' | 'focus_tile' | 'fullview') || 'open',
+          projectId: pid,
+          tileIndex: typeof params.tileIndex === 'number' ? params.tileIndex : undefined,
+        },
+      };
+    }
+    case 'tasks.open':
+      return { ok: true, action: { type: 'open_station', station: 'tasks' } };
+    case 'tasks.filter':
+    case 'task.inspect':
+      return { ok: true, action: { type: 'trigger_cta', ctaId: 'task-filter-Blocked' } };
+    case 'insights.open':
+      return { ok: true, action: { type: 'open_panel', action: 'open', panel: 'insights' } };
+    case 'insight.inspect':
+      return { ok: true, action: { type: 'trigger_cta', ctaId: 'insight-inspect-blocked' } };
+    case 'gmail.open':
+    case 'gmail.select_thread':
+      return { ok: true, action: { type: 'workspace_sync', service: 'gmail', action: 'open' } };
+    case 'gmail.prepare_draft':
+      return { ok: true, action: { type: 'trigger_cta', ctaId: 'gmail-two-tap-arm' } };
+    case 'calendar.open':
+    case 'calendar.set_view':
+    case 'calendar.inspect_event':
+      return { ok: true, action: { type: 'workspace_sync', service: 'calendar', action: 'open' } };
+    case 'files.open':
+      return { ok: true, action: { type: 'open_station', station: 'files' } };
+    case 'files.search':
+      return {
+        ok: true,
+        action: { type: 'search_files', query: String(params.query || 'Tabuk') },
+      };
+    case 'file.open':
+    case 'document.go_to_page':
+      return { ok: true, action: { type: 'open_panel', action: 'open', panel: 'file-viewer' } };
+    case 'media.open':
+    case 'media.filter':
+      return { ok: true, action: { type: 'open_station', station: 'media' } };
+    case 'media.zoom':
+      return { ok: true, action: { type: 'media_control', action: 'fullscreen_enter' } };
+    case 'media.close':
+      return { ok: true, action: { type: 'media_control', action: 'fullscreen_exit' } };
+    case 'media.next':
+      return { ok: true, action: { type: 'media_control', action: 'next' } };
+    case 'media.previous':
+      return { ok: true, action: { type: 'media_control', action: 'prev' } };
+    case 'video.play':
+      return { ok: true, action: { type: 'media_control', action: 'play' } };
+    case 'video.pause':
+      return { ok: true, action: { type: 'media_control', action: 'pause' } };
+    case 'video.seek':
+      return {
+        ok: true,
+        action: {
+          type: 'media_control',
+          action: 'seek',
+          seekSeconds: Number(params.seekSeconds || 10),
+        },
+      };
+    case 'video.set_volume':
+      return {
+        ok: true,
+        action: {
+          type: 'media_control',
+          action: Number(params.volume ?? 1) === 0 ? 'mute' : 'unmute',
+        },
+      };
+    case 'people.open':
+      return { ok: true, action: { type: 'open_station', station: 'people' } };
+    case 'person.inspect':
+      return {
+        ok: true,
+        action: {
+          type: 'select_person',
+          personId: resolvePersonId(String(params.personId || 'p-39')) || 'p-39',
+        },
+      };
+    case 'raci.open':
+      return {
+        ok: true,
+        action: {
+          type: 'get_raci',
+          projectId: resolveProjectId(String(params.projectId || 'SEVEN')) || 'SEVEN',
+        },
+      };
+    case 'crew.open':
+    case 'crew.inspect_stream':
+    case 'crew.prepare_draft':
+      return { ok: true, action: { type: 'open_panel', action: 'open', panel: 'crew' } };
+    case 'planning.open':
+    case 'planning.select_tab':
+      return { ok: true, action: { type: 'open_panel', action: 'open', panel: 'kinzo' } };
+    case 'bots.open':
+      return { ok: true, action: { type: 'open_panel', action: 'open', panel: 'baghira' } };
+    case 'settings.open':
+    case 'settings.set_motion':
+      return { ok: true, action: { type: 'open_panel', action: 'open', panel: 'settings' } };
+    case 'hands.request_enable':
+    case 'hands.disable':
+      return { ok: true, action: { type: 'trigger_cta', ctaId: 'settings-hands-toggle' } };
+    case 'sphere.switch':
+      return {
+        ok: true,
+        action: {
+          type: 'switch_sphere',
+          sphere: String(params.sphere || 'cde').toLowerCase() === 'hq' ? 'hq' : 'cde',
+        },
+      };
+    case 'dimension.open':
+      return {
+        ok: true,
+        action: {
+          type: 'open_dimension',
+          dimension: (params.dimension as CdeDimensionId) || 'strategy',
+        },
+      };
+    case 'chapter.open':
+      return {
+        ok: true,
+        action: { type: 'open_chapter', chapterIndex: Number(params.chapterIndex || 1) },
+      };
+    case 'domains.open':
+    case 'domain.prepare':
+      return { ok: true, action: { type: 'open_panel', action: 'open', panel: 'cde-explorer' } };
+    case 'domain.create':
+      return {
+        ok: true,
+        action: {
+          type: 'create_domain',
+          name: String(params.name || 'New Orbital Domain'),
+          sphere: String(params.sphere || 'hq').toLowerCase() === 'cde' ? 'cde' : 'hq',
+          colour: String(params.colour || '#4C8DFF'),
+          parentNodeId: String(params.parentNodeId || 'projects'),
+        },
+      };
+    case 'domain.set_material':
+      return {
+        ok: true,
+        action: {
+          type: 'update_domain_material',
+          target: String(params.target || 'hq'),
+          materialPreset: (params.materialPreset as DomainMaterialPreset) || 'cobalt-glass',
+        },
+      };
+    case 'workspace.restore':
+    case 'checkpoint.restore':
+    case 'checkpoint.save':
+      return { ok: true, action: { type: 'trigger_cta', ctaId: 'settings-restore-cp04' } };
+    case 'workspace.back':
+      return { ok: true, action: { type: 'navigate_back' } };
+    case 'panel.minimize':
+      return {
+        ok: true,
+        action: {
+          type: 'open_panel',
+          action: 'minimize',
+          panel: params.panel ? String(params.panel) : undefined,
+        },
+      };
+    case 'panel.restore':
+      return {
+        ok: true,
+        action: {
+          type: 'open_panel',
+          action: 'restore',
+          panel: params.panel ? String(params.panel) : undefined,
+        },
+      };
+    case 'panel.close':
+      return {
+        ok: true,
+        action: {
+          type: 'open_panel',
+          action: 'close',
+          panel: params.panel ? String(params.panel) : undefined,
+        },
+      };
+    case 'ui.focus':
+      return {
+        ok: true,
+        action: {
+          type: 'trigger_cta',
+          ctaId: String(params.targetId || params.ctaId || 'voice-stop'),
+        },
+      };
+    default:
+      return { ok: false, error: `Unknown canonical actionId: ${actionId}` };
   }
 }
 
@@ -476,6 +982,26 @@ export function parseNaturalLanguageIntent(rawInput: string): WorkspaceAction | 
   if (!trimmed) return null;
   const lower = trimmed.toLowerCase();
 
+  // 0. Direct canonical cerebro-ui/4 actionId or 3D Media Tube command
+  if (
+    lower === 'project.open_tube' ||
+    lower.includes('open_project_tube') ||
+    lower.includes('3d media tube') ||
+    lower.includes('open media tube') ||
+    lower.includes('media tube')
+  ) {
+    if (lower.includes('close')) {
+      return { type: 'project_media_tube', action: 'close' };
+    }
+    return { type: 'project_media_tube', action: 'open' };
+  }
+  if (/^[a-z_]+\.[a-z_]+$/i.test(trimmed)) {
+    const mapped = mapCanonicalActionIdToWorkspaceAction(trimmed, {});
+    if (mapped.ok && mapped.action) {
+      return mapped.action;
+    }
+  }
+
   // 1. Back Navigation
   if (
     lower === 'back' ||
@@ -487,43 +1013,155 @@ export function parseNaturalLanguageIntent(rawInput: string): WorkspaceAction | 
     return { type: 'navigate_back' };
   }
 
-  // 2. Tour Controls
+  // 2. Tour & Live CTA Controls (18-Screen Wireframe v1.1 + CTA Choreographer)
+  const triggerCtaMatch = trimmed.match(/^trigger_cta\(([^,)]+)(?:,\s*(.+))?\)$/i);
+  if (triggerCtaMatch) {
+    const ctaId = triggerCtaMatch[1].replace(/['"]/g, '').trim();
+    const spokenReason = triggerCtaMatch[2]?.replace(/['"]/g, '').trim();
+    return { type: 'trigger_cta', ctaId, spokenReason };
+  }
+
+  const stepTourCallMatch = trimmed.match(/^step_tour\(([^)]+)\)$/i);
+  if (stepTourCallMatch) {
+    return {
+      type: 'step_tour',
+      directionOrScreen: stepTourCallMatch[1].replace(/['"]/g, '').trim(),
+    };
+  }
+
+  const screenJumpMatch = lower.match(/\b(go to|jump to|open|step to|tour)\s+(s0[1-9]|s1[0-8])\b/i);
+  if (screenJumpMatch) {
+    return {
+      type: 'step_tour',
+      directionOrScreen: screenJumpMatch[2].toUpperCase(),
+    };
+  }
+
   if (
     lower.includes('stop_tour') ||
     lower.includes('stop tour') ||
     lower.includes('end tour') ||
+    lower.includes('exit tour') ||
     lower.includes('وقف التور') ||
     lower.includes('وقف الجولة') ||
     lower.includes('انهي الجولة')
   ) {
     return { type: 'tour_control', action: 'stop' };
   }
-  if (lower.includes('pause_tour') || lower.includes('pause tour') || lower.includes('وقف مؤقت')) {
+  if (
+    lower.includes('pause_tour') ||
+    lower.includes('pause tour') ||
+    lower.includes('pause the tour') ||
+    lower.includes('وقف مؤقت')
+  ) {
     return { type: 'tour_control', action: 'pause' };
   }
   if (
     lower.includes('resume_tour') ||
     lower.includes('resume tour') ||
+    lower.includes('resume the tour') ||
     lower === 'resume' ||
     lower.includes('كمل الجولة')
   ) {
     return { type: 'tour_control', action: 'resume' };
   }
-  if (lower.includes('next stop') || lower.includes('tour next') || lower.includes('المحطة الجاية')) {
-    return { type: 'tour_control', action: 'next' };
-  }
-  if (lower.includes('prev stop') || lower.includes('previous stop') || lower.includes('tour back')) {
-    return { type: 'tour_control', action: 'prev' };
+  if (
+    lower.includes('next stop') ||
+    lower.includes('next screen') ||
+    lower.includes('tour next') ||
+    lower.includes('المحطة الجاية') ||
+    lower.includes('الشاشة الجاية')
+  ) {
+    return { type: 'step_tour', directionOrScreen: 'next' };
   }
   if (
+    lower.includes('prev stop') ||
+    lower.includes('previous stop') ||
+    lower.includes('prev screen') ||
+    lower.includes('previous screen') ||
+    lower.includes('tour back')
+  ) {
+    return { type: 'step_tour', directionOrScreen: 'prev' };
+  }
+  if (lower.includes('tour hq') || lower.includes('hq tour') || lower.includes('hq-ops')) {
+    return { type: 'tour_control', action: 'start', mode: 'hq-ops' };
+  }
+  if (lower.includes('tour cde') || lower.includes('cde tour') || lower.includes('cde-bio')) {
+    return { type: 'tour_control', action: 'start', mode: 'cde-bio' };
+  }
+  if (
+    lower.includes('executive tour') ||
+    lower.includes('fast tour') ||
+    lower.includes('quick tour') ||
+    lower.includes('executive-fast')
+  ) {
+    return { type: 'tour_control', action: 'start', mode: 'executive-fast' };
+  }
+  if (
+    lower === 'tour' ||
     lower.includes('start_tour') ||
     lower.includes('start tour') ||
     lower.includes('take a tour') ||
+    lower.includes('give me a tour') ||
+    lower.includes('tour the wireframe') ||
+    lower.includes('18-screen tour') ||
+    lower.includes('18 screen tour') ||
     lower.includes('guided tour') ||
     lower.includes('ابدأ الجولة') ||
     lower.includes('خدني في جولة')
   ) {
-    return { type: 'tour_control', action: 'start' };
+    return { type: 'tour_control', action: 'start', mode: 'full-18-screen' };
+  }
+
+  // Natural-language CTA triggers ("click Inspect on Blocked", "switch to the Decisions tab", "confirm send", etc.)
+  if (lower.includes('inspect') && lower.includes('blocked')) {
+    return {
+      type: 'trigger_cta',
+      ctaId: 'insight-inspect-blocked',
+      spokenReason: 'Inspecting Blocked signal in #FF5666.',
+    };
+  }
+  if (lower.includes('switch to') && lower.includes('decision') && lower.includes('tab')) {
+    return {
+      type: 'trigger_cta',
+      ctaId: 'project-tab-Decisions',
+      spokenReason: 'Switching to Decisions tab.',
+    };
+  }
+  if (lower.includes('confirm send')) {
+    return {
+      type: 'trigger_cta',
+      ctaId: 'gmail-two-tap-confirm',
+      spokenReason: 'Confirming Two-Tap Gmail send.',
+    };
+  }
+  if (lower.includes('arm send') || (lower.includes('readback') && lower.includes('send'))) {
+    return {
+      type: 'trigger_cta',
+      ctaId: 'gmail-two-tap-arm',
+      spokenReason: 'Arming Two-Tap Gmail readback.',
+    };
+  }
+  if (lower.includes('confirm create') && lower.includes('calendar')) {
+    return {
+      type: 'trigger_cta',
+      ctaId: 'calendar-confirm-create',
+      spokenReason: 'Confirming Two-Tap Calendar event creation.',
+    };
+  }
+  if (lower.includes('approve draft') && lower.includes('crew')) {
+    return {
+      type: 'trigger_cta',
+      ctaId: 'crew-approve-draft',
+      spokenReason: 'Approving Crew live SSE draft.',
+    };
+  }
+  if (lower.includes('make this a task')) {
+    return {
+      type: 'trigger_cta',
+      ctaId: 'zebda-make-this-a-task',
+      spokenReason: 'Triggering Zebda Make this a task CTA.',
+    };
   }
 
   // 3. Camera Controls (Lenses, Angles, Loops, Orbit, Pan, Tilt, Zoom, Reset, Stop)
@@ -1020,10 +1658,23 @@ export function auditToolRegistry(): ToolAuditEntry[] {
     camera: { verb: 'pan', direction: 'left', amount: 1 },
     media_control: { action: 'select', reelId: 'med-seven-reel' },
     search_files: { query: 'Tabuk' },
-    tour_control: { action: 'start' },
+    tour_control: { action: 'start', mode: 'full-18-screen' },
+    start_tour: { mode: 'full-18-screen' },
+    step_tour: { directionOrScreen: 'next' },
+    trigger_cta: { ctaId: 'insight-inspect-blocked', spokenReason: 'Inspect Blocked signal' },
     checkpoint_action: { checkpointId: 'chk-rasma-blueprint', decision: 'Approve' },
     get_briefing: {},
     get_page_state: {},
+    create_domain: { name: 'Riyadh AI Lab', sphere: 'hq', colour: '#4C8DFF' },
+    update_domain_material: { target: 'hq', materialPreset: 'cobalt-glass' },
+    amend_screen_element: {
+      elementId: 'portfolio-filter',
+      operation: 'set_filter',
+      value: 'Waiting on 39',
+    },
+    workspace_sync: { service: 'gmail', action: 'open' },
+    open_project_tube: { projectId: 'SEVEN', action: 'open' },
+    dispatch_ui_action: { actionId: 'project.open_tube', targetId: 'project-open-tube' },
   };
 
   return CRO_CDE_GOOGLE_TOOLS_SCHEMA.map((tool) => {

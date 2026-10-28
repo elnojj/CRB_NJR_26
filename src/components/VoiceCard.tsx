@@ -12,6 +12,8 @@ import {
   ElevenLabsConvaiBridge,
   VoiceBridgeState,
 } from '../utils/elevenLabsBridge';
+import { ComputedGuiLayout } from '../gui/layoutEngine';
+import { GUI_GLASS_TOKENS, GUI_Z_LAYERS } from '../gui/guiTokens';
 
 export type VoiceState =
   | 'Ready'
@@ -91,7 +93,12 @@ interface VoiceCardProps {
   onOpenFullDownloadModal?: () => void;
   onNextTourStop?: () => void;
   onPrevTourStop?: () => void;
+  onStopTour?: () => void;
   onAudioLevel?: (rms: number) => void;
+  guiLayout?: ComputedGuiLayout;
+  onVoiceDragDeltaChange?: (delta: { x: number; y: number }) => void;
+  onVoiceExpandedChange?: (expanded: boolean) => void;
+  contextualUpdateJson?: string;
 }
 
 const STORAGE_KEY_POS = 'cerebro_voice_card_pos_v2';
@@ -118,11 +125,18 @@ const QUICK_WORKSPACE_COMMANDS = [
   { label: 'Search Tabuk Files', cmd: 'search_files(Tabuk)' },
   { label: 'Media', cmd: 'open_station(media)' },
   { label: 'Story Journey', cmd: 'open_chapter(1)' },
-  { label: 'Take a tour', cmd: 'start_tour()' },
+  { label: 'Take 18-Screen Tour', cmd: 'start_tour(full-18-screen)' },
+  { label: 'Tour HQ Ops', cmd: 'tour HQ' },
+  { label: 'Tour CDE Bio', cmd: 'tour CDE' },
+  { label: 'Executive Tour', cmd: 'executive tour' },
   { label: 'Pan Right', cmd: 'camera(pan)' },
   { label: 'Stop Camera', cmd: 'camera(stop)' },
   { label: 'Center Camera', cmd: 'camera(center)' },
   { label: 'Briefing', cmd: 'get_briefing()' },
+  { label: 'Spawn Domain', cmd: 'create_domain(Riyadh AI Lab)' },
+  { label: '3D Media Tube', cmd: 'project.open_tube' },
+  { label: 'Amber Shader', cmd: 'update_domain_material(hq, amber-crystal)' },
+  { label: 'Gmail Sync', cmd: 'workspace_sync(gmail)' },
   { label: 'هات المشاريع', cmd: 'هات المشاريع' },
   { label: 'قفل البانل', cmd: 'قفل البانل' },
 ];
@@ -149,7 +163,12 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   onChangeAudience,
   onNextTourStop,
   onPrevTourStop,
+  onStopTour,
   onAudioLevel,
+  guiLayout,
+  onVoiceDragDeltaChange,
+  onVoiceExpandedChange,
+  contextualUpdateJson,
 }) => {
   const [audioRms, setAudioRms] = useState<number>(0);
   const bridgeRmsRef = useRef<number>(0);
@@ -165,11 +184,18 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     }
   });
 
+  useEffect(() => {
+    onVoiceExpandedChange?.(isExpanded);
+  }, [isExpanded, onVoiceExpandedChange]);
+
   const [snapEdge, setSnapEdge] = useState<WidgetSnapEdge>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_POS);
       if (saved === 'bottom-left' || saved === 'bottom-right' || saved === 'top-right') return saved;
     } catch {}
+    if (typeof window !== 'undefined' && window.innerWidth >= 768 && window.innerWidth <= 1220) {
+      return 'bottom-right';
+    }
     return 'bottom-center';
   });
 
@@ -279,7 +305,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       },
       onTranscript: (role, text) => {
         if (role === 'user') {
-          onSimulateCommand(`__user_voice__:${text}`);
+          const isLiveWs = bridgeRef.current?.isLiveWebSocketOpen?.() ?? false;
+          onSimulateCommand(isLiveWs ? `__user_voice_live__:${text}` : `__user_voice__:${text}`);
         } else {
           onSimulateCommand(`__agent_reply__:${text}`);
         }
@@ -313,7 +340,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       },
       onTranscript: (role, text) => {
         if (role === 'user') {
-          onSimulateCommand(`__user_voice__:${text}`);
+          const isLiveWs = bridgeRef.current?.isLiveWebSocketOpen?.() ?? false;
+          onSimulateCommand(isLiveWs ? `__user_voice_live__:${text}` : `__user_voice__:${text}`);
         } else {
           onSimulateCommand(`__agent_reply__:${text}`);
         }
@@ -332,6 +360,12 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       },
     });
   }, [onSimulateCommand, onExecuteToolCall]);
+
+  useEffect(() => {
+    if (contextualUpdateJson && bridgeRef.current?.isLiveWebSocketOpen?.()) {
+      bridgeRef.current.sendContextualUpdate(contextualUpdateJson);
+    }
+  }, [contextualUpdateJson]);
 
   // Real-time harmonic RMS envelope when Cerebro is Speaking / Listening (including browser speech synthesis)
   useEffect(() => {
@@ -404,6 +438,10 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
 
   const handleInstantStop = () => {
     bridgeRef.current?.stopOutputAudioImmediately();
+    if (tourState.active) {
+      onStopTour?.();
+      onSimulateCommand('stop tour');
+    }
     onSimulateCommand('camera(stop)');
   };
 
@@ -430,10 +468,12 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const handleHeaderPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
     if (!isDraggingRef.current) return;
-    setDragDelta({
+    const nextDelta = {
       x: e.clientX - dragStartRef.current.x,
       y: e.clientY - dragStartRef.current.y,
-    });
+    };
+    setDragDelta(nextDelta);
+    onVoiceDragDeltaChange?.(nextDelta);
   };
 
   const handleHeaderPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -457,6 +497,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       setSnapEdge('bottom-center');
     }
     setDragDelta({ x: 0, y: 0 });
+    onVoiceDragDeltaChange?.({ x: 0, y: 0 });
   };
 
   const snapClasses: Record<WidgetSnapEdge, string> = {
@@ -682,18 +723,20 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         <div
           onPointerDown={(e) => e.stopPropagation()}
           onWheel={(e) => e.stopPropagation()}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#05090E]/80 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#101D27]/75 backdrop-blur-md"
         >
           <div
-            className="w-full max-w-xl rounded-2xl border p-5 space-y-4 shadow-2xl neural-reveal"
+            className="w-full max-w-xl rounded-xl border p-5 space-y-4 neural-reveal"
             style={{
-              backgroundColor: COLOUR_TOKENS.glassRgba,
-              borderColor: COLOUR_TOKENS.cobaltAccent,
+              backgroundColor: 'rgba(16, 29, 39, 0.84)',
+              borderColor: 'rgba(255, 255, 255, 0.14)',
+              boxShadow:
+                'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
             }}
           >
             <div className="flex items-center justify-between border-b border-white/15 pb-3">
               <div>
-                <div className="font-mono text-[10px] text-[#9AFFE0] uppercase tracking-wider">
+                <div className="font-mono text-[10px] text-[#B4DDFF] uppercase tracking-wider">
                   VOICE AGENT SETTINGS · DEVELOPER CONFIGURATION
                 </div>
                 <h2 className="font-display text-base font-semibold text-[#F2F6F8]">
@@ -703,18 +746,18 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               <button
                 type="button"
                 onClick={() => setShowAgentModal(false)}
-                className="min-w-[44px] min-h-[44px] rounded-lg border border-white/30 text-[#BDCBD3] hover:text-[#F2F6F8] font-mono cursor-pointer"
+                className="min-w-[44px] min-h-[44px] rounded-lg border border-white/25 text-[#BDCBD3] hover:text-[#F2F6F8] font-mono cursor-pointer"
               >
                 ×
               </button>
             </div>
 
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-[#101D27] border border-white/20">
+            <div className="flex items-center gap-1 p-1 rounded-lg bg-[#142632] border border-white/15">
               {(
                 [
                   { id: 'connect', label: 'Connect Agent' },
                   { id: 'create', label: 'Provision New Agent' },
-                  { id: 'manifest', label: '18-Tool Schema' },
+                  { id: 'manifest', label: '22-Tool Schema' },
                 ] as const
               ).map((t) => (
                 <button
@@ -743,10 +786,10 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                   value={agentIdInput}
                   onChange={(e) => setAgentIdInput(e.target.value)}
                   placeholder={DEFAULT_INTERNAL_AGENT_ID}
-                  className="w-full min-h-[44px] px-3 py-1.5 rounded-xl bg-[#05090E] border border-white/30 font-mono text-xs text-[#F2F6F8] focus:outline-none focus:border-[#65ACFF]"
+                  className="w-full min-h-[44px] px-3 py-1.5 rounded-lg bg-[#142632] border border-white/20 font-mono text-xs text-[#F2F6F8] focus:outline-none focus:border-[#65ACFF]"
                 />
                 <div className="flex items-center justify-between gap-2 pt-1">
-                  <span className="font-mono text-[11px] text-[#9AFFE0] truncate">
+                  <span className="font-mono text-[11px] text-[#7CE0B8] truncate">
                     State: {bridgeStatus} · {bridgeDetail}
                   </span>
                   <div className="flex items-center gap-2">
@@ -754,7 +797,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                       <button
                         type="button"
                         onClick={() => bridgeRef.current?.disconnect()}
-                        className="min-h-[44px] px-3 py-2 rounded-xl font-mono text-xs bg-[#101D27] border border-white/30 text-[#F2B66D] cursor-pointer"
+                        className="min-h-[44px] px-3 py-2 rounded-lg font-mono text-xs bg-[#142632] border border-white/25 text-[#F2B66D] cursor-pointer"
                       >
                         Disconnect
                       </button>
@@ -762,7 +805,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                     <button
                       type="button"
                       onClick={() => handleConnectLiveAgent()}
-                      className="min-h-[44px] px-4 py-2 rounded-xl font-mono text-xs font-semibold bg-[#4C8DFF] text-[#101D27] cursor-pointer"
+                      className="min-h-[44px] px-4 py-2 rounded-lg font-mono text-xs font-semibold bg-[#4C8DFF] text-[#101D27] cursor-pointer"
                     >
                       Connect Voice
                     </button>
@@ -783,14 +826,14 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                     value={apiKeyInput}
                     onChange={(e) => setApiKeyInput(e.target.value)}
                     placeholder="ElevenLabs xi-api-key"
-                    className="w-full min-h-[44px] px-3 py-1.5 rounded-xl bg-[#05090E] border border-white/30 font-mono text-xs text-[#F2F6F8] focus:outline-none focus:border-[#65ACFF]"
+                    className="w-full min-h-[44px] px-3 py-1.5 rounded-lg bg-[#142632] border border-white/20 font-mono text-xs text-[#F2F6F8] focus:outline-none focus:border-[#65ACFF]"
                   />
                   <input
                     type="text"
                     value={voiceIdInput}
                     onChange={(e) => setVoiceIdInput(e.target.value)}
                     placeholder="Optional ElevenLabs Voice ID"
-                    className="w-full min-h-[44px] px-3 py-1.5 rounded-xl bg-[#05090E] border border-white/30 font-mono text-xs text-[#F2F6F8] focus:outline-none focus:border-[#65ACFF]"
+                    className="w-full min-h-[44px] px-3 py-1.5 rounded-lg bg-[#142632] border border-white/20 font-mono text-xs text-[#F2F6F8] focus:outline-none focus:border-[#65ACFF]"
                   />
                 </div>
                 <div className="flex items-center justify-between pt-1">
@@ -799,7 +842,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                     type="button"
                     disabled={creatingAgent}
                     onClick={handleCreateCroCdeGoogleAgent}
-                    className="min-h-[44px] px-4 py-2 rounded-xl font-mono text-xs font-semibold bg-[#3DDC97] text-[#101D27] cursor-pointer disabled:opacity-50"
+                    className="min-h-[44px] px-4 py-2 rounded-lg font-mono text-xs font-semibold bg-[#36E88D] text-[#101D27] cursor-pointer disabled:opacity-50"
                   >
                     {creatingAgent ? 'Provisioning...' : 'Create Agent'}
                   </button>
@@ -816,7 +859,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                       onClick={() =>
                         copyToClipboard(
                           JSON.stringify(buildElevenLabsAgentPayload(), null, 2),
-                          '18-Tool Manifest JSON'
+                          '22-Tool Manifest JSON'
                         )
                       }
                       className="min-h-[40px] px-3 py-1.5 rounded-lg font-mono text-[11px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
@@ -828,23 +871,23 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                       onClick={() =>
                         copyToClipboard(CRO_CDE_GOOGLE_SYSTEM_PROMPT, 'System Prompt')
                       }
-                      className="min-h-[40px] px-3 py-1.5 rounded-lg font-mono text-[11px] bg-[#101D27] border border-white/30 text-[#F2F6F8] cursor-pointer"
+                      className="min-h-[40px] px-3 py-1.5 rounded-lg font-mono text-[11px] bg-[#142632] border border-white/25 text-[#F2F6F8] cursor-pointer"
                     >
                       Copy Prompt
                     </button>
                     <button
                       type="button"
                       onClick={downloadManifestJson}
-                      className="min-h-[40px] px-3 py-1.5 rounded-lg font-mono text-[11px] bg-[#3DDC97] text-[#101D27] font-semibold cursor-pointer"
+                      className="min-h-[40px] px-3 py-1.5 rounded-lg font-mono text-[11px] bg-[#7CE0B8] text-[#101D27] font-semibold cursor-pointer"
                     >
                       Download .JSON
                     </button>
                   </div>
                   {copyFeedback && (
-                    <span className="font-mono text-[11px] text-[#9AFFE0]">{copyFeedback}</span>
+                    <span className="font-mono text-[11px] text-[#7CE0B8]">{copyFeedback}</span>
                   )}
                 </div>
-                <pre className="max-h-56 overflow-y-auto rounded-xl p-3 bg-[#05090E] border border-white/20 font-mono text-[10px] text-[#9AFFE0] leading-relaxed">
+                <pre className="max-h-56 overflow-y-auto rounded-lg p-3 bg-[#142632] border border-white/15 font-mono text-[10px] text-[#B4DDFF] leading-relaxed">
                   {JSON.stringify(
                     {
                       agentName: CRO_CDE_GOOGLE_AGENT_NAME,
@@ -862,34 +905,48 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         </div>
       )}
 
-      {/* Draggable, Edge-Snapping, Resizable Voice Card (Event-Isolated from 3D Scene) */}
+      {/* Draggable, Collision-Managed, Resizable Voice Dock (Panel #10 · z-40 voiceDock / z-70 Stop) */}
       <div
         data-testid="voice-card"
         data-snap-edge={snapEdge}
+        data-compacted={guiLayout?.voiceCompactedForSheet ? 'true' : 'false'}
         onPointerDown={(e) => e.stopPropagation()}
         onWheel={(e) => e.stopPropagation()}
         style={{
+          left: guiLayout ? `${guiLayout.voiceRect.x}px` : undefined,
+          top: guiLayout ? `${guiLayout.voiceRect.y}px` : undefined,
+          width: guiLayout ? `${guiLayout.voiceRect.w}px` : undefined,
+          minHeight: guiLayout?.voiceCompactedForSheet ? '52px' : undefined,
           transform:
-            dragDelta.x !== 0 || dragDelta.y !== 0
+            !guiLayout && (dragDelta.x !== 0 || dragDelta.y !== 0)
               ? `translate(${dragDelta.x}px, ${dragDelta.y}px)`
               : undefined,
-          backgroundColor: COLOUR_TOKENS.glassRgba,
-          borderColor: COLOUR_TOKENS.outlineControl,
+          backgroundColor: GUI_GLASS_TOKENS.background,
+          backdropFilter: GUI_GLASS_TOKENS.backdropFilter,
+          WebkitBackdropFilter: GUI_GLASS_TOKENS.backdropFilter,
+          border: GUI_GLASS_TOKENS.border,
+          borderRadius: `${GUI_GLASS_TOKENS.radiusPx}px`,
+          boxShadow: GUI_GLASS_TOKENS.shadow,
+          zIndex: GUI_Z_LAYERS.voiceDock,
         }}
-        className={`fixed z-40 pointer-events-auto rounded-2xl border shadow-2xl transition-all duration-200 ${
-          snapClasses[snapEdge]
-        } ${
-          isExpanded ? 'w-[94vw] max-w-[560px]' : 'w-[92vw] max-w-[470px]'
+        className={`fixed pointer-events-auto cerebro-stellar-glass transition-all duration-200 ${
+          guiLayout
+            ? ''
+            : `${snapClasses[snapEdge]} ${
+                isExpanded ? 'w-[94vw] max-w-[560px]' : 'w-[92vw] max-w-[470px]'
+              }`
         }`}
       >
-        {/* Drag Handle + State Line + Compact/Expanded Toggle */}
+        {/* Drag Handle + Standardized Panel #10 Header Bar + Compact/Expanded Toggle */}
         <div
           onPointerDown={handleHeaderPointerDown}
           onPointerMove={handleHeaderPointerMove}
           onPointerUp={handleHeaderPointerUp}
-          className="px-3.5 py-2.5 border-b border-white/15 flex items-center justify-between gap-2 cursor-grab active:cursor-grabbing"
+          className={`px-3.5 ${
+            guiLayout?.voiceCompactedForSheet ? 'py-1 min-h-[52px]' : 'py-2 border-b'
+          } border-[rgba(232,251,255,0.20)] flex items-center justify-between gap-2 cursor-grab active:cursor-grabbing`}
         >
-          {/* Voice Orb + Clean Status */}
+          {/* Voice Pilot Orb (SACRED RESERVATION: #9AFFE0 -> #359D8E -> #133A44) + Status */}
           <div className="flex items-center gap-2.5 min-w-0">
             <button
               type="button"
@@ -907,13 +964,12 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               style={{
                 transform: `scale(${(1 + audioRms * 0.14).toFixed(3)})`,
                 background:
-                  'radial-gradient(circle at 34% 22%, rgba(180,221,255,0.48) 0%, rgba(154,255,224,0.34) 32%, rgba(19,58,68,0.94) 72%, rgba(5,9,14,0.98) 100%)',
-                borderColor:
-                  audioRms > 0.08 ? COLOUR_TOKENS.voiceOrbMint : 'var(--token-voice-orb)',
-                boxShadow: `0 0 ${Math.round(12 + audioRms * 26)}px rgba(63, 208, 224, ${(
-                  0.28 +
+                  'radial-gradient(circle at 34% 30%, #9AFFE0 0%, #359D8E 56%, #133A44 100%)',
+                borderColor: '#9AFFE0',
+                boxShadow: `0 0 ${Math.round(14 + audioRms * 26)}px rgba(154, 255, 224, ${(
+                  0.32 +
                   audioRms * 0.52
-                ).toFixed(2)}), inset 0 1px 4px rgba(255,255,255,0.45)`,
+                ).toFixed(2)}), inset 0 1px 4px rgba(242, 246, 248, 0.55)`,
               }}
             >
               {/* Concept A "Living Lens": Internal Elliptical Caustic Specular Arc */}
@@ -922,7 +978,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                 className="pointer-events-none absolute inset-[3px] rounded-full"
                 style={{
                   background:
-                    'radial-gradient(ellipse 75% 46% at 36% 20%, rgba(255,255,255,0.52), rgba(180,221,255,0.12) 58%, transparent 80%)',
+                    'radial-gradient(ellipse 75% 46% at 36% 20%, rgba(242,246,248,0.52), rgba(154,255,224,0.18) 58%, transparent 80%)',
                   transform: `rotate(${Math.round(audioRms * 28 - 12)}deg)`,
                 }}
               />
@@ -950,10 +1006,10 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                       y1={y1.toFixed(2)}
                       x2={x2.toFixed(2)}
                       y2={y2.toFixed(2)}
-                      stroke={idx % 2 === 0 ? COLOUR_TOKENS.voiceOrbMint : '#B4DDFF'}
+                      stroke={idx % 2 === 0 ? '#9AFFE0' : '#F2F6F8'}
                       strokeWidth="1.35"
                       strokeLinecap="round"
-                      strokeOpacity={(0.48 + Math.min(0.52, audioRms * 0.9)).toFixed(2)}
+                      strokeOpacity={(0.52 + Math.min(0.48, audioRms * 0.9)).toFixed(2)}
                     />
                   );
                 })}
@@ -961,9 +1017,9 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                   cx="18"
                   cy="18"
                   r={(4.2 + audioRms * 2.4).toFixed(2)}
-                  fill={COLOUR_TOKENS.voiceOrbTeal}
-                  fillOpacity={(0.28 + audioRms * 0.45).toFixed(2)}
-                  stroke={COLOUR_TOKENS.voiceOrbMint}
+                  fill="#133A44"
+                  fillOpacity={(0.38 + audioRms * 0.45).toFixed(2)}
+                  stroke="#9AFFE0"
                   strokeWidth="1.2"
                 />
                 <path
@@ -977,13 +1033,13 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
 
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-display text-xs font-semibold text-[#F2F6F8]">
-                  Cerebro Voice
+                <span className="font-display text-xs font-semibold tracking-[0.08em] uppercase text-[#F2F6F8]">
+                  #10 · Cerebro Voice
                 </span>
                 <span
                   data-testid="voice-status-badge"
                   title={bridgeDetail}
-                  className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#101D27] border border-white/25 text-[#9AFFE0]"
+                  className="font-mono tabular-nums text-[10px] px-2 py-0.5 rounded bg-[#142632] border border-white/15 text-[#B4DDFF]"
                 >
                   {displayedVoiceStatus}
                 </span>
@@ -992,7 +1048,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                     type="button"
                     data-testid="connect-elevenlabs-btn"
                     onClick={() => handleConnectLiveAgent()}
-                    className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#4C8DFF]/25 border border-[#4C8DFF] text-[#9AFFE0] hover:bg-[#4C8DFF] hover:text-[#101D27] transition-colors cursor-pointer"
+                    className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#4C8DFF]/20 border border-[#65ACFF] text-[#B4DDFF] hover:bg-[#4C8DFF] hover:text-[#101D27] transition-colors cursor-pointer"
                   >
                     Connect Live
                   </button>
@@ -1000,7 +1056,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                   <button
                     type="button"
                     onClick={() => bridgeRef.current?.disconnect()}
-                    className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#101D27] border border-white/25 text-[#F2B66D] cursor-pointer"
+                    className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#142632] border border-white/20 text-[#F2B66D] cursor-pointer"
                   >
                     End Voice
                   </button>
@@ -1009,15 +1065,15 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                   type="button"
                   data-testid="open-voice-agent-modal-btn"
                   onClick={() => setShowAgentModal(true)}
-                  title="ElevenLabs Agent Settings & 18-Tool Manifest"
-                  className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#101D27] border border-white/20 text-[#BDCBD3] hover:text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer"
+                  title="ElevenLabs Agent Settings & 22-Tool Manifest"
+                  className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#142632] border border-white/15 text-[#BDCBD3] hover:text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
                 >
                   Agent ⚙
                 </button>
               </div>
 
               {tourState.active && (
-                <div className="flex items-center gap-1.5 font-mono text-[10px] text-[#F2B66D] truncate mt-0.5">
+                <div className="flex items-center gap-1.5 font-mono tabular-nums text-[10px] text-[#FFF1D4] truncate mt-0.5">
                   <span>
                     Tour {tourState.step}/{tourState.total} ·{' '}
                     {tourState.paused ? 'Paused' : `${tourState.secondsLeft}s`}
@@ -1027,7 +1083,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                       type="button"
                       data-testid="tour-prev-stop"
                       onClick={onPrevTourStop}
-                      className="px-1.5 py-0.5 rounded bg-[#142632] border border-white/30 text-[#F2F6F8] cursor-pointer"
+                      className="px-1.5 py-0.5 rounded bg-[#142632] border border-white/25 text-[#F2F6F8] cursor-pointer"
                     >
                       ‹ Back
                     </button>
@@ -1069,10 +1125,10 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                       setIsExpanded(true);
                     }
                   }}
-                  className={`min-h-[40px] px-2.5 py-1 rounded-lg font-mono text-[11px] transition-colors cursor-pointer whitespace-nowrap border ${
+                  className={`min-h-[44px] px-2.5 py-1 rounded-xl font-mono text-[11px] transition-colors cursor-pointer whitespace-nowrap border ${
                     isAct
-                      ? 'bg-[#4C8DFF] text-[#101D27] border-white font-semibold'
-                      : 'bg-[#101D27]/80 text-[#F2F6F8] border-white/25 hover:border-[#4C8DFF]'
+                      ? 'bg-[#4C8DFF] text-[#101D27] border-[#65ACFF] font-semibold'
+                      : 'bg-[#142632] text-[#F2F6F8] border-[rgba(232,251,255,0.20)] hover:border-[#65ACFF]'
                   }`}
                 >
                   {p.label}
@@ -1085,14 +1141,25 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               data-testid="voice-card-toggle-expand"
               onClick={() => setIsExpanded((v) => !v)}
               title={isExpanded ? 'Collapse Voice Card' : 'Expand Workspace Controls'}
-              className="min-h-[40px] px-2.5 rounded-lg font-mono text-[11px] bg-[#101D27] border border-white/30 text-[#BDCBD3] hover:text-[#F2F6F8] cursor-pointer"
+              className="min-w-[44px] min-h-[44px] px-2.5 rounded-xl font-mono text-[11px] bg-[#142632] border border-[rgba(232,251,255,0.24)] text-[#A9BAC6] hover:text-[#F2F6F8] cursor-pointer"
             >
               {isExpanded ? '▾' : '▴'}
             </button>
           </div>
         </div>
 
-        {/* Always-Visible Command Bar + Run & Stop Buttons */}
+        {/* S06 Voice Active Default 2-Line Transcript Preview (when collapsed and not phone-sheet compacted) */}
+        {!isExpanded && !guiLayout?.voiceCompactedForSheet && transcripts.length > 0 && (
+          <div className="px-3.5 pt-1.5 pb-0.5 text-[13px] text-[#E8FBFF] line-clamp-2 font-sans leading-snug">
+            <span className="font-mono text-[11px] text-[#9AFFE0] mr-1.5">
+              {transcripts[transcripts.length - 1].speaker === '39' ? '39:' : 'CEREBRO:'}
+            </span>
+            {transcripts[transcripts.length - 1].text}
+          </div>
+        )}
+
+        {/* Always-Visible Command Bar + Run & Stop Buttons (hidden when compacted to 52px on phone sheet expansion) */}
+        {!guiLayout?.voiceCompactedForSheet && (
         <form onSubmit={handleSimSubmit} className="px-3.5 py-2 flex items-center gap-1.5">
           <input
             type="text"
@@ -1100,36 +1167,41 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
             value={simInput}
             onChange={(e) => setSimInput(e.target.value)}
             placeholder="Ask or command Cerebro (e.g. 'open El Batron project', 'take me to CDE')..."
-            className="flex-1 min-h-[44px] px-3 py-1 rounded-xl bg-[#05090E] border border-white/25 font-sans text-xs text-[#F2F6F8] placeholder-[#BDCBD3]/60 focus:outline-none focus:border-[#65ACFF]"
+            className="flex-1 min-h-[44px] px-3 py-1 rounded-xl bg-[#142632] border border-[rgba(232,251,255,0.24)] font-sans text-[14px] text-[#F2F6F8] placeholder-[#A9BAC6]/65 focus:outline-none focus:border-[#65ACFF]"
           />
           <button
             type="submit"
             data-testid="voice-sim-run"
-            className="min-h-[44px] px-3.5 rounded-xl font-mono text-xs font-semibold cursor-pointer border shrink-0"
+            className="min-h-[44px] min-w-[44px] px-3.5 rounded-xl font-mono text-xs font-semibold cursor-pointer border shrink-0"
             style={{
               backgroundColor: COLOUR_TOKENS.cobaltAccent,
-              color: COLOUR_TOKENS.cobaltLabel,
-              borderColor: COLOUR_TOKENS.outlineControl,
+              color: '#101D27',
+              borderColor: COLOUR_TOKENS.focusRing,
             }}
           >
             Run
           </button>
+          {/* Normal Stop button uses neutral/focus styling; #FF5666 is reserved for actual error/blocked/destructive states */}
           <button
             type="button"
             data-testid="voice-stop"
+            data-cta-id="voice-stop"
+            data-ui-id="voice-stop"
             onClick={handleInstantStop}
-            title="Stop audio and freeze camera pose"
-            className="min-h-[44px] px-3.5 rounded-xl font-mono text-xs font-semibold bg-[#101D27] text-[#F2B66D] border border-[#F2B66D]/60 hover:bg-[#F2B66D]/15 cursor-pointer shrink-0"
+            title="Stop audio, halt tour auto-stepping, and freeze camera pose"
+            style={{ zIndex: GUI_Z_LAYERS.emergencyStop }}
+            className="relative min-h-[44px] min-w-[44px] px-3.5 rounded-xl font-mono text-xs font-semibold bg-[#142632] text-[#F2F6F8] border border-[#65ACFF] hover:bg-[#4C8DFF]/20 cursor-pointer shrink-0"
           >
             Stop
           </button>
         </form>
+        )}
 
         {/* "Make this a task?" Prompt after saving a note */}
         {pendingTaskProposal && (
-          <div className="mx-3.5 mb-2.5 p-2.5 rounded-xl border border-[#B8F04A] bg-[#101D27] flex items-center justify-between gap-2">
+          <div className="mx-3.5 mb-2.5 p-2.5 rounded-lg border border-[#36E88D] bg-[#142632] flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <div className="font-mono text-[10px] text-[#B8F04A]">
+              <div className="font-mono text-[10px] text-[#36E88D]">
                 NOTE SAVED · {pendingTaskProposal.projectCode}
               </div>
               <div className="font-sans text-xs text-[#F2F6F8] truncate">
@@ -1141,14 +1213,14 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                 type="button"
                 data-testid="confirm-task-yes"
                 onClick={() => onConfirmMakeTask(true)}
-                className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-[11px] bg-[#B8F04A] text-[#101D27] font-semibold cursor-pointer"
+                className="min-h-[36px] px-3 py-1 rounded-lg font-mono text-[11px] bg-[#36E88D] text-[#101D27] font-semibold cursor-pointer"
               >
                 Yes
               </button>
               <button
                 type="button"
                 onClick={() => onConfirmMakeTask(false)}
-                className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-[11px] bg-[#142632] text-[#BDCBD3] border border-white/25 cursor-pointer"
+                className="min-h-[36px] px-3 py-1 rounded-lg font-mono text-[11px] bg-[#101D27] text-[#BDCBD3] border border-white/20 cursor-pointer"
               >
                 No
               </button>
@@ -1163,12 +1235,12 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
             {activePocket === 'compose' && (
               <form
                 onSubmit={handleChatWithCerebro}
-                className="p-2.5 rounded-xl bg-[#101D27] border border-white/25 space-y-2"
+                className="p-2.5 rounded-lg bg-[#142632]/75 border border-[rgba(180,221,255,0.16)] space-y-2"
               >
                 <div className="flex items-center justify-between font-mono text-[10px] text-[#4C8DFF]">
                   <span>COMPOSE · PROJECT: {selectedProjectId}</span>
                   {uploadedAttachment && (
-                    <span className="text-[#3DDC97]" data-testid="uploaded-attachment-badge">
+                    <span className="text-[#36E88D]" data-testid="uploaded-attachment-badge">
                       {uploadedAttachment.fileName} ({uploadedAttachment.sizeBytes}B · SHA256:{' '}
                       {uploadedAttachment.sha256.slice(0, 8)})
                     </span>
@@ -1180,7 +1252,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                   value={composeText}
                   onChange={(e) => setComposeText(e.target.value)}
                   placeholder="Write a message, note, or task..."
-                  className="w-full p-2 rounded-lg bg-[#05090E] border border-white/20 font-sans text-xs text-[#F2F6F8] focus:outline-none focus:border-[#65ACFF]"
+                  className="w-full p-2 rounded-lg bg-[#101D27] border border-white/20 font-sans text-xs text-[#F2F6F8] focus:outline-none focus:border-[#65ACFF]"
                 />
                 {(failedComposeNotice || uploadError) && (
                   <div
@@ -1206,7 +1278,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                     type="button"
                     disabled={uploadingFile}
                     onClick={() => fileInputRef.current?.click()}
-                    className="min-h-[38px] px-2.5 rounded-lg font-mono text-[10px] bg-[#142632] border border-white/30 text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer"
+                    className="min-h-[36px] px-2.5 rounded-lg font-mono text-[10px] bg-[#142632] border border-white/25 text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
                   >
                     {uploadingFile ? 'Uploading...' : '+ Attach File'}
                   </button>
@@ -1215,7 +1287,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                     <button
                       type="submit"
                       data-testid="compose-chat-btn"
-                      className="min-h-[38px] px-3 rounded-lg font-mono text-[10px] bg-[#142632] border border-[#4C8DFF] text-[#F2F6F8] cursor-pointer"
+                      className="min-h-[36px] px-3 rounded-lg font-mono text-[10px] bg-[#142632] border border-[#65ACFF] text-[#F2F6F8] cursor-pointer"
                     >
                       Chat with Cerebro
                     </button>
@@ -1223,7 +1295,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                       type="button"
                       data-testid="compose-save-note-btn"
                       onClick={handleSaveNote}
-                      className="min-h-[38px] px-3 rounded-lg font-mono text-[10px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
+                      className="min-h-[36px] px-3 rounded-lg font-mono text-[10px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
                     >
                       Save a note
                     </button>
@@ -1231,7 +1303,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                       type="button"
                       data-testid="compose-create-task-btn"
                       onClick={handleCreateTaskDirect}
-                      className="min-h-[38px] px-3 rounded-lg font-mono text-[10px] bg-[#B8F04A] text-[#101D27] font-semibold cursor-pointer"
+                      className="min-h-[36px] px-3 rounded-lg font-mono text-[10px] bg-[#5CC8D7] text-[#101D27] font-semibold cursor-pointer"
                     >
                       Create a task
                     </button>
@@ -1241,23 +1313,32 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
             )}
 
             {/* Audience Awareness Control & Position Switcher */}
-            <div className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-xl bg-[#101D27]/90 border border-white/15">
+            <div className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-[#142632]/75 border border-[rgba(180,221,255,0.16)]">
               <div className="flex items-center gap-1">
                 <span className="font-mono text-[10px] text-[#BDCBD3] mr-1">Privacy:</span>
-                {(['Owner only', 'Partner or assistant present', 'Public'] as const).map((lvl) => (
-                  <button
-                    key={lvl}
-                    type="button"
-                    onClick={() => onChangeAudience(lvl)}
-                    className={`min-h-[34px] px-2 py-1 rounded font-mono text-[10px] cursor-pointer border ${
-                      audienceLevel === lvl
-                        ? 'bg-[#F2F6F8] text-[#101D27] border-white font-semibold'
-                        : 'bg-[#142632] text-[#BDCBD3] border-white/20'
-                    }`}
-                  >
-                    {lvl === 'Partner or assistant present' ? 'Partner' : lvl}
-                  </button>
-                ))}
+                {(['Owner only', 'Partner or assistant present', 'Public'] as const).map((lvl) => {
+                  const ctaId =
+                    lvl === 'Owner only'
+                      ? 'privacy-owner-only'
+                      : lvl === 'Partner or assistant present'
+                      ? 'privacy-partner'
+                      : 'privacy-public';
+                  return (
+                    <button
+                      key={lvl}
+                      type="button"
+                      data-cta-id={ctaId}
+                      onClick={() => onChangeAudience(lvl)}
+                      className={`min-h-[32px] px-2 py-1 rounded font-mono text-[10px] cursor-pointer border ${
+                        audienceLevel === lvl
+                          ? 'bg-[#F2F6F8] text-[#101D27] border-white font-semibold'
+                          : 'bg-[#101D27] text-[#BDCBD3] border-white/15'
+                      }`}
+                    >
+                      {lvl === 'Partner or assistant present' ? 'Partner' : lvl}
+                    </button>
+                  );
+                })}
               </div>
               <div className="flex items-center gap-1">
                 {(
@@ -1267,10 +1348,10 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                     key={edge}
                     type="button"
                     onClick={() => setSnapEdge(edge)}
-                    className={`min-h-[34px] px-1.5 py-1 rounded font-mono text-[9px] cursor-pointer border ${
+                    className={`min-h-[32px] px-1.5 py-1 rounded font-mono text-[9px] cursor-pointer border ${
                       snapEdge === edge
                         ? 'bg-[#F2F6F8] text-[#101D27] border-white font-semibold'
-                        : 'bg-[#142632] text-[#BDCBD3] border-white/20'
+                        : 'bg-[#101D27] text-[#BDCBD3] border-white/15'
                     }`}
                   >
                     {edge.replace('bottom-', 'B-').replace('top-', 'T-')}
@@ -1290,7 +1371,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                     key={item.cmd}
                     type="button"
                     onClick={() => onSimulateCommand(item.cmd)}
-                    className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#101D27] border border-white/25 text-[#F2F6F8] hover:border-[#4C8DFF] hover:text-[#4C8DFF] transition-colors cursor-pointer"
+                    className="min-h-[32px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#142632] border border-[rgba(180,221,255,0.16)] text-[#F2F6F8] hover:border-[#65ACFF] hover:text-[#B4DDFF] transition-colors cursor-pointer"
                   >
                     {item.label}
                   </button>
@@ -1298,25 +1379,25 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               </div>
             </div>
 
-            {/* Conversation History (Clean label: "Conversation" instead of "LIVE TRANSCRIPTION (39 ↔ CEREBRO)") */}
+            {/* Conversation History */}
             <div className="space-y-1.5">
               <div className="font-mono text-[10px] text-[#BDCBD3] flex justify-between">
                 <span>Conversation</span>
                 <span>{transcripts.length} messages</span>
               </div>
-              <div className="rounded-xl p-2.5 bg-[#05090E]/90 border border-white/15 space-y-2 max-h-32 overflow-y-auto">
+              <div className="rounded-lg p-2.5 bg-[#142632]/75 border border-[rgba(180,221,255,0.16)] space-y-2 max-h-32 overflow-y-auto">
                 {transcripts
                   .slice(-10)
                   .reverse()
                   .map((line) => (
                     <div key={line.id} className="text-xs space-y-0.5">
-                      <div className="flex items-center justify-between font-mono text-[10px]">
+                      <div className="flex items-center justify-between font-mono tabular-nums text-[10px]">
                         <span
                           style={{
                             color:
                               line.speaker === '39'
                                 ? COLOUR_TOKENS.textPrimary
-                                : COLOUR_TOKENS.voiceOrbMint,
+                                : '#B4DDFF',
                           }}
                         >
                           {line.speaker === '39' ? 'Tarek (39)' : 'Cerebro'}

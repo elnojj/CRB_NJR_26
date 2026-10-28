@@ -1,0 +1,341 @@
+# CEREBRO \+ CDE
+
+## Unified GUI, live\-agent alignment and project\-media amendment v4\.0
+
+Amend the EXISTING Google AI Studio project in place\. This is CEREBRO \+ CDE / Stellar Command, not the NOJARA public website\. Implement the amendments, not another observation dashboard describing them\.
+
+Use the supplied source as evidence\. Use CEREBRO\_CDE\_UNIFIED\_AMEND\_v4\.json as the proposed numeric implementation contract\. Preserve unrelated working behavior, original assets, content boundaries and approved identities\.
+
+## 1\. Establish the real target before editing
+
+Inspect the active working tree, its package lock, renderer, camera owner, voice connection, screen components, project assets and tool handlers\. Record the actual build identifier and create a recoverable baseline\.
+
+There are two different sources in this handoff:
+
+- The pasted observation portal uses CDN Three\.js r128, vanilla JavaScript, browser speech synthesis and an 18\-entry SPARK storyboard\.
+- The previously attached ZIP uses React with imperative Three\.js, declares three ^0\.186\.1, and contains a six\-stop tour\. Its package\.json does not list React Three Fiber\.
+
+Do not merge the two runtimes, assume R3F is installed, or inject a second canvas\. Treat the active AI Studio application as the implementation target and the pasted 18\-screen map as the requested coverage inventory\. Proposed new module names below are not claims that those files already exist\.
+
+The deployment link was not runtime\-verified during preparation\. No hard\-coded SHA in the pasted HTML proves what the deployment currently serves\.
+
+## 2\. Remove the actual causes of the obsolete tour
+
+In the ZIP, inspect and amend:
+
+- src/data/sourceData\.ts: GUIDED\_TOUR\_STOPS, currently six fixed 30\-second stops with snapshot\-specific narration\.
+- src/App\.tsx: applyTourStop, the 1\-second countdown, handleSimulateCommand and pageStateSnapshot\.
+- src/components/VoiceCard\.tsx: the legacy “Start 6\-Stop Tour” control and live bridge callbacks\.
+- src/utils/elevenLabsBridge\.ts: context delivery, audio metadata, alignment and interruption handling\.
+- src/data/croCdeGoogleAgentManifest\.ts: tool definitions, capability descriptions and obsolete tour instructions\.
+
+In the pasted portal, replace the log\-only tool behavior in goToSparkScreen and sparkTriggerVoiceStepBtn\. Do not treat scr\.toolCall appearing in a pre element as an executed client tool\.
+
+Remove these failure patterns:
+
+1. Raw user transcript runs the local command parser while the provider can also execute a tool, creating duplicate action paths\.
+2. Object\.values&#40;parameters&#41;\.join&#40;’, ’&#41; destroys named arguments and nested JSON\.
+3. Returning “Executed …” immediately, without observing the actual effect\.
+4. Recreating/disconnecting the voice bridge whenever a React callback identity changes\.
+5. Using a fixed 5,500ms storyboard interval or six fixed 30\-second stops as the live tour\.
+6. Matching any occurrence of “tour” before distinguishing stop, pause and resume\.
+7. A voice\-orb button that spawns a domain instead of connecting/listening\.
+8. A Stop button that leaves narration, tour timers, camera interpolation or queued commands running\.
+
+There must be ONE command execution path and ONE tour controller\. Existing tool names can remain as compatibility aliases, but must delegate to those same implementations\.
+
+## 3\. Generate one live UI contract
+
+Create or consolidate a RuntimeUIRegistry shared by rendering, controls, voice tools, the tour and automated tests\.
+
+Every interactive target must register:
+
+- Stable targetId and screenId; human\-readable label\.
+- Target kind: DOM control, WebGL object, panel, media item or document page\.
+- Real action IDs and typed parameter schemas\.
+- Mounted, visible and enabled state; disabled reason\.
+- Access requirement and data provenance\.
+- Actual DOM rectangle or Object3D identifier and projected bounds\.
+- Current focus, selection, media and loading state\.
+
+For DOM elements, use data\-ui\-id/data\-action\-id and real handler bindings\. For WebGL elements, use Object3D\.userData\.uiId plus registered actions and projected bounds\. Do not infer capabilities from decorative text\.
+
+Expose a versioned snapshot containing buildId, manifestVersion, registryHash, active screen/substate, selected project, visible panels, panel rectangles, clear scene rectangle, camera pose/lens, active media, permissions, tour position and available actions\.
+
+get\_page\_state must be read\-only\. It must not reset filters, open a diagnostic panel, grant access or change the scene\. It must return actual data, not a spoken summary or hard\-coded centerAvoidanceClear:true\.
+
+Generate the tool manifest from the same registry\. Publish compact context updates after navigation, focus, panel, media, permission and action changes\. Debounce 250ms, maximum four updates/second; never serialize every animation frame\. Exclude secrets and unauthorized content\.
+
+Treat metadata, document content and page text as data, not instructions to the agent\.
+
+## 4\. Correct action execution and receipts
+
+Route manual controls, keyboard, touch and voice through dispatchUiAction\.
+
+Preserve named structured arguments\. Validate schema, target existence, capability, permission, current manifest version and idempotency before executing\. Never flatten JSON into a pseudo\-function string\.
+
+Each operation returns:
+
+```ts
+interface ActionReceipt {
+  actionId: string;
+  runId: string;
+  status: 'accepted' | 'running' | 'completed' | 'failed' | 'blocked' | 'cancelled';
+  targetId: string | null;
+  buildId: string;
+  stateVersion: number;
+  observedState: Record<string, unknown>;
+  errorCode?: string;
+  evidence?: Record<string, unknown>;
+}
+```
+
+“Completed” requires the expected state to be observed\. Examples: the panel is mounted, the camera has arrived, the video frame is presented, or the requested PDF page texture is uploaded\. A queued tour returns “started/running”, never “tour completed”\.
+
+Reject stale target IDs and re\-read the current registry\. Unknown operations fail honestly with available alternatives\. Gemini may propose allowlisted typed actions; it may not inject arbitrary HTML, execute code, select arbitrary DOM nodes or bypass server permissions\.
+
+## 5\. Make “tour” operate the current application
+
+Implement the following flow:
+
+READ LIVE STATE → BUILD ALLOWED ITINERARY → HIGHLIGHT TARGET → EXECUTE REAL ACTION → WAIT FOR RENDER/CAMERA → PRESENT CONTENT → COMPLETE SPOKEN PLAYBACK → HOLD → CONTINUE\.
+
+Required controller states:
+
+idle, planning, focusing, travelling, opening, presenting, paused, completed, cancelled and blocked\.
+
+Default tour behavior:
+
+- Start from the visitor’s current valid context\. Restart from the beginning only when requested\.
+- A full\-tour request authorizes navigation through available safe screens without asking permission at every step\.
+- Derive itinerary eligibility from mounted features and authorized sources, not historical narration or a fixed count\.
+- Do not autoplay on initial page load\. Do not loop back to the beginning at completion\.
+- Do not advance on an arbitrary interval\. Wait for the action receipt, camera arrival, render readiness, audible speech completion and a minimum reading hold\.
+- Proposed minimum reading dwell: 1,200ms\. Proposed hold after narration: 900ms\. Longer content remains readable; videos and documents do not advance while actively being inspected\.
+- Target lookup timeout: 3,000ms\. Render\-ready timeout: 10,000ms, then recover or report the specific blocked step rather than claiming success\.
+- Direct navigation commands execute without a speech preamble\. A guided tour includes natural contextual explanation, not raw screen codes or schema names\.
+- Questions interrupt speech and pause progression while retaining position\. Answer or follow the requested detour\. Resume on a clear continue intent without restarting or repeating the greeting\.
+- Stop cancels queued steps, current speech, stale callbacks and autonomous camera movement\. Ordinary user speech must never be ignored to preserve an old “tour lock”\.
+
+The tour is not authorization to send mail, create calendar events, modify records, approve decisions, enable a camera, or reveal restricted information\. Explain or highlight those controls without activating their external effect\.
+
+## 6\. Keep all 18 screen identities, but connect actual capabilities
+
+A screen title is not proof that its panel exists\. Preserve this requested coverage map; implement missing bindings and report genuinely missing integrations separately\.
+
+|ID |Actual destination|Actions and evidence required                                                                                                                                     |
+|---|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|S01|Gate and boot     |Real authentication state and asset readiness. Skip bypasses animation only, never authorization. Do not replay a gate for an already authenticated tour.         |
+|S02|Arrival and voice |Persistent voice dock, actual connection status, one greeting and live audience presentation mode.                                                                |
+|S03|Briefing          |Real current briefing/source links or a truthful empty state; no fixed meeting counts.                                                                            |
+|S04|Portfolio         |Data-backed project list, working filters and project selection; count comes from the data.                                                                       |
+|S05|Project workspace |Preserve Overview, Tasks, People, Files, Media, Budget, Timeline, Approvals and Decisions. Add mixed-media tube and full-view substates using the same project ID.|
+|S06|Tasks             |Real board, filtering and task inspection; four columns when they fit, a deliberate compact layout otherwise.                                                     |
+|S07|Insights          |Six signal categories and actual inspect drawers; no decorative “Inspect” text without handlers.                                                                  |
+|S08|Gmail             |Real thread/draft navigation. Sending remains a separate explicit, confirmed operation.                                                                           |
+|S09|Calendar          |Actual Today/Week views, current dates and timezone. No automatic scheduling during a tour.                                                                       |
+|S10|Files             |Authorized search, breadcrumbs, real thumbnails and file opening.                                                                                                 |
+|S11|Documents         |Actual PDF page rendering, page count, zoom and next/previous. Office files use a verified supported conversion/provider path.                                    |
+|S12|Media             |Real image/video source, play/pause/seek and full-view behavior; real duration and playback state.                                                                |
+|S13|People/RACI       |Actual authorized roster and responsibilities, not fabricated names or a fixed crew count.                                                                        |
+|S14|Crew              |Actual provider stream state. Static “streaming” copy is not SSE. Preserve a useful disconnected/draft state.                                                     |
+|S15|Baghira/Kinzo     |Real planning and bot panels; two panes when they fit, tabs when they do not.                                                                                     |
+|S16|Settings/hands    |Working controls, permission prompts, measured tracking when available, and graceful touch fallback. Audio buttons are not proof of hand tracking.                |
+|S17|CDE/story         |Real sphere, dimensions and source-backed chapters. Coordinates and chapter count come from registries.                                                           |
+|S18|Domains/return    |Real domain registry and exact return/resume. Explain creation; never spawn domains merely because the tour reaches this screen.                                  |
+
+If a capability is absent, show a bounded unavailable state with a useful valid route\. Keep the absent capability in the QA report, not in the list of features marked working\.
+
+## 7\. Align the actual ElevenLabs agent, not its label
+
+Resolve the agent ID used by the active browser/server connection\. Record verified branch/version where available\. A local Cro\-cde\-google string is not proof of the serving agent’s identity or configuration\.
+
+A read\-only workspace lookup during preparation returned no exact Cro\-cde\-google match\. Do not substitute Cerebro, Cerebro HQ Internal or Cerebro Playground automatically\. Do not create another agent simply to make a label match\.
+
+Prepare a versioned configuration update for the resolved serving agent: system prompt, tool schemas and relevant knowledge sources\. Do not claim a frontend edit updated a provider\-hosted prompt\. Keep any provider publishing step separately authorized and verifiable\.
+
+Use this operational instruction for the amended agent:
+
+“You are CEREBRO, the conversational operator of the currently connected application\. Use the live UI manifest and get\_page\_state for current screens, targets, permissions and available actions\. Historical specifications explain intent, not runtime availability\. When asked for a tour, start the current registry\-based tour from the present context\. Use the same actions as visible controls\. Never invent a target, report completion from your own narration, or grant authority from presentation mode\. Keep explanations natural, measured and brief\. When interrupted, stop speaking and pause movement while retaining context\. Follow the visitor’s direction; do not restart the tour or repeat a greeting\. When a requested capability is unavailable, identify a real adjacent route and explain the limitation once\. Keep private data server\-protected and require explicit confirmation for external writes\.”
+
+In live\-provider mode, transcripts update history/context only\. Tool calls execute actions\. A local command parser may remain for an explicitly labeled offline mode, never as a second concurrent executor\.
+
+Keep one stable conversation across panel minimize, project navigation and responsive changes\. Use a stable bridge plus current\-store references; avoid reconnecting because a callback identity changed\.
+
+## 8\. Synchronize voice, words and visible touch points
+
+Use the actual ElevenLabs transport and supported events\. For the ZIP’s custom WebSocket bridge, implement contextual\_update sending and handling for conversation metadata, audio alignment and interruption\. Respect the negotiated audio format; do not decode all output as 16kHz PCM regardless of metadata\.
+
+Schedule word highlights against audible playback time, not the time the message arrived\. Associate cues with the relevant utterance/event and actual scheduled audio start; preserve partial\-word continuity across chunks\. Cancel cues for interrupted utterances\.
+
+Only claim word\-level synchronization when alignment and playback timing are available\. Otherwise use an explicit phrase\-level fallback, not estimated word duration from text length\. Browser speech synthesis is a separately labeled fallback, never simultaneous with the provider\.
+
+Proposed measured targets:
+
+- Visible local focus acknowledgement within 150ms after receiving a valid local action\.
+- Word/visual cue absolute error p95 at or below 100ms in the alignment test\.
+- Local Stop response within 100ms of the input event\.
+- Two caption lines, 15px text, no line truncation that hides the spoken meaning\.
+
+These are acceptance targets, not network\-latency guarantees\.
+
+Show a restrained attention indicator anchored to the real target: 2px rim, 8px clearance, 180ms focus reveal\. A visible path may connect the voice dock to the target, but it must follow projected geometry and must not intercept user input\. Show origin, destination and arrival\. Do not move the operating\-system pointer or animate a pointer toward an unrelated location\.
+
+## 9\. Repair the GUI without replacing its aesthetic
+
+Retain the pasted source’s exact palette:
+
+Canvas \#101D27; glass \#142632; primary text \#F2F6F8; secondary text \#BDCBD3; cobalt \#4C8DFF; focus \#65ACFF; ice \#B4DDFF; highlight \#FFF1D4; Tasks \#5CC8D7; People \#7CE0B8; Files \#9DB8D6; Media/CDE amber \#F2B66D; voice \#9AFFE0; valid \#36E88D; error \#FF5666\.
+
+Preserve Sora titles, Inter body, JetBrains Mono data and IBM Plex Sans Arabic\. Use exact supplied logos, never the geometric placeholder as an approved asset\. Do not introduce a new font or recolor the entire app to mimic another project\.
+
+Reconcile “zero gold” wording with the already explicit amber Media/CDE tokens: preserve existing scoped amber, do not create a gold theme\. Reserve the exact voice teal for voice surfaces; the separate People mint remains distinct\. Use red for actual errors/blocked/destructive states, not ordinary navigation or the normal Stop control\.
+
+Create one token source and derive CSS plus Three\.js color uniforms from it\. No duplicate literal palettes scattered through templates\.
+
+Proposed surface settings:
+
+- Chrome tint alpha 0\.58; readable content backing 0\.76; opaque fallback 0\.94\.
+- Panel element opacity remains 1 so text is not faded with the glass\.
+- Border 1px at white alpha 0\.14; active focus uses the approved blue rim\.
+- Blur 12px desktop / 8px mobile; saturation 1\.2; at most two overlapping blurred layers\.
+- Panel radius 16px, control radius 10px, chip radius 8px\.
+- Body 14px desktop / 15px phone; labels at least 12px; phone inputs 16px\.
+- Minimum actionable rectangle 44×44px with at least 8px between hit areas\.
+
+Do not animate backdrop\-filter\. Do not make every layer opaque to solve readability\. Measure contrast over the brightest actual scene region and adapt only the local text backing when necessary\.
+
+Keep the observation portal, inspector and code pack available as diagnostics, but make the actual spatial workspace the main experience\. Do not let explanatory banners consume the space needed for the sphere\.
+
+## 10\. One measured panel manager
+
+Replace independent left/right positioning with one layout manager\. Measure DOM rectangles, safe areas, keyboard and projected sphere bounds\. When available space is insufficient, collapse to chips/tabs or one sheet\. A higher z\-index is not collision avoidance\.
+
+Reference rectangles below are proposed CSS pixels for a full workspace, without device safe\-area deductions\. The complete JSON contains all panel slots\.
+
+|Viewport |Expanded panels|Clear scene rectangle x,y,w,h|Voice dock x,y,w,h|
+|---------|--------------:|-----------------------------|------------------|
+|1440×900 |4              |344,80,752,704               |480,804,480,72    |
+|1920×1080|4              |376,80,1168,876              |704,984,512,72    |
+|1180×820 |2              |280,80,620,620               |388,724,404,72    |
+|820×1180 |1              |16,80,788,620                |176,1080,468,76   |
+|390×844  |1 sheet        |12,120,366,288               |8,748,374,80      |
+
+Use minimum 16px clearance between managed regions\. Recalculate for actual viewport, content height, safe\-area insets and visualViewport keyboard changes\. Do not force two side panels in portrait iPad when they cannot fit\.
+
+The expanded conversation occupies a managed panel slot, not an uncontrolled growing dock\. Full\-view media temporarily minimizes other panels and restores them afterwards\.
+
+Layer tokens: scene 0, labels 10, panels 40, active panel 50, media 70, noninteractive focus 90, voice 110, confirmation dialog 130\. Respect stacking contexts\. A confirmation dialog traps focus and makes background controls inert; do not let “always on top” put the voice controls over the confirmation\.
+
+## 11\. Unify camera truth and continuous motion
+
+Remove display\-only coordinate substitutions\. In the pasted portal CDE renders at &#91;16,2,\-9&#93; while labels claim &#91;38,4,\-22&#93;, and the real camera FOV is 48° while telemetry says 46°\. Read rendering, labels and agent targets from one source\. Do not move the sphere solely to reconcile a label\.
+
+Preserve the active build’s canonical radius\. The pasted source uses 6\.2; the earlier ZIP uses 8\.2\. Do not mix them or apply stale geometry fixes from another revision\.
+
+Lens convention: 24mm vertical gate equivalent\. Horizontal framing follows the actual aspect ratio\. Calculate vertical FOV with 2*atan&#40;24/&#40;2*f&#41;&#41;\*180/PI\.
+
+|Preset  |Focal length|Vertical FOV|Nominal travel|
+|--------|-----------:|-----------:|-------------:|
+|Overview|28mm        |46.397181°  |3200ms        |
+|World   |35mm        |37.849289°  |2400ms        |
+|Focus   |50mm        |26.991467°  |1800ms        |
+|Detail  |85mm        |16.071421°  |1400ms        |
+
+Solve camera distance and optical center against the unobstructed scene rectangle\. Target projected sphere diameter at most 72% of its smaller dimension\. Do not keep the same distance when changing to an 85mm lens\.
+
+Use one camera controller, arc\-length sampled movement, smooth acceleration/deceleration and quaternion orientation interpolation\. Emit camera\-arrived only after position error <=0\.02R and angular error <=0\.25° for three consecutive rendered frames\.
+
+Use delta time for all movement\. Replace targetTheta \+= 0\.0015 per frame\. It currently produces different orbit speeds at different refresh rates\.
+
+Proposed loop periods: body 210s, ring 55s, atmosphere 30s, particle drift 36s, rim breathing 8s with maximum 8% modulation\. Camera auto\-orbit is opt\-in, 210s when enabled\. Attenuate secondary motion by 50% during travel\. Disable autonomous movement while reading documents, confirming actions or paused/stopped\. Reduced\-motion uses a 120ms transition and no continuous loops\.
+
+## 12\. Implement cinematic optics and grain, not palette replacement
+
+Use one renderer, one compatible composer and addons from the same installed Three\.js revision\. Do not mix r128 chunks with r186 APIs or claim a dependency is present because a text card names it\.
+
+Starting optical values: IOR 1\.48, roughness 0\.09, transmission 0\.88, optical\-glass metalness 0, clearcoat 0\.8, clearcoat roughness 0\.06, thickness 0\.06R, Fresnel exponent 4 and peak contribution 0\.25\. For physical transmission, start with opacity 1 and solve the real transparency/render\-order problem rather than layering arbitrary alpha shells\.
+
+If transparent interior particles/atmosphere are not sampled correctly through the shell, use an interior render target and explicit composition\. Keep all interior objects parented to their domain and retain seeded procedural positions across material updates\.
+
+Interior target boundary: 0\.82R\. Noise: four octaves desktop / three mobile, warp 0\.12, density 0\.38, 30s continuous loop\. A raymarched volume may start at 32 steps desktop / 16 mobile; do not call a surface\-noise effect volumetric unless it actually samples a volume\.
+
+Use scene\-linear lighting, selective bloom, a subtle grade, one tone\-map and one display transfer\. State exactly which passes operate in which color space\. Protect neutral media and UI from the decorative scene treatment\.
+
+Starting grade: exposure 1\.00, bloom strength 0\.24/radius 0\.35/threshold 0\.90, saturation 0\.96, contrast 1\.04, vignette 0\.14, chromatic aberration 0\. Fine monochromatic grain: strength 0\.025, 24Hz seed updates, approximately 1 CSS\-pixel scale independent of render DPR\.
+
+Do not bloom/grain/blur PDF text or recolor full\-view image/video masters\. Keep readable DOM controls outside decorative grading\. Freeze time\-based grain and loops when the relevant stop/reduced\-motion policy requires it\.
+
+Dispose removed meshes, geometry, textures, materials and render targets\. Do not rebuild the whole scene with new random particles for a material dropdown change\.
+
+## 13\. Project selection opens the WebGL media tube
+
+Use the selected reference:
+
+https://tympanus\.net/Tutorials/3DImageTubeR3F/
+
+Source linked by that demo:
+
+https://github\.com/matdn/helmet
+
+Preserve the cylindrical motion and shared inertial behavior, not its branding, helmet or sample artwork\. Port its mathematical/shader logic to the existing imperative Three\.js scene when R3F is not installed\. Do not iframe the external demo or create a second renderer\.
+
+Flow: select actual project → enter its mixed\-media tube → focus item → full view → restore exact tube pose → return to project\.
+
+Starting layout: radius 5\.4u, eight columns, three visible rows, maximum 24 mounted tiles, slot 3\.2×1\.8u, row pitch 2\.25u\. Contain media within the slot without distorting PDFs/portraits\. Idle rotation 0\.025rad/s, spin clamp ±2rad/s, frame\-independent damping pow&#40;0\.92,dt\*60&#41;, hover multiplier 0\.35\. Focus 650ms, full\-view 1100ms, return 850ms\.
+
+Use real image derivatives, real video posters and actual PDF thumbnails\. Pause all inactive video decoding; default one active decoder\. Render PDF pages on demand, maximum long edge 2048px desktop / 1536px mobile, bounded cache five/three pages\.
+
+The tube is a project inspection mode\. Temporarily hide/dim the enclosing shell if necessary; do not try to force an infinite tube inside a sealed sphere\.
+
+Register image zoom/pan, video play/pause/seek/volume, PDF next/previous/page/zoom, filter, next/previous media and return actions\. Restore selected asset, tube scroll/angle, camera, project tab and panel arrangement\.
+
+Only use actual decodable video URLs with appropriate rights, authentication and CORS\. A YouTube/Vimeo page URL is not a VideoTexture source\. Show a truthful source limitation when native WebGL playback is not possible\.
+
+Provide accessible text/search controls for documents without presenting a DOM carousel as WebGL\. App full\-view and browser fullscreen are different; handle browser gesture restrictions honestly\.
+
+CEREBRO describes media only from verified metadata, extracted document text, captions or authorized analysis\. A thumbnail alone does not give the conversational model knowledge of its contents\.
+
+## 14\. Repair state, permissions and evidence
+
+Remove hard\-coded verification badges, fabricated elapsed time and counters derived from approvals\. Compute facts from actual records\. A user selecting a preferred material is not a passed software test\.
+
+Restore checkpoints with their real camera/project/panel/media state\. Do not merely change a banner\. Restoration must not replay old speech, tools or external writes\. Persist a real session start timestamp; report local\-storage failures rather than claiming a successful save\.
+
+A client\-side demo keypad and audience selection are not authentication\. Require server\-authorized access; do not place private records or credentials in browser bundles/localStorage\. Never accept pinVerified:true supplied by an agent as authority\.
+
+Preserve an approved four\-second confirmation contract only as an expiring explicit confirmation, with readable readback and re\-arm support\. Silence never confirms\. Bind approval to the exact action, payload fingerprint and authenticated session\.
+
+Advertise a five\-second undo only if a real cancellable pre\-dispatch queue or provider\-supported undo exists\. A delayed submission is not undo after an email has been delivered\. Return provider receipts before claiming a write succeeded\.
+
+Use textContent or escaped React rendering for user\-supplied names, notes and captions\. Never insert them directly into innerHTML\.
+
+## 15\. Required evidence and acceptance
+
+Treat the 18 screens across five proposed viewport sizes as 90 planned state records, not 90 passes\. Record live, local\-only, sample, unavailable and not\-run states separately\.
+
+Verify:
+
+- “Tour”, “stop tour”, “pause tour” and “resume” reach the new controller, never the six\-stop legacy route\.
+- Every advertised CTA has an actual registered handler and target; no synthetic CTA IDs\.
+- One spoken command causes one operation, with preserved typed arguments and a verified receipt\.
+- State observations do not mutate filters or panels\.
+- Voice session survives minimize, navigation and viewport changes\.
+- Interruption cancels speech/cues/motion; stale asynchronous callbacks do not resume the tour\.
+- Media image/video/PDF operations work and return to the exact previous position\.
+- No panel/widget/sphere exclusion violations or clipped controls in the five reference layouts and keyboard\-open tests\.
+- Palette, typography, shaders and neutral document rendering match the selected configuration\.
+- Authentication denial, missing media, failed writes and offline providers are handled truthfully\.
+- No external write or permission escalation occurs during a tour\.
+
+Capture actual start/peak/hold/end frames and interruption recordings from the same build\. Include build/manifest identity, provider identity when verified, changed files and a rollback checkpoint\. Do not invent screenshots, performance figures, test counts or serving hashes\.
+
+Measure performance for 60 seconds on actual test hardware\. Aim for 60fps; adapt before falling below a sustained 30fps\. Start with maximum DPR 1\.75 desktop, 1\.5 iPad, 1\.25 phone\. These are targets, not existing results\.
+
+## 16\. Delivery order
+
+First repair live state, typed dispatch, duplicate execution and tour control\. Then repair panel geometry and voice continuity\. Then implement the project media tube and actual viewers\. Finally refine shader optics, grade, camera paths and device performance\.
+
+Deliver working source edits, the generated runtime manifest, the prepared provider configuration patch, actual tests/captures where executable, and explicit remaining limits\. Do not return another page that only says “22 tools wired” or “all screens verified”\.
+
+The acceptance standard is: CEREBRO knows the current screen, identifies the real target, performs the permitted action, shows its visible result, narrates it at the right time, and lets the user interrupt without losing context\.

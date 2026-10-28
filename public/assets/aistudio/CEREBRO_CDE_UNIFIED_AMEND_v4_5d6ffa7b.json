@@ -1,0 +1,1249 @@
+{
+  "schemaVersion": "4.0.0",
+  "documentId": "CEREBRO_CDE_UNIFIED_GUI_TOUR_AMENDMENT",
+  "status": "PROPOSED_IMPLEMENTATION_CONTRACT_NOT_APPLIED",
+  "preparedDate": "2026-10-28",
+  "scope": "Existing CEREBRO + CDE Google AI Studio application only, not the NOJARA marketing website.",
+  "inspection": {
+    "liveSiteRuntimeVerified": false,
+    "liveSiteFetch": "failed in inspection environment; no deployed-render claims",
+    "pastedHtml": "reviewed as supplied source",
+    "zip": "cerebro-stellar-command.zip",
+    "zipSha256": "71cdfa36a5b7430278305c9761ce9759d7ba097d12be0a57cc7ee1e851b602a5",
+    "providerLookup": "No exact Cro-cde-google name returned in connected ElevenLabs workspace; do not substitute another Cerebro agent.",
+    "sourceStatus": "ZIP and pasted HTML are different implementations; neither establishes the served build."
+  },
+  "authority": {
+    "target": "Inspect active AI Studio working tree before edits; preserve it in place.",
+    "pastedHtmlRole": "Requested screen and behavior inventory, not execution evidence.",
+    "zipRole": "Reusable implementation and evidence of six-stop legacy tour.",
+    "design": "Preserve source palette and assets; numeric layout/render tuning below is proposed.",
+    "forbidden": [
+      "New website",
+      "New brand worlds",
+      "Second WebGL context for gallery",
+      "Provider identity guessed from display name",
+      "Unverified completion statements",
+      "Unrestricted Gemini DOM/code execution"
+    ]
+  },
+  "auditFindings": [
+    {
+      "id": "P01",
+      "basis": "pasted HTML",
+      "locator": "goToSparkScreen / sparkTriggerVoiceStepBtn",
+      "finding": "Tool payloads are displayed or logged; most are not dispatched.",
+      "requiredChange": "Replace log-only success with typed dispatch, completion verification and receipt."
+    },
+    {
+      "id": "P02",
+      "basis": "pasted HTML",
+      "locator": "SPARK_SCREENS / startSparkTimer",
+      "finding": "18 descriptors; 7 specialized mock screen bodies and 11 generic specification bodies; fixed 5500ms advance.",
+      "requiredChange": "Retain screen IDs but derive availability from mounted capabilities; replace time-only advance."
+    },
+    {
+      "id": "P03",
+      "basis": "pasted HTML",
+      "locator": "executeVoiceCommand",
+      "finding": "Any custom text containing tour starts/advances tour, including stop tour.",
+      "requiredChange": "Resolve stop/pause/resume before start; normal speech uses validated intent/tool routing."
+    },
+    {
+      "id": "P04",
+      "basis": "pasted HTML",
+      "locator": "getLivePageStateSnapshot",
+      "finding": "Invented CTA IDs, centerAvoidanceClear:true and static build labels.",
+      "requiredChange": "Read registry bindings, actual element rectangles and scene projections; null when unverified."
+    },
+    {
+      "id": "P05",
+      "basis": "pasted HTML",
+      "locator": "voiceOrbTriggerBtn / voiceStopBtn",
+      "finding": "Orb spawns a domain; Stop does not cancel Spark timer or browser speech.",
+      "requiredChange": "Orb connects/listens; Stop cancels narration, motion, queued commands and tour progression."
+    },
+    {
+      "id": "P06",
+      "basis": "pasted HTML",
+      "locator": "confirmTwoTapBtn / renderDecisionQueueAndCheckpoints",
+      "finding": "External write is log-only; approval increments verified count arithmetically.",
+      "requiredChange": "Separate approval, queued, submitted, acknowledged and tested evidence."
+    },
+    {
+      "id": "P07",
+      "basis": "pasted HTML",
+      "locator": "camera / CDE domain",
+      "finding": "48-degree FOV rendered versus 46 label; CDE [16,2,-9] versus display [38,4,-22].",
+      "requiredChange": "Single canonical scene coordinates and actual camera telemetry."
+    },
+    {
+      "id": "P08",
+      "basis": "pasted HTML",
+      "locator": "buildDomainSphereMesh",
+      "finding": "420 particles/domain, not 6400; current positions bounded by sqrt(0.88^2+0.16^2)R ~= 0.8944R.",
+      "requiredChange": "Do not carry over an old out-of-shell diagnosis; composition tuning is distinct from a containment bug."
+    },
+    {
+      "id": "P09",
+      "basis": "pasted HTML",
+      "locator": "touch-target / floatingPocketsLayer",
+      "finding": "40px minimum despite 44px comment; 256px panels lack measured exclusion solving.",
+      "requiredChange": "44px minimum hit targets and measured responsive placement."
+    },
+    {
+      "id": "P10",
+      "basis": "pasted HTML",
+      "locator": "refreshPageStateBtn / checkpoint restore",
+      "finding": "Refresh resets filter; historical inspect changes banner rather than reconstructing full state.",
+      "requiredChange": "Observation must not mutate; restore actual snapshots without replaying effects or writes."
+    },
+    {
+      "id": "Z01",
+      "basis": "attached ZIP",
+      "locator": "src/App.tsx:87-100,173-241; src/data/sourceData.ts:1464-1531",
+      "finding": "Six fixed 30-second tour stops, snapshot-specific narration.",
+      "requiredChange": "Replace old tour consumers with same live registry-driven controller as manual UI."
+    },
+    {
+      "id": "Z02",
+      "basis": "attached ZIP",
+      "locator": "src/components/VoiceCard.tsx:158-180",
+      "finding": "Transcripts execute local commands; tool callbacks flatten object values and always return Executed; effect depends on callback identity.",
+      "requiredChange": "Transcripts are display/context only in live mode; preserve named structured args; verify results; stable session."
+    },
+    {
+      "id": "Z03",
+      "basis": "attached ZIP",
+      "locator": "src/utils/elevenLabsBridge.ts:87-168,223-255",
+      "finding": "No contextual update sender; incoming alignment/interruption metadata unhandled; PCM playback hardcodes 16000Hz.",
+      "requiredChange": "Implement transport-native context updates, actual output format handling, audio clock alignment and interruption cancellation."
+    },
+    {
+      "id": "Z04",
+      "basis": "attached ZIP",
+      "locator": "package.json",
+      "finding": "React plus imperative Three.js; no R3F dependency. Three.js declared ^0.186.1, unlike pasted CDN r128.",
+      "requiredChange": "Port tube logic into existing renderer; never mix revisions, create second canvas or assume R3F installed."
+    }
+  ],
+  "design": {
+    "paletteSource": "Exact six-digit tokens from pasted HTML; semantic scopes reconciled below",
+    "palette": {
+      "canvas": "#101D27",
+      "glass": "#142632",
+      "textPrimary": "#F2F6F8",
+      "textSecondary": "#BDCBD3",
+      "cobalt": "#4C8DFF",
+      "focus": "#65ACFF",
+      "focusGlow": "#B4DDFF",
+      "highlight": "#FFF1D4",
+      "projects": "#4C8DFF",
+      "tasks": "#5CC8D7",
+      "people": "#7CE0B8",
+      "files": "#9DB8D6",
+      "media": "#F2B66D",
+      "voiceOrb": "#9AFFE0",
+      "success": "#36E88D",
+      "error": "#FF5666"
+    },
+    "scopeRules": {
+      "voiceOrb": "voice orb, waveform and listening only",
+      "media": "existing media/CDE material and confirmation accents; not a new gold theme",
+      "error": "actual error, blocked/destructive state only; ordinary Stop uses neutral/focus styling",
+      "mint": "people/domain token is distinct from voiceOrb"
+    },
+    "fonts": {
+      "title": "Sora",
+      "body": "Inter",
+      "data": "JetBrains Mono",
+      "arabic": "IBM Plex Sans Arabic"
+    },
+    "fontSizesCssPx": {
+      "body": 14,
+      "bodyPhone": 15,
+      "panelTitle": 15,
+      "meta": 12,
+      "caption": 15,
+      "inputPhone": 16
+    },
+    "radiiPx": {
+      "panel": 16,
+      "control": 10,
+      "chip": 8
+    },
+    "touch": {
+      "minWidth": 44,
+      "minHeight": 44,
+      "gap": 8
+    },
+    "glass": {
+      "chromeAlpha": 0.58,
+      "contentAlpha": 0.76,
+      "fallbackAlpha": 0.94,
+      "borderWidthPx": 1,
+      "borderAlpha": 0.14,
+      "blurDesktopPx": 12,
+      "blurMobilePx": 8,
+      "saturate": 1.2,
+      "maxOverlappingBlurLayers": 2,
+      "panelOpacity": 1,
+      "animateBackdropFilter": false,
+      "selectedTreatment": "rim and focus, not a 0.90 opaque body"
+    },
+    "zLayers": {
+      "scene": 0,
+      "sceneLabels": 10,
+      "panels": 40,
+      "activePanel": 50,
+      "mediaHost": 70,
+      "noninteractiveFocus": 90,
+      "voice": 110,
+      "confirmationDialog": 130
+    }
+  },
+  "layout": {
+    "units": "CSS pixels; tuples [x,y,width,height] relative to full workspace viewport",
+    "presets": {
+      "desktop_1440_900": {
+        "viewport": [
+          1440,
+          900
+        ],
+        "header": [
+          0,
+          0,
+          1440,
+          56
+        ],
+        "panels": [
+          [
+            24,
+            80,
+            304,
+            300
+          ],
+          [
+            1112,
+            80,
+            304,
+            300
+          ],
+          [
+            24,
+            396,
+            304,
+            300
+          ],
+          [
+            1112,
+            396,
+            304,
+            300
+          ]
+        ],
+        "sceneSafe": [
+          344,
+          80,
+          752,
+          704
+        ],
+        "voiceDock": [
+          480,
+          804,
+          480,
+          72
+        ],
+        "maxExpandedPanels": 4
+      },
+      "wide_1920_1080": {
+        "viewport": [
+          1920,
+          1080
+        ],
+        "header": [
+          0,
+          0,
+          1920,
+          56
+        ],
+        "panels": [
+          [
+            24,
+            80,
+            336,
+            360
+          ],
+          [
+            1560,
+            80,
+            336,
+            360
+          ],
+          [
+            24,
+            456,
+            336,
+            360
+          ],
+          [
+            1560,
+            456,
+            336,
+            360
+          ]
+        ],
+        "sceneSafe": [
+          376,
+          80,
+          1168,
+          876
+        ],
+        "voiceDock": [
+          704,
+          984,
+          512,
+          72
+        ],
+        "maxExpandedPanels": 4
+      },
+      "ipad_landscape_1180_820": {
+        "viewport": [
+          1180,
+          820
+        ],
+        "header": [
+          0,
+          0,
+          1180,
+          56
+        ],
+        "panels": [
+          [
+            16,
+            80,
+            248,
+            612
+          ],
+          [
+            916,
+            80,
+            248,
+            612
+          ]
+        ],
+        "sceneSafe": [
+          280,
+          80,
+          620,
+          620
+        ],
+        "voiceDock": [
+          388,
+          724,
+          404,
+          72
+        ],
+        "maxExpandedPanels": 2
+      },
+      "ipad_portrait_820_1180": {
+        "viewport": [
+          820,
+          1180
+        ],
+        "header": [
+          0,
+          0,
+          820,
+          56
+        ],
+        "panels": [
+          [
+            16,
+            716,
+            788,
+            340
+          ]
+        ],
+        "sceneSafe": [
+          16,
+          80,
+          788,
+          620
+        ],
+        "voiceDock": [
+          176,
+          1080,
+          468,
+          76
+        ],
+        "maxExpandedPanels": 1
+      },
+      "phone_390_844": {
+        "viewport": [
+          390,
+          844
+        ],
+        "header": [
+          0,
+          0,
+          390,
+          56
+        ],
+        "chips": [
+          12,
+          68,
+          366,
+          40
+        ],
+        "panels": [
+          [
+            8,
+            424,
+            374,
+            308
+          ]
+        ],
+        "sceneSafe": [
+          12,
+          120,
+          366,
+          288
+        ],
+        "voiceDock": [
+          8,
+          748,
+          374,
+          80
+        ],
+        "maxExpandedPanels": 1
+      }
+    },
+    "minGapPx": 16,
+    "touchGapPx": 8,
+    "maxSphereProjectedFraction": 0.72,
+    "placement": "Measure visible rects and projected sphere bounds on resize, content change, keyboard and dock movement; collapse to tabs/sheet if exclusion constraints fail.",
+    "keyboard": "Use visualViewport and safe-area insets; recompute available region, never overlap or crop controls.",
+    "expandedConversation": "Occupies the managed panel slot; collapsed voice dock remains, no independent stacking.",
+    "mediaFullView": "Temporarily minimize nonessential panels and restore exact prior state on close."
+  },
+  "scene": {
+    "domainCoordinates": "Use actual loaded Object3D/store positions for rendering, labels, agent targets and snapshot. No display-only alternate coordinates.",
+    "radius": "Use canonical active-project radius. Pasted source=6.2; ZIP earlier=8.2. Do not silently mix them.",
+    "containment": {
+      "particleRadiusMaxR": 0.82,
+      "atmosphereRadiusMaxR": 0.82,
+      "softEdgeStartR": 0.72,
+      "exteriorRingExplicit": true
+    },
+    "shellSegments": {
+      "desktopClose": [
+        96,
+        64
+      ],
+      "normal": [
+        64,
+        48
+      ],
+      "mobile": [
+        40,
+        32
+      ]
+    },
+    "opticalPreset": {
+      "status": "starting test preset",
+      "ior": 1.48,
+      "roughness": 0.09,
+      "transmission": 0.88,
+      "opacity": 1.0,
+      "metalness": 0,
+      "clearcoat": 0.8,
+      "clearcoatRoughness": 0.06,
+      "thicknessR": 0.06,
+      "fresnelExponent": 4,
+      "fresnelPeak": 0.25
+    },
+    "interiorCompositing": "Render transparent interior to an appropriate render target if physical transmission does not sample it; do not assume opacity fixes it.",
+    "atmosphere": {
+      "noiseOctavesDesktop": 4,
+      "noiseOctavesMobile": 3,
+      "density": 0.38,
+      "warpStrength": 0.12,
+      "noiseScale": 0.32,
+      "loopSec": 30,
+      "raymarchStepsDesktopIfVolumetric": 32,
+      "raymarchStepsMobileIfVolumetric": 16,
+      "label2dShaderHonestly": true
+    },
+    "resources": "Dispose replaced geometry/material/render targets; seed procedural positions; mutate materials in place where possible.",
+    "domainCreation": "Explicit request only; stable UUIDs, parent-relative layout and sphere bounding-volume collision checks; duplicate focuses matching domain."
+  },
+  "camera": {
+    "opticsConvention": "24mm vertical gate equivalent; horizontal field depends on viewport aspect. Do not call every aspect ratio 36x24mm.",
+    "vfovFormula": "2 * atan(24 / (2 * focalLengthMm)) * 180 / PI",
+    "presets": [
+      {
+        "id": "overview",
+        "focalLengthMm": 28,
+        "verticalFovDeg": 46.397181,
+        "durationMs": 3200
+      },
+      {
+        "id": "world",
+        "focalLengthMm": 35,
+        "verticalFovDeg": 37.849289,
+        "durationMs": 2400
+      },
+      {
+        "id": "focus",
+        "focalLengthMm": 50,
+        "verticalFovDeg": 26.991467,
+        "durationMs": 1800
+      },
+      {
+        "id": "detail",
+        "focalLengthMm": 85,
+        "verticalFovDeg": 16.071421,
+        "durationMs": 1400
+      }
+    ],
+    "fit": "Project bounds into sceneSafe, solve distance and off-axis composition at chosen lens. Never keep overview distance when changing to 85mm.",
+    "path": "Arc-length sampled path; interpolate target and orientation; smooth quintic time profile; explicit arrival receipt.",
+    "arrival": {
+      "positionToleranceR": 0.02,
+      "angleToleranceDeg": 0.25,
+      "stableFrames": 3
+    },
+    "singleOwner": "User input, tour and voice arbitrate one camera controller; cancel obsolete commands."
+  },
+  "motion": {
+    "deltaTimeBased": true,
+    "bodyLoopSec": 210,
+    "orbitalRingLoopSec": 55,
+    "atmosphereLoopSec": 30,
+    "particleDriftLoopSec": 36,
+    "cameraIdleAutoOrbitDefault": false,
+    "cameraIdleLoopSecWhenEnabled": 210,
+    "rimBreathSec": 8,
+    "rimModulationMax": 0.08,
+    "secondaryMotionDuringTravelMultiplier": 0.5,
+    "voiceAttackMs": 100,
+    "voiceReleaseMs": 320,
+    "reducedFadeMs": 120,
+    "freezeAmbientFor": [
+      "document.reading",
+      "confirmation",
+      "precise_media_inspection",
+      "tour.paused",
+      "tour.stopped"
+    ]
+  },
+  "postProcessing": {
+    "singleRenderer": true,
+    "singleComposer": true,
+    "threeRevision": "Use installed/locked revision and matching addons; do not mix r128 CDN with r186 modules.",
+    "workingSpace": "linear-sRGB",
+    "outputSpace": "sRGB",
+    "toneMap": "ACESFilmic once",
+    "exposure": 1.0,
+    "bloom": {
+      "selection": "explicit emissive mask only",
+      "strength": 0.24,
+      "radius": 0.35,
+      "threshold": 0.9
+    },
+    "grade": {
+      "saturation": 0.96,
+      "contrast": 1.04,
+      "vignetteStrength": 0.14,
+      "chromaticAberration": 0
+    },
+    "grain": {
+      "strength": 0.025,
+      "seedUpdatesHz": 24,
+      "pixelSizeCssPx": 1,
+      "monochromatic": true,
+      "pauseOnStop": true
+    },
+    "neutralMedia": [
+      "PDF text",
+      "fullview imagery",
+      "video masters",
+      "captions",
+      "DOM controls"
+    ],
+    "passContract": "Linear scene -> selective bloom -> subtle grade -> single tone map -> neutral-media composite in defined display-linear domain -> grain/vignette with masks -> single output transfer. Document exact chosen pass color domains."
+  },
+  "runtimeManifest": {
+    "schema": "cerebro-ui/4",
+    "mustExpose": [
+      "buildId",
+      "manifestVersion",
+      "registryHash",
+      "agentIdResolved",
+      "agentBranchOrVersionWhenVerified",
+      "providerConnection",
+      "activeScreenId",
+      "substate",
+      "selectedProjectId",
+      "focusedTargetId",
+      "openPanels",
+      "panelRects",
+      "sceneSafeRect",
+      "cameraPose",
+      "cameraLens",
+      "mediaState",
+      "tourState",
+      "availableActions",
+      "permissions",
+      "dataProvenance"
+    ],
+    "targetFields": [
+      "targetId",
+      "kind",
+      "screenId",
+      "label",
+      "actionIds",
+      "mounted",
+      "visible",
+      "enabled",
+      "disabledReason",
+      "permission",
+      "rectOrObject3DId",
+      "occluded"
+    ],
+    "observationReadOnly": true,
+    "privacy": "Send whitelisted UI metadata only, no raw DOM, secrets, protected records or document instructions.",
+    "contextUpdates": {
+      "debounceMs": 250,
+      "maxHz": 4,
+      "on": [
+        "navigation",
+        "panel_change",
+        "focus_change",
+        "media_change",
+        "permission_change",
+        "action_complete",
+        "tour_pause_resume"
+      ],
+      "perFrameUpdates": false
+    }
+  },
+  "dispatch": {
+    "generatedFromSameRegistry": true,
+    "actionIds": [
+      "auth.sign_in",
+      "boot.skip",
+      "voice.connect",
+      "audience.set_presentation_mode",
+      "tour.start",
+      "briefing.open",
+      "briefing.inspect_source",
+      "projects.open",
+      "projects.filter",
+      "project.open",
+      "project.select_tab",
+      "project.open_tube",
+      "tasks.open",
+      "tasks.filter",
+      "task.inspect",
+      "insights.open",
+      "insight.inspect",
+      "gmail.open",
+      "gmail.select_thread",
+      "gmail.prepare_draft",
+      "calendar.open",
+      "calendar.set_view",
+      "calendar.inspect_event",
+      "files.open",
+      "files.search",
+      "file.open",
+      "media.open",
+      "document.go_to_page",
+      "media.zoom",
+      "media.close",
+      "video.play",
+      "video.pause",
+      "video.seek",
+      "people.open",
+      "person.inspect",
+      "raci.open",
+      "crew.open",
+      "crew.inspect_stream",
+      "crew.prepare_draft",
+      "planning.open",
+      "bots.open",
+      "planning.select_tab",
+      "settings.open",
+      "settings.set_motion",
+      "hands.request_enable",
+      "hands.disable",
+      "sphere.switch",
+      "dimension.open",
+      "chapter.open",
+      "domains.open",
+      "domain.prepare",
+      "workspace.restore",
+      "tour.pause",
+      "tour.resume",
+      "tour.next",
+      "tour.previous",
+      "tour.stop",
+      "ui.focus",
+      "media.filter",
+      "media.next",
+      "media.previous",
+      "video.set_volume",
+      "domain.create",
+      "domain.set_material",
+      "panel.minimize",
+      "panel.restore",
+      "panel.close",
+      "workspace.back",
+      "checkpoint.save",
+      "checkpoint.restore"
+    ],
+    "aliases": "Preserve old tool names only as tested adapters to the same new handlers.",
+    "receiptFields": [
+      "actionId",
+      "runId",
+      "status",
+      "targetId",
+      "observedState",
+      "stateVersion",
+      "buildId",
+      "errorCode",
+      "evidence"
+    ],
+    "statuses": [
+      "accepted",
+      "running",
+      "completed",
+      "failed",
+      "blocked",
+      "cancelled"
+    ],
+    "successRule": "Handler invoked AND expected observed state reached; a log line is not completion.",
+    "validations": [
+      "schema",
+      "target existence",
+      "visibility/eligibility",
+      "permission",
+      "capability",
+      "manifest version",
+      "idempotency"
+    ],
+    "llmMutationPolicy": "Allowlisted action JSON only; no arbitrary selectors, scripts, HTML, API calls, secrets or privilege changes."
+  },
+  "tour": {
+    "oneController": true,
+    "source": "current mounted capability registry plus authored narrative intent",
+    "mode": "event-driven not interval-based",
+    "autoStartOnLoad": false,
+    "defaultStart": "current screen; start-from-beginning only on explicit request or no active context",
+    "loop": false,
+    "states": [
+      "idle",
+      "planning",
+      "focusing",
+      "travelling",
+      "opening",
+      "presenting",
+      "paused",
+      "completed",
+      "cancelled",
+      "blocked"
+    ],
+    "stepCompletionRequires": [
+      "target_resolved",
+      "action_receipt_completed",
+      "camera_arrived_if_used",
+      "panel_or_media_render_ready",
+      "audio_playout_ended_if_enabled",
+      "minimum_reading_dwell_complete"
+    ],
+    "minimumDwellMs": 1200,
+    "postNarrationHoldMs": 900,
+    "targetResolutionTimeoutMs": 3000,
+    "renderReadyTimeoutMs": 10000,
+    "speech": "Brief natural explanation of current content, no static historical numbers. Direct navigation silent unless context is needed.",
+    "interrupt": "Cancel current speech, queued cues and active camera movement; preserve tour position, answer user request, resume on clear continue intent.",
+    "priority": [
+      "stop",
+      "pause",
+      "resume",
+      "next_previous",
+      "start_tour",
+      "other_validated_action"
+    ],
+    "safeTour": "No send, approve, purchase, create external record, microphone/camera permission or privilege elevation. Demonstrate risky controls without invoking them.",
+    "coverage": "18 existing screen identities remain scope; unavailable screens are blocked/skipped with reasons, never counted passed."
+  },
+  "voice": {
+    "provider": "Existing authorized ElevenLabs conversation, do not substitute another agent",
+    "displayNameIsNotIdentity": true,
+    "stableSessionAcrossPanelChanges": true,
+    "rawTranscriptExecutesCommands": false,
+    "toolArguments": "Preserve typed named JSON; never Object.values().join().",
+    "context": "Implement actual contextual_update frames or installed SDK sendContextualUpdate; serialized UI displayed in a panel is insufficient.",
+    "timing": {
+      "source": "actual audio alignment matched to scheduled audible playback",
+      "useWallClockOnMessageReceipt": false,
+      "captionMaxLines": 2,
+      "syncErrorTargetP95Ms": 100,
+      "visualFocusAckTargetMs": 150,
+      "localStopTargetMs": 100,
+      "networkGuarantee": false
+    },
+    "audio": "Read conversation metadata and actual output format; do not hardcode 16000Hz; use one playback clock and one narration owner.",
+    "fallback": "Explicit Browser Voice/local mode only; never simultaneously with ElevenLabs and never labelled live provider.",
+    "stop": "Abort tour, active camera, cue queue and current output; reject late cancelled audio/callbacks; separate disconnect from Stop.",
+    "configuration": "Prepare versioned prompt/tools/KB amendment for the resolved serving agent; no automatic production publication."
+  },
+  "gallery": {
+    "reference": "https://tympanus.net/Tutorials/3DImageTubeR3F/",
+    "source": "https://github.com/matdn/helmet",
+    "integration": "Port mathematical/shader behavior into existing Three.js renderer unless active app already uses R3F. No iframe or second context.",
+    "openFlow": "project -> media tube -> focused item -> fullview -> exact tube pose -> project",
+    "mediaKinds": [
+      "image",
+      "video",
+      "pdf"
+    ],
+    "radiusU": 5.4,
+    "columns": 8,
+    "visibleRows": 3,
+    "maxMountedTiles": 24,
+    "slotSizeU": [
+      3.2,
+      1.8
+    ],
+    "rowPitchU": 2.25,
+    "preserveSourceAspectRatio": true,
+    "idleRadPerSec": 0.025,
+    "spinClampRadPerSec": 2,
+    "damping60Hz": 0.92,
+    "hoverSpeedMultiplier": 0.35,
+    "focusMs": 650,
+    "fullviewMs": 1100,
+    "returnMs": 850,
+    "activeVideoDecoders": 1,
+    "pdfMaxLongEdgePx": {
+      "desktop": 2048,
+      "mobile": 1536
+    },
+    "pdfCachedPages": {
+      "desktop": 5,
+      "mobile": 3
+    },
+    "documentReadMode": "No deformed text, bloom, grain or continuous media movement; accessible DOM text/search companion permitted.",
+    "videoSource": "Verified decodable URLs with CORS/auth; page links to YouTube/Vimeo are not native VideoTexture URLs.",
+    "sphereShell": "Hide/dim enclosing shell for tube mode; do not squeeze infinite tube rows into a closed sphere.",
+    "agentGrounding": "Only describe retrieved metadata, extracted document text, captions or authorized analysis; visible thumbnails alone do not supply semantic understanding."
+  },
+  "screens": [
+    {
+      "screenId": "S01",
+      "title": "Gate and loader",
+      "legacyPanelIds": [
+        "17"
+      ],
+      "state": "auth.boot",
+      "actionIds": [
+        "auth.sign_in",
+        "boot.skip"
+      ],
+      "expectedEvidence": [
+        "auth_state_is_server_verified",
+        "essential_assets_settled"
+      ],
+      "policy": "Show only if session needs it; skipping animation never grants access.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S02",
+      "title": "Arrival and voice",
+      "legacyPanelIds": [
+        "1"
+      ],
+      "state": "workspace.arrival",
+      "actionIds": [
+        "voice.connect",
+        "audience.set_presentation_mode",
+        "tour.start"
+      ],
+      "expectedEvidence": [
+        "widget_mounted",
+        "scene_presented"
+      ],
+      "policy": "Greeting once; microphone only after explicit user activation.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S03",
+      "title": "Morning briefing",
+      "legacyPanelIds": [
+        "6"
+      ],
+      "state": "workspace.briefing",
+      "actionIds": [
+        "briefing.open",
+        "briefing.inspect_source"
+      ],
+      "expectedEvidence": [
+        "briefing_mounted",
+        "data_provenance_visible"
+      ],
+      "policy": "Read actual current data; no hard-coded meeting counts.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S04",
+      "title": "Portfolio",
+      "legacyPanelIds": [
+        "2"
+      ],
+      "state": "workspace.projects",
+      "actionIds": [
+        "projects.open",
+        "projects.filter",
+        "project.open"
+      ],
+      "expectedEvidence": [
+        "project_list_mounted",
+        "filter_matches_store"
+      ],
+      "policy": "Uncapped data-backed list; no invented project count.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S05",
+      "title": "Project workspace and media tube",
+      "legacyPanelIds": [
+        "3"
+      ],
+      "state": "project.workspace",
+      "actionIds": [
+        "project.open",
+        "project.select_tab",
+        "project.open_tube"
+      ],
+      "expectedEvidence": [
+        "selected_project_matches",
+        "project_workspace_mounted"
+      ],
+      "policy": "Keep all nine existing project tabs. Add tube/fullview substates, not a separate app.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S06",
+      "title": "Tasks",
+      "legacyPanelIds": [
+        "4"
+      ],
+      "state": "workspace.tasks",
+      "actionIds": [
+        "tasks.open",
+        "tasks.filter",
+        "task.inspect"
+      ],
+      "expectedEvidence": [
+        "tasks_mounted",
+        "data_or_empty_state_visible"
+      ],
+      "policy": "Four columns when they fit; two plus deliberate horizontal navigation on phone.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S07",
+      "title": "Insights",
+      "legacyPanelIds": [
+        "5"
+      ],
+      "state": "workspace.insights",
+      "actionIds": [
+        "insights.open",
+        "insight.inspect"
+      ],
+      "expectedEvidence": [
+        "insight_drawer_mounted",
+        "source_visible"
+      ],
+      "policy": "Six categories retained; counts derived from actual records.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S08",
+      "title": "Gmail",
+      "legacyPanelIds": [
+        "7"
+      ],
+      "state": "workspace.gmail",
+      "actionIds": [
+        "gmail.open",
+        "gmail.select_thread",
+        "gmail.prepare_draft"
+      ],
+      "expectedEvidence": [
+        "thread_or_empty_state_mounted"
+      ],
+      "policy": "Tour demonstrates navigation only. Send requires exact separate confirmed operation.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S09",
+      "title": "Calendar",
+      "legacyPanelIds": [
+        "8"
+      ],
+      "state": "workspace.calendar",
+      "actionIds": [
+        "calendar.open",
+        "calendar.set_view",
+        "calendar.inspect_event"
+      ],
+      "expectedEvidence": [
+        "calendar_mounted",
+        "timezone_visible"
+      ],
+      "policy": "No event creation during autoplay; derive dates from current clock and timezone.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S10",
+      "title": "Drive files",
+      "legacyPanelIds": [
+        "9"
+      ],
+      "state": "workspace.files",
+      "actionIds": [
+        "files.open",
+        "files.search",
+        "file.open"
+      ],
+      "expectedEvidence": [
+        "search_results_or_empty_state_rendered"
+      ],
+      "policy": "Use authorized sources, real thumbnails and provider metadata.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S11",
+      "title": "Document full view",
+      "legacyPanelIds": [
+        "11"
+      ],
+      "state": "media.document",
+      "actionIds": [
+        "media.open",
+        "document.go_to_page",
+        "media.zoom",
+        "media.close"
+      ],
+      "expectedEvidence": [
+        "page_texture_uploaded",
+        "page_number_matches"
+      ],
+      "policy": "Real PDF page texture; office files require supported conversion/provider path.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S12",
+      "title": "Video and showreels",
+      "legacyPanelIds": [
+        "10"
+      ],
+      "state": "media.video",
+      "actionIds": [
+        "media.open",
+        "video.play",
+        "video.pause",
+        "video.seek",
+        "media.close"
+      ],
+      "expectedEvidence": [
+        "video_frame_presented",
+        "player_state_matches"
+      ],
+      "policy": "Preserve Media identity. Never claim playback from a text label.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S13",
+      "title": "People and RACI",
+      "legacyPanelIds": [
+        "12"
+      ],
+      "state": "workspace.people",
+      "actionIds": [
+        "people.open",
+        "person.inspect",
+        "raci.open"
+      ],
+      "expectedEvidence": [
+        "people_mounted",
+        "permissions_applied"
+      ],
+      "policy": "Owner-only data stays server-protected; presentation mode is not authentication.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S14",
+      "title": "Crew workspace",
+      "legacyPanelIds": [
+        "13"
+      ],
+      "state": "workspace.crew",
+      "actionIds": [
+        "crew.open",
+        "crew.inspect_stream",
+        "crew.prepare_draft"
+      ],
+      "expectedEvidence": [
+        "crew_panels_mounted",
+        "stream_provider_status_visible"
+      ],
+      "policy": "No fake streaming text; any execution with cost requires authorized scope.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S15",
+      "title": "Baghira and Kinzo",
+      "legacyPanelIds": [
+        "14",
+        "15"
+      ],
+      "state": "workspace.planning",
+      "actionIds": [
+        "planning.open",
+        "bots.open",
+        "planning.select_tab"
+      ],
+      "expectedEvidence": [
+        "planning_or_bot_panel_mounted"
+      ],
+      "policy": "Two panes only when layout permits; otherwise tabs, never overlap.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S16",
+      "title": "Settings and hands",
+      "legacyPanelIds": [
+        "16"
+      ],
+      "state": "workspace.settings",
+      "actionIds": [
+        "settings.open",
+        "settings.set_motion",
+        "hands.request_enable",
+        "hands.disable"
+      ],
+      "expectedEvidence": [
+        "settings_mounted",
+        "camera_permission_state_visible"
+      ],
+      "policy": "Do not enable camera or microphone automatically; sound buttons are not hand tracking.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S17",
+      "title": "CDE and story",
+      "legacyPanelIds": [
+        "cde"
+      ],
+      "state": "cde.explore",
+      "actionIds": [
+        "sphere.switch",
+        "dimension.open",
+        "chapter.open"
+      ],
+      "expectedEvidence": [
+        "camera_arrived",
+        "cde_content_mounted"
+      ],
+      "policy": "Coordinates and chapter count come from the actual scene and content registries.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    },
+    {
+      "screenId": "S18",
+      "title": "Domains and return",
+      "legacyPanelIds": [
+        "domains"
+      ],
+      "state": "workspace.domains",
+      "actionIds": [
+        "domains.open",
+        "domain.prepare",
+        "workspace.restore"
+      ],
+      "expectedEvidence": [
+        "domain_registry_mounted",
+        "return_state_restored"
+      ],
+      "policy": "No automatic spawn. Create only following the user’s explicit domain request.",
+      "runtimeAvailability": "UNVERIFIED_UNTIL_MOUNTED"
+    }
+  ],
+  "securityAndEvidence": {
+    "auth": "Server-authorized sessions; exposed demo keypad is not access control; no owner elevation from client params.",
+    "externalWrites": "Separate explicit confirmation bound to action, payload fingerprint and authenticated user; silence cancels.",
+    "legacyConfirmMs": 4000,
+    "confirmPolicy": "Preserve approved timing or add explicit rearm/accessibility extension; never auto-confirm.",
+    "undoMsOnlyIfRealQueue": 5000,
+    "undoPolicy": "Cancellation before provider dispatch is not undo after send; show only the actual guarantee.",
+    "counts": "Never approvalCount * 2 = verified; computed test and source receipts only.",
+    "storage": "Only claim save after write succeeds and readback; label local-only. Never store keys, privilege or protected provider data in localStorage.",
+    "htmlSafety": "Escape user text, use textContent/React interpolation; no raw user strings in innerHTML.",
+    "snapshot": "Persist camera, selected project, panel layout, media position and versioned UI state; restore must not replay tools or external writes."
+  },
+  "performance": {
+    "dprDesktopMax": 1.75,
+    "dprIpadMax": 1.5,
+    "dprPhoneMax": 1.25,
+    "desiredFps": 60,
+    "sustainedFloorFps": 30,
+    "measurementSeconds": 60,
+    "actualFpsStatus": "UNMEASURED",
+    "adaptive": "Reduce postprocessing resolution and particles before readable content or core interactions."
+  },
+  "acceptance": {
+    "stateCases": 90,
+    "viewports": [
+      "desktop_1440_900",
+      "wide_1920_1080",
+      "ipad_landscape_1180_820",
+      "ipad_portrait_820_1180",
+      "phone_390_844"
+    ],
+    "notAClaimOfPassedCases": true,
+    "requiredTests": [
+      "new tour does not use old six stops",
+      "one speech owner",
+      "every advertised CTA resolves to actual handler",
+      "no duplicate transcript/tool execution",
+      "structured args preserved",
+      "get_page_state has no side effects",
+      "version mismatch re-handshake",
+      "Stop cancels pending callbacks and motion",
+      "pause/resume retains position",
+      "gallery image/video/pdf and restore",
+      "missing asset truthful empty state",
+      "auth deny path",
+      "no external write during tour",
+      "source shader and media neutral rendering",
+      "nonoverlap and keyboard safe areas",
+      "local save failure and restore",
+      "real provider tool receipt",
+      "returned runtime counts match UI"
+    ],
+    "capture": "same build start/peak/hold/end plus interruptions; record build and manifest versions; keep blocked and not-run separate from pass."
+  },
+  "delivery": [
+    "Changed source files and minimal diff",
+    "Generated UI/CTA manifest",
+    "Versioned prepared ElevenLabs prompt and tool schemas",
+    "Actual screenshots and motion recording if environment supports execution",
+    "Test results with NOT RUN/blocked reasons",
+    "No claims of deployment without verified serving build"
+  ]
+}

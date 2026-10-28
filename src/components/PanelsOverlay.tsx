@@ -24,6 +24,15 @@ import {
   TeamRoomChannelId,
   TeamRoomMessage,
 } from '../data/sourceData';
+import { WireframesV11PanelContent } from './WireframesV11Panels';
+import { ScreenElementAmendment } from '../utils/geminiScreenOrchestrator';
+import {
+  ComputedGuiLayout,
+  PanelSlotAssignment,
+  PhoneSheetExpansion,
+  computeGuiLayout,
+} from '../gui/layoutEngine';
+import { GUI_GLASS_TOKENS, GUI_Z_LAYERS } from '../gui/guiTokens';
 
 export interface StatefulCheckpointItem extends TeamCheckpointItem {
   status?: 'Pending 39 Sign-off' | 'Approved' | 'Revision Requested' | 'Rejected';
@@ -135,6 +144,13 @@ interface PanelsOverlayProps {
   onToggleSoundMuted?: () => void;
   onToggleLanguageRtl?: (lang: 'en' | 'ar') => void;
   onSimulateCommand?: (cmd: string) => void;
+  handsActive?: boolean;
+  screenAmendments?: ScreenElementAmendment[];
+  onToggleHands?: () => void;
+  guiLayout?: ComputedGuiLayout;
+  phoneSheetState?: PhoneSheetExpansion;
+  onChangePhoneSheetState?: (state: PhoneSheetExpansion) => void;
+  isCameraInFlight?: boolean;
 }
 
 const KNOWN_RECIPIENT_ALIASES: Record<string, string> = {
@@ -264,8 +280,31 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
   onToggleReducedMotion,
   onToggleSoundMuted,
   onToggleLanguageRtl,
+  onSimulateCommand,
+  handsActive = false,
+  screenAmendments = [],
+  onToggleHands,
+  guiLayout,
+  phoneSheetState: externalPhoneSheetState,
+  onChangePhoneSheetState,
+  isCameraInFlight = false,
 }) => {
   const [localProjectTab, setLocalProjectTab] = useState<ProjectWorkspaceTab>('tasks');
+  const [phoneSheetSnap92, setPhoneSheetSnap92] = useState<boolean>(false);
+  const [activeSlotTabs, setActiveSlotTabs] = useState<
+    Partial<Record<'bottom-sheet' | 'left-inspector' | 'right-inspector', string>>
+  >({});
+  const effectivePhoneSheetState: PhoneSheetExpansion =
+    externalPhoneSheetState ?? (phoneSheetSnap92 ? 'expanded' : 'default');
+  const effectiveGuiLayout: ComputedGuiLayout =
+    guiLayout ??
+    computeGuiLayout({
+      width: typeof window !== 'undefined' ? window.innerWidth : 1440,
+      height: typeof window !== 'undefined' ? window.innerHeight : 900,
+      openPanels,
+      activeSlotTabs,
+      phoneSheetState: effectivePhoneSheetState,
+    });
   const effectiveProjectTab = activeProjectTab || localProjectTab;
   const scrollContainerRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [checkpointFeedbackById, setCheckpointFeedbackById] = useState<Record<string, string>>({});
@@ -503,8 +542,8 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
         data-testid="fullscreen-media-modal"
         onPointerDown={(e) => e.stopPropagation()}
         onWheel={(e) => e.stopPropagation()}
-        className="fixed inset-0 z-50 flex flex-col justify-between p-5 md:p-8 neural-reveal"
-        style={{ backgroundColor: '#05090E' }}
+        className="fixed inset-0 flex flex-col justify-between p-5 md:p-8 neural-reveal"
+        style={{ backgroundColor: '#05090E', zIndex: GUI_Z_LAYERS.modalContent }}
       >
         <div className="flex items-center justify-between gap-4 z-10 flex-wrap">
           <div className="flex items-center gap-3">
@@ -628,7 +667,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
     );
   }
 
-  // Overview Mode ("Overview" / dashboardCollapsed) — All 5 HQ Stations rendered as compact cards
+  // Overview Mode ("Overview" / dashboardCollapsed) — All 5 HQ Stations rendered as compact Optical HUD cards
   if (dashboardCollapsed) {
     return (
       <div className="fixed inset-0 z-20 pointer-events-none flex flex-col md:flex-row items-start justify-between p-4 pt-20 pb-28 gap-3">
@@ -639,21 +678,27 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               data-panel-id={`pocket-${st.id}`}
               onPointerDown={(e) => e.stopPropagation()}
               onWheel={(e) => e.stopPropagation()}
-              className="pointer-events-auto rounded-2xl px-4 py-3 border shadow-xl neural-reveal flex items-center justify-between gap-3"
+              className="pointer-events-auto rounded-xl px-4 py-3 border neural-reveal flex items-center justify-between gap-3"
               style={{
-                backgroundColor: COLOUR_TOKENS.glassRgba,
-                borderColor: COLOUR_TOKENS.outlineControl,
-                borderLeftWidth: '4px',
-                borderLeftColor: st.colour,
+                backgroundColor: 'rgba(16, 29, 39, 0.84)',
+                backdropFilter: 'blur(12px) saturate(1.2)',
+                WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
+                borderColor: 'rgba(255, 255, 255, 0.14)',
+                boxShadow:
+                  'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
               }}
             >
               <div className="min-w-0">
-                <div className="flex items-center gap-2 font-mono text-[10px] text-[#BDCBD3]">
-                  <span style={{ color: st.colour }}>{st.label}</span>
+                <div className="flex items-center gap-2 font-mono tabular-nums text-[10px] text-[#BDCBD3]">
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: st.colour }}
+                  />
+                  <span style={{ color: st.colour }}>{st.code}</span>
                   <span>·</span>
                   <span>{st.badgeCount}</span>
                 </div>
-                <div className="font-display text-sm font-semibold text-[#F2F6F8] truncate">
+                <div className="font-display text-xs font-semibold tracking-[0.08em] uppercase text-[#F2F6F8] truncate mt-0.5">
                   {st.label} ({st.labelAr})
                 </div>
                 <div className="font-sans text-[11px] text-[#BDCBD3] truncate">
@@ -663,7 +708,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               <button
                 type="button"
                 onClick={() => onExpandStationFromDashboard?.(st.id)}
-                className="min-h-[44px] px-3.5 rounded-xl font-mono text-[11px] font-semibold bg-[#101D27] border border-white/30 text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer shrink-0"
+                className="min-h-[38px] px-3.5 rounded-lg font-mono text-[11px] font-semibold bg-[#142632] border border-[rgba(180,221,255,0.16)] text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer shrink-0"
               >
                 Open
               </button>
@@ -678,21 +723,27 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               data-panel-id={`pocket-${st.id}`}
               onPointerDown={(e) => e.stopPropagation()}
               onWheel={(e) => e.stopPropagation()}
-              className="pointer-events-auto rounded-2xl px-4 py-3 border shadow-xl neural-reveal flex items-center justify-between gap-3"
+              className="pointer-events-auto rounded-xl px-4 py-3 border neural-reveal flex items-center justify-between gap-3"
               style={{
-                backgroundColor: COLOUR_TOKENS.glassRgba,
-                borderColor: COLOUR_TOKENS.outlineControl,
-                borderLeftWidth: '4px',
-                borderLeftColor: st.colour,
+                backgroundColor: 'rgba(16, 29, 39, 0.84)',
+                backdropFilter: 'blur(12px) saturate(1.2)',
+                WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
+                borderColor: 'rgba(255, 255, 255, 0.14)',
+                boxShadow:
+                  'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
               }}
             >
               <div className="min-w-0">
-                <div className="flex items-center gap-2 font-mono text-[10px] text-[#BDCBD3]">
-                  <span style={{ color: st.colour }}>{st.label}</span>
+                <div className="flex items-center gap-2 font-mono tabular-nums text-[10px] text-[#BDCBD3]">
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: st.colour }}
+                  />
+                  <span style={{ color: st.colour }}>{st.code}</span>
                   <span>·</span>
                   <span>{st.badgeCount}</span>
                 </div>
-                <div className="font-display text-sm font-semibold text-[#F2F6F8] truncate">
+                <div className="font-display text-xs font-semibold tracking-[0.08em] uppercase text-[#F2F6F8] truncate mt-0.5">
                   {st.label} ({st.labelAr})
                 </div>
                 <div className="font-sans text-[11px] text-[#BDCBD3] truncate">
@@ -702,7 +753,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               <button
                 type="button"
                 onClick={() => onExpandStationFromDashboard?.(st.id)}
-                className="min-h-[44px] px-3.5 rounded-xl font-mono text-[11px] font-semibold bg-[#101D27] border border-white/30 text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer shrink-0"
+                className="min-h-[38px] px-3.5 rounded-lg font-mono text-[11px] font-semibold bg-[#142632] border border-[rgba(180,221,255,0.16)] text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer shrink-0"
               >
                 Open
               </button>
@@ -730,109 +781,265 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
     return panelDraftsById[panelId];
   };
 
-  // Reusable Glass Panel Frame with Event Isolation (stopPropagation on pointer/wheel)
+  const resolvePanelNumberAndHonesty = (
+    panelId: string,
+    kicker: string
+  ): { panelNum: string; honestyBadge: 'SNAPSHOT' | 'LIVE' | 'PROPOSED' | 'DRAFT ONLY' } => {
+    const match = kicker.match(/PANEL\s*#(\d+)/i);
+    const numMap: Record<string, string> = {
+      portfolio: '#02',
+      projects: '#02',
+      'project-workspace': '#03',
+      tasks: '#04',
+      insights: '#05',
+      decisions: '#05',
+      briefing: '#06',
+      gmail: '#07',
+      workspace: '#07',
+      calendar: '#08',
+      files: '#09',
+      'file-viewer': '#11',
+      media: '#12',
+      crew: '#13',
+      'team-room': '#13',
+      baghira: '#14',
+      timeline: '#14',
+      kinzo: '#15',
+      people: '#15',
+      settings: '#16',
+      tracker: '#16',
+      cde: '#03',
+      minutes: '#06',
+    };
+    const panelNum = match ? `#${match[1].padStart(2, '0')}` : numMap[panelId] || '#01';
+
+    let honestyBadge: 'SNAPSHOT' | 'LIVE' | 'PROPOSED' | 'DRAFT ONLY' = 'SNAPSHOT';
+    if (
+      panelId === 'crew' ||
+      panelId === 'team-room' ||
+      kicker.toUpperCase().includes('DRAFT ONLY')
+    ) {
+      honestyBadge = 'DRAFT ONLY';
+    } else if (panelId === 'kinzo' || kicker.toUpperCase().includes('PROPOSED')) {
+      honestyBadge = 'PROPOSED';
+    } else if (
+      panelId === 'gmail' ||
+      panelId === 'workspace' ||
+      panelId === 'calendar' ||
+      panelId === 'settings' ||
+      panelId === 'briefing'
+    ) {
+      honestyBadge = 'LIVE';
+    }
+    return { panelNum, honestyBadge };
+  };
+
+  // Standardized Optical HUD Panel Frame Across All 17 Panels (cerebro.stellar.gui.amend/3.0)
   const renderPanelFrame = (
     panelId: string,
     title: string,
     kicker: string,
     topEdgeColour: string,
-    positionClass: string,
+    slot: PanelSlotAssignment,
     children: React.ReactNode
-  ) => (
-    <section
-      key={panelId}
-      data-panel-id={panelId}
-      aria-label={title}
-      dir={languageRtl === 'ar' ? 'rtl' : 'ltr'}
-      onPointerDown={(e) => e.stopPropagation()}
-      onWheel={(e) => e.stopPropagation()}
-      className={`pointer-events-auto rounded-2xl border flex flex-col overflow-hidden neural-reveal shadow-2xl ${positionClass}`}
-      style={{
-        backgroundColor: COLOUR_TOKENS.glassRgba,
-        borderColor: COLOUR_TOKENS.outlineControl,
-        borderTopWidth: '3px',
-        borderTopColor: topEdgeColour,
-      }}
-    >
-      {/* Panel Header */}
-      <div className="px-4 py-2.5 border-b border-white/15 flex items-center justify-between gap-3 shrink-0">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span
-              className="w-2 h-2 rounded-full shrink-0"
-              style={{ backgroundColor: topEdgeColour }}
-            />
-            <span className="font-mono text-[10px] uppercase tracking-wider text-[#BDCBD3] truncate">
-              {kicker}
-            </span>
+  ) => {
+    const { panelNum, honestyBadge } = resolvePanelNumberAndHonesty(panelId, kicker);
+    const { rect, tabPanelIds, slotId } = slot;
+    return (
+      <section
+        key={`${slotId}-${panelId}`}
+        data-panel-id={panelId}
+        data-slot-id={slotId}
+        aria-label={title}
+        dir={languageRtl === 'ar' ? 'rtl' : 'ltr'}
+        onPointerDown={(e) => e.stopPropagation()}
+        onWheel={(e) => e.stopPropagation()}
+        className="fixed pointer-events-auto flex flex-col overflow-hidden neural-reveal cerebro-stellar-glass transition-opacity duration-200"
+        style={{
+          left: `${rect.x}px`,
+          top: `${rect.y}px`,
+          width: `${rect.w}px`,
+          maxHeight: `${rect.h}px`,
+          backgroundColor: GUI_GLASS_TOKENS.background,
+          backdropFilter: GUI_GLASS_TOKENS.backdropFilter,
+          WebkitBackdropFilter: GUI_GLASS_TOKENS.backdropFilter,
+          border: GUI_GLASS_TOKENS.border,
+          borderRadius: `${GUI_GLASS_TOKENS.radiusPx}px`,
+          boxShadow: GUI_GLASS_TOKENS.shadow,
+          opacity: isCameraInFlight ? 0.62 : 1,
+          zIndex: GUI_Z_LAYERS.panels,
+        }}
+      >
+        {/* Multi-Panel Slot Tab Bar (when 2+ open panels share this single layout slot) */}
+        {tabPanelIds.length > 1 && (
+          <div
+            className="px-3 pt-2 pb-1.5 border-b flex items-center gap-1.5 overflow-x-auto shrink-0"
+            style={{ borderColor: 'rgba(232, 251, 255, 0.16)' }}
+            role="tablist"
+            aria-label={`${slotId} panel tabs`}
+          >
+            {tabPanelIds.map((tid) => {
+              const isTabActive = tid === panelId;
+              return (
+                <button
+                  key={tid}
+                  type="button"
+                  role="tab"
+                  aria-selected={isTabActive}
+                  data-testid={`slot-tab-${tid}`}
+                  onClick={() =>
+                    setActiveSlotTabs((prev) => ({
+                      ...prev,
+                      [slotId]: tid,
+                    }))
+                  }
+                  className={`min-h-[36px] px-2.5 py-1 rounded-lg font-mono text-[11px] uppercase tracking-wider shrink-0 transition-colors cursor-pointer ${
+                    isTabActive
+                      ? 'bg-[#65ACFF]/25 border border-[#65ACFF] text-[#F2F6F8] font-semibold'
+                      : 'bg-[#101D27]/65 border border-[rgba(232,251,255,0.16)] text-[#A9BAC6] hover:text-[#F2F6F8]'
+                  }`}
+                >
+                  {tid}
+                </button>
+              );
+            })}
           </div>
-          <h2 className="font-display text-sm md:text-base font-semibold text-[#F2F6F8] truncate mt-0.5">
-            {title}
-          </h2>
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          {onMinimisePanel && (
+        )}
+
+        {/* Standardized Panel Header Bar (52px min height, >=17px title capability, >=44px touch targets) */}
+        <div
+          className="px-4 py-2 border-b flex items-center justify-between gap-2 shrink-0"
+          style={{
+            minHeight: `${GUI_GLASS_TOKENS.headerH}px`,
+            borderColor: 'rgba(232, 251, 255, 0.24)',
+          }}
+        >
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span
+                className="w-2.5 h-2.5 rounded-full shrink-0"
+                style={{ backgroundColor: topEdgeColour }}
+              />
+              <h2 className="font-display font-semibold text-[15px] md:text-[17px] tracking-[0.04em] uppercase text-[#F2F6F8] truncate">
+                {panelNum} · {title}
+              </h2>
+            </div>
+            <div className="font-mono tabular-nums text-[12px] text-[#A9BAC6] truncate mt-0.5 pl-4">
+              {kicker}
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span
+              className="font-mono tabular-nums text-[11px] px-2 py-0.5 rounded border"
+              style={{
+                backgroundColor: '#142632',
+                borderColor: 'rgba(232, 251, 255, 0.24)',
+                color:
+                  honestyBadge === 'LIVE'
+                    ? '#5CE0A0'
+                    : honestyBadge === 'DRAFT ONLY'
+                    ? '#F2B66D'
+                    : honestyBadge === 'PROPOSED'
+                    ? '#5CC8D7'
+                    : '#B4DDFF',
+              }}
+            >
+              {honestyBadge}
+            </span>
+            {onMinimisePanel && (
+              <button
+                type="button"
+                data-testid={`minimise-${panelId}`}
+                onClick={() => {
+                  const currentScroll = scrollContainerRefs.current[panelId]?.scrollTop || 0;
+                  const currentDraft = getCurrentDraftForPanel(panelId);
+                  onMinimisePanel(panelId, title, currentScroll, currentDraft);
+                }}
+                aria-label={`Minimise ${title} panel`}
+                title="Minimise to dock (preserves project, tab, scroll & unsent draft)"
+                className="min-w-[44px] min-h-[44px] rounded-xl border border-[rgba(232,251,255,0.24)] bg-[#142632] text-[#A9BAC6] hover:text-[#F2F6F8] hover:border-[#65ACFF] flex items-center justify-center font-mono text-sm cursor-pointer"
+              >
+                –
+              </button>
+            )}
             <button
               type="button"
-              data-testid={`minimise-${panelId}`}
-              onClick={() => {
-                const currentScroll = scrollContainerRefs.current[panelId]?.scrollTop || 0;
-                const currentDraft = getCurrentDraftForPanel(panelId);
-                onMinimisePanel(panelId, title, currentScroll, currentDraft);
-              }}
-              aria-label={`Minimise ${title} panel`}
-              title="Minimise to dock (preserves project, tab, scroll & unsent draft)"
-              className="min-w-[44px] min-h-[44px] rounded-xl border border-white/30 text-[#BDCBD3] hover:text-[#F2F6F8] hover:border-[#4C8DFF] flex items-center justify-center font-mono text-base cursor-pointer"
+              data-testid={`close-${panelId}`}
+              onClick={() => onClosePanel(panelId)}
+              aria-label={`Close ${title} panel`}
+              className="min-w-[44px] min-h-[44px] rounded-xl border border-[rgba(232,251,255,0.24)] bg-[#142632] text-[#A9BAC6] hover:text-[#F2F6F8] hover:border-[#65ACFF] flex items-center justify-center font-mono text-sm cursor-pointer"
             >
-              –
+              ×
             </button>
-          )}
-          <button
-            type="button"
-            data-testid={`close-${panelId}`}
-            onClick={() => onClosePanel(panelId)}
-            aria-label={`Close ${title} panel`}
-            className="min-w-[44px] min-h-[44px] rounded-xl border border-white/30 text-[#BDCBD3] hover:text-[#F2F6F8] hover:border-[#4C8DFF] flex items-center justify-center font-mono text-base cursor-pointer"
-          >
-            ×
-          </button>
+          </div>
         </div>
-      </div>
 
-      {/* Scrollable Glass Body (Restores saved scrollTop on reopen) */}
-      <div
-        ref={(el) => {
-          scrollContainerRefs.current[panelId] = el;
-          if (
-            el &&
-            panelScrollById[panelId] !== undefined &&
-            el.scrollTop === 0 &&
-            panelScrollById[panelId] > 0
-          ) {
-            el.scrollTop = panelScrollById[panelId];
-          }
-        }}
-        onScroll={(e) => onPanelScrollChange?.(panelId, e.currentTarget.scrollTop)}
-        className="p-3.5 overflow-y-auto flex-1 space-y-3"
-      >
-        {children}
-      </div>
-    </section>
-  );
+        {/* Independent Scrollable Glass Body (16px padding, >=14px body text) */}
+        <div
+          ref={(el) => {
+            scrollContainerRefs.current[panelId] = el;
+            if (
+              el &&
+              panelScrollById[panelId] !== undefined &&
+              el.scrollTop === 0 &&
+              panelScrollById[panelId] > 0
+            ) {
+              el.scrollTop = panelScrollById[panelId];
+            }
+          }}
+          onScroll={(e) => onPanelScrollChange?.(panelId, e.currentTarget.scrollTop)}
+          className="p-4 overflow-y-auto overscroll-contain flex-1 space-y-3 text-[14px]"
+        >
+          {children}
+        </div>
+      </section>
+    );
+  };
 
   return (
-    <div className="fixed inset-0 z-20 pointer-events-none">
+    <div
+      className="fixed inset-0 pointer-events-none"
+      style={{ zIndex: GUI_Z_LAYERS.panels }}
+    >
+      {/* Central Unobstructed Sphere Safe Frame Guard (Pointer-Events-None Spatial Clear Zone) */}
+      <div
+        data-testid="panel-avoidance-ring"
+        aria-hidden="true"
+        className="fixed rounded-full pointer-events-none"
+        style={{
+          left: `${effectiveGuiLayout.centerSafeRect.x}px`,
+          top: `${effectiveGuiLayout.centerSafeRect.y}px`,
+          width: `${effectiveGuiLayout.centerSafeRect.w}px`,
+          height: `${effectiveGuiLayout.centerSafeRect.h}px`,
+          zIndex: GUI_Z_LAYERS.ambientHUD,
+        }}
+      />
+
       {/* Persistent Project Health Strip (Top-Center Below Header) */}
       <div
         onPointerDown={(e) => e.stopPropagation()}
-        className="fixed top-16 left-1/2 -translate-x-1/2 z-25 pointer-events-auto hidden md:flex items-center gap-2 px-3 py-1.5 rounded-2xl border bg-[#101D27]/90 border-white/25 backdrop-blur-md shadow-lg"
+        className="fixed top-16 left-1/2 -translate-x-1/2 z-25 pointer-events-auto hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl border"
+        style={{
+          backgroundColor: 'rgba(16, 29, 39, 0.84)',
+          backdropFilter: 'blur(12px) saturate(1.2)',
+          WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
+          borderColor: 'rgba(255, 255, 255, 0.14)',
+          boxShadow:
+            'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
+        }}
       >
         <span className="font-mono text-[10px] text-[#BDCBD3] uppercase tracking-wider">
           Overview:
         </span>
-        <span className="font-mono text-[10px] text-[#3DDC97]">● {onTrackCount} On track</span>
-        <span className="font-mono text-[10px] text-[#F2B66D]">▲ {atRiskCount} At risk</span>
-        <span className="font-mono text-[10px] text-[#4C8DFF]">⧠ {blockedCount} Blocked</span>
+        <span className="font-mono tabular-nums text-[10px] text-[#36E88D]">
+          ● {onTrackCount} On track
+        </span>
+        <span className="font-mono tabular-nums text-[10px] text-[#F2B66D]">
+          ▲ {atRiskCount} At risk
+        </span>
+        <span className="font-mono tabular-nums text-[10px] text-[#FF5666]">
+          ⧠ {blockedCount} Blocked
+        </span>
         <span className="text-white/20">|</span>
         <button
           type="button"
@@ -841,7 +1048,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             onToggleUrgentFilter?.(true);
             onOpenPanel?.('tasks');
           }}
-          className="px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#142632] border border-[#F2B66D]/50 text-[#F2B66D] hover:bg-[#F2B66D]/15 cursor-pointer"
+          className="px-2.5 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#142632] border border-[#F2B66D]/50 text-[#F2B66D] hover:bg-[#F2B66D]/15 cursor-pointer"
         >
           Urgent ({atRiskCount})
         </button>
@@ -849,7 +1056,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           type="button"
           data-testid="chip-approve-pending"
           onClick={() => onOpenPanel?.('decisions')}
-          className="px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#142632] border border-[#3DDC97]/50 text-[#3DDC97] hover:bg-[#3DDC97]/15 cursor-pointer"
+          className="px-2.5 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#142632] border border-[#7CE0B8]/50 text-[#7CE0B8] hover:bg-[#7CE0B8]/15 cursor-pointer"
         >
           Reviews ({pendingDecisionCount})
         </button>
@@ -861,7 +1068,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             onChangeProjectTab?.('BSOCIAL', 'decisions');
             onOpenPanel?.('decisions');
           }}
-          className="px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#142632] border border-[#4C8DFF]/50 text-[#4C8DFF] hover:bg-[#4C8DFF]/15 cursor-pointer"
+          className="px-2.5 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#142632] border border-[#FF5666]/50 text-[#FF5666] hover:bg-[#FF5666]/15 cursor-pointer"
         >
           Blocked ({blockedCount})
         </button>
@@ -879,7 +1086,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               type="button"
               data-testid={`restore-chip-${chip.panelId}`}
               onClick={() => onRestoreChip?.(chip)}
-              className="min-h-[44px] px-3.5 py-1.5 rounded-xl font-mono text-[11px] bg-[#142632]/95 border border-[#4C8DFF] text-[#F2F6F8] shadow-lg flex items-center gap-2 hover:bg-[#4C8DFF] hover:text-[#101D27] transition-colors cursor-pointer"
+              className="min-h-[40px] px-3.5 py-1.5 rounded-lg font-mono text-[11px] bg-[#142632] border border-[#65ACFF] text-[#F2F6F8] flex items-center gap-2 hover:bg-[#4C8DFF] hover:text-[#101D27] transition-colors cursor-pointer"
             >
               <span>▢ {chip.label}</span>
               {chip.subTab && (
@@ -893,23 +1100,169 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
         </div>
       )}
 
-      {/* Panels Container: leaves center of 3D sphere unobstructed on desktop/iPad; bottom-sheet on phone */}
-      {openPanels.map((panelId, index) => {
-        const isLeftSlot = index % 2 === 0;
-        const posClass = isLeftSlot
-          ? 'fixed left-3 right-3 bottom-24 max-h-[54vh] md:left-5 md:right-auto md:top-28 md:bottom-auto md:w-[380px] lg:w-[415px] md:max-h-[calc(100vh-14rem)]'
-          : 'fixed left-3 right-3 bottom-24 max-h-[54vh] md:right-5 md:left-auto md:top-28 md:bottom-auto md:w-[380px] lg:w-[415px] md:max-h-[calc(100vh-14rem)]';
+      {/* Phone Top Minimised Station Chips + Wireframes v1.1 Quick Dock */}
+      <div
+        onPointerDown={(e) => e.stopPropagation()}
+        className="fixed top-14 left-3 right-3 z-25 pointer-events-auto flex md:hidden items-center gap-1.5 overflow-x-auto py-1"
+      >
+        {[
+          { id: 'portfolio', label: '#2 Portfolio (17)' },
+          { id: 'tasks', label: '#4 Tasks' },
+          { id: 'insights', label: '#5 Signals (6)' },
+          { id: 'briefing', label: '#6 Briefing' },
+          { id: 'gmail', label: '#7 Gmail' },
+          { id: 'calendar', label: '#8 Calendar' },
+          { id: 'files', label: '#9 Drive' },
+          { id: 'crew', label: '#13 Crew SSE' },
+        ].map((st) => (
+          <button
+            key={st.id}
+            type="button"
+            onClick={() => onOpenPanel?.(st.id)}
+            className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#142632] border border-[rgba(180,221,255,0.16)] text-[#F2F6F8] shrink-0 cursor-pointer"
+          >
+            {st.label}
+          </button>
+        ))}
+        {openPanels.length > 0 && (
+          <button
+            type="button"
+            data-testid="phone-sheet-snap-toggle"
+            onClick={() => {
+              const nextSnap = !phoneSheetSnap92;
+              setPhoneSheetSnap92(nextSnap);
+              onChangePhoneSheetState?.(nextSnap ? 'expanded' : 'default');
+            }}
+            className="min-h-[44px] px-3 py-1 rounded-lg font-mono tabular-nums text-[11px] bg-[#4C8DFF] text-[#101D27] font-semibold shrink-0 cursor-pointer"
+          >
+            Sheet {effectivePhoneSheetState === 'expanded' ? 'Expanded' : 'Default'}
+          </button>
+        )}
+      </div>
 
-        // 1. PROJECTS STATION PANEL
+      {/* Single-Owner Responsive Layout Slots (Phone: 1 bottom sheet; Tablet: 1 left inspector; Desktop/Wide: max 2 left/right inspectors with tabs) */}
+      {effectiveGuiLayout.panelSlots.map((slot) => {
+        const panelId = slot.activePanelId;
+        const posClass = slot;
+
+        const sharedV11Props = {
+          panelId,
+          selectedProjectId,
+          activeShowreelIndex,
+          mediaPlayback,
+          fileSearchQuery,
+          reducedMotion,
+          soundMuted,
+          languageRtl,
+          handsActive,
+          screenAmendments,
+          onSelectProject,
+          onOpenPanel: (pid: string) => onOpenPanel?.(pid),
+          onClosePanel,
+          onChangeShowreelIndex: (idx: number) => onChangeShowreelIndex?.(idx),
+          onMediaControl: (
+            act:
+              | 'play'
+              | 'pause'
+              | 'toggle_play'
+              | 'seek'
+              | 'mute'
+              | 'unmute'
+              | 'toggle_mute'
+              | 'fullscreen_enter'
+              | 'fullscreen_exit',
+            sec?: number
+          ) => onMediaControl?.(act, sec),
+          onOpenFullscreenMedia,
+          onFileSearchChange,
+          onToggleReducedMotion: () => onToggleReducedMotion?.(),
+          onToggleSoundMuted: () => onToggleSoundMuted?.(),
+          onToggleLanguageRtl: (l: 'en' | 'ar') => onToggleLanguageRtl?.(l),
+          onToggleHands: () => onToggleHands?.(),
+          onOpenProjectMediaTube: () => onSimulateCommand?.('project.open_tube'),
+        };
+
+        // Dedicated Wireframes v1.1 Panels (#2 Portfolio, #6 Morning Briefing, #7 Gmail, #8 Calendar, #11 FileViewer, #13 Crew SSE, #14 Baghira, #15 Kinzo)
+        if (
+          panelId === 'portfolio' ||
+          panelId === 'briefing' ||
+          panelId === 'gmail' ||
+          panelId === 'workspace' ||
+          panelId === 'calendar' ||
+          panelId === 'file-viewer' ||
+          panelId === 'crew' ||
+          panelId === 'baghira' ||
+          panelId === 'kinzo'
+        ) {
+          const panelMeta: Record<string, { title: string; kicker: string; color: string }> = {
+            portfolio: {
+              title: 'Portfolio (17 Projects Uncapped)',
+              kicker: 'PANEL #2 · ALL · ACTIVE · WAITING ON 39 · BLOCKED',
+              color: COLOUR_TOKENS.stationProjects,
+            },
+            briefing: {
+              title: 'Morning Briefing (Africa/Cairo)',
+              kicker: 'PANEL #6 · 06:00–10:30 AUTO-WINDOW · TODAY · MEETINGS · APPROVALS',
+              color: COLOUR_TOKENS.stationTasks,
+            },
+            gmail: {
+              title: 'Gmail · me@nojara.com',
+              kicker: 'PANEL #7 · SPLIT THREAD/COMPOSER · TWO-TAP 4000ms/5000ms',
+              color: COLOUR_TOKENS.cobaltAccent,
+            },
+            workspace: {
+              title: 'Google Workspace · Gmail & Drive',
+              kicker: 'PANEL #7 · OAUTH CONNECTED · TWO-TAP SAFETY',
+              color: COLOUR_TOKENS.cobaltAccent,
+            },
+            calendar: {
+              title: 'Google Calendar & Meet',
+              kicker: 'PANEL #8 · MON–SUN 09:00–19:00 WEEK GRID · TWO-TAP CREATE',
+              color: COLOUR_TOKENS.stationTasks,
+            },
+            'file-viewer': {
+              title: 'File Viewer · PDF / Doc / Sheet',
+              kicker: 'PANEL #11 · ‹ PAGE 2 / 14 › · ZOOM −/+ & IPAD PINCH',
+              color: COLOUR_TOKENS.stationFiles,
+            },
+            crew: {
+              title: 'Crew 2×2 Live SSE Streaming Grid',
+              kicker: 'PANEL #13 · DRAFT ONLY · NEEDS YOUR APPROVAL',
+              color: COLOUR_TOKENS.stationPeople,
+            },
+            baghira: {
+              title: 'Baghira [BG] · Plan + Timeline',
+              kicker: 'PANEL #14 · GANTT BARS & DEPENDENCY GATES',
+              color: COLOUR_TOKENS.stationTasks,
+            },
+            kinzo: {
+              title: 'Kinzo [KZ] · Crew-Bot Roster',
+              kicker: 'PANEL #15 · PROPOSED SPECIALIST BOTS',
+              color: COLOUR_TOKENS.stationPeople,
+            },
+          };
+          const meta = panelMeta[panelId] || panelMeta.portfolio;
+          return renderPanelFrame(
+            panelId,
+            meta.title,
+            meta.kicker,
+            meta.color,
+            posClass,
+            <WireframesV11PanelContent {...sharedV11Props} />
+          );
+        }
+
+        // 1. PROJECTS STATION PANEL (Includes Wireframes v1.1 17-Project Uncapped Filter View + Register Snapshot)
         if (panelId === 'projects') {
           return renderPanelFrame(
             'projects',
-            'Projects',
-            'HQ · SNAPSHOT FROM 23 OCT 2025 REGISTER',
+            'Projects · 17 Portfolio Workstreams',
+            'PANEL #2 · ALL · ACTIVE · WAITING ON 39 · BLOCKED',
             COLOUR_TOKENS.stationProjects,
             posClass,
             <>
-              <div className="flex items-center justify-between font-mono text-[11px] text-[#BDCBD3] px-1">
+              <WireframesV11PanelContent {...sharedV11Props} panelId="portfolio" />
+              <div className="flex items-center justify-between font-mono text-[11px] text-[#BDCBD3] px-1 pt-2 border-t border-white/15">
                 <span>4 REGISTER WORKSTREAMS · 4 SAMPLE</span>
                 <span>SELECT PROJECT TO INSPECT</span>
               </div>
@@ -924,14 +1277,14 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => e.key === 'Enter' && onSelectProject(proj.id)}
-                      className="rounded-xl p-3 border transition-colors cursor-pointer"
+                      className="rounded-lg p-3 border transition-colors cursor-pointer"
                       style={{
                         backgroundColor: isSelected
-                          ? 'rgba(76, 141, 255, 0.14)'
-                          : COLOUR_TOKENS.glassPocketRgba,
+                          ? 'rgba(20, 38, 50, 0.92)'
+                          : 'rgba(20, 38, 50, 0.72)',
                         borderColor: isSelected
-                          ? COLOUR_TOKENS.stationProjects
-                          : 'rgba(255,255,255,0.22)',
+                          ? COLOUR_TOKENS.focusRing
+                          : 'rgba(180, 221, 255, 0.16)',
                       }}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -1005,15 +1358,16 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           );
         }
 
-        // 2. PROJECT DETAIL WORKSPACE PANEL (6 Persisted Tabs: Overview, Tasks, Reviews, Meeting notes, Files, Team)
+        // 2. PROJECT DETAIL WORKSPACE PANEL (9 Wireframes v1.1 Tabs + 3 KPI Cards + 6 Register Workspace Tabs)
         if (panelId === 'project-detail') {
           return renderPanelFrame(
             'project-detail',
             `${activeProject.name} — Workspace`,
-            `PROJECT · ${activeProject.code} · ${activeProject.subdomain.toUpperCase()}`,
+            `PANEL #3 · 9 TABS & 3 KPI CARDS · ${activeProject.code}`,
             COLOUR_TOKENS.stationProjectDetail,
             posClass,
             <>
+              <WireframesV11PanelContent {...sharedV11Props} panelId="project-detail" />
               <div
                 className="rounded-xl p-3 border space-y-2"
                 style={{
@@ -1199,11 +1553,12 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
 
           return renderPanelFrame(
             'people',
-            'People & Responsibilities',
-            'HQ · TEAM ROSTER, RACI & WORK ASSIGNMENTS',
+            'People & Responsibilities (12 Crew & AI)',
+            'PANEL #12 · 39, GD, BL, RS, MU, KT, FK, NQ, WS, ZB, BG, KZ · 3939 LOCK',
             COLOUR_TOKENS.stationPeople,
             posClass,
             <>
+              <WireframesV11PanelContent {...sharedV11Props} panelId="people" />
               <div className="flex items-center gap-1 p-1 rounded-xl bg-[#101D27] border border-white/25">
                 {(['HQ', 'Team and Contracts', 'RACI'] as const).map((tab) => (
                   <button
@@ -1419,12 +1774,13 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
 
           return renderPanelFrame(
             'tasks',
-            'Tasks & Action Rollups',
-            'HQ · PARSED MINUTES, DECISIONS & ACTIONS',
+            'TaskBoard · 4 Columns & Action Rollups',
+            'PANEL #4 · TO DO · DOING · WAITING · DONE + DETAIL SHEET',
             COLOUR_TOKENS.stationTasks,
             posClass,
             <>
-              <div className="font-mono text-[11px] text-[#BDCBD3] flex items-center justify-between gap-2">
+              <WireframesV11PanelContent {...sharedV11Props} panelId="tasks" />
+              <div className="font-mono text-[11px] text-[#BDCBD3] flex items-center justify-between gap-2 pt-2 border-t border-white/15">
                 <span>
                   {urgentFilterOnly
                     ? 'URGENT ITEMS FILTER ACTIVE'
@@ -1496,7 +1852,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           );
         }
 
-        // 5. FILES STATION PANEL
+        // 5. FILES STATION PANEL (Includes Wireframes v1.1 #9 Drive Files + Google Docs & Sheets)
         if (panelId === 'files') {
           const q = fileSearchQuery.trim().toLowerCase();
           const filteredFiles = FILES_DATA.filter(
@@ -1509,12 +1865,13 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
 
           return renderPanelFrame(
             'files',
-            'Files & Documents',
-            'HQ · ALLOWLISTED WORKSPACE FILES',
+            'Drive Files · Docs & Sheets',
+            'PANEL #9 · LIVE BADGE AFTER loadDrive() · BREADCRUMB SEARCH',
             COLOUR_TOKENS.stationFiles,
             posClass,
             <>
-              <div className="space-y-1.5">
+              <WireframesV11PanelContent {...sharedV11Props} panelId="files" />
+              <div className="space-y-1.5 pt-2 border-t border-white/15">
                 <input
                   type="text"
                   value={fileSearchQuery}
@@ -1836,6 +2193,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                     <button
                       key={dim.id}
                       type="button"
+                      data-cta-id={`cde-dim-${dim.id}`}
                       onClick={() => onSelectDimension(dim.id)}
                       className="min-h-[44px] p-2 rounded-xl border text-left transition-colors cursor-pointer"
                       style={{
@@ -1874,6 +2232,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                   return (
                     <div
                       key={sub.id}
+                      data-cta-id={`cde-sub-${sub.id}`}
                       onClick={() => onSelectSubdomain(sub.id)}
                       className="rounded-xl p-3 border bg-[#101D27]/90 cursor-pointer space-y-2"
                       style={{
@@ -1936,6 +2295,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       <button
                         key={step.id}
                         type="button"
+                        data-cta-id={`cde-ch-0${step.index}`}
                         onClick={() => onSelectChapter(step.index)}
                         aria-label={`Go to chapter ${step.index}`}
                         className="h-2.5 rounded-full transition-all cursor-pointer"
@@ -2367,15 +2727,16 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           );
         }
 
-        // 13. OVERVIEW PANEL (Clean label: "Overview" instead of "I1 Insights")
+        // 13. INSIGHTS PANEL (Panel #5: "What needs you · 6 signals" with #FF5666 Blocked error red + Inspect Drawers)
         if (panelId === 'insights') {
           return renderPanelFrame(
             'insights',
-            'Overview',
-            'PORTFOLIO METRICS & SNAPSHOT SUMMARY',
+            'What needs you · 6 signals',
+            'PANEL #5 · INSIGHTS & BLOCKED SIGNALS (#FF5666)',
             COLOUR_TOKENS.stationFiles,
             posClass,
             <>
+              <WireframesV11PanelContent {...sharedV11Props} panelId="insights" />
               {insightsStatus === 'TIMEOUT' ? (
                 <div className="rounded-xl p-4 border border-[#F2B66D] bg-[#101D27] space-y-2 text-center">
                   <div className="font-mono text-xs text-[#F2B66D]">
@@ -2393,7 +2754,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                   </button>
                 </div>
               ) : (
-                <div className="space-y-2.5">
+                <div className="space-y-2.5 pt-2 border-t border-white/15">
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded-xl p-3 border border-white/20 bg-[#101D27]">
                       <div className="font-mono text-[10px] text-[#BDCBD3]">REGISTER RECORDS</div>
@@ -2410,7 +2771,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                     <div className="text-[#4C8DFF]">PORTFOLIO HEALTH BREAKDOWN</div>
                     <div className="text-[#3DDC97]">● On track: {onTrackCount} projects</div>
                     <div className="text-[#F2B66D]">▲ At risk: {atRiskCount} projects (YAH, MHE)</div>
-                    <div className="text-[#4C8DFF]">⧠ Blocked: {blockedCount} project (BSOCIAL)</div>
+                    <div className="text-[#FF5666]">⧠ Blocked: {blockedCount} project (BSOCIAL)</div>
                   </div>
                 </div>
               )}
@@ -2418,15 +2779,16 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           );
         }
 
-        // 14. SETTINGS PANEL (Clean label: "Settings" instead of "X1")
+        // 14. SETTINGS PANEL (Panel #16: General · Camera · Hands)
         if (panelId === 'settings') {
           return renderPanelFrame(
             'settings',
-            'Settings',
-            'MOTION · SOUND · LANGUAGE · PRIVACY',
+            'Settings · General · Camera · Hands',
+            'PANEL #16 · MOTION · SOUND · CAMERA SPLINE · 21-LANDMARK HAND RIG',
             COLOUR_TOKENS.cobaltAccent,
             posClass,
             <div className="space-y-3 font-mono text-xs">
+              <WireframesV11PanelContent {...sharedV11Props} panelId="settings" />
               <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#101D27] border border-white/20">
                 <span>Reduced Motion (Instant Camera Jumps)</span>
                 <button

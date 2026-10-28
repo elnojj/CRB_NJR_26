@@ -276,7 +276,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
 
   if (!active) return null;
 
-  const spawnSparklesAt = (x: number, y: number, colour = '#9AFFE0') => {
+  const spawnSparklesAt = (x: number, y: number, colour = '#36E88D') => {
     const idBase = nextSparkleId.current;
     nextSparkleId.current += 3;
     const added: SparkleParticle[] = [
@@ -303,7 +303,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
     const svgX = ((e.clientX - rect.left) / rect.width) * 1366;
     const svgY = ((e.clientY - rect.top) / rect.height) * 1024;
     if (Math.random() > 0.35) {
-      spawnSparklesAt(svgX, svgY, simRatio <= 0.22 ? COLOUR_TOKENS.stationMedia : '#9AFFE0');
+      spawnSparklesAt(svgX, svgY, simRatio <= 0.22 ? COLOUR_TOKENS.stationMedia : '#36E88D');
     }
   };
 
@@ -359,9 +359,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
     const isPinchActive = pinchLocked || activeGesture === 'pinch-orbit';
     const gloveStroke = isPinchActive
       ? COLOUR_TOKENS.stationMedia
-      : side === 'left'
-      ? '#B4DDFF'
-      : '#3FD0E0';
+      : '#36E88D';
     const fingertipLabels = ['THUMB', 'INDEX', 'MIDDLE', 'RING', 'PINKY'];
 
     const xs = pts.map((p) => p[0]);
@@ -401,7 +399,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           y1={thumbPt[1]}
           x2={indexPt[0]}
           y2={indexPt[1]}
-          stroke={isPinchActive ? COLOUR_TOKENS.stationMedia : '#9AFFE0'}
+          stroke={isPinchActive ? COLOUR_TOKENS.stationMedia : '#36E88D'}
           strokeWidth={isPinchActive ? 2.5 : 1.5}
           strokeDasharray={isPinchActive ? undefined : '4 4'}
         />
@@ -411,7 +409,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           r={isPinchActive ? 8 : 5}
           fill={isPinchActive ? COLOUR_TOKENS.stationMedia : 'none'}
           fillOpacity={isPinchActive ? 0.35 : 0}
-          stroke={isPinchActive ? COLOUR_TOKENS.stationMedia : '#9AFFE0'}
+          stroke={isPinchActive ? COLOUR_TOKENS.stationMedia : '#36E88D'}
           strokeWidth="1.8"
         />
 
@@ -463,7 +461,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                   r={13}
                   fill="#142632"
                   fillOpacity="0.7"
-                  stroke={isPinchActive && (idx === 4 || idx === 8) ? COLOUR_TOKENS.stationMedia : '#9AFFE0'}
+                  stroke={isPinchActive && (idx === 4 || idx === 8) ? COLOUR_TOKENS.stationMedia : '#36E88D'}
                   strokeWidth="2.2"
                 />
               )}
@@ -475,7 +473,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                   isFingertip
                     ? isPinchActive && (idx === 4 || idx === 8)
                       ? COLOUR_TOKENS.stationMedia
-                      : '#9AFFE0'
+                      : '#36E88D'
                     : '#4C8DFF'
                 }
                 stroke="#F2F6F8"
@@ -534,7 +532,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           <path
             d="M 410 560 A 295 295 0 0 1 956 560"
             fill="none"
-            stroke={pinchLocked ? COLOUR_TOKENS.stationMedia : '#3FD0E0'}
+            stroke={pinchLocked ? COLOUR_TOKENS.stationMedia : '#36E88D'}
             strokeOpacity="0.65"
             strokeWidth="2.5"
             strokeDasharray="8 6"
@@ -552,27 +550,34 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
 
         <div className="mt-auto mx-auto w-full max-w-4xl pointer-events-auto z-20">
           <div
-            className="rounded-2xl px-5 py-3.5 border flex flex-wrap items-center justify-between gap-4 shadow-2xl"
+            className="rounded-xl px-5 py-3.5 border flex flex-wrap items-center justify-between gap-4"
             style={{
-              backgroundColor: COLOUR_TOKENS.glassRgba,
-              borderColor: pinchLocked ? COLOUR_TOKENS.stationMedia : COLOUR_TOKENS.outlineControl,
+              backgroundColor: 'rgba(16, 29, 39, 0.84)',
+              backdropFilter: 'blur(12px) saturate(1.2)',
+              WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
+              borderColor: pinchLocked ? COLOUR_TOKENS.stationMedia : 'rgba(255, 255, 255, 0.14)',
+              boxShadow:
+                'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
             }}
           >
             <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
                 <span
-                  className="w-2.5 h-2.5 rounded-full"
+                  className="w-2 h-2 rounded-full"
                   style={{
                     backgroundColor: pinchLocked
                       ? COLOUR_TOKENS.stationMedia
-                      : COLOUR_TOKENS.voiceOrbTeal,
+                      : COLOUR_TOKENS.trackingValid,
                   }}
                 />
-                <span className="font-display font-semibold text-sm text-[#F2F6F8]">
-                  {gestureMeta[activeGesture].title}
+                <span className="font-display font-semibold text-xs tracking-[0.08em] uppercase text-[#F2F6F8]">
+                  #11 · {gestureMeta[activeGesture].title}
+                </span>
+                <span className="font-mono tabular-nums text-[10px] px-2 py-0.5 rounded bg-[#142632] text-[#36E88D] border border-white/15">
+                  LIVE
                 </span>
                 {activeNote && (
-                  <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-[#101D27] text-[#9AFFE0] border border-white/25">
+                  <span className="font-mono tabular-nums text-[11px] px-2 py-0.5 rounded bg-[#142632] text-[#B4DDFF] border border-white/15">
                     {activeNote}
                   </span>
                 )}
@@ -583,7 +588,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center rounded-lg p-0.5 bg-[#101D27] border border-white/30">
+              <div className="flex items-center rounded-lg p-0.5 bg-[#142632] border border-[rgba(180,221,255,0.16)]">
                 {(
                   [
                     { id: 'two-hands', label: 'Two Hands' },
@@ -621,8 +626,8 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                     onClick={() => onTriggerGesture(g.id)}
                     className={`min-h-[38px] px-2.5 py-1 rounded-lg font-mono text-[11px] border transition-colors cursor-pointer ${
                       activeGesture === g.id
-                        ? 'border-[#F2B66D] bg-[#F2B66D]/20 text-[#F2F6F8]'
-                        : 'border-white/25 bg-[#101D27]/70 text-[#BDCBD3] hover:text-[#F2F6F8]'
+                        ? 'border-[#36E88D] bg-[#36E88D]/20 text-[#F2F6F8]'
+                        : 'border-[rgba(180,221,255,0.16)] bg-[#142632] text-[#BDCBD3] hover:text-[#F2F6F8]'
                     }`}
                   >
                     {g.label}
@@ -633,7 +638,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
               <button
                 type="button"
                 onClick={onCloseHands}
-                className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-[11px] border border-white/35 text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer"
+                className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-[11px] border border-[rgba(180,221,255,0.16)] bg-[#142632] text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
               >
                 Exit Hands
               </button>
