@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build",
+    "build:labs": "VITE_BASE=/cro/ vite build",
     "start": "node server.ts",
     "preview": "vite preview",
+    "preview:labs": "VITE_BASE=/cro/ vite preview --base /cro/",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "deploy:labs": "npm run build:labs && npx vercel deploy --prod --yes"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

@@ -14,12 +14,26 @@ Open `http://127.0.0.1:3847/?preview=1` to skip the boot gate and auto-arm the 1
 
 **Primary HQ (spheres + dashboard + 3D optics):** `http://127.0.0.1:3847/?preview=1` or `?preview=1&blueprint=H03`.
 
+## labs.nojara.com
+
+Production target is **https://labs.nojara.com/cro/** (`/` redirects to `/cro/`).
+
+```bash
+npm run build:labs          # Vite base=/cro/
+VERCEL_TOKEN=… npm run deploy:labs
+# then alias the production URL to labs.nojara.com in the Vercel project that owns the domain
+```
+
+Requires a `VERCEL_TOKEN` for the Vercel team/project that already serves `labs.nojara.com`.
+
 ## Scripts
 
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Express + Vite middleware (tsx) |
 | `npm run build` | Production Vite build |
+| `npm run build:labs` | Production build with `base=/cro/` for labs.nojara.com |
+| `npm run deploy:labs` | Labs build + `vercel deploy --prod` |
 | `npm run lint` | Typecheck (`tsc --noEmit`) |
 | `npm start` | Run compiled/node server |
 

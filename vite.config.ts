@@ -3,8 +3,18 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
 
+/** Production asset prefix for labs.nojara.com (/cro/) or local `/`. */
+function resolveBase(): string {
+  const fromEnv = process.env.VITE_BASE?.trim();
+  if (fromEnv) {
+    return fromEnv.endsWith('/') ? fromEnv : `${fromEnv}/`;
+  }
+  return '/';
+}
+
 export default defineConfig(() => {
   return {
+    base: resolveBase(),
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

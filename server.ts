@@ -1414,10 +1414,23 @@ Return a JSON object with keys:
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*all', (_req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
+    const publicBase = (process.env.VITE_BASE || '/').replace(/\/?$/, '/') || '/';
+    const underCro = publicBase === '/cro/';
+
+    if (underCro) {
+      app.get('/', (_req, res) => {
+        res.redirect(307, '/cro/');
+      });
+      app.use('/cro', express.static(distPath));
+      app.get(['/cro', '/cro/*all'], (_req, res) => {
+        res.sendFile(path.join(distPath, 'index.html'));
+      });
+    } else {
+      app.use(express.static(distPath));
+      app.get('*all', (_req, res) => {
+        res.sendFile(path.join(distPath, 'index.html'));
+      });
+    }
   }
 
   app.listen(PORT, '0.0.0.0', () => {
