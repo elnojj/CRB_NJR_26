@@ -12,7 +12,7 @@ PORT=3847 npm run dev
 
 Open `http://127.0.0.1:3847/?preview=1` to skip the boot gate and auto-arm the 18-screen Wireframe tour.
 
-**Editorial monograph (Blueprint H03 rebrand):** `http://127.0.0.1:3847/?editorial=1` — sticky WebGL + cinematic editorial DOM (bone/carbon/silver, GSAP camera chapters, three-tier degradation). Ops HQ remains at `?preview=1&blueprint=H03`.
+**Primary HQ (spheres + dashboard + 3D optics):** `http://127.0.0.1:3847/?preview=1` or `?preview=1&blueprint=H03`.
 
 ## Scripts
 

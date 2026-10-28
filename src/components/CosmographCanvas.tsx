@@ -3598,9 +3598,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         </div>
       )}
 
-      {/* Anchored 3D Labels — DOM stand-in for renderOrder 20 Html anchors.
-          Editorial monograph keeps typography in the CSS reading layer only. */}
-      {!showReducedGraphicsFallback && !editorialMode && (
+      {/* Anchored 3D Labels — DOM stand-in for renderOrder 20 Html anchors */}
+      {!showReducedGraphicsFallback && (
         <div
           className="fixed inset-0 pointer-events-none"
           style={{ zIndex: GUI_Z_LAYERS.sceneLabels }}

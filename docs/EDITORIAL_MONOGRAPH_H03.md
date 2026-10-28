@@ -1,8 +1,8 @@
 # Monolithic Precision — Editorial Monograph (Blueprint H03)
 
 **Schema:** `cerebro.editorial.monograph/h03`  
-**Entry:** `/?editorial=1` (also `?view=editorial`, `?blueprint=H03&mode=editorial`)  
-**Exit to ops HQ:** header CTA → `/?preview=1&blueprint=H03`
+**Primary product:** full ops HQ App at `/?preview=1` (dual spheres, labels, optics, panels, voice).  
+**Optional reading shell:** `EditorialMonograph` keeps spheres + optics; not the default route.
 
 ## Dual system
 

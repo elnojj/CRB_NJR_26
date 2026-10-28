@@ -1,23 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import gsap from 'gsap';
 import { ExperienceCanvas } from '../three/ExperienceCanvas';
-import type { CameraCommandPayload, CameraTelemetry } from '../components/DualSphereCanvas';
+import type {
+  CameraAnglePresetId,
+  CameraCommandPayload,
+  CameraTelemetry,
+  CinemaLensId,
+} from '../components/DualSphereCanvas';
+import { CINEMA_LENS_PRESETS } from '../components/CosmographCanvas';
 import {
   EDITORIAL_COLOURS,
-  EDITORIAL_QUALITY,
   EDITORIAL_SECTIONS,
   editorialFallbackDataUri,
-  type EditorialCameraPose,
   type EditorialCameraPresetId,
   type EditorialQualityTier,
   type EditorialSection,
 } from '../design/editorialMonograph';
-import {
-  applyPointerParallax,
-  createEditorialPoseState,
-  describePreset,
-  tweenEditorialPose,
-} from './editorialCamera';
+import { describePreset } from './editorialCamera';
 import { PROJECTS_DATA } from '../data/sourceData';
 import '../styles/editorial-monograph.css';
 
@@ -25,6 +23,16 @@ export interface EditorialMonographProps {
   reducedMotion?: boolean;
   onExitToOps?: () => void;
 }
+
+const CHAPTER_CAMERA: Record<
+  EditorialCameraPresetId,
+  { angle: CameraAnglePresetId; lens: CinemaLensId; sphere: 'hq' | 'cde' }
+> = {
+  '01_INIT': { angle: 'eye_horizon', lens: '35mm', sphere: 'hq' },
+  '02_SURF': { angle: 'macro_close', lens: '85mm', sphere: 'hq' },
+  '03_SPEC': { angle: 'ots_core', lens: '50mm', sphere: 'hq' },
+  '04_DISP': { angle: 'gods_eye', lens: '24mm', sphere: 'hq' },
+};
 
 function cairoSessionLabel(): string {
   return new Date().toLocaleString('en-GB', {
@@ -51,11 +59,13 @@ function detectInitialTier(reducedMotion: boolean): EditorialQualityTier {
   } catch {
     return 'fallback';
   }
-  const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
-  if (typeof mem === 'number' && mem <= 4) return 'medium';
   return 'high';
 }
 
+/**
+ * Opt-in reading shell that keeps the full dual-sphere Cosmograph + labels + optics.
+ * Primary product surface remains App (ops HQ).
+ */
 export const EditorialMonograph: React.FC<EditorialMonographProps> = ({
   reducedMotion = false,
   onExitToOps,
@@ -67,14 +77,12 @@ export const EditorialMonograph: React.FC<EditorialMonographProps> = ({
     detectInitialTier(reducedMotion)
   );
   const [webglFailed, setWebglFailed] = useState(false);
-  const [poseTick, setPoseTick] = useState(0);
-  const poseRef = useRef<EditorialCameraPose>(createEditorialPoseState('01_INIT'));
-  const basePoseRef = useRef<EditorialCameraPose>(createEditorialPoseState('01_INIT'));
-  const pointerRef = useRef({ x: 0, y: 0 });
-  const parallaxToX = useRef<ReturnType<typeof gsap.quickTo> | null>(null);
-  const parallaxToY = useRef<ReturnType<typeof gsap.quickTo> | null>(null);
-  const fpsSamples = useRef<number[]>([]);
-  const lastFrame = useRef(performance.now());
+  const [telemetry, setTelemetry] = useState<CameraTelemetry | null>(null);
+  const [cameraCommand, setCameraCommand] = useState<CameraCommandPayload | null>(
+    null
+  );
+  const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+  const cmdSeq = useRef(1);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const flagged = useMemo(
@@ -85,94 +93,44 @@ export const EditorialMonograph: React.FC<EditorialMonographProps> = ({
     []
   );
 
-  const quality = EDITORIAL_QUALITY[tier === 'fallback' ? 'fallback' : tier];
   const showWebgl = tier !== 'fallback' && !webglFailed;
-  const editorialPose = poseRef.current;
 
-  const bumpPose = useCallback(() => setPoseTick((n) => (n + 1) % 1_000_000), []);
+  const dispatchCamera = useCallback(
+    (payload: Omit<CameraCommandPayload, 'id'> & { id?: number }) => {
+      cmdSeq.current += 1;
+      setCameraCommand({ ...payload, id: payload.id ?? cmdSeq.current });
+    },
+    []
+  );
 
   useEffect(() => {
     if (reducedMotion && tier === 'high') setTier('low');
   }, [reducedMotion, tier]);
 
   useEffect(() => {
-    const proxy = { x: 0, y: 0 };
-    parallaxToX.current = gsap.quickTo(proxy, 'x', {
-      duration: 0.55,
-      ease: 'power3.out',
-      onUpdate: () => {
-        pointerRef.current.x = proxy.x;
-      },
+    const map = CHAPTER_CAMERA[cameraPreset];
+    dispatchCamera({
+      verb: 'switch_sphere',
+      targetSphere: map.sphere,
     });
-    parallaxToY.current = gsap.quickTo(proxy, 'y', {
-      duration: 0.55,
-      ease: 'power3.out',
-      onUpdate: () => {
-        pointerRef.current.y = proxy.y;
-      },
-    });
+    const t1 = window.setTimeout(() => {
+      dispatchCamera({
+        verb: 'set_lens',
+        lensId: map.lens,
+        focalLengthMm: CINEMA_LENS_PRESETS[map.lens].focalMm,
+      });
+    }, 80);
+    const t2 = window.setTimeout(() => {
+      dispatchCamera({
+        verb: 'set_angle',
+        anglePreset: map.angle,
+      });
+    }, 160);
     return () => {
-      parallaxToX.current = null;
-      parallaxToY.current = null;
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
     };
-  }, []);
-
-  useEffect(() => {
-    const tween = tweenEditorialPose(poseRef.current, cameraPreset, {
-      reducedMotion: reducedMotion || tier === 'low',
-      duration: 1.7,
-      onUpdate: () => {
-        basePoseRef.current = { ...poseRef.current };
-        bumpPose();
-      },
-    });
-    return () => {
-      tween.kill();
-    };
-  }, [cameraPreset, reducedMotion, tier, bumpPose]);
-
-  useEffect(() => {
-    if (!quality.parallax || reducedMotion) return;
-    let raf = 0;
-    const loop = () => {
-      applyPointerParallax(
-        poseRef.current,
-        basePoseRef.current,
-        pointerRef.current,
-        0.42
-      );
-      bumpPose();
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, [quality.parallax, reducedMotion, bumpPose]);
-
-  useEffect(() => {
-    if (!showWebgl) return;
-    let raf = 0;
-    const sample = (now: number) => {
-      const dt = now - lastFrame.current;
-      lastFrame.current = now;
-      if (dt > 0 && dt < 1000) {
-        const fps = 1000 / dt;
-        const arr = fpsSamples.current;
-        arr.push(fps);
-        if (arr.length > 90) arr.shift();
-        if (arr.length === 90) {
-          const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
-          if (avg < 30 && tier === 'high') {
-            setTier('low');
-          } else if (avg < 40 && tier === 'high') {
-            setTier('medium');
-          }
-        }
-      }
-      raf = requestAnimationFrame(sample);
-    };
-    raf = requestAnimationFrame(sample);
-    return () => cancelAnimationFrame(raf);
-  }, [showWebgl, tier]);
+  }, [cameraPreset, dispatchCamera]);
 
   useEffect(() => {
     const nodes = EDITORIAL_SECTIONS.map((s) => sectionRefs.current[s.id]).filter(
@@ -196,32 +154,23 @@ export const EditorialMonograph: React.FC<EditorialMonographProps> = ({
     return () => io.disconnect();
   }, []);
 
-  const onPointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      if (!quality.parallax || reducedMotion) return;
-      const nx = (e.clientX / window.innerWidth) * 2 - 1;
-      const ny = (e.clientY / window.innerHeight) * 2 - 1;
-      const cx = Math.max(-0.65, Math.min(0.65, nx));
-      const cy = Math.max(-0.45, Math.min(0.45, ny));
-      parallaxToX.current?.(cx);
-      parallaxToY.current?.(cy);
+  const onSelectNode = useCallback(
+    (id: string, _nodeType: string, sphere: 'hq' | 'cde') => {
+      setFocusedNodeId(id);
+      dispatchCamera({
+        verb: 'focus_node',
+        targetNodeId: id,
+        targetSphere: sphere,
+      });
     },
-    [quality.parallax, reducedMotion]
+    [dispatchCamera]
   );
-
-  const noopTelemetry = useCallback((_t: CameraTelemetry) => {}, []);
-  const noopNode = useCallback(() => {}, []);
-  const noopTour = useCallback(() => {}, []);
-  const nullCommand = null as CameraCommandPayload | null;
-
-  void poseTick;
 
   return (
     <div
-      className="editorial-root"
+      className="editorial-root editorial-root--with-dashboard"
       data-editorial-schema="cerebro.editorial.monograph/h03"
       data-quality-tier={tier}
-      onPointerMove={onPointerMove}
     >
       <a className="editorial-skip" href="#editorial-main">
         Skip to editorial content
@@ -230,7 +179,7 @@ export const EditorialMonograph: React.FC<EditorialMonographProps> = ({
       <header className="editorial-chrome">
         <a className="editorial-mark" href="#hero">
           <strong>Cerebro</strong>
-          <span>H03 · Monolithic Precision</span>
+          <span>H03 · Spheres + dashboard</span>
         </a>
         <nav className="editorial-nav" aria-label="Chapter navigation">
           {EDITORIAL_SECTIONS.map((s) => (
@@ -253,26 +202,25 @@ export const EditorialMonograph: React.FC<EditorialMonographProps> = ({
             }
           }}
         >
-          Open ops HQ
+          Full ops HQ
         </a>
       </header>
 
-      <div className="editorial-scene" aria-hidden={showWebgl ? undefined : true}>
+      <div className="editorial-scene editorial-scene--interactive">
         {showWebgl ? (
           <ExperienceCanvas
             activeSphere="hq"
-            focusedNodeId={null}
+            focusedNodeId={focusedNodeId}
             tourHighlightId={null}
             captionBubble={null}
             reducedMotion={reducedMotion || tier === 'low'}
             forceWebglFallback={false}
-            cameraCommand={nullCommand}
-            editorialMode
-            editorialCameraPose={editorialPose}
-            editorialQualityTier={tier === 'medium' ? 'medium' : tier === 'low' ? 'low' : 'high'}
-            onSelectNode={noopNode}
-            onUserTouchPauseTour={noopTour}
-            onTelemetryChange={noopTelemetry}
+            cameraCommand={cameraCommand}
+            editorialMode={false}
+            editorialCameraPose={null}
+            onSelectNode={onSelectNode}
+            onUserTouchPauseTour={() => undefined}
+            onTelemetryChange={setTelemetry}
             onWebglUnavailable={() => {
               setWebglFailed(true);
               setTier('fallback');
@@ -286,10 +234,96 @@ export const EditorialMonograph: React.FC<EditorialMonographProps> = ({
             />
           </div>
         )}
-        <div className="editorial-veil" />
+        <div className="editorial-veil editorial-veil--light" />
       </div>
 
-      <main id="editorial-main" className="editorial-scroll">
+      {/* 3D optics / cinema specs dashboard */}
+      <div className="editorial-optics" onPointerDown={(e) => e.stopPropagation()}>
+        <div className="editorial-optics-row">
+          <strong>OPTICS</strong>
+          <span data-testid="editorial-camera-telemetry">
+            {telemetry?.focalLengthMm ?? 35}mm · FOV {telemetry?.vFovDeg ?? 37.8}° ·{' '}
+            {telemetry?.distance ?? '—'}u
+          </span>
+        </div>
+        <div className="editorial-optics-row">
+          {(
+            [
+              '14mm',
+              '24mm',
+              '35mm',
+              '50mm',
+              '85mm',
+              '100mm-macro',
+            ] as CinemaLensId[]
+          ).map((lens) => {
+            const active = (telemetry?.activeLens || '35mm') === lens;
+            return (
+              <button
+                key={lens}
+                type="button"
+                className={active ? 'is-active' : undefined}
+                onClick={() =>
+                  dispatchCamera({
+                    verb: 'set_lens',
+                    lensId: lens,
+                    focalLengthMm: CINEMA_LENS_PRESETS[lens].focalMm,
+                  })
+                }
+              >
+                {lens === '100mm-macro' ? '100mm' : lens}
+              </button>
+            );
+          })}
+        </div>
+        <div className="editorial-optics-row">
+          {(
+            [
+              { id: 'gods_eye', label: "God's Eye" },
+              { id: 'high_crane', label: 'Crane' },
+              { id: 'eye_horizon', label: 'Horizon' },
+              { id: 'low_hero', label: 'Hero Low' },
+              { id: 'macro_close', label: 'Macro' },
+              { id: 'dutch_cant', label: 'Dutch' },
+            ] as { id: CameraAnglePresetId; label: string }[]
+          ).map((ang) => {
+            const active = telemetry?.activeAnglePreset === ang.id;
+            return (
+              <button
+                key={ang.id}
+                type="button"
+                className={active ? 'is-active' : undefined}
+                onClick={() =>
+                  dispatchCamera({ verb: 'set_angle', anglePreset: ang.id })
+                }
+              >
+                {ang.label}
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() =>
+              dispatchCamera({ verb: 'switch_sphere', targetSphere: 'hq' })
+            }
+          >
+            HQ Sphere
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              dispatchCamera({ verb: 'switch_sphere', targetSphere: 'cde' })
+            }
+          >
+            CDE Sphere
+          </button>
+          <button type="button" onClick={() => dispatchCamera({ verb: 'center' })}>
+            Center
+          </button>
+        </div>
+      </div>
+
+      <main id="editorial-main" className="editorial-scroll editorial-scroll--narrow">
         {EDITORIAL_SECTIONS.map((section, index) => (
           <Chapter
             key={section.id}
@@ -305,7 +339,7 @@ export const EditorialMonograph: React.FC<EditorialMonographProps> = ({
       </main>
 
       <div className="editorial-telemetry" aria-live="polite">
-        {describePreset(cameraPreset)} · tier {tier} · {EDITORIAL_COLOURS.bone.replace('#', '')}
+        {describePreset(cameraPreset)} · spheres live · tier {tier}
       </div>
     </div>
   );
@@ -356,8 +390,8 @@ function Chapter({
               <dd>H03 · Today</dd>
             </div>
             <div className="editorial-meta-row">
-              <dt>Architecture</dt>
-              <dd>Sticky WebGL + editorial DOM</dd>
+              <dt>Scene</dt>
+              <dd>Dual spheres · labels · optics</dd>
             </div>
           </dl>
         )}
@@ -381,39 +415,22 @@ function Chapter({
                 ))}
               </ul>
             )}
-            <p
-              style={{
-                marginTop: '1rem',
-                marginBottom: 0,
-                fontSize: '0.85rem',
-                color: EDITORIAL_COLOURS.boneMuted,
-                borderTop: `1px solid ${EDITORIAL_COLOURS.rule}`,
-                paddingTop: '0.85rem',
-              }}
-            >
-              Source unavailable: live Google Calendar agenda is not connected in this
-              session. No sample agenda is shown as live.
-            </p>
           </div>
         )}
 
         {isOptics && (
           <dl className="editorial-meta">
             <div className="editorial-meta-row">
-              <dt>Key</dt>
-              <dd>#F5F3EE · 2.20</dd>
+              <dt>Renderer</dt>
+              <dd>Three.js Cosmograph · single context</dd>
             </div>
             <div className="editorial-meta-row">
-              <dt>Rim</dt>
-              <dd>#CFD7DF · 3.50</dd>
-            </div>
-            <div className="editorial-meta-row">
-              <dt>Fill</dt>
-              <dd>#1A1C1E · 0.80</dd>
+              <dt>Spheres</dt>
+              <dd>HQ [0,0,0] · CDE [38,4,-22]</dd>
             </div>
             <div className="editorial-meta-row">
               <dt>Tone</dt>
-              <dd>ACES · grain · vignette · CA</dd>
+              <dd>ACES · selective bloom · grain</dd>
             </div>
           </dl>
         )}
@@ -422,25 +439,15 @@ function Chapter({
           <div className="editorial-tier-grid">
             <article>
               <h4>Tier 1 · High fidelity</h4>
-              <p>Full PBR scene, multi-pass post, GSAP dollying, pointer parallax. DPR ≤ 2.</p>
+              <p>Full PBR dual-sphere scene with labels and optics dashboard.</p>
             </article>
             <article>
-              <h4>Tier 2 · Constrained</h4>
-              <p>Post bypassed, linear cuts, parallax off, DPR 1. Stable ≈30 FPS.</p>
-            </article>
-            <article>
-              <h4>Tier 3 · Semantic fallback</h4>
-              <p>Canvas hidden; chapter-aligned static captures; full DOM retained.</p>
+              <h4>Ops HQ</h4>
+              <p>Use Full ops HQ for panels, voice, tour, and blueprint deep-links.</p>
             </article>
           </div>
         )}
       </div>
-
-      <aside className="editorial-aside" aria-hidden="true">
-        <div className="editorial-coord">{section.camera}</div>
-        <div className="editorial-coord">{describePreset(section.camera)}</div>
-        <div className="editorial-coord">Reading layer independent of matrix projection</div>
-      </aside>
     </section>
   );
 }
