@@ -697,7 +697,7 @@ export default function App() {
     });
   }, []);
 
-  // Blueprint v2.0 deep-link: ?blueprint=H03|G3|W1…
+  // Blueprint v2.0 deep-link: ?blueprint=H03|G3|W1… (wins over auto-tour panels)
   useEffect(() => {
     if (typeof window === 'undefined' || !bootDone) return;
     const raw = new URLSearchParams(window.location.search).get('blueprint');
@@ -706,7 +706,11 @@ export default function App() {
     const spec = BLUEPRINT_SCREEN_BY_ID[id];
     if (!spec) return;
     const panelId = panelIdForBlueprintScreen(id) || spec.panelId;
-    if (panelId) ensurePanelOpen(panelId, true);
+    if (!panelId) return;
+    ensurePanelOpen(panelId, true);
+    // Re-assert after tour/boot side-effects settle.
+    const tid = window.setTimeout(() => ensurePanelOpen(panelId, true), 1200);
+    return () => window.clearTimeout(tid);
   }, [bootDone, ensurePanelOpen]);
 
   // Minimise a panel into the chip dock while preserving project, tab, scroll offset & unsent draft
@@ -2391,10 +2395,12 @@ export default function App() {
   }, [dispatchCamera, fullscreenMedia, openPanels.length, showDeveloperDrawer]);
 
   // Neural Observatory v1.1: ?preview=1 (and production) auto-starts the 18-screen Wireframe tour.
+  // Skip when ?blueprint= is present so screen deep-links remain inspectable.
   const previewTourStartedRef = useRef(false);
   useEffect(() => {
     if (typeof window === 'undefined' || !bootDone || previewTourStartedRef.current) return;
     const params = new URLSearchParams(window.location.search);
+    if (params.get('blueprint')) return;
     const wantsPreviewTour =
       params.get('preview') === '1' ||
       params.get('tour') === '1' ||
