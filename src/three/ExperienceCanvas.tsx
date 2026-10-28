@@ -14,6 +14,10 @@ import {
 import { GuiRect } from '../gui/CollisionManager';
 import { GuiCameraPresetId } from '../gui/cameraPresets';
 import { ProjectedTargetScreenCoords } from '../gui/GuiFocusOverlay';
+import type {
+  EditorialCameraPose,
+  EditorialQualityTier,
+} from '../design/editorialMonograph';
 
 export interface PortalOrbitalStation {
   id: string;
@@ -126,6 +130,10 @@ interface ExperienceCanvasProps {
   onSelectMediaTubeTile?: (tileIndex: number, item: ProjectMediaTubeItem) => void;
   onOpenMediaTubeFullView?: (tileOrIndex: number | ProjectMediaTubeItem, tile?: ProjectMediaTubeItem) => void;
   onCloseMediaTube?: () => void;
+  editorialMode?: boolean;
+  editorialCameraPose?: EditorialCameraPose | null;
+  editorialQualityTier?: Exclude<EditorialQualityTier, 'fallback'>;
+  onWebglUnavailable?: (reason: string) => void;
 }
 
 export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
@@ -153,6 +161,10 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
   onSelectMediaTubeTile,
   onOpenMediaTubeFullView,
   onCloseMediaTube,
+  editorialMode = false,
+  editorialCameraPose = null,
+  editorialQualityTier = 'high',
+  onWebglUnavailable,
 }) => {
   const osReducedMotion = useReducedMotion();
   const effectiveReducedMotion = Boolean(reducedMotion || osReducedMotion);
@@ -182,6 +194,10 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
         onSelectMediaTubeTile={onSelectMediaTubeTile}
         onOpenMediaTubeFullView={onOpenMediaTubeFullView}
         onCloseMediaTube={onCloseMediaTube}
+        editorialMode={editorialMode}
+        editorialCameraPose={editorialCameraPose}
+        editorialQualityTier={editorialQualityTier}
+        onWebglUnavailable={onWebglUnavailable}
       />
 
       {/* Reduced-Motion / Fallback Rest Sphere + Interactive 2D SVG Orbital Station Pins */}

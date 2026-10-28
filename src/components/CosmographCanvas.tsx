@@ -31,6 +31,13 @@ import {
   GUI_WORLD_MOTION_TOKENS,
   GUI_Z_LAYERS,
 } from '../gui/guiTokens';
+import {
+  EDITORIAL_LIGHTING,
+  EDITORIAL_POST,
+  EDITORIAL_QUALITY,
+  type EditorialCameraPose,
+  type EditorialQualityTier,
+} from '../design/editorialMonograph';
 import { GuiRect } from '../gui/CollisionManager';
 import { ProjectedTargetScreenCoords } from '../gui/GuiFocusOverlay';
 import { CerebroSphere, createCerebroSphere } from '../three/CerebroSphere';
@@ -357,6 +364,11 @@ export interface CosmographCanvasProps {
   onSelectMediaTubeTile?: (tileIndex: number, tile: ProjectMediaTubeItem) => void;
   onOpenMediaTubeFullView?: (tileOrIndex: ProjectMediaTubeItem | number, tile?: ProjectMediaTubeItem) => void;
   onCloseMediaTube?: () => void;
+  /** Monolithic Precision editorial mode — studio lighting, filmic post, free camera pose. */
+  editorialMode?: boolean;
+  editorialCameraPose?: EditorialCameraPose | null;
+  editorialQualityTier?: Exclude<EditorialQualityTier, 'fallback'>;
+  onWebglUnavailable?: (reason: string) => void;
 }
 
 export const HQ_CENTER = new THREE.Vector3(0, 0, 0);
@@ -626,8 +638,18 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   onSelectMediaTubeTile,
   onOpenMediaTubeFullView,
   onCloseMediaTube,
+  editorialMode = false,
+  editorialCameraPose = null,
+  editorialQualityTier = 'high',
+  onWebglUnavailable,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
+  const editorialModeRef = useRef(editorialMode);
+  const editorialPoseRef = useRef(editorialCameraPose);
+  const editorialTierRef = useRef(editorialQualityTier);
+  editorialModeRef.current = editorialMode;
+  editorialPoseRef.current = editorialCameraPose;
+  editorialTierRef.current = editorialQualityTier;
   const [labels2D, setLabels2D] = useState<AnchoredLabel2D[]>([]);
   const [webglStatus, setWebglStatus] = useState<'ACTIVE' | 'CONTEXT_LOST' | 'FALLBACK'>('ACTIVE');
   const [webglReason, setWebglReason] = useState<string>('');
@@ -1290,6 +1312,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     } catch (err) {
       setWebglStatus('FALLBACK');
       setWebglReason(err instanceof Error ? err.message : 'WebGL probe failed');
+      onWebglUnavailable?.(err instanceof Error ? err.message : 'WebGL probe failed');
       return;
     }
 
@@ -1304,20 +1327,33 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     } catch (err) {
       setWebglStatus('FALLBACK');
       setWebglReason(err instanceof Error ? err.message : 'WebGLRenderer initialization failed');
+      onWebglUnavailable?.(
+        err instanceof Error ? err.message : 'WebGLRenderer initialization failed'
+      );
       return;
     }
 
     const initW = container.clientWidth || window.innerWidth;
     const initH = container.clientHeight || window.innerHeight;
+    const editorialActive = editorialModeRef.current;
+    const editorialTier = editorialTierRef.current;
+    const editorialQuality = EDITORIAL_QUALITY[editorialTier];
 
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     // Pass 5 — ACES Filmic tone mapping / exposure (Neural Observatory v1.1)
-    renderer.toneMappingExposure = GUI_OPTICAL_SHELL_PRESET.toneMappingExposure;
-    renderer.setClearColor(0x101D27, 1);
-    // Adaptive DPR: desktop ≤1.75 · tablet ≤1.5 · phone ≤1.25
-    const dprCap =
-      initW < 768 ? 1.25 : initW < 1200 ? 1.5 : 1.75;
+    renderer.toneMappingExposure = editorialActive
+      ? EDITORIAL_LIGHTING.exposure
+      : GUI_OPTICAL_SHELL_PRESET.toneMappingExposure;
+    renderer.setClearColor(editorialActive ? EDITORIAL_LIGHTING.clear : 0x101d27, 1);
+    // Adaptive DPR: desktop ≤1.75 · tablet ≤1.5 · phone ≤1.25 (editorial caps via tier)
+    const dprCap = editorialActive
+      ? editorialQuality.dprCap
+      : initW < 768
+        ? 1.25
+        : initW < 1200
+          ? 1.5
+          : 1.75;
     renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(dprCap, window.devicePixelRatio || 1));
     renderer.setSize(initW, initH);
     renderer.domElement.id = 'cerebroWebGLCanvas';
@@ -1330,13 +1366,17 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     setWebglStatus('ACTIVE');
 
     const domEl = renderer.domElement;
-    domEl.style.touchAction = 'none';
-    domEl.style.cursor = 'grab';
+    domEl.style.touchAction = editorialActive ? 'pan-y' : 'none';
+    domEl.style.cursor = editorialActive ? 'default' : 'grab';
+    if (editorialActive) {
+      domEl.style.pointerEvents = 'none';
+    }
 
     const handleContextLost = (e: Event) => {
       e.preventDefault();
       setWebglStatus('CONTEXT_LOST');
       setWebglReason('WebGL context lost — Reduced-graphics spatial view active.');
+      onWebglUnavailable?.('WebGL context lost');
     };
 
     const handleContextRestored = () => {
@@ -1348,7 +1388,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     domEl.addEventListener('webglcontextrestored', handleContextRestored, false);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x101D27, 0.015);
+    scene.fog = new THREE.FogExp2(
+      editorialActive ? EDITORIAL_LIGHTING.clear : 0x101d27,
+      editorialActive ? EDITORIAL_LIGHTING.fogDensity : 0.015
+    );
     // Liquid Glass v7 reference A — amber particle horizon behind dual spheres
     let particleHorizon = createParticleHorizon(scene, initW);
 
@@ -1362,7 +1405,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     let composer: EffectComposer | null = null;
     let bloomPass: UnrealBloomPass | null = null;
     let cinemaPass: ShaderPass | null = null;
-    if (!isSoftwareGl) {
+    const enablePost = !isSoftwareGl && (!editorialActive || editorialQuality.post);
+    if (enablePost) {
       composer = new EffectComposer(renderer);
       const renderPass = new RenderPass(scene, camera);
       composer.addPass(renderPass);
@@ -1370,35 +1414,66 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       // Pass 2 — selective UnrealBloomPass (Fresnel / voice / pulses / valid)
       bloomPass = new UnrealBloomPass(
         new THREE.Vector2(initW, initH),
-        GUI_OPTICAL_SHELL_PRESET.bloom.strength,
-        GUI_OPTICAL_SHELL_PRESET.bloom.radius,
-        GUI_OPTICAL_SHELL_PRESET.bloom.threshold
+        editorialActive
+          ? EDITORIAL_POST.bloomStrength
+          : GUI_OPTICAL_SHELL_PRESET.bloom.strength,
+        editorialActive
+          ? EDITORIAL_POST.bloomRadius
+          : GUI_OPTICAL_SHELL_PRESET.bloom.radius,
+        editorialActive
+          ? EDITORIAL_POST.bloomThreshold
+          : GUI_OPTICAL_SHELL_PRESET.bloom.threshold
       );
       composer.addPass(bloomPass);
 
       // Passes 3–5 — CA + film grain + vignette (ACES already on renderer)
       cinemaPass = new ShaderPass(CinemaFilmGrainVignetteShader);
-      cinemaPass.uniforms.uChromaticAmount.value =
-        GUI_OPTICAL_SHELL_PRESET.chromaticAberration;
-      cinemaPass.uniforms.uGrainIntensity.value =
-        GUI_OPTICAL_SHELL_PRESET.grain.strength;
+      cinemaPass.uniforms.uChromaticAmount.value = editorialActive
+        ? EDITORIAL_POST.chromaticAberration
+        : GUI_OPTICAL_SHELL_PRESET.chromaticAberration;
+      cinemaPass.uniforms.uGrainIntensity.value = editorialActive
+        ? EDITORIAL_POST.grain
+        : GUI_OPTICAL_SHELL_PRESET.grain.strength;
+      cinemaPass.uniforms.uVignetteStrength.value = editorialActive
+        ? EDITORIAL_POST.vignette
+        : GUI_OPTICAL_SHELL_PRESET.vignetteStrength;
+      cinemaPass.uniforms.uSaturation.value = editorialActive
+        ? EDITORIAL_POST.saturation
+        : GUI_OPTICAL_SHELL_PRESET.saturation ?? 0.96;
+      cinemaPass.uniforms.uContrast.value = editorialActive
+        ? EDITORIAL_POST.contrast
+        : GUI_OPTICAL_SHELL_PRESET.contrast ?? 1.04;
       cinemaPass.renderToScreen = true;
       composer.addPass(cinemaPass);
     }
 
-    // Locked Three-Point Cinema Rig ("THE SET"):
-    // 1. Deep slate ambient fill (#142632, intensity 1.4)
-    const ambientFill = new THREE.AmbientLight(0x142632, 1.4);
+    // Locked Three-Point Cinema Rig ("THE SET") — editorial uses calibrated studio values
+    const ambientFill = new THREE.AmbientLight(
+      editorialActive ? EDITORIAL_LIGHTING.ambient.color : 0x142632,
+      editorialActive ? EDITORIAL_LIGHTING.ambient.intensity : 1.4
+    );
     scene.add(ambientFill);
 
-    // 2. Cool ivory key light (#F2F6F8, intensity 1.6 at [16, 22, 20])
-    const keyLight = new THREE.DirectionalLight(0xF2F6F8, 1.6);
-    keyLight.position.set(16, 22, 20);
+    const keyLight = new THREE.DirectionalLight(
+      editorialActive ? EDITORIAL_LIGHTING.key.color : 0xf2f6f8,
+      editorialActive ? EDITORIAL_LIGHTING.key.intensity : 1.6
+    );
+    if (editorialActive) {
+      keyLight.position.set(...EDITORIAL_LIGHTING.key.position);
+    } else {
+      keyLight.position.set(16, 22, 20);
+    }
     scene.add(keyLight);
 
-    // 3. Cobalt rim back-light (#65ACFF, intensity 1.25 at [-18, -14, -16])
-    const rimLight = new THREE.DirectionalLight(0x65ACFF, 1.25);
-    rimLight.position.set(-18, -14, -16);
+    const rimLight = new THREE.DirectionalLight(
+      editorialActive ? EDITORIAL_LIGHTING.rim.color : 0x65acff,
+      editorialActive ? EDITORIAL_LIGHTING.rim.intensity : 1.25
+    );
+    if (editorialActive) {
+      rimLight.position.set(...EDITORIAL_LIGHTING.rim.position);
+    } else {
+      rimLight.position.set(-18, -14, -16);
+    }
     scene.add(rimLight);
 
     const glassUniforms = {
@@ -2929,6 +3004,18 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         childDomainShells[cs].scale.setScalar(breathScale);
       }
 
+      // Editorial monograph: GSAP owns position + lookAt target concurrently (no spherical orbit).
+      if (editorialModeRef.current && editorialPoseRef.current) {
+        const ep = editorialPoseRef.current;
+        camera.position.set(ep.x, ep.y, ep.z);
+        camera.up.set(0, 1, 0);
+        camera.fov = ep.fov;
+        camera.updateProjectionMatrix();
+        camera.lookAt(ep.tx, ep.ty, ep.tz);
+        s.currentCenter.set(ep.tx, ep.ty, ep.tz);
+        s.radius = camera.position.distanceTo(s.currentCenter);
+        s.focalLengthMm = 24 / (2 * Math.tan((ep.fov * Math.PI) / 360));
+      } else {
       // Damped CatmullRomCurve3 spline camera interpolation (damp = 1 - Math.exp(-4.2 * dt))
       const dampFactor = s.reducedMotion ? 25 : 4.2;
       const damp = 1 - Math.exp(-dampFactor * dt);
@@ -3027,6 +3114,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         );
         camera.lookAt(_scratchVec.copy(s.currentCenter).add(s.panOffset));
       }
+      } // end non-editorial camera path
 
       // Interior Planetary Dome Mode Transition when camera.radius < 8.2u
       const isInsideDome = s.radius < 8.2;
@@ -3510,8 +3598,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         </div>
       )}
 
-      {/* Anchored 3D Labels — DOM stand-in for renderOrder 20 Html anchors */}
-      {!showReducedGraphicsFallback && (
+      {/* Anchored 3D Labels — DOM stand-in for renderOrder 20 Html anchors.
+          Editorial monograph keeps typography in the CSS reading layer only. */}
+      {!showReducedGraphicsFallback && !editorialMode && (
         <div
           className="fixed inset-0 pointer-events-none"
           style={{ zIndex: GUI_Z_LAYERS.sceneLabels }}

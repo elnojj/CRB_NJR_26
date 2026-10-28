@@ -149,7 +149,6 @@ import {
   ActionReceipt,
   CEREBRO_UI_SCHEMA_V4,
 } from './gui/runtimeRegistry';
-
 export interface SelfTestCheckResult {
   id: string;
   title: string;
