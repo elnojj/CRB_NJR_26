@@ -33,6 +33,8 @@ import {
   computeGuiLayout,
 } from '../gui/layoutEngine';
 import { GUI_GLASS_TOKENS, GUI_Z_LAYERS } from '../gui/guiTokens';
+import { SpatialMediaPanel } from './SpatialMediaPanel';
+import type { MediaFilterKind, SpatialMediaAsset } from '../media';
 
 export interface StatefulCheckpointItem extends TeamCheckpointItem {
   status?: 'Pending 39 Sign-off' | 'Approved' | 'Revision Requested' | 'Rejected';
@@ -151,6 +153,11 @@ interface PanelsOverlayProps {
   phoneSheetState?: PhoneSheetExpansion;
   onChangePhoneSheetState?: (state: PhoneSheetExpansion) => void;
   isCameraInFlight?: boolean;
+  /** Hotspot 26 Spatial Media System hooks */
+  onOpenHotspot26SpatialGrid?: () => void;
+  onOpenSpatialMediaAsset?: (asset: SpatialMediaAsset) => void;
+  onSpatialMediaFilterChange?: (kind: MediaFilterKind) => void;
+  googleAccessToken?: string | null;
 }
 
 const KNOWN_RECIPIENT_ALIASES: Record<string, string> = {
@@ -288,6 +295,10 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
   phoneSheetState: externalPhoneSheetState,
   onChangePhoneSheetState,
   isCameraInFlight = false,
+  onOpenHotspot26SpatialGrid,
+  onOpenSpatialMediaAsset,
+  onSpatialMediaFilterChange,
+  googleAccessToken = null,
 }) => {
   const [localProjectTab, setLocalProjectTab] = useState<ProjectWorkspaceTab>('tasks');
   const [phoneSheetSnap92, setPhoneSheetSnap92] = useState<boolean>(false);
@@ -1926,10 +1937,16 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           return renderPanelFrame(
             'media',
             'Media & Showreel',
-            'HQ · 5 SHOWREELS & TABUK 4K RENDERS',
+            'HQ · HOTSPOT 26 TEST + 5 SHOWREELS',
             COLOUR_TOKENS.stationMedia,
             posClass,
             <>
+              <SpatialMediaPanel
+                onOpenSpatialGrid={onOpenHotspot26SpatialGrid}
+                onOpenAsset={onOpenSpatialMediaAsset}
+                onFilterChange={onSpatialMediaFilterChange}
+                googleAccessToken={googleAccessToken}
+              />
               <div
                 className="rounded-xl p-3 border border-[#F2B66D]/50 bg-[#101D27]/95 space-y-2.5"
                 style={{ perspective: '1100px' }}

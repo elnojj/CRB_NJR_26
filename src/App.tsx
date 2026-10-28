@@ -91,6 +91,12 @@ import {
   isFullTourIntent,
 } from './utils/liveTourRegistry';
 import {
+  HOTSPOT26_COLLECTION_ID,
+  mediaRegistry,
+  type MediaFilterKind,
+  type SpatialMediaAsset,
+} from './media';
+import {
   WorkspaceAction,
   ActionResult,
   parseStructuredToolCall,
@@ -330,11 +336,15 @@ export default function App() {
     projectId: string;
     focusedTileIndex: number | null;
     savedPanels: string[];
+    filterKind?: 'all' | 'image' | 'video' | 'pdf';
+    useHotspot26?: boolean;
   }>({
     active: false,
     projectId: 'SEVEN',
     focusedTileIndex: null,
     savedPanels: [],
+    filterKind: 'all',
+    useHotspot26: false,
   });
   const [tourControllerPhase, setTourControllerPhase] = useState<TourControllerState>('idle');
   const [lastActionReceipt, setLastActionReceipt] = useState<ActionReceipt | null>(null);
@@ -1817,6 +1827,98 @@ export default function App() {
             action: 'get_page_state',
             target: manifestV4.activeScreenId,
             resultingState: manifestV4 as unknown as Record<string, unknown>,
+            operationId: opId,
+          };
+        }
+
+        case 'spatial_media': {
+          const collectionId = action.collectionId || HOTSPOT26_COLLECTION_ID;
+          const filterKind = action.filterKind || 'all';
+          if (action.action === 'close') {
+            setMediaTubeState((prev) => ({
+              ...prev,
+              active: false,
+              focusedTileIndex: null,
+              useHotspot26: false,
+            }));
+            setFullscreenMedia(null);
+            setCaptionBubble('Closed spatial media grid');
+          } else if (action.action === 'filter') {
+            setMediaTubeState((prev) => ({
+              ...prev,
+              filterKind,
+              useHotspot26: true,
+              projectId: collectionId,
+            }));
+            setCaptionBubble(`Media filter · ${filterKind}`);
+          } else if (action.action === 'open' || action.action === 'focus') {
+            const asset = action.assetId
+              ? mediaRegistry.getAsset(action.assetId)
+              : mediaRegistry.getHotspot26Assets(filterKind)[0];
+            if (asset?.localCacheUrl && asset.type === 'image') {
+              setFullscreenMedia({
+                id: asset.id,
+                title: asset.title,
+                subtitle: `Hotspot 26 Test · ${asset.type} · rights ${asset.rightsStatus}`,
+                type: 'Render JPG',
+                aspect: '16:9',
+                url: asset.localCacheUrl,
+                isSample: false,
+              });
+            }
+            setCaptionBubble(
+              asset
+                ? `Spatial media · ${asset.title} (${asset.playbackStatus}/${asset.accessStatus})`
+                : 'Spatial media asset not found'
+            );
+          } else if (action.action === 'open_grid' || action.action === 'open_collection') {
+            ensurePanelOpen('media', true);
+            setMediaTubeState({
+              active: true,
+              projectId: collectionId,
+              focusedTileIndex: 0,
+              savedPanels: [...openPanels],
+              filterKind,
+              useHotspot26: true,
+            });
+            dispatchCamera('focus_node', {
+              targetSphere: 'hq',
+              targetNodeId: 'st-media',
+            });
+            setCaptionBubble(
+              'Hotspot 26 Media Test · Spatial glass grid armed (rights pending · not a portfolio claim)'
+            );
+          } else if (action.action === 'next' || action.action === 'previous') {
+            const list = mediaRegistry.getHotspot26Assets(filterKind);
+            const cur = Math.max(0, mediaTubeState.focusedTileIndex ?? 0);
+            const next =
+              action.action === 'next'
+                ? (cur + 1) % Math.max(1, list.length)
+                : (cur - 1 + list.length) % Math.max(1, list.length);
+            setMediaTubeState((prev) => ({
+              ...prev,
+              active: true,
+              focusedTileIndex: next,
+              useHotspot26: true,
+              projectId: collectionId,
+            }));
+            setCaptionBubble(list[next]?.title || `Tile ${next + 1}`);
+          } else if (action.action === 'play' || action.action === 'pause') {
+            setCaptionBubble(
+              action.action === 'play'
+                ? 'Video play requires authorized stream proxy — Drive /view is not a stream'
+                : 'Media paused'
+            );
+          }
+          return {
+            ok: true,
+            action: `spatial_media_${action.action}`,
+            target: action.assetId || collectionId,
+            resultingState: {
+              collectionId,
+              filterKind,
+              tubeActive: mediaTubeState.active || action.action === 'open_grid',
+            },
             operationId: opId,
           };
         }
@@ -4142,6 +4244,38 @@ export default function App() {
         phoneSheetState={phoneSheetState}
         onChangePhoneSheetState={setPhoneSheetState}
         isCameraInFlight={telemetry.isMoving}
+        onOpenHotspot26SpatialGrid={() => {
+          executeTypedAction(
+            {
+              type: 'spatial_media',
+              action: 'open_grid',
+              collectionId: HOTSPOT26_COLLECTION_ID,
+            },
+            'media_panel'
+          );
+        }}
+        onOpenSpatialMediaAsset={(asset: SpatialMediaAsset) => {
+          executeTypedAction(
+            {
+              type: 'spatial_media',
+              action: 'open',
+              assetId: asset.id,
+              collectionId: HOTSPOT26_COLLECTION_ID,
+            },
+            'media_panel'
+          );
+        }}
+        onSpatialMediaFilterChange={(kind: MediaFilterKind) => {
+          executeTypedAction(
+            {
+              type: 'spatial_media',
+              action: 'filter',
+              filterKind: kind,
+              collectionId: HOTSPOT26_COLLECTION_ID,
+            },
+            'media_panel'
+          );
+        }}
       />
 
       {/* 6B. Persistent Floating 18-Screen Wireframe v1.1 Tour Scrubber Pill (Synced with VoiceCard & Stop Interrupt) */}

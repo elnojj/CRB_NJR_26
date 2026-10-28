@@ -158,6 +158,23 @@ export type WorkspaceAction =
       action: 'open' | 'close' | 'focus_tile' | 'fullview';
       projectId?: string;
       tileIndex?: number;
+    }
+  | {
+      type: 'spatial_media';
+      action:
+        | 'open_collection'
+        | 'filter'
+        | 'focus'
+        | 'open'
+        | 'close'
+        | 'next'
+        | 'previous'
+        | 'play'
+        | 'pause'
+        | 'open_grid';
+      collectionId?: string;
+      assetId?: string;
+      filterKind?: 'all' | 'image' | 'video' | 'pdf';
     };
 
 export interface ActionResult {
@@ -233,6 +250,12 @@ export function buildActionDedupeKey(action: WorkspaceAction): string {
       return `workspace_sync:${action.service}:${action.action}:${action.query || ''}`;
     case 'project_media_tube':
       return `project_media_tube:${action.action}:${action.projectId || ''}:${action.tileIndex ?? ''}`;
+    case 'spatial_media':
+      return `spatial_media:${action.action}:${action.collectionId || ''}:${action.assetId || ''}:${action.filterKind || ''}`;
+    default: {
+      const _exhaustive: never = action;
+      return `unknown:${JSON.stringify(_exhaustive)}`;
+    }
   }
 }
 
@@ -982,7 +1005,50 @@ export function parseNaturalLanguageIntent(rawInput: string): WorkspaceAction | 
   if (!trimmed) return null;
   const lower = trimmed.toLowerCase();
 
-  // 0. Direct canonical cerebro-ui/4 actionId or 3D Media Tube command
+  // 0. Direct canonical cerebro-ui/4 actionId or 3D Media Tube / Spatial Media commands
+  if (
+    lower.includes('hotspot 26') ||
+    lower.includes('hotspot26') ||
+    lower.includes('spatial media') ||
+    lower.includes('liquid glass grid') ||
+    lower.includes('open media grid') ||
+    lower.includes('show me the videos') ||
+    lower.includes('show videos') ||
+    lower.includes('filter media')
+  ) {
+    if (lower.includes('close')) {
+      return { type: 'spatial_media', action: 'close' };
+    }
+    if (lower.includes('video')) {
+      return {
+        type: 'spatial_media',
+        action: 'open_grid',
+        filterKind: 'video',
+        collectionId: 'hotspot-26-media-test',
+      };
+    }
+    if (lower.includes('image') || lower.includes('photo')) {
+      return {
+        type: 'spatial_media',
+        action: 'open_grid',
+        filterKind: 'image',
+        collectionId: 'hotspot-26-media-test',
+      };
+    }
+    if (lower.includes('pdf') || lower.includes('proposal') || lower.includes('document')) {
+      return {
+        type: 'spatial_media',
+        action: 'open_grid',
+        filterKind: 'pdf',
+        collectionId: 'hotspot-26-media-test',
+      };
+    }
+    return {
+      type: 'spatial_media',
+      action: 'open_grid',
+      collectionId: 'hotspot-26-media-test',
+    };
+  }
   if (
     lower === 'project.open_tube' ||
     lower.includes('open_project_tube') ||

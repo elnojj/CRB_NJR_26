@@ -35,6 +35,11 @@ import { GuiRect } from '../gui/CollisionManager';
 import { ProjectedTargetScreenCoords } from '../gui/GuiFocusOverlay';
 import { CerebroSphere, createCerebroSphere } from '../three/CerebroSphere';
 import { WEBGL_RENDER_ORDER } from '../three/renderOrder';
+import {
+  HOTSPOT26_COLLECTION_ID,
+  MediaGrid3D,
+  mediaRegistry,
+} from '../media';
 
 export type CinemaLensId =
   | '5mm'
@@ -323,6 +328,8 @@ export interface MediaTubeStateProp {
   projectId: string;
   focusedTileIndex: number | null;
   filterKind?: 'all' | 'image' | 'video' | 'pdf';
+  /** When true, grid binds Hotspot 26 Drive test collection textures. */
+  useHotspot26?: boolean;
 }
 
 export interface CosmographCanvasProps {
@@ -2418,94 +2425,36 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     scene.add(cometWeaveLine);
 
     // -------------------------------------------------------------------------
-    // v4.0 3D Cylindrical Project Media Tube (`project.open_tube`) inside single WebGL scene
-    // radiusU: 5.4, columns: 8, visibleRows: 3, maxMountedTiles: 24, slotSizeU: [3.2, 1.8], rowPitchU: 2.25
+    // v7.0 Spatial Media Grid (Path A · WebGL SDF glass) — same scene, no 2nd renderer
+    // Spherical wrap · pooled tiles · Hotspot 26 / project media collections
     // -------------------------------------------------------------------------
-    const mediaTubeGroup = new THREE.Group();
-    mediaTubeGroup.visible = false;
-    scene.add(mediaTubeGroup);
-
-    const mediaTubeTileMeshes: THREE.Mesh[] = [];
-    const buildTileCanvasTexture = (tile: ProjectMediaTubeItem): THREE.CanvasTexture => {
-      const c = document.createElement('canvas');
-      c.width = 320;
-      c.height = 180;
-      const ctx = c.getContext('2d');
-      if (ctx) {
-        const grad = ctx.createLinearGradient(0, 0, 320, 180);
-        grad.addColorStop(0, '#142632');
-        grad.addColorStop(1, '#101D27');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 320, 180);
-
-        // Subtle radial glow inside tile
-        const rad = ctx.createRadialGradient(160, 84, 10, 160, 84, 130);
-        rad.addColorStop(0, `${tile.accentHex}44`);
-        rad.addColorStop(1, 'rgba(16, 29, 39, 0)');
-        ctx.fillStyle = rad;
-        ctx.fillRect(0, 0, 320, 180);
-
-        // Outer glass frame
-        ctx.strokeStyle = tile.accentHex;
-        ctx.lineWidth = 3;
-        ctx.strokeRect(4, 4, 312, 172);
-
-        // Kind badge
-        ctx.fillStyle = tile.accentHex;
-        ctx.font = 'bold 13px "JetBrains Mono", monospace';
-        ctx.fillText(`${tile.kind.toUpperCase()} · #${String(tile.index + 1).padStart(2, '0')}`, 18, 30);
-
-        // Title & subtitle
-        ctx.fillStyle = '#F2F6F8';
-        ctx.font = 'bold 15px "Space Grotesk", sans-serif';
-        ctx.fillText(tile.title.slice(0, 32), 18, 96);
-        ctx.fillStyle = '#BDCBD3';
-        ctx.font = '12px "JetBrains Mono", monospace';
-        ctx.fillText(tile.subtitle, 18, 126);
-      }
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      return tex;
-    };
-
-    const initialTubeItems = buildProjectMediaTubeItems('SEVEN');
-    const [tileW, tileH] = PROJECT_MEDIA_TUBE_SPECS.slotSizeU;
-    for (let idx = 0; idx < PROJECT_MEDIA_TUBE_SPECS.maxMountedTiles; idx++) {
-      const col = idx % PROJECT_MEDIA_TUBE_SPECS.columns;
-      const row = Math.floor(idx / PROJECT_MEDIA_TUBE_SPECS.columns);
-      const theta = (col / PROJECT_MEDIA_TUBE_SPECS.columns) * Math.PI * 2;
-      const y = (1 - row) * PROJECT_MEDIA_TUBE_SPECS.rowPitchU;
-      const r = PROJECT_MEDIA_TUBE_SPECS.radiusU;
-
-      const tileGeo = new THREE.PlaneGeometry(tileW * 0.62, tileH * 0.62, 8, 1);
-      // Gently curve tile vertices along cylinder arc
-      const posAttr = tileGeo.attributes.position;
-      for (let v = 0; v < posAttr.count; v++) {
-        const vx = posAttr.getX(v);
-        const arcAngle = vx / r;
-        posAttr.setZ(v, (1 - Math.cos(arcAngle)) * r * 0.35);
-      }
-      tileGeo.computeVertexNormals();
-
-      const tileMat = new THREE.MeshBasicMaterial({
-        map: buildTileCanvasTexture(initialTubeItems[idx]),
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.94,
-      });
-
-      const tileMesh = new THREE.Mesh(tileGeo, tileMat);
-      tileMesh.position.set(Math.sin(theta) * r, y, Math.cos(theta) * r);
-      tileMesh.lookAt(0, y, 0);
-      // Flip so front face points outward/inward cleanly
-      tileMesh.rotateY(Math.PI);
-      tileMesh.userData = {
-        isMediaTubeTile: true,
-        tileIndex: idx,
-      };
-      mediaTubeGroup.add(tileMesh);
-      mediaTubeTileMeshes.push(tileMesh);
-    }
+    const spatialMediaGrid = new MediaGrid3D({
+      parent: scene,
+      radiusU: PROJECT_MEDIA_TUBE_SPECS.radiusU,
+      columns: PROJECT_MEDIA_TUBE_SPECS.columns,
+      maxTiles: PROJECT_MEDIA_TUBE_SPECS.maxMountedTiles,
+      onSelectTile: (tileIndex, assetId) => {
+        const asset = assetId ? mediaRegistry.getAsset(assetId) : null;
+        callbacksRef.current.onSelectMediaTubeTile?.(tileIndex, {
+          index: tileIndex,
+          id: assetId || `tube-slot-${tileIndex}`,
+          projectId: mediaTubeStateRef.current?.projectId || HOTSPOT26_COLLECTION_ID,
+          title: asset?.title || `Media tile ${tileIndex + 1}`,
+          subtitle: asset?.type?.toUpperCase() || 'MEDIA',
+          kind: asset?.type || 'image',
+          aspect: '16:9',
+          accentHex: '#65ACFF',
+          url: asset?.localCacheUrl || undefined,
+        });
+      },
+    });
+    const mediaTubeGroup = spatialMediaGrid.group;
+    const mediaTubeTileMeshes = spatialMediaGrid.getMeshes();
+    // Seed Hotspot 26 verified textures into the glass grid (async; non-blocking).
+    void spatialMediaGrid.bindAssets(
+      mediaRegistry.getGridPage(HOTSPOT26_COLLECTION_ID, 'all', 0, 24)
+    );
+    let lastBoundTubeProjectId: string | null = HOTSPOT26_COLLECTION_ID;
 
     if (!isSoftwareGl) {
       renderer.compile(scene, camera);
@@ -2748,16 +2697,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
           pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
           raycaster.setFromCamera(pointer, camera);
-          const tubeHits = raycaster.intersectObjects(mediaTubeTileMeshes, false);
-          if (tubeHits.length > 0) {
-            const tIdx = tubeHits[0].object.userData?.tileIndex;
-            if (typeof tIdx === 'number') {
-              const items = buildProjectMediaTubeItems(mediaTubeStateRef.current.projectId);
-              const tile = items[tIdx] || items[0];
-              soundEngine.playNodeSelect(0);
-              callbacksRef.current.onSelectMediaTubeTile?.(tIdx, tile);
-              return;
-            }
+          const picked = spatialMediaGrid.selectPicked(raycaster);
+          if (picked !== null) {
+            soundEngine.playNodeSelect(0);
+            return;
           }
         }
 
@@ -3101,44 +3044,48 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       cdeAssembly.galaxy.uniforms.uFocalDistance.value = focalDist;
       cdeAssembly.galaxy.uniforms.uAudioRms.value = liveRms;
 
-      // v4.0 3D Cylindrical Project Media Tube update & enclosing shell dimming
+      // v7.0 Spatial Media Grid (SDF glass) — dim shell, inertia, Hotspot rebind
       const tubeProp = mediaTubeStateRef.current;
       const tubeActive = Boolean(tubeProp?.active);
-      mediaTubeGroup.visible = tubeActive;
+      spatialMediaGrid.setVisible(tubeActive);
+      spatialMediaGrid.setReducedMotion(s.reducedMotion || s.stoppedExplicitly);
       if (tubeActive) {
         const activeCenter = s.activeSphere === 'cde' ? CDE_CENTER : HQ_CENTER;
-        mediaTubeGroup.position.copy(activeCenter);
+        spatialMediaGrid.setPosition(activeCenter);
 
-        // Dim enclosing sphere shell so the 3D cylindrical tube is crystal clear
+        // Dim enclosing sphere shell so the curved media grid reads clearly
         hqAssembly.frontShellMat.opacity *= 0.22;
         cdeAssembly.frontShellMat.opacity *= 0.22;
 
-        if (typeof tubeProp?.focusedTileIndex === 'number') {
-          const col = tubeProp.focusedTileIndex % PROJECT_MEDIA_TUBE_SPECS.columns;
-          const targetRotY = -((col / PROJECT_MEDIA_TUBE_SPECS.columns) * Math.PI * 2);
-          s.tubeRotationY = THREE.MathUtils.damp(s.tubeRotationY, targetRotY, 6.2, dt);
-        } else if (!s.stoppedExplicitly && !s.reducedMotion) {
-          const hoverMult =
-            s.tubeHoveredTileIdx !== null ? PROJECT_MEDIA_TUBE_SPECS.hoverSpeedMultiplier : 1.0;
-          const clampedVel = THREE.MathUtils.clamp(
-            s.tubeAngularVel * hoverMult,
-            -PROJECT_MEDIA_TUBE_SPECS.spinClampRadPerSec,
-            PROJECT_MEDIA_TUBE_SPECS.spinClampRadPerSec
-          );
-          s.tubeRotationY += clampedVel * dt;
-          s.tubeAngularVel = THREE.MathUtils.lerp(
-            s.tubeAngularVel,
-            PROJECT_MEDIA_TUBE_SPECS.idleRadPerSec,
-            1 - PROJECT_MEDIA_TUBE_SPECS.damping60Hz
-          );
+        const bindKey = tubeProp?.projectId || HOTSPOT26_COLLECTION_ID;
+        if (bindKey !== lastBoundTubeProjectId) {
+          lastBoundTubeProjectId = bindKey;
+          const useHotspot =
+            bindKey === HOTSPOT26_COLLECTION_ID ||
+            bindKey.toLowerCase().includes('hotspot');
+          if (useHotspot) {
+            void spatialMediaGrid.bindAssets(
+              mediaRegistry.getGridPage(
+                HOTSPOT26_COLLECTION_ID,
+                tubeProp?.filterKind || 'all',
+                0,
+                24
+              )
+            );
+          }
         }
-        mediaTubeGroup.rotation.y = s.tubeRotationY;
 
-        for (let ti = 0; ti < mediaTubeTileMeshes.length; ti++) {
-          const m = mediaTubeTileMeshes[ti];
-          const isFocusedTile = tubeProp?.focusedTileIndex === ti;
-          m.scale.setScalar(isFocusedTile ? 1.18 : 1.0);
+        if (typeof tubeProp?.focusedTileIndex === 'number') {
+          spatialMediaGrid.setFocusedIndex(tubeProp.focusedTileIndex);
+        } else {
+          spatialMediaGrid.setFocusedIndex(null);
         }
+
+        if (Math.abs(s.tubeAngularVel) > 0.0001) {
+          spatialMediaGrid.applyDragDelta(s.tubeAngularVel * 40);
+          s.tubeAngularVel *= PROJECT_MEDIA_TUBE_SPECS.damping60Hz;
+        }
+        spatialMediaGrid.update(dt, elapsedTotal);
       }
 
       if (cinemaPass) {
@@ -3410,6 +3357,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       window.removeEventListener('resize', onResize);
       cerebroSphereFx?.dispose();
       cerebroSphereFx = null;
+      spatialMediaGrid.dispose();
       if (composer) {
         composer.dispose();
       }

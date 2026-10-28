@@ -365,6 +365,46 @@ async function startServer() {
       checkpointFile: 'src/data/checkpoint_v1_25_0.json',
       persistenceMode,
       timestamp: new Date().toISOString(),
+      mediaSystem: 'spatial-media-v7.0-webgl-path-a',
+    });
+  });
+
+  // 1B. Hotspot 26 / Spatial Media inventory (metadata only — no private files exposed)
+  app.get('/api/media/hotspot26', (_req, res) => {
+    res.json({
+      ok: true,
+      collectionId: 'hotspot-26-media-test',
+      title: 'Hotspot 26 Media Test Collection',
+      isTestCollection: true,
+      rightsStatus: 'pending',
+      sourceFolderId: '1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh',
+      indexSheetId: '1ZIOzn4k7xSnY4vP_I78VqhtuXFa77gOUWarWDjzmnJQ',
+      inventorySnapshot: '2026-10-17',
+      recordedTotal: 129,
+      images: 78,
+      videos: 29,
+      pdf: 1,
+      metadataFiles: 21,
+      runtimeVerified: false,
+      localTextureCache: [
+        '/hotspot26/1AwlEyVCquKbWjOn4F9RVZ2P9O19a1-8V.jpeg',
+        '/hotspot26/1PoTmsJAhBEs11RTOXAaOFM6wbWCB3EBb.png',
+        '/hotspot26/1llo9eV_wnr0ahezpJB-m4wXsnVQSq_q0.png',
+        '/hotspot26/1D54jU6C1fz9w_NY5fkTxQjdnyJ5mS9Jd.png',
+        '/hotspot26/19q2qZm_ygN7HsS5R0Z1YIqILZB2qyapU.jpg',
+        '/hotspot26/1ZrQF6WKCVxjOichCz2czjI6I_t2JvdT-.png',
+      ],
+      notes: [
+        'Drive preview (/view) URLs are not video streams.',
+        'Browser playback of private Drive videos requires OAuth Bearer alt=media or a secure server proxy.',
+        'Local textures under /public/hotspot26/ were verified via authorized download for WebGL Path A.',
+        'Do not treat this test collection as a finished client portfolio.',
+      ],
+      renderPath: {
+        active: 'webgl-glsl',
+        webgpuTslEnabled: false,
+        liquidClothComputeEnabled: false,
+      },
     });
   });
 
