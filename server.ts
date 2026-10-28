@@ -1366,6 +1366,8 @@ Return a JSON object with keys:
         middlewareMode: true,
         hmr: false,
         watch: null,
+        // Cloudflare quick tunnels rewrite Host — do not block trycloudflare.com.
+        allowedHosts: true,
       },
       appType: 'spa',
     });

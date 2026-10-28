@@ -17,6 +17,11 @@ export default defineConfig(() => {
       hmr: process.env.DISABLE_HMR !== 'true',
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      // Cloudflare quick tunnels + hosted previews rewrite Host; allow them through Vite.
+      allowedHosts: true,
+    },
+    preview: {
+      allowedHosts: true,
     },
   };
 });
