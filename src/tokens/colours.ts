@@ -45,6 +45,11 @@ export const COLOUR_TOKENS = {
   trackingValid: '#36E88D',                // --token-tracking-valid (EXCLUSIVE to valid 21-landmark hand tracking, verified progress & Two-Tap Confirm)
   systemErrorRed: '#FF5666',               // --token-system-error (EXCLUSIVE to Blocked badges & Voice Stop button)
 
+  // Blueprint v2.0 proposed semantic aliases (PROPOSED — do not replace locked sacred/station tokens)
+  voiceSemanticProposed: '#78D3B2',         // Blueprint "voice" — non-orb chrome only
+  peopleSemanticProposed: '#E6A2B4',        // Blueprint "people" — human-identity accents only
+  ice: '#B4DDFF',                          // Blueprint ice ≡ focus-glow / sphereWireframe
+
   // Optical HUD Anatomy & Status helpers
   hudOuterBg: 'rgba(16, 29, 39, 0.84)',
   hudPocketBg: 'rgba(20, 38, 50, 0.72)',

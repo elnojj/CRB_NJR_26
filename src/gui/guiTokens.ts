@@ -18,17 +18,29 @@ export const GUI_AMEND_SCHEMA = 'cerebro.stellar.gui.amend/4.0';
  * Keep aliases so existing callers (`canvas`, `ambientHUD`, `voiceDock`, …) keep compiling.
  */
 export const GUI_Z_LAYERS = {
+  /** Blueprint z0 — WebGL world */
   scene: 0,
+  world: 0,
   canvas: 10,
+  /** Blueprint z10 — projected labels */
   sceneLabels: 10,
+  worldLabels: 10,
   ambientHUD: 20,
   avoidanceRing: 20,
   panels: 25,
+  /** Blueprint z30 — persistent Cerebro */
   executiveBar: 30,
+  cerebro: 30,
+  /** Blueprint z40 — work surfaces */
   stickyHeader: 40,
+  workSurfaces: 40,
+  /** Blueprint z50 — transcript + health */
   activePanel: 50,
   flyoutDrawer: 50,
+  transcriptHealth: 50,
+  /** Blueprint z60–80 — inputs / dialogs */
   mediaHost: 70,
+  inputsDialogs: 70,
   noninteractiveFocus: 90,
   focusPointer: 90,
   modalBackdrop: 100,
@@ -193,7 +205,20 @@ export const GUI_OPTICAL_SHELL_PRESET = {
   toneMappingExposure: 1.05,
 } as const;
 
-export type GuiVisualState =
+/**
+ * Canonical visual states live in visualStateMachine.ts (kebab-case).
+ * Re-export so guiTokens consumers share one enum — S04 divergence fixed.
+ */
+export {
+  type GuiVisualState,
+  type GuiCanonicalScreenId,
+  GUI_CANONICAL_SCREENS,
+  deriveVisualState,
+  deriveCanonicalScreen,
+} from './visualStateMachine';
+
+/** @deprecated Legacy underscore aliases — map to canonical GuiVisualState */
+export type GuiVisualStateLegacy =
   | 'idle'
   | 'hover'
   | 'focused'
@@ -205,94 +230,31 @@ export type GuiVisualState =
   | 'voice_listening'
   | 'error';
 
-export type GuiCanonicalScreenId =
-  | 'S01'
-  | 'S02'
-  | 'S03'
-  | 'S04'
-  | 'S05'
-  | 'S06'
-  | 'S07'
-  | 'S08'
-  | 'S09';
-
-export interface GuiCanonicalScreenSpec {
-  id: GuiCanonicalScreenId;
-  title: string;
-  cameraPreset: GuiCameraPresetId;
-  visualState: GuiVisualState;
-  description: string;
-}
-
-export const GUI_CANONICAL_SCREENS: Record<GuiCanonicalScreenId, GuiCanonicalScreenSpec> = {
-  S01: {
-    id: 'S01',
-    title: 'Universe Entry',
-    cameraPreset: 'universe',
-    visualState: 'idle',
-    description: '28mm overview (46.4° vFOV), unobstructed sphere (32% height), voice dock ready.',
-  },
-  S02: {
-    id: 'S02',
-    title: 'Sphere Hover & Target Ring',
-    cameraPreset: 'approach',
-    visualState: 'hover',
-    description: '35mm approach (37.8° vFOV), projected 3D node reticle & label pill inside centerSafe.',
-  },
-  S03: {
-    id: 'S03',
-    title: 'Station Focus & Single Panel',
-    cameraPreset: 'focused',
-    visualState: 'panel_open',
-    description: '50mm focused (27.0° vFOV), primary left slot open, sphere shifted to unobstructed rect.',
-  },
-  S04: {
-    id: 'S04',
-    title: 'Camera Flight Transition',
-    cameraPreset: 'approach',
-    visualState: 'camera_in_flight',
-    description: 'Quintic smootherstep spline flight, panels dimmed to 0.72 opacity, route indicator active.',
-  },
-  S05: {
-    id: 'S05',
-    title: 'Detail Inspection (85mm)',
-    cameraPreset: 'detail',
-    visualState: 'focused',
-    description: '85mm telephoto detail (16.1° vFOV), 78% sphere height occupancy, deep node telemetry.',
-  },
-  S06: {
-    id: 'S06',
-    title: 'Voice Active Session',
-    cameraPreset: 'focused',
-    visualState: 'voice_speaking',
-    description: '#9AFFE0 voice orb reactive shimmer, 2-line default transcript, neutral/focus Stop.',
-  },
-  S07: {
-    id: 'S07',
-    title: 'Mobile Bottom Sheet',
-    cameraPreset: 'approach',
-    visualState: 'panel_open',
-    description: '390×844 single bottom sheet (collapsed 72px / default 320px / expanded 520px) + 52px voice.',
-  },
-  S08: {
-    id: 'S08',
-    title: 'Tablet Inspector',
-    cameraPreset: 'focused',
-    visualState: 'panel_open',
-    description: '820×1180 single left inspector (304px) + bottom-right voice dock, zero overlap.',
-  },
-  S09: {
-    id: 'S09',
-    title: 'Return / Resume',
-    cameraPreset: 'approach',
-    visualState: 'landing_hold',
-    description: 'Restores bookmarked camera pose, active panel tab, scroll position, and draft state.',
-  },
+const LEGACY_VISUAL_STATE_MAP: Record<
+  string,
+  import('./visualStateMachine').GuiVisualState
+> = {
+  focused: 'selected',
+  panel_open: 'panel-open',
+  camera_in_flight: 'traveling',
+  landing_hold: 'landing',
+  voice_connecting: 'listening',
+  voice_speaking: 'speaking',
+  voice_listening: 'listening',
 };
 
+export function normalizeGuiVisualState(
+  state: string
+): import('./visualStateMachine').GuiVisualState {
+  return (
+    LEGACY_VISUAL_STATE_MAP[state] ||
+    (state as import('./visualStateMachine').GuiVisualState)
+  );
+}
+
 export interface DeriveCanonicalScreenInput {
-  explicitScreenOverride?: GuiCanonicalScreenId | null;
-  breakpoint: 'phone' | 'ipad' | 'ipad_landscape' | 'desktop' | 'wide';
+  explicitScreenOverride?: import('./visualStateMachine').GuiCanonicalScreenId | null;
+  breakpoint: 'phone' | 'ipad' | 'ipad_landscape' | 'desktop' | 'wide' | 'tablet';
   isModalOpen: boolean;
   voiceStatus: 'idle' | 'connecting' | 'connected' | 'speaking' | 'listening' | 'error';
   isCameraInFlight: boolean;
@@ -301,53 +263,4 @@ export interface DeriveCanonicalScreenInput {
   selectedNodeId: string | null;
   hoveredNodeId: string | null;
   openPanelsCount: number;
-}
-
-export function deriveVisualState(input: {
-  hasError?: boolean;
-  voiceStatus: DeriveCanonicalScreenInput['voiceStatus'];
-  isCameraInFlight: boolean;
-  isLandingHold: boolean;
-  openPanelsCount: number;
-  selectedNodeId: string | null;
-  hoveredNodeId: string | null;
-}): GuiVisualState {
-  if (input.hasError || input.voiceStatus === 'error') return 'error';
-  if (input.isCameraInFlight) return 'camera_in_flight';
-  if (input.isLandingHold) return 'landing_hold';
-  if (input.voiceStatus === 'connecting') return 'voice_connecting';
-  if (input.voiceStatus === 'speaking') return 'voice_speaking';
-  if (input.voiceStatus === 'listening') return 'voice_listening';
-  if (input.openPanelsCount > 0) return 'panel_open';
-  if (input.selectedNodeId) return 'focused';
-  if (input.hoveredNodeId) return 'hover';
-  return 'idle';
-}
-
-export function deriveCanonicalScreen(input: DeriveCanonicalScreenInput): GuiCanonicalScreenId {
-  if (input.explicitScreenOverride) {
-    return input.explicitScreenOverride;
-  }
-  if (input.isCameraInFlight) return 'S04';
-  if (input.isLandingHold) return 'S09';
-  if (
-    input.voiceStatus === 'speaking' ||
-    input.voiceStatus === 'listening' ||
-    input.voiceStatus === 'connecting'
-  ) {
-    return 'S06';
-  }
-  if (input.breakpoint === 'phone' && input.openPanelsCount > 0) {
-    return 'S07';
-  }
-  if (
-    (input.breakpoint === 'ipad' || input.breakpoint === 'ipad_landscape') &&
-    input.openPanelsCount > 0
-  ) {
-    return 'S08';
-  }
-  if (input.cameraPreset === 'detail') return 'S05';
-  if (input.openPanelsCount > 0 || input.selectedNodeId) return 'S03';
-  if (input.hoveredNodeId) return 'S02';
-  return 'S01';
 }

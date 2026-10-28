@@ -35,6 +35,7 @@ import {
 import { GUI_GLASS_TOKENS, GUI_Z_LAYERS } from '../gui/guiTokens';
 import { SpatialMediaPanel } from './SpatialMediaPanel';
 import type { MediaFilterKind, SpatialMediaAsset } from '../media';
+import { BlueprintViews, isBlueprintOwnedPanel } from '../blueprint';
 
 export interface StatefulCheckpointItem extends TeamCheckpointItem {
   status?: 'Pending 39 Sign-off' | 'Approved' | 'Revision Requested' | 'Rejected';
@@ -1196,6 +1197,51 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           onToggleHands: () => onToggleHands?.(),
           onOpenProjectMediaTube: () => onSimulateCommand?.('project.open_tube'),
         };
+
+        // Blueprint v2.0 dedicated screens (H03/H05/H07/L4–L6/G3/S2–S3/W*/X*/J*)
+        if (isBlueprintOwnedPanel(panelId)) {
+          const titleMap: Record<string, { title: string; kicker: string; color: string }> = {
+            today: { title: 'Today', kicker: 'H03 · AFRICA/CAIRO · REGISTER + CALENDAR', color: COLOUR_TOKENS.stationTasks },
+            blockers: { title: 'Blockers and risks', kicker: 'H05 · SOURCE-BACKED ONLY', color: COLOUR_TOKENS.systemErrorRed },
+            activity: { title: 'Activity', kicker: 'H07 · TIMELINE MILESTONES', color: COLOUR_TOKENS.cobaltAccent },
+            'project-edit': { title: 'Create and edit', kicker: 'L5 · LOCAL DRAFT · NO REMOTE WRITE', color: COLOUR_TOKENS.stationProjects },
+            archive: { title: 'Archive and restore', kicker: 'L6 · REGISTER SNAPSHOT', color: COLOUR_TOKENS.stationFiles },
+            'voice-result': { title: 'Action evidence', kicker: 'V3 / PM3 · RECEIPTS', color: COLOUR_TOKENS.voiceOrbMint },
+            youtube: { title: 'YouTube', kicker: 'G3 · PROVIDER EVENTS', color: COLOUR_TOKENS.stationMedia },
+            'status-words': { title: 'Status words', kicker: 'S2 · CANONICAL VOCABULARY', color: COLOUR_TOKENS.focusRing },
+            charts: { title: 'Charts and numbers', kicker: 'S3 · N/D BARS ONLY', color: COLOUR_TOKENS.trackingValid },
+            widgets: { title: 'Widget grid', kicker: 'W1 · LOCAL LAYOUT', color: COLOUR_TOKENS.cobaltAccent },
+            'widget-catalogue': { title: 'Widget catalogue', kicker: 'W2 · ALLOWED ONLY', color: COLOUR_TOKENS.cobaltAccent },
+            planning: { title: 'Planning workspace', kicker: 'X3 · MILESTONES', color: COLOUR_TOKENS.stationTasks },
+            'crew-runtime': { title: 'Crew runtime', kicker: 'X4 · NO FABRICATED PRESENCE', color: COLOUR_TOKENS.stationPeople },
+            'pdf-viewer': { title: 'PDF viewer', kicker: 'X5 · SOURCE URI REQUIRED', color: COLOUR_TOKENS.stationFiles },
+            'image-viewer': { title: 'Image viewer', kicker: 'X6 · HOTSPOT26 CACHE', color: COLOUR_TOKENS.stationMedia },
+            'audio-player': { title: 'Audio player', kicker: 'X7 · HTML AUDIO', color: COLOUR_TOKENS.stationMedia },
+            'called-in': { title: 'Called-in stack', kicker: 'J2 · INTERRUPTS', color: COLOUR_TOKENS.highlight },
+            background: { title: 'Background chooser', kicker: 'J4 · QUALITY TIERS', color: COLOUR_TOKENS.sphereWireframe },
+            upload: { title: 'Upload and classify', kicker: 'J5 · WRITE GATE', color: COLOUR_TOKENS.stationFiles },
+            'task-detail': { title: 'Task detail', kicker: 'L4 · INSPECTOR BRIDGE', color: COLOUR_TOKENS.stationTasks },
+            'crew-workspaces': { title: 'Crew workspaces', kicker: 'X2 · TEXT-ONLY AGENTS', color: COLOUR_TOKENS.stationPeople },
+          };
+          const meta = titleMap[panelId] || {
+            title: panelId,
+            kicker: 'BLUEPRINT VIEW',
+            color: COLOUR_TOKENS.cobaltAccent,
+          };
+          return renderPanelFrame(
+            panelId,
+            meta.title,
+            meta.kicker,
+            meta.color,
+            posClass,
+            <BlueprintViews
+              panelId={panelId}
+              selectedProjectId={selectedProjectId}
+              onOpenPanel={onOpenPanel}
+              onSelectProject={onSelectProject}
+            />
+          );
+        }
 
         // Dedicated Wireframes v1.1 Panels (#2 Portfolio, #6 Morning Briefing, #7 Gmail, #8 Calendar, #11 FileViewer, #13 Crew SSE, #14 Baghira, #15 Kinzo)
         if (

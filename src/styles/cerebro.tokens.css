@@ -34,6 +34,22 @@
   --token-system-error: #FF5666;                /* Strictly exclusive to Blocked insight badges & Voice Stop button */
 
   /* ------------------------------------------------------------------------
+     BLUEPRINT v2.0 PROPOSED SEMANTIC ALIASES (reconcile before replacement)
+     Locked Neural Observatory tokens remain authoritative for stations/orb.
+     ------------------------------------------------------------------------ */
+  --token-voice-semantic: #78D3B2;              /* PROPOSED: non-orb voice chrome (not voice orb) */
+  --token-people-semantic: #E6A2B4;             /* PROPOSED: human-identity accents (not station-people) */
+  --token-ice: var(--token-focus-glow);         /* Blueprint ice ≡ #B4DDFF */
+
+  /* Blueprint spatial shell z targets (DOM). WebGL scene stays at z0 via canvas stacking. */
+  --z-world: 0;
+  --z-world-labels: 10;
+  --z-cerebro: 30;
+  --z-work-surfaces: 40;
+  --z-transcript-health: 50;
+  --z-inputs-dialogs: 70;
+
+  /* ------------------------------------------------------------------------
      OPTICAL HUD ANATOMY SURFACES
      ------------------------------------------------------------------------ */
   --token-hud-outer-bg: rgba(16, 29, 39, 0.84);

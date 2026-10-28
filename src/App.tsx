@@ -129,6 +129,12 @@ import { GUI_Z_LAYERS } from './gui/guiTokens';
 import { GuiFocusOverlay, ProjectedTargetScreenCoords } from './gui/GuiFocusOverlay';
 import { runGuiLayoutSelfTests } from './gui/gui-layout.test';
 import {
+  BLUEPRINT_SCREEN_BY_ID,
+  type BlueprintScreenId,
+  panelIdForBlueprintScreen,
+} from './blueprint';
+import { cameraDirector } from './three/camera/CameraDirector';
+import {
   CEREBRO_18_TOUR_CHOREOGRAPHY,
   getTourStepsForMode,
   TourMode,
@@ -533,6 +539,25 @@ export default function App() {
     []
   );
 
+  // Blueprint CameraDirector — single travel owner; emits into existing camera command bus.
+  useEffect(() => {
+    cameraDirector.attach((payload) => {
+      if (!payload.verb) return;
+      dispatchCamera(payload.verb, {
+        targetSphere: payload.targetSphere,
+        targetNodeId: payload.targetNodeId,
+        deltaAzimuth: payload.deltaAzimuth,
+        deltaPolar: payload.deltaPolar,
+        deltaPanX: payload.deltaPanX,
+        deltaPanY: payload.deltaPanY,
+        lensId: payload.lensId,
+        focalLengthMm: payload.focalLengthMm,
+        anglePreset: payload.anglePreset,
+        loopMode: payload.loopMode,
+      });
+    });
+  }, [dispatchCamera]);
+
   const appendTranscript = useCallback(
     (speaker: '39' | 'Cerebro', text: string, toolResult?: string) => {
       // Owner Arabic addressing guard: never address owner as "39" in Arabic
@@ -671,6 +696,18 @@ export default function App() {
       return [...without, panelId].slice(-2);
     });
   }, []);
+
+  // Blueprint v2.0 deep-link: ?blueprint=H03|G3|W1…
+  useEffect(() => {
+    if (typeof window === 'undefined' || !bootDone) return;
+    const raw = new URLSearchParams(window.location.search).get('blueprint');
+    if (!raw) return;
+    const id = raw.toUpperCase() as BlueprintScreenId;
+    const spec = BLUEPRINT_SCREEN_BY_ID[id];
+    if (!spec) return;
+    const panelId = panelIdForBlueprintScreen(id) || spec.panelId;
+    if (panelId) ensurePanelOpen(panelId, true);
+  }, [bootDone, ensurePanelOpen]);
 
   // Minimise a panel into the chip dock while preserving project, tab, scroll offset & unsent draft
   const handleMinimisePanel = useCallback(
