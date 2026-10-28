@@ -685,8 +685,8 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
   // Overview Mode ("Overview" / dashboardCollapsed) — All 5 HQ Stations rendered as compact Optical HUD cards
   if (dashboardCollapsed) {
     return (
-      <div className="fixed inset-0 z-20 pointer-events-none flex flex-col md:flex-row items-start justify-between p-4 pt-20 pb-28 gap-3">
-        <div className="pointer-events-none self-start flex flex-col gap-2.5 w-full md:w-[330px]">
+      <div className="fixed inset-0 z-20 pointer-events-none flex flex-col md:flex-row items-start justify-between p-4 pt-24 pb-32 gap-3">
+        <div className="pointer-events-none self-start flex flex-col gap-2.5 w-full md:w-[min(420px,42vw)]">
           {CEREBRO_STATIONS.slice(0, 3).map((st) => (
             <div
               key={st.id}
@@ -731,7 +731,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           ))}
         </div>
 
-        <div className="pointer-events-none self-start flex flex-col gap-2.5 w-full md:w-[330px]">
+        <div className="pointer-events-none self-start flex flex-col gap-2.5 w-full md:w-[min(420px,42vw)]">
           {CEREBRO_STATIONS.slice(3).map((st) => (
             <div
               key={st.id}
@@ -882,7 +882,8 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           borderRadius: `${GUI_GLASS_TOKENS.radiusPx}px`,
           boxShadow: GUI_GLASS_TOKENS.shadow,
           opacity: isCameraInFlight ? 0.62 : 1,
-          zIndex: GUI_Z_LAYERS.panels,
+          // Above sticky telemetry (40) so titles/close stay reachable (V03).
+          zIndex: GUI_Z_LAYERS.activePanel,
           padding: 0,
         }}
       >

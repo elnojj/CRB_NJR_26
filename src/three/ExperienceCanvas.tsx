@@ -207,13 +207,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
           className="fixed inset-0 z-[7] pointer-events-none flex items-center justify-center"
         >
           <img
-            src="/cerebro/sphere_fallback_rest.png"
-            onError={(e) => {
-              const target = e.currentTarget;
-              if (target.src !== SPHERE_FALLBACK_REST_DATA_URI) {
-                target.src = SPHERE_FALLBACK_REST_DATA_URI;
-              }
-            }}
+            src={SPHERE_FALLBACK_REST_DATA_URI}
             alt="Cerebro Neural Core Sphere (Static Rest Fallback)"
             className="w-[520px] h-[520px] max-w-[78vw] max-h-[78vh] object-contain opacity-45"
           />

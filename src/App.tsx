@@ -228,6 +228,8 @@ export default function App() {
   const [audioRms, setAudioRms] = useState<number>(0);
   const [languageRtl, setLanguageRtl] = useState<'en' | 'ar'>('en');
   const [forceWebglFallback, setForceWebglFallback] = useState<boolean>(false);
+  /** Optics bar collapsed by default to avoid colliding with voice/health (V04). */
+  const [opticsExpanded, setOpticsExpanded] = useState<boolean>(false);
 
   // 1B. Unified Build Observation Portal v1.5 / Blueprint v0.2 State
   const [portalHudOpen, setPortalHudOpen] = useState<boolean>(false);
@@ -237,8 +239,9 @@ export default function App() {
   const [activeCheckpointId, setActiveCheckpointId] =
     useState<string>('CP-20261023-2131');
   const liveCheckpointId = 'CP-20261023-2131';
+  // Default Offline until a real connection event — do not imply Live on paint (V09).
   const [connectionState, setConnectionState] =
-    useState<ConnectionLivenessState>('Live');
+    useState<ConnectionLivenessState>('Disconnected');
   const [lastEventIso, setLastEventIso] = useState<string>(
     '2026-10-23T21:31:08Z'
   );
@@ -2447,7 +2450,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [dispatchCamera, fullscreenMedia, openPanels.length, showDeveloperDrawer]);
 
-  // Neural Observatory v1.1: ?preview=1 (and production) auto-starts the 18-screen Wireframe tour.
+  // Tour is intentional only: ?tour=1 or ?preview=1. Bare production hosts must not auto-start (V07).
   // Skip when ?blueprint= is present so screen deep-links remain inspectable.
   const previewTourStartedRef = useRef(false);
   useEffect(() => {
@@ -2455,9 +2458,7 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('blueprint')) return;
     const wantsPreviewTour =
-      params.get('preview') === '1' ||
-      params.get('tour') === '1' ||
-      import.meta.env.PROD;
+      params.get('preview') === '1' || params.get('tour') === '1';
     if (!wantsPreviewTour) return;
     previewTourStartedRef.current = true;
     const tid = window.setTimeout(() => {
@@ -4088,19 +4089,34 @@ export default function App() {
         </div>
       </header>
 
-      {/* 5. Compact 3D Cinema Optics & Camera Controls Bar (Bottom-Left above Voice Card) */}
+      {/* 5. Compact 3D Cinema Optics — collapsed by default (V04 collision budget) */}
       <div
         onPointerDown={(e) => e.stopPropagation()}
-        className="fixed left-4 bottom-24 z-25 pointer-events-auto hidden lg:flex flex-col gap-1.5 p-2.5 rounded-xl bg-[#101D27]/88 border border-white/20 backdrop-blur-md font-mono text-[10px] text-[#D0DCE3] max-w-[680px]"
+        className="fixed left-4 bottom-28 z-[28] pointer-events-auto hidden lg:flex flex-col gap-1.5 p-2.5 rounded-xl bg-[#101D27]/88 border border-white/20 backdrop-blur-md font-mono text-[10px] text-[#D0DCE3] max-w-[min(680px,46vw)]"
       >
-        {/* Row 1: Live Optical Telemetry & Cinema Prime / Macro Lens Selector */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-white/10">
-          <div className="flex items-center gap-1.5 text-[10px] text-[#B4DDFF]">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <button
+            type="button"
+            data-testid="optics-toggle"
+            aria-expanded={opticsExpanded}
+            onClick={() => setOpticsExpanded((v) => !v)}
+            className="flex items-center gap-1.5 text-[10px] text-[#B4DDFF] min-h-[36px] px-1 rounded-lg hover:text-[#F2F6F8] cursor-pointer"
+          >
             <span className="font-semibold text-[#F2F6F8]">OPTICS</span>
-            <span aria-hidden="true">·</span>
+            <span aria-hidden="true">{opticsExpanded ? '▾' : '▸'}</span>
             <span data-testid="camera-telemetry-readout">
               {telemetry.focalLengthMm ?? 35}mm · FOV {telemetry.vFovDeg ?? 37.8}° · {telemetry.distance}u
             </span>
+          </button>
+          {!opticsExpanded && (
+            <span className="text-[9px] text-[#7A8B96]">Camera via touch · voice · tour</span>
+          )}
+        </div>
+        {opticsExpanded && (
+        <>
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-white/10">
+          <div className="flex items-center gap-1.5 text-[10px] text-[#B4DDFF]">
+            <span className="sr-only">Lens presets</span>
           </div>
           <div className="flex flex-wrap items-center gap-1">
             {(
@@ -4259,6 +4275,8 @@ export default function App() {
             Center
           </button>
         </div>
+        </>
+        )}
       </div>
 
       {/* 6. Translucent Glass Panels Overlay (Event-Isolated from 3D Canvas) */}

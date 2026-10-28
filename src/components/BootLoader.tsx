@@ -11,7 +11,7 @@ interface BootLoaderProps {
 
 const STATUS_LINES = [
   'Preparing HQ [0,0,0] and CDE [38,4,-22] dual-sphere spatial workspace',
-  'Loading 17 Wireframes v1.1 panels, 5 HQ stations, and 4 CDE dimensions',
+  'Loading 18-screen Wireframe tour (S01–S18), 5 HQ stations, and 4 CDE dimensions',
   'Reading NOJARA project register snapshot (23 Oct 2026 · 52 records · 17 projects)',
   'Initializing 22-tool Cro-cde-google voice bridge and camera controls',
 ];

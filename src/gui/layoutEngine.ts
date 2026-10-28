@@ -82,7 +82,8 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
   if (breakpoint === 'phone') {
     const padX = 12;
     const colW = Math.max(296, width - padX * 2);
-    const headerRect: GuiRect = { x: padX, y: 12, w: colW, h: 48 };
+    // Taller reserved header so sticky telemetry does not cover panel chrome (V03).
+    const headerRect: GuiRect = { x: padX, y: 12, w: colW, h: 72 };
     const minimizedChipsRect: GuiRect = { x: padX, y: 388, w: colW, h: 36 };
 
     const isSheetExpanded = openPanels.length > 0 && phoneSheetState === 'expanded';
@@ -161,9 +162,9 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
   // ---------------------------------------------------------------------------
   if (breakpoint === 'ipad') {
     const padX = 20;
-    const headerRect: GuiRect = { x: padX, y: 16, w: width - padX * 2, h: 48 };
-    const inspectorW = 304;
-    const inspectorTop = 76;
+    const headerRect: GuiRect = { x: padX, y: 16, w: width - padX * 2, h: 72 };
+    const inspectorW = 360;
+    const inspectorTop = 96;
     const inspectorH = Math.min(648, height - inspectorTop - 120);
 
     const voiceW = Math.min(460, Math.max(320, width - (padX + inspectorW + 16) - padX));
@@ -229,9 +230,10 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
   // ---------------------------------------------------------------------------
   if (breakpoint === 'ipad_landscape') {
     const padX = 20;
-    const slotW = 288;
-    const slotTop = 76;
-    const headerRect: GuiRect = { x: padX, y: 16, w: width - padX * 2, h: 48 };
+    // Wider slots + lower top for 1180×757 audit viewport (V03/V05).
+    const slotW = 340;
+    const slotTop = 96;
+    const headerRect: GuiRect = { x: padX, y: 16, w: width - padX * 2, h: 72 };
     const voiceW = 460;
     const voiceH = params.voiceExpanded ? 240 : 72;
     const voiceRect: GuiRect = {
@@ -299,7 +301,7 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
   const isWide = breakpoint === 'wide';
   const padX = isWide ? 32 : 24;
   const headerY = 16;
-  const headerH = 48;
+  const headerH = 72;
   const headerRect: GuiRect = {
     x: padX,
     y: headerY,
@@ -307,13 +309,14 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
     h: headerH,
   };
 
-  const slotW = isWide ? 400 : 352;
-  const quadrantSlotW = isWide ? 360 : 304;
-  const slotTop = isWide ? 88 : 80;
+  const slotW = isWide ? 420 : 380;
+  const quadrantSlotW = isWide ? 360 : 320;
+  const slotTop = isWide ? 104 : 96;
   const voiceW = isWide ? 480 : 460;
   const voiceH = params.voiceExpanded ? Math.min(340, Math.round(height * 0.36)) : 76;
   const defaultVoiceX = Math.round((width - voiceW) / 2);
-  const defaultVoiceY = height - (isWide ? 24 : 20) - voiceH - kbInset;
+  // Keep voice above the project-health strip (~40px) so controls stay in-viewport (V04).
+  const defaultVoiceY = height - (isWide ? 48 : 44) - voiceH - kbInset;
 
   const dragX = Math.round(params.voiceDragDelta?.x ?? 0);
   const dragY = Math.round(params.voiceDragDelta?.y ?? 0);

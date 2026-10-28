@@ -44,11 +44,15 @@ export const BrandLockup: React.FC<BrandLockupProps> = ({
           بسم الله الرحمن الرحيم
         </span>
         <img
-          src="/assets/cerebro-wordmark.svg"
+          src={`${import.meta.env.BASE_URL}assets/cerebro-wordmark.svg`}
           alt="CEREBRO"
           width={isLoader ? 164 : 112}
           height={isLoader ? 22 : 15}
           className={`${isLoader ? 'w-[164px] h-[22px]' : 'w-[112px] h-[15px]'} object-contain shrink-0`}
+          onError={(event) => {
+            // Keep alt text visible; avoid infinite broken-image retries.
+            event.currentTarget.style.visibility = 'hidden';
+          }}
         />
       </div>
 
