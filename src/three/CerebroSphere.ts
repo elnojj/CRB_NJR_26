@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { WEBGL_RENDER_ORDER } from './renderOrder';
 
 export interface CerebroSphere {
   group: THREE.Group;
@@ -79,6 +80,9 @@ export function createCerebroSphere(
     };
 
     const sphere = new THREE.Mesh(geometry, material);
+    sphere.renderOrder = WEBGL_RENDER_ORDER.refractiveGlassShell;
+    material.depthWrite = false;
+    material.transparent = true;
     group.add(sphere);
   }
 
@@ -96,9 +100,11 @@ export function createCerebroSphere(
       transparent: true,
       opacity: 0.55,
       depthWrite: false,
+      depthTest: true,
     });
     disposables.push(tubeGeo, arcMat);
     const loop = new THREE.Mesh(tubeGeo, arcMat);
+    loop.renderOrder = WEBGL_RENDER_ORDER.orbitalRings;
     loop.rotation.x = Math.PI / 2 + i * 0.4;
     loop.rotation.z = i * 0.25;
     group.add(loop);
@@ -144,6 +150,8 @@ export function createCerebroSphere(
   });
   disposables.push(pGeo, pMat);
   const points = new THREE.Points(pGeo, pMat);
+  points.renderOrder = WEBGL_RENDER_ORDER.galaxyParticles;
+  group.renderOrder = WEBGL_RENDER_ORDER.cerebroSphereFx;
   group.add(points);
 
   if (parent) {

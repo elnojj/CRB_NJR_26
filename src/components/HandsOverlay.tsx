@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
 import { COLOUR_TOKENS } from '../tokens/colours';
 import { soundEngine } from '../utils/soundEngine';
+import { GUI_Z_LAYERS } from '../gui/guiTokens';
 
 class LowPassFilter {
   y: number | null = null;
@@ -488,9 +489,10 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
 
   return (
     <>
-      {/* Single Shared Camera Backdrop Layer */}
+      {/* Single Shared Camera Backdrop Layer — below WebGL canvas (z-10) */}
       <div
-        className="fixed inset-0 z-[1] pointer-events-none select-none overflow-hidden"
+        className="fixed inset-0 pointer-events-none select-none overflow-hidden"
+        style={{ zIndex: GUI_Z_LAYERS.scene }}
         aria-hidden="true"
       >
         <video
@@ -521,8 +523,12 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
         </svg>
       </div>
 
-      {/* Interactive Hand Rig & Control Bar */}
-      <div className="fixed inset-0 z-[15] pointer-events-none select-none flex flex-col justify-between p-4 md:p-6">
+      {/* Interactive Hand Rig & Control Bar — Neural Observatory Layer 9 (z-200) */}
+      <div
+        className="fixed inset-0 pointer-events-none select-none flex flex-col justify-between p-4 md:p-6"
+        style={{ zIndex: GUI_Z_LAYERS.handsOverlay }}
+        data-testid="hands-landmark-overlay"
+      >
         <svg
           className="fixed inset-0 w-full h-full pointer-events-auto"
           viewBox="0 0 1366 1024"

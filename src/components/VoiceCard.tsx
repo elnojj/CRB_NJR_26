@@ -699,11 +699,12 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
 
   return (
     <>
-      {/* Live Captions Overlay (180 ms fade) */}
+      {/* Live Captions Overlay (180 ms fade) — rides under voice dock */}
       <div
-        className={`fixed bottom-28 left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-opacity duration-[180ms] max-w-lg w-[92vw] text-center ${
+        className={`fixed bottom-28 left-1/2 -translate-x-1/2 pointer-events-none transition-opacity duration-[180ms] max-w-lg w-[92vw] text-center ${
           liveCaption ? 'opacity-100' : 'opacity-0'
         }`}
+        style={{ zIndex: GUI_Z_LAYERS.executiveBar }}
       >
         {liveCaption && (
           <div
@@ -723,7 +724,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         <div
           onPointerDown={(e) => e.stopPropagation()}
           onWheel={(e) => e.stopPropagation()}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#101D27]/75 backdrop-blur-md"
+          className="fixed inset-0 flex items-center justify-center p-4 bg-[#101D27]/75 backdrop-blur-md"
+          style={{ zIndex: GUI_Z_LAYERS.modalBackdrop }}
         >
           <div
             className="w-full max-w-xl rounded-xl border p-5 space-y-4 neural-reveal"

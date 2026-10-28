@@ -1,20 +1,16 @@
-# CEREBRO + CDE — NOJARA Studios (CRB_NJR_26)
+# CEREBRO + CDE — NOJARA Studios
 
 3D cosmographic project dashboard (**Cerebro HQ**) and interactive Culture & Design Engineer universe for NOJARA Studios.
-
-Imported from [`elnojj/CRB_NJR_26`](https://github.com/elnojj/CRB_NJR_26).
 
 ## Run locally
 
 ```bash
 npm install
 cp .env.example .env   # optional: set GEMINI_API_KEY / ElevenLabs keys
-npm run dev
+PORT=3847 npm run dev
 ```
 
-Default port is `3000`. Override with `PORT=3847 npm run dev`.
-
-Open `http://127.0.0.1:<PORT>`.
+Open `http://127.0.0.1:3847/?preview=1` to skip the boot gate and auto-arm the 18-screen Wireframe tour.
 
 ## Scripts
 
@@ -32,19 +28,24 @@ Copy `.env.example` → `.env`. The UI boots without live keys; Gemini / ElevenL
 - `GEMINI_API_KEY`
 - `ELEVENLABS_API_KEY` / `ELEVENLABS_AGENT_ID` (optional voice agent)
 
+## Data
+
+Canonical persistence lives under `src/data/`:
+
+- `src/data/store.json`
+- `src/data/checkpoint_v1_25_0.json`
+
 ## Stack
 
 React 19 · Vite 8 · Three.js · Express · Tailwind 4 · Motion · MediaPipe · Firebase client
 
-## GUI Upgrade v5.0 (cinematic spatial OS)
+## Neural Observatory v1.1
 
-Full-system design-system pass on the existing app (no R3F rebuild):
+Single-Auteur Spatial Cinema aesthetic with deterministic compositing:
 
-- `src/design/cerebroDesignSystem.ts` — locked palette, glass, type, render, camera, motion tokens
-- Unified liquid-glass CSS (`cerebro.tokens.css` / `cerebro-shell.css`)
-- CosmographCanvas: optical glass (IOR 1.48, metalness 0), cinematic bloom 0.24/0.9/0.35, adaptive DPR
-- Persistent voice status dock + bottom health strip (no center-scene occlusion)
-- Live tour registry (`liveTourRegistry.ts`) — “full tour” reads current CTAs / screens
-- Boot timer no longer resets on every App re-render; hosted preview skips gate by default (`?view=loader` to force)
+- **3D `mesh.renderOrder`** (`src/three/renderOrder.ts`): sky → galaxy → photosphere → glass → lattice → rings → cardiac tubes → pulse beads → HTML anchors
+- **Post pipeline**: RenderPass → UnrealBloomPass (0.45 / 0.35 / 0.82) → chromatic aberration (0.0018) + 35mm grain (0.022) → ACES exposure 1.05
+- **DOM `GUI_Z_LAYERS`**: canvas 10 → avoidance 20 → panels 25 → chrome 30 → sticky 40 → drawers 50 → modals 100 → voice 110 → hands 200 → media fullscreen 210 → toasts 300
+- **`?preview=1`**: skips boot, starts the full 18-screen tour (`start_tour` / `step_tour` / `trigger_cta`)
 
-Build id: `cerebro-gui-v5.0.0`
+Build id: `cerebro-gui-v5.0.0` · Neural Observatory contract `v1.1`

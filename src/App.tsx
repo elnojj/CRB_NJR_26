@@ -119,6 +119,7 @@ import {
   deriveCanonicalScreen,
   deriveVisualState,
 } from './gui/visualStateMachine';
+import { GUI_Z_LAYERS } from './gui/guiTokens';
 import { GuiFocusOverlay, ProjectedTargetScreenCoords } from './gui/GuiFocusOverlay';
 import { runGuiLayoutSelfTests } from './gui/gui-layout.test';
 import {
@@ -180,8 +181,9 @@ export default function App() {
         v === 'cde';
       // Hosted static previews should land in the spatial GUI, not the gate.
       const hostedPreview =
-        /\.tmp\.now$|vercel\.app$|localhost|127\.0\.0\.1/.test(window.location.hostname) &&
-        !v;
+        /\.tmp\.now$|vercel\.app$|trycloudflare\.com$|localhost|127\.0\.0\.1/.test(
+          window.location.hostname
+        ) && !v;
       if (skip || hostedPreview) return true;
       if (v && v !== 'boot' && v !== 'loader' && v !== 'keypad') {
         return true;
@@ -2249,6 +2251,29 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [dispatchCamera, fullscreenMedia, openPanels.length, showDeveloperDrawer]);
 
+  // Neural Observatory v1.1: ?preview=1 (and production) auto-starts the 18-screen Wireframe tour.
+  const previewTourStartedRef = useRef(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !bootDone || previewTourStartedRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const wantsPreviewTour =
+      params.get('preview') === '1' ||
+      params.get('tour') === '1' ||
+      import.meta.env.PROD;
+    if (!wantsPreviewTour) return;
+    previewTourStartedRef.current = true;
+    const tid = window.setTimeout(() => {
+      executeTypedAction(
+        { type: 'tour_control', action: 'start', mode: 'full-18-screen' },
+        'preview_boot'
+      );
+      setCaptionBubble(
+        'Neural Observatory v1.1 · 18-Screen Wireframe tour armed · say “tour” or “next”'
+      );
+    }, 900);
+    return () => window.clearTimeout(tid);
+  }, [bootDone, executeTypedAction]);
+
   // All 12 ?view=... URL State Inspectors + Morning Briefing 06:00–10:30 Africa/Cairo Auto-Window
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -2257,6 +2282,8 @@ export default function App() {
 
     if (!view) {
       // Check if current time in Africa/Cairo is between 06:00 and 10:30 to auto-open Panel #6 Morning Briefing
+      // Skip briefing auto-open when preview/tour mode owns the viewport.
+      if (params.get('preview') === '1' || params.get('tour') === '1') return;
       try {
         const cairoTimeStr = new Intl.DateTimeFormat('en-GB', {
           timeZone: 'Africa/Cairo',
@@ -3408,11 +3435,12 @@ export default function App() {
                 onReturnToLive={() => setActiveCheckpointId(liveCheckpointId)}
               />
 
-              {/* Primary Visual Toast AlertStack (Standing Hold #1: visual alerts primary, audio opt-in) */}
+              {/* Primary Visual Toast AlertStack — Neural Observatory Layer 11 (z-300) */}
               {alertStack.length > 0 && (
                 <div
                   data-testid="alert-stack"
-                  className="fixed top-28 right-4 z-40 flex flex-col gap-1.5 pointer-events-auto max-w-sm"
+                  className="fixed top-28 right-4 flex flex-col gap-1.5 pointer-events-auto max-w-sm"
+                  style={{ zIndex: GUI_Z_LAYERS.systemToast }}
                 >
                   {alertStack.map((al) => (
                     <div
@@ -3440,7 +3468,10 @@ export default function App() {
 
               {/* Non-Blocking Tracker-First Portal HUD Regions */}
               {portalHudOpen && (
-                <div className="fixed inset-x-4 top-28 bottom-28 z-30 pointer-events-none flex flex-col gap-3 overflow-hidden">
+                <div
+                  className="fixed inset-x-4 top-28 bottom-28 pointer-events-none flex flex-col gap-3 overflow-hidden"
+                  style={{ zIndex: GUI_Z_LAYERS.executiveBar }}
+                >
                   <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 pointer-events-none overflow-hidden">
                     <div className="lg:col-span-7 h-full min-h-0 pointer-events-auto overflow-hidden">
                       <BlueprintMap
@@ -3498,7 +3529,10 @@ export default function App() {
               )}
 
               {visualFeedbackOpen && (
-                <div className="fixed inset-0 z-50 bg-[#101D27]/80 backdrop-blur-sm flex items-center justify-center p-4 pointer-events-auto">
+                <div
+                  className="fixed inset-0 bg-[#101D27]/80 backdrop-blur-sm flex items-center justify-center p-4 pointer-events-auto"
+                  style={{ zIndex: GUI_Z_LAYERS.modalBackdrop }}
+                >
                   <div className="w-full max-w-3xl">
                     <VisualFeedbackMap
                       projectId={selectedProjectId}
@@ -3539,8 +3573,12 @@ export default function App() {
         })()}
       </TrackerMotionProvider>
 
-      {/* 4. Compact Top Workspace Header — Progressive Disclosure, Clean Product Labels & Back Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-30 pointer-events-none flex flex-wrap items-center justify-between gap-2 px-3 md:px-5 pt-3 pb-2 safe-area-top">
+      {/* 4. Sticky Telemetry Header — Neural Observatory Layer 5 (z-40) */}
+      <header
+        className="fixed top-0 left-0 right-0 pointer-events-none flex flex-wrap items-center justify-between gap-2 px-3 md:px-5 pt-3 pb-2 safe-area-top"
+        style={{ zIndex: GUI_Z_LAYERS.stickyHeader }}
+        data-testid="sticky-telemetry-header"
+      >
         {/* Top-Left: Bismillah + CEREBRO Lockup + HQ / CDE Switcher + Back Button */}
         <div className="pointer-events-none flex items-center gap-2 flex-wrap max-w-full">
           <div className="pointer-events-auto px-3 py-1.5 rounded-xl bg-[#101D27]/90 border border-white/25 backdrop-blur-md">

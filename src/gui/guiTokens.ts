@@ -13,22 +13,33 @@ export const GUI_AMEND_SCHEMA = 'cerebro.stellar.gui.amend/4.0';
  * Z-Layer Hierarchy (Section 10.6 of `CEREBRO_CDE_UNIFIED_AMEND_v4.json`)
  * Preserves backward-compatible aliases (`canvas`, `ambientHUD`, `focusPointer`, `voiceDock`, etc.).
  */
+/**
+ * Neural Observatory v1.1 — 2D DOM stacking context (Section C).
+ * Keep aliases so existing callers (`canvas`, `ambientHUD`, `voiceDock`, …) keep compiling.
+ */
 export const GUI_Z_LAYERS = {
   scene: 0,
-  canvas: 0,
+  canvas: 10,
   sceneLabels: 10,
-  ambientHUD: 10,
-  panels: 40,
+  ambientHUD: 20,
+  avoidanceRing: 20,
+  panels: 25,
+  executiveBar: 30,
+  stickyHeader: 40,
   activePanel: 50,
+  flyoutDrawer: 50,
   mediaHost: 70,
   noninteractiveFocus: 90,
   focusPointer: 90,
+  modalBackdrop: 100,
+  confirmationDialog: 100,
+  modalContent: 100,
   voice: 110,
   voiceDock: 110,
   emergencyStop: 115,
-  modalBackdrop: 125,
-  confirmationDialog: 130,
-  modalContent: 130,
+  handsOverlay: 200,
+  mediaFullscreenChrome: 210,
+  systemToast: 300,
 } as const;
 
 export const GUI_PALETTE_ROLES = {
@@ -155,28 +166,31 @@ export const GUI_WORLD_MOTION_TOKENS = {
 } as const;
 
 export const GUI_OPTICAL_SHELL_PRESET = {
-  // CEREBRO GUI Upgrade v5.0 cinematic glass (physically coherent optical shell).
+  // Neural Observatory v1.1 cinematic glass (physically coherent optical shell).
   ior: 1.48,
-  roughness: 0.09,
+  roughness: 0.07, // HQ 0.06 · CDE 0.08 (midpoint for shared presets)
+  roughnessHq: 0.06,
+  roughnessCde: 0.08,
   transmission: 0.88,
   thickness: 1.1,
   clearcoat: 0.8,
   clearcoatRoughness: 0.06,
   bloom: {
-    // Threshold-based bloom — v5.0 cinematic grade (not per-object selective).
-    strength: 0.24,
+    // Neural Observatory v1.1 selective bloom — Fresnel / voice / pulses / valid only.
+    strength: 0.45,
     radius: 0.35,
-    threshold: 0.9,
+    threshold: 0.82,
   },
   grain: {
-    strength: 0.025,
+    strength: 0.022,
     seedUpdatesHz: 24,
     pauseOnStop: true,
     pauseOnReducedMotion: true,
     monochromatic: true,
   },
-  chromaticAberration: 0,
+  chromaticAberration: 0.0018,
   vignetteStrength: 0.14,
+  toneMappingExposure: 1.05,
 } as const;
 
 export type GuiVisualState =

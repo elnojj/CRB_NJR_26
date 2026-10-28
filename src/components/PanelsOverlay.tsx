@@ -543,9 +543,12 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
         onPointerDown={(e) => e.stopPropagation()}
         onWheel={(e) => e.stopPropagation()}
         className="fixed inset-0 flex flex-col justify-between p-5 md:p-8 neural-reveal"
-        style={{ backgroundColor: '#05090E', zIndex: GUI_Z_LAYERS.modalContent }}
+        style={{ backgroundColor: '#05090E', zIndex: GUI_Z_LAYERS.mediaFullscreenChrome }}
       >
-        <div className="flex items-center justify-between gap-4 z-10 flex-wrap">
+        <div
+          className="flex items-center justify-between gap-4 flex-wrap"
+          style={{ zIndex: GUI_Z_LAYERS.mediaFullscreenChrome }}
+        >
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -1011,7 +1014,8 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           top: `${effectiveGuiLayout.centerSafeRect.y}px`,
           width: `${effectiveGuiLayout.centerSafeRect.w}px`,
           height: `${effectiveGuiLayout.centerSafeRect.h}px`,
-          zIndex: GUI_Z_LAYERS.ambientHUD,
+          zIndex: GUI_Z_LAYERS.avoidanceRing,
+          pointerEvents: 'none',
         }}
       />
 

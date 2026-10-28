@@ -29,10 +29,12 @@ import {
   GUI_OPTICAL_SHELL_PRESET,
   GUI_TIMING_TOKENS,
   GUI_WORLD_MOTION_TOKENS,
+  GUI_Z_LAYERS,
 } from '../gui/guiTokens';
 import { GuiRect } from '../gui/CollisionManager';
 import { ProjectedTargetScreenCoords } from '../gui/GuiFocusOverlay';
 import { CerebroSphere, createCerebroSphere } from '../three/CerebroSphere';
+import { WEBGL_RENDER_ORDER } from '../three/renderOrder';
 
 export type CinemaLensId =
   | '5mm'
@@ -369,18 +371,18 @@ const _scratchForward = new THREE.Vector3();
 const _scratchColor = new THREE.Color();
 
 /**
- * Post-Processing Custom Cinema ShaderPass (v4.0):
- * - 2.5% monochromatic grain updated at 24Hz (paused when stopped or reduced-motion)
- * - 0% radial chromatic aberration (keeps UI & 3D text razor sharp)
- * - Controlled dark navy vignette (#05090E, strength 0.14)
+ * Neural Observatory v1.1 post-process (Passes 3–5):
+ * - Refractive chromatic aberration (smoked-glass edge dispersion, offset 0.0018)
+ * - 35mm anamorphic monochromatic film grain @ 24Hz (opacity 0.022)
+ * - Dark navy vignette + ACES exposure already set on the renderer
  */
 const CinemaFilmGrainVignetteShader = {
   uniforms: {
     tDiffuse: { value: null },
     uTime: { value: 0.0 },
-    uGrainIntensity: { value: 0.025 },
-    uChromaticAmount: { value: 0.0 },
-    uVignetteStrength: { value: 0.14 },
+    uGrainIntensity: { value: GUI_OPTICAL_SHELL_PRESET.grain.strength },
+    uChromaticAmount: { value: GUI_OPTICAL_SHELL_PRESET.chromaticAberration },
+    uVignetteStrength: { value: GUI_OPTICAL_SHELL_PRESET.vignetteStrength },
   },
   vertexShader: `
     varying vec2 vUv;
@@ -406,19 +408,26 @@ const CinemaFilmGrainVignetteShader = {
     void main() {
       vec2 dir = vUv - 0.5;
       float dist = length(dir);
-      vec4 baseCol = texture2D(tDiffuse, vUv);
 
-      // Controlled dark navy vignette (#05090E, v4.0 strength 0.14)
+      // Pass 3 — refractive chromatic aberration (edge-weighted)
+      float ca = uChromaticAmount * smoothstep(0.15, 0.72, dist);
+      vec2 caDir = dist > 0.0001 ? normalize(dir) : vec2(0.0);
+      float r = texture2D(tDiffuse, vUv + caDir * ca).r;
+      float g = texture2D(tDiffuse, vUv).g;
+      float b = texture2D(tDiffuse, vUv - caDir * ca).b;
+      vec3 graded = vec3(r, g, b);
+
+      // Controlled dark navy vignette (#05090E)
       float vig = smoothstep(0.34, 0.88, dist);
       vec3 navyVignette = vec3(0.0196, 0.0353, 0.0549);
-      vec3 graded = mix(baseCol.rgb, navyVignette, vig * uVignetteStrength);
+      graded = mix(graded, navyVignette, vig * uVignetteStrength);
 
-      // 2.5% monochromatic film grain quantized at 24Hz
+      // Pass 4 — 35mm anamorphic micro-grain @ 24Hz
       float quantizedTime = floor(uTime * 24.0) / 24.0;
       float grain = (hash12(vUv * 512.0 + vec2(quantizedTime * 37.0, -quantizedTime * 23.0)) - 0.5) * uGrainIntensity;
       graded += vec3(grain);
 
-      gl_FragColor = vec4(clamp(graded, 0.0, 1.0), baseCol.a);
+      gl_FragColor = vec4(clamp(graded, 0.0, 1.0), 1.0);
     }
   `,
 };
@@ -572,7 +581,7 @@ function buildLiquidGlassGalaxySphere(
   });
 
   const points = new THREE.Points(geo, mat);
-  points.renderOrder = 1;
+  points.renderOrder = WEBGL_RENDER_ORDER.galaxyParticles;
   parentGroup.add(points);
   return { points, uniforms };
 }
@@ -1286,14 +1295,16 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.12;
+    // Pass 5 — ACES Filmic tone mapping / exposure (Neural Observatory v1.1)
+    renderer.toneMappingExposure = GUI_OPTICAL_SHELL_PRESET.toneMappingExposure;
     renderer.setClearColor(0x101D27, 1);
-    // v5.0 adaptive DPR: desktop ≤1.75 · tablet ≤1.5 · phone ≤1.25
+    // Adaptive DPR: desktop ≤1.75 · tablet ≤1.5 · phone ≤1.25
     const dprCap =
       initW < 768 ? 1.25 : initW < 1200 ? 1.5 : 1.75;
     renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(dprCap, window.devicePixelRatio || 1));
     renderer.setSize(initW, initH);
-    renderer.toneMappingExposure = 1.0;
+    renderer.domElement.id = 'cerebroWebGLCanvas';
+    renderer.domElement.style.zIndex = String(GUI_Z_LAYERS.canvas);
     renderer.shadowMap.enabled = !isSoftwareGl;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -1337,7 +1348,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const renderPass = new RenderPass(scene, camera);
       composer.addPass(renderPass);
 
-      // Threshold-based bloom (Blueprint V2.0 proposed tuning — not true per-object selective bloom).
+      // Pass 2 — selective UnrealBloomPass (Fresnel / voice / pulses / valid)
       bloomPass = new UnrealBloomPass(
         new THREE.Vector2(initW, initH),
         GUI_OPTICAL_SHELL_PRESET.bloom.strength,
@@ -1346,7 +1357,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       );
       composer.addPass(bloomPass);
 
+      // Passes 3–5 — CA + film grain + vignette (ACES already on renderer)
       cinemaPass = new ShaderPass(CinemaFilmGrainVignetteShader);
+      cinemaPass.uniforms.uChromaticAmount.value =
+        GUI_OPTICAL_SHELL_PRESET.chromaticAberration;
+      cinemaPass.uniforms.uGrainIntensity.value =
+        GUI_OPTICAL_SHELL_PRESET.grain.strength;
       cinemaPass.renderToScreen = true;
       composer.addPass(cinemaPass);
     }
@@ -1426,6 +1442,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         thickness: 1.4,
         side: THREE.BackSide,
         depthWrite: false,
+        depthTest: true,
         wireframe: matColors.wireframeOnly,
       });
 
@@ -1433,10 +1450,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       // Sphere 01 (CEREBRO HQ): Cool Cobalt Refractive Liquid Glass (#4C8DFF, roughness: 0.06, opacity: 0.42, Fresnel rim #B4DDFF)
       // Sphere 02 (CDE UNIVERSE): Warm Amber Caustic Crystal (#F2B66D, roughness: 0.08, opacity: 0.46, rim #FFF1D4)
       const baseShellOpacity = isHq ? 0.42 : 0.46;
-      // HQ uses Blueprint V2.0 glass (transmission 0.92 / thickness 1.4 / ior 1.45).
+      // Neural Observatory v1.1: HQ roughness 0.06 · CDE roughness 0.08 · transmission 0.88.
       const baseShellRoughness = isHq
-        ? GUI_OPTICAL_SHELL_PRESET.roughness
-        : 0.09;
+        ? GUI_OPTICAL_SHELL_PRESET.roughnessHq
+        : GUI_OPTICAL_SHELL_PRESET.roughnessCde;
       const frontShellMat = new THREE.MeshPhysicalMaterial({
         color: new THREE.Color(resolvedShellHex),
         transmission: isSoftwareGl
@@ -1470,6 +1487,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             }),
         side: THREE.FrontSide,
         depthWrite: false,
+        depthTest: true,
         wireframe: matColors.wireframeOnly,
       });
 
@@ -1530,11 +1548,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       injectCausticShader(frontShellMat, false);
 
       const backShellMesh = new THREE.Mesh(shellGeo, backShellMat);
-      backShellMesh.renderOrder = 1;
+      backShellMesh.renderOrder = WEBGL_RENDER_ORDER.refractiveGlassShell;
       shellGroup.add(backShellMesh);
 
       const frontShellMesh = new THREE.Mesh(shellGeo, frontShellMat);
-      frontShellMesh.renderOrder = 3;
+      frontShellMesh.renderOrder = WEBGL_RENDER_ORDER.refractiveGlassShell;
       shellGroup.add(frontShellMesh);
 
       // Interior Planetary Dome Constellation / Hex Horizon Grid (visible when camera.radius < 8.2u)
@@ -1548,6 +1566,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         depthWrite: false,
       });
       const domeGridLines = new THREE.LineSegments(domeEdges, domeGridMat);
+      domeGridLines.renderOrder = WEBGL_RENDER_ORDER.geodesicLattice;
+      domeGridGroup.renderOrder = WEBGL_RENDER_ORDER.geodesicLattice;
       domeGridGroup.add(domeGridLines);
       shellGroup.add(domeGridGroup);
 
@@ -1580,17 +1600,20 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         blending: THREE.AdditiveBlending,
       });
       const spiralPoints = new THREE.Points(spiralGeo, spiralMat);
+      spiralPoints.renderOrder = WEBGL_RENDER_ORDER.galaxyParticles;
       shellGroup.add(spiralPoints);
 
       const wireMat = new THREE.LineBasicMaterial({
         color: new THREE.Color(resolvedRimHex),
         transparent: true,
-        opacity: 0.28,
+        opacity: 0.38,
+        depthWrite: false,
       });
       const rimMat = new THREE.LineBasicMaterial({
         color: new THREE.Color(resolvedRimHex),
         transparent: true,
-        opacity: 0.62,
+        opacity: 0.65,
+        depthWrite: false,
       });
 
       // 2 Tilted Orbital Rings (counter-rotating #FFF1D4 rings on Sphere 02 CDE, #B4DDFF on Sphere 01 HQ) + structural meridians
@@ -1607,21 +1630,29 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         const geo = new THREE.BufferGeometry().setFromPoints(pts);
         const line = new THREE.LineLoop(geo, idx < 2 ? rimMat : wireMat);
         line.rotation.set(cfg.rotX, cfg.rotY, cfg.rotZ);
+        line.renderOrder = WEBGL_RENDER_ORDER.orbitalRings;
         orbitalRingsGroup.add(line);
       });
+      orbitalRingsGroup.renderOrder = WEBGL_RENDER_ORDER.orbitalRings;
       shellGroup.add(orbitalRingsGroup);
 
-      // Audio-Reactive Core Crystal Assembly (high emissive intensity for selective UnrealBloomPass)
+      // Audio-Reactive Core Crystal Assembly — photosphere solid core (radius * 0.16)
       const coreGroup = new THREE.Group();
-      const coreCrystalGeo = new THREE.OctahedronGeometry(0.66, 1);
+      const photosphereRadius = 6.2 * 0.16;
+      const coreCrystalGeo = new THREE.OctahedronGeometry(photosphereRadius, 1);
       const coreCrystalMat = new THREE.MeshStandardMaterial({
         color: new THREE.Color('#F2F6F8'),
         emissive: new THREE.Color(coreColour),
-        emissiveIntensity: 1.35, // Exceeds 0.78 bloom threshold
+        emissiveIntensity: 1.35, // Exceeds selective bloom threshold 0.82
         roughness: 0.14,
         metalness: 0.84,
+        depthWrite: true,
+        depthTest: true,
       });
-      coreGroup.add(new THREE.Mesh(coreCrystalGeo, coreCrystalMat));
+      const coreMesh = new THREE.Mesh(coreCrystalGeo, coreCrystalMat);
+      coreMesh.renderOrder = WEBGL_RENDER_ORDER.photosphereCore;
+      coreGroup.add(coreMesh);
+      coreGroup.renderOrder = WEBGL_RENDER_ORDER.photosphereCore;
 
       const gimbal1Geo = new THREE.TorusGeometry(0.95, 0.035, 12, 48);
       const gimbalMat = new THREE.MeshStandardMaterial({
@@ -1986,8 +2017,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           color: col.clone().multiplyScalar(1.35), // Emits selective bloom
           transparent: true,
           opacity: 0.92,
+          depthTest: true,
+          depthWrite: false,
         })
       );
+      beadMesh.renderOrder = WEBGL_RENDER_ORDER.cardiacPulseBeads;
       parentGroup.add(beadMesh);
       pulseBeads.push({
         mesh: beadMesh,
@@ -2072,9 +2106,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         `,
         transparent: true,
         depthWrite: false,
+        depthTest: true,
         blending: THREE.AdditiveBlending,
       });
-      parentGroup.add(new THREE.Mesh(tubeGeo, tubeMat));
+      const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
+      tubeMesh.renderOrder = WEBGL_RENDER_ORDER.cardiacSplineTubes;
+      parentGroup.add(tubeMesh);
       cardiacTubes.push({ uniforms, nodeA: nodeIdA, nodeB: nodeIdB });
     };
 
@@ -2089,6 +2126,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         parent: hqAssembly.root,
         getAudioLevel: () => stateRef.current.audioRms,
       });
+      cerebroSphereFx.group.renderOrder = WEBGL_RENDER_ORDER.cerebroSphereFx;
+      cerebroSphereFx.group.traverse((obj) => {
+        if ((obj as THREE.Mesh).isMesh || (obj as THREE.Points).isPoints) {
+          obj.renderOrder = WEBGL_RENDER_ORDER.cerebroSphereFx;
+        }
+      });
+      cerebroSphereFx.points.renderOrder = WEBGL_RENDER_ORDER.galaxyParticles;
     }
     const allProjectIds = PROJECTS_DATA.map((p) => p.id);
     CEREBRO_STATIONS.forEach((st, idx) => {
@@ -2283,8 +2327,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         transparent: true,
         opacity: 0.55,
         depthWrite: false,
+        depthTest: true,
       });
-      targetAssembly.root.add(new THREE.Mesh(childTubeGeo, childTubeMat));
+      const childTubeMesh = new THREE.Mesh(childTubeGeo, childTubeMat);
+      childTubeMesh.renderOrder = WEBGL_RENDER_ORDER.cardiacSplineTubes;
+      targetAssembly.root.add(childTubeMesh);
 
       const childPulseBead = new THREE.Mesh(
         new THREE.SphereGeometry(0.12, 10, 10),
@@ -2292,8 +2339,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           color: new THREE.Color('#FFF1D4'),
           transparent: true,
           opacity: 0.96,
+          depthTest: true,
+          depthWrite: false,
         })
       );
+      childPulseBead.renderOrder = WEBGL_RENDER_ORDER.cardiacPulseBeads;
       targetAssembly.root.add(childPulseBead);
       pulseBeads.push({
         mesh: childPulseBead,
@@ -2316,8 +2366,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       transparent: true,
       opacity: 0.55,
       depthWrite: false,
+      depthTest: true,
     });
     const bridgeMesh = new THREE.Mesh(bridgeTubeGeo, bridgeMat);
+    bridgeMesh.renderOrder = WEBGL_RENDER_ORDER.cardiacSplineTubes;
     scene.add(bridgeMesh);
 
     for (let b = 0; b < 4; b++) {
@@ -2327,8 +2379,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           color: new THREE.Color('#FFF1D4'),
           transparent: true,
           opacity: 0.95,
+          depthTest: true,
+          depthWrite: false,
         })
       );
+      bridgeBead.renderOrder = WEBGL_RENDER_ORDER.cardiacPulseBeads;
       scene.add(bridgeBead);
       pulseBeads.push({
         mesh: bridgeBead,
@@ -3456,8 +3511,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       {/* On-Screen Camera Touch / Drag / Pinch / Pan Indicators */}
       {touchIndicator.active && (
         <div
-          className="fixed pointer-events-none z-20 -translate-x-1/2 -translate-y-1/2"
-          style={{ left: touchIndicator.x, top: touchIndicator.y }}
+          className="fixed pointer-events-none -translate-x-1/2 -translate-y-1/2"
+          style={{
+            left: touchIndicator.x,
+            top: touchIndicator.y,
+            zIndex: GUI_Z_LAYERS.avoidanceRing,
+          }}
         >
           <svg width="84" height="84" viewBox="0 0 84 84" fill="none">
             <circle
@@ -3482,9 +3541,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         </div>
       )}
 
-      {/* Anchored 3D Labels Following the Camera */}
+      {/* Anchored 3D Labels — DOM stand-in for renderOrder 20 Html anchors */}
       {!showReducedGraphicsFallback && (
-        <div className="fixed inset-0 pointer-events-none z-10">
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{ zIndex: GUI_Z_LAYERS.sceneLabels }}
+          data-testid="html-anchor-labels"
+        >
           {labels2D.map((item) => {
             const isBehindGlass = item.zDepth > 1.2 && !item.isFocused;
             return (
