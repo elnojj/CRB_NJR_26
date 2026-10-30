@@ -28,6 +28,15 @@ import {
 import { GUI_TIMING_TOKENS, GUI_WORLD_MOTION_TOKENS } from '../gui/guiTokens';
 import { GuiRect } from '../gui/CollisionManager';
 import { ProjectedTargetScreenCoords } from '../gui/GuiFocusOverlay';
+import {
+  patchFresnelRimOnOpaqueFragment,
+  buildClosedOrbitalLoopPoints,
+  updateBoundedParticleDrift,
+  createResizeSnapshot,
+  readHomeComposition,
+  executeAtomicReframe,
+  IDLE_MS,
+} from '../three/spatialNavigation';
 
 export type CinemaLensId =
   | '5mm'
@@ -643,6 +652,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     HoveredNodeId: null as string | null,
     reducedMotion,
     audioRms: 0,
+    lastUserInputTime: 0,
     targetCenter: new THREE.Vector3(0, 0, 0),
     currentCenter: new THREE.Vector3(0, 0, 0),
     azimuth: -0.35,
@@ -1280,9 +1290,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const initH = container.clientHeight || window.innerHeight;
 
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.12;
-    renderer.setClearColor(0x101D27, 1);
+    renderer.toneMapping = THREE.AgXToneMapping;
+    renderer.toneMappingExposure = 1.0;
+    renderer.setClearColor(0x05090E, 1);
     renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
     renderer.setSize(initW, initH);
     renderer.shadowMap.enabled = !isSoftwareGl;
@@ -1311,7 +1321,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     domEl.addEventListener('webglcontextrestored', handleContextRestored, false);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x101D27, 0.015);
+    scene.fog = new THREE.FogExp2(0x05090E, 0.015);
 
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
     scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
@@ -1408,35 +1418,33 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       // 1. BackSide Inner Refraction & Interior Planetary Dome Shell
       const backShellMat = new THREE.MeshPhysicalMaterial({
         color: new THREE.Color(isHq ? '#132836' : '#2A1F14'),
-        transmission: isSoftwareGl ? 0 : 0.78,
+        transmission: isSoftwareGl ? 0 : 1.0,
         transparent: true,
         opacity: isSoftwareGl ? 0.14 : 0.54,
-        roughness: 0.16,
-        metalness: 0.06,
+        roughness: 0.06,
+        metalness: 0.0,
         ior: 1.48,
-        thickness: 1.4,
+        thickness: 0.8,
         side: THREE.BackSide,
         depthWrite: false,
         wireframe: matColors.wireframeOnly,
       });
 
-      // 2. FrontSide Outer Chromatic Fresnel Caustic Shell
-      // Sphere 01 (CEREBRO HQ): Cool Cobalt Refractive Liquid Glass (#4C8DFF, roughness: 0.06, opacity: 0.42, Fresnel rim #B4DDFF)
-      // Sphere 02 (CDE UNIVERSE): Warm Amber Caustic Crystal (#F2B66D, roughness: 0.08, opacity: 0.46, rim #FFF1D4)
-      const baseShellOpacity = isHq ? 0.42 : 0.46;
-      const baseShellRoughness = 0.09; // v4.0 shell roughness: 0.09
+      // 2. FrontSide Outer Chromatic Fresnel Caustic Shell (v1.24 Optical Glass)
       const frontShellMat = new THREE.MeshPhysicalMaterial({
         color: new THREE.Color(resolvedShellHex),
-        transmission: isSoftwareGl ? 0 : 0.88, // v4.0 transmission: 0.88
+        transmission: isSoftwareGl ? 0 : 1.0,
         transparent: true,
-        opacity: isSoftwareGl ? 0.22 : baseShellOpacity,
-        roughness:
-          (isHq && matPreset === 'cobalt-glass') || (!isHq && matPreset === 'amber-crystal')
-            ? baseShellRoughness
-            : matColors.roughness,
-        metalness: 0.08,
+        opacity: isSoftwareGl ? 0.22 : 0.92,
+        roughness: 0.06,
+        metalness: 0.0,
         ior: 1.48,
-        thickness: 0.55,
+        thickness: 0.8,
+        specularIntensity: 1.0,
+        specularColor: new THREE.Color('#B4DDFF'),
+        sheen: 0.8,
+        sheenRoughness: 0.2,
+        sheenColor: new THREE.Color('#9AFFE0'),
         clearcoat: 0.8,
         clearcoatRoughness: 0.06,
         side: THREE.FrontSide,
@@ -1462,7 +1470,17 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             );
           shader.fragmentShader =
             `uniform float uTime;\nuniform float uAudioRms;\nuniform float uInteriorDome;\n` +
-            shader.fragmentShader.replace(
+            shader.fragmentShader;
+
+          // Blueprint V2.0 v2 Fix #1: Target #include <opaque_fragment> (Three r154+) with warning guard
+          const patchedOpaque = patchFresnelRimOnOpaqueFragment(
+            shader,
+            rimColVec,
+            bodyColVec,
+            isBack ? 1.9 : 2.6
+          );
+          if (!patchedOpaque) {
+            shader.fragmentShader = shader.fragmentShader.replace(
               '#include <dithering_fragment>',
               `#include <dithering_fragment>
               float fresnel = pow(1.0 - abs(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0))), ${
@@ -1474,6 +1492,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               vec3 rimTint = mix(causticBody, causticRim, causticWave) * fresnel * (0.34 + uAudioRms * 0.45);
               gl_FragColor.rgb += rimTint;`
             );
+          }
         };
       };
 
@@ -1508,8 +1527,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const galaxy = buildLiquidGlassGalaxySphere(root, sphereTag, isSoftwareGl);
 
       // 420 Spiral Shell Particles (#65ACFF for Sphere 01 HQ, #F2B66D for Sphere 02 CDE)
+      // Blueprint V2.0 v2 Fix #3: Preserve immutable spiralBasePos & spiralPhases for bounded non-accumulating drift
       const spiralCount = 420;
       const spiralPos = new Float32Array(spiralCount * 3);
+      const spiralPhases = new Float32Array(spiralCount);
       for (let sp = 0; sp < spiralCount; sp++) {
         const u = sp / spiralCount;
         const theta = sp * 2.3999632; // Golden angle spiral
@@ -1519,9 +1540,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         spiralPos[sp * 3] = Math.cos(theta) * rSlice * shellR;
         spiralPos[sp * 3 + 1] = y * shellR;
         spiralPos[sp * 3 + 2] = Math.sin(theta) * rSlice * shellR;
+        spiralPhases[sp] = (sp * 0.53) % (Math.PI * 2);
       }
+      const spiralBasePos = new Float32Array(spiralPos);
       const spiralGeo = new THREE.BufferGeometry();
-      spiralGeo.setAttribute('position', new THREE.BufferAttribute(spiralPos, 3));
+      const spiralPosAttr = new THREE.BufferAttribute(spiralPos, 3);
+      spiralGeo.setAttribute('position', spiralPosAttr);
       const spiralMat = new THREE.PointsMaterial({
         color: new THREE.Color(isHq ? '#65ACFF' : '#F2B66D'),
         size: 0.09,
@@ -1544,7 +1568,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         opacity: 0.62,
       });
 
-      // 2 Tilted Orbital Rings (counter-rotating #FFF1D4 rings on Sphere 02 CDE, #B4DDFF on Sphere 01 HQ) + structural meridians
+      // 2 Tilted Orbital Rings + structural meridians
+      // Blueprint V2.0 v2 Fix #4: Drop duplicate endpoint from EllipseCurve.getPoints() and close CatmullRomCurve3
       const orbitalRingsGroup = new THREE.Group();
       const ringRadii = [
         { rx: 6.24, rotX: 0.34, rotY: 0.64, rotZ: -0.28, mat: rimMat },
@@ -1553,9 +1578,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         { rx: 4.85, rotX: Math.PI / 2, rotY: 0.2, rotZ: 0, mat: wireMat },
       ];
       ringRadii.forEach((cfg, idx) => {
-        const curve = new THREE.EllipseCurve(0, 0, cfg.rx, cfg.rx, 0, Math.PI * 2, false, 0);
-        const pts = curve.getPoints(72).map((p) => new THREE.Vector3(p.x, p.y, 0));
-        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        const { points: closedLoopPts } = buildClosedOrbitalLoopPoints(cfg.rx, cfg.rx, 72);
+        const geo = new THREE.BufferGeometry().setFromPoints(closedLoopPts);
         const line = new THREE.LineLoop(geo, idx < 2 ? rimMat : wireMat);
         line.rotation.set(cfg.rotX, cfg.rotY, cfg.rotZ);
         orbitalRingsGroup.add(line);
@@ -1630,6 +1654,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         coreGroup,
         coreCrystalMat,
         galaxy,
+        spiralPosAttr,
+        spiralBasePos,
+        spiralPhases,
       };
     };
 
@@ -2657,9 +2684,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       }
     };
 
+    const recordUserInput = () => {
+      stateRef.current.lastUserInputTime = performance.now();
+    };
+
     const onWheel = (e: WheelEvent) => {
       if (!container.contains(e.target as Node)) return;
       e.preventDefault();
+      recordUserInput();
       callbacksRef.current.onUserTouchPauseTour();
       const s = stateRef.current;
       s.flightActive = false;
@@ -2671,17 +2703,19 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     domEl.addEventListener('contextmenu', onContextMenu);
     domEl.addEventListener('pointerdown', onPointerDown);
+    domEl.addEventListener('pointerdown', recordUserInput);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
     window.addEventListener('pointercancel', onPointerUp);
     domEl.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('keydown', recordUserInput);
 
     const onResize = () => {
       if (!container) return;
       const w = container.clientWidth || window.innerWidth;
       const h = container.clientHeight || window.innerHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
+      const comp = readHomeComposition(container);
+      executeAtomicReframe(camera, w, h, comp.occludedBottomPx);
       renderer.setSize(w, h);
       if (composer) {
         composer.setSize(w, h);
@@ -2691,6 +2725,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       }
     };
     window.addEventListener('resize', onResize);
+    // Initial atomic frame composition
+    onResize();
 
     const clock = new THREE.Clock();
     let frameId = 0;
@@ -2772,7 +2808,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         s.currentAngularVel = 0;
       } else {
         const baseSphereRate = GUI_WORLD_MOTION_TOKENS.rates.sphereRadPerSec; // 0.02992 rad/s (210s period)
-        const desiredVel = s.reducedMotion
+        const isUserIdle = (now - s.lastUserInputTime) >= IDLE_MS;
+        const desiredVel = s.reducedMotion || (!isUserIdle && !s.autoOrbit)
           ? 0
           : s.autoOrbit
           ? (Math.PI * 2) / Math.max(4, s.turnSeconds)
@@ -2785,7 +2822,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           !s.flightActive &&
           s.activeLoopMode === 'off' &&
           !isDragging &&
-          activePointers.size < 2
+          activePointers.size < 2 &&
+          (isUserIdle || s.autoOrbit)
         ) {
           s.targetAzimuth += s.currentAngularVel * dt;
         }
@@ -2980,6 +3018,22 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       cdeAssembly.galaxy.uniforms.uTime.value = s.reducedMotion ? 0 : elapsedTotal;
       cdeAssembly.galaxy.uniforms.uFocalDistance.value = focalDist;
       cdeAssembly.galaxy.uniforms.uAudioRms.value = liveRms;
+
+      // Blueprint V2.0 v2 Fix #3 & #7: Bounded non-accumulating particle drift with per-frame reducedMotion
+      updateBoundedParticleDrift(
+        hqAssembly.spiralPosAttr,
+        hqAssembly.spiralBasePos,
+        hqAssembly.spiralPhases,
+        elapsedTotal,
+        s.reducedMotion
+      );
+      updateBoundedParticleDrift(
+        cdeAssembly.spiralPosAttr,
+        cdeAssembly.spiralBasePos,
+        cdeAssembly.spiralPhases,
+        elapsedTotal,
+        s.reducedMotion
+      );
 
       // v4.0 3D Cylindrical Project Media Tube update & enclosing shell dimming
       const tubeProp = mediaTubeStateRef.current;
@@ -3283,10 +3337,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       domEl.removeEventListener('webglcontextrestored', handleContextRestored);
       domEl.removeEventListener('contextmenu', onContextMenu);
       domEl.removeEventListener('pointerdown', onPointerDown);
+      domEl.removeEventListener('pointerdown', recordUserInput);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
       domEl.removeEventListener('wheel', onWheel);
+      window.removeEventListener('keydown', recordUserInput);
       window.removeEventListener('resize', onResize);
       if (composer) {
         composer.dispose();

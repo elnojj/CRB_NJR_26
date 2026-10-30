@@ -37,6 +37,17 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
     if (phase !== 'loader') return;
     const start = performance.now();
     let completed = false;
+
+    // 12-second watchdog timeout: entry never stalls on desktop or phone
+    const watchdog = window.setTimeout(() => {
+      if (!completed && !lockOnComplete) {
+        completed = true;
+        window.clearInterval(interval);
+        console.warn('[BootLoader] 12s watchdog timeout reached — invoking onTakeOff immediately');
+        onTakeOff();
+      }
+    }, 12000);
+
     const interval = window.setInterval(() => {
       const now = performance.now();
       const diff = Math.min(totalDurationMs, now - start);
@@ -44,12 +55,17 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
       if (diff >= totalDurationMs && !completed) {
         completed = true;
         window.clearInterval(interval);
+        window.clearTimeout(watchdog);
         if (!lockOnComplete) {
           onTakeOff();
         }
       }
     }, 50);
-    return () => window.clearInterval(interval);
+
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(watchdog);
+    };
   }, [phase, totalDurationMs, lockOnComplete, onTakeOff]);
 
   const handleDigitPress = (digit: string) => {

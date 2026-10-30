@@ -8,11 +8,12 @@
   /* ------------------------------------------------------------------------
      15 LOCKED NEURAL OBSERVATORY v1.1 TOKENS
      ------------------------------------------------------------------------ */
-  --token-canvas: #101D27;                      /* 01. Primary deep-space viewport void */
+  --token-canvas: #05090E;                      /* 01. D0 Primary deep-space viewport void (#05090E to #142632) */
+  --token-canvas-gradient: linear-gradient(180deg, #05090E 0%, #142632 100%);
   --token-glass-solid: #142632;                 /* 02. Solid telemetry pills, inputs, and fallback surfaces */
-  --token-glass: rgba(20, 38, 50, 0.78);        /* 03. Primary floating optical glass plate (blur 12px saturate 1.2) */
-  --token-glass-subtle: rgba(11, 20, 28, 0.82); /* 04. Nested sub-drawers, code blocks, and inspection wells */
-  --token-divider: rgba(255, 255, 255, 0.14);   /* 05. 1px structural hairlines + top-edge specular catchlight */
+  --token-glass: rgba(20, 38, 50, 0.88);        /* 03. D0 Glass Never Solid (rgba(20, 38, 50, 0.88) blur 12px) */
+  --token-glass-subtle: rgba(11, 20, 28, 0.88); /* 04. Nested sub-drawers, code blocks, and inspection wells */
+  --token-divider: rgba(180, 221, 255, 0.22);   /* 05. D0 1px structural hairlines rgba(180, 221, 255, 0.22) */
   --token-text-primary: #F2F6F8;                /* 06. Primary headlines, active values, and body copy */
   --token-text-secondary: #BDCBD3;              /* 07. Muted metadata, timestamps, and secondary labels */
   --token-cobalt: #4C8DFF;                      /* 08. Sphere 01 (CEREBRO HQ) refractive liquid-glass & ST-01 Projects */
@@ -34,13 +35,13 @@
   --token-system-error: #FF5666;                /* Strictly exclusive to Blocked insight badges & Voice Stop button */
 
   /* ------------------------------------------------------------------------
-     OPTICAL HUD ANATOMY SURFACES
+     OPTICAL HUD ANATOMY SURFACES (D0: Glass Never Solid)
      ------------------------------------------------------------------------ */
-  --token-hud-outer-bg: rgba(16, 29, 39, 0.84);
-  --token-hud-outer-border: rgba(255, 255, 255, 0.14);
+  --token-hud-outer-bg: rgba(20, 38, 50, 0.88);
+  --token-hud-outer-border: rgba(180, 221, 255, 0.22);
   --token-hud-outer-shadow: inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55);
-  --token-hud-pocket-bg: rgba(20, 38, 50, 0.72);
-  --token-hud-pocket-border: rgba(180, 221, 255, 0.16);
+  --token-hud-pocket-bg: rgba(20, 38, 50, 0.88);
+  --token-hud-pocket-border: rgba(180, 221, 255, 0.22);
 
   /* ------------------------------------------------------------------------
      UNIFIED ALIAS MAPPINGS (Backwards-compatible with Portal v1.5 tokens,

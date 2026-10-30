@@ -122,6 +122,16 @@ import {
   ActionReceipt,
   CEREBRO_UI_SCHEMA_V4,
 } from './gui/runtimeRegistry';
+import {
+  TeamChatChip,
+  CDE_TAXONOMY,
+  masterPose,
+  flightMs,
+  createResizeSnapshot,
+  buildClosedOrbitalLoopPoints,
+  DEFAULT_FIVE_AXIS_STATE,
+} from './three/spatialNavigation';
+import { MobileSingleHandController } from './components/HandsTracker';
 
 export interface SelfTestCheckResult {
   id: string;
@@ -390,6 +400,13 @@ export default function App() {
   const [activePocket, setActivePocket] = useState<VoicePocket>('tap-to-talk');
   const [audienceLevel, setAudienceLevel] = useState<AudienceLevel>('Owner only');
   const isOwnerOnly = audienceLevel === 'Owner only';
+  const [ambienceMuted, setAmbienceMuted] = useState<boolean>(() => soundEngine.isMuted());
+  const handleToggleAmbience = useCallback(() => {
+    soundEngine.unlock();
+    const next = !soundEngine.isMuted();
+    soundEngine.setMuted(next);
+    setAmbienceMuted(next);
+  }, []);
   const [pendingTaskProposal, setPendingTaskProposal] = useState<PendingComposeTask | null>(null);
   const [customTasks, setCustomTasks] = useState<CustomTaskItem[]>([]);
   const [transcripts, setTranscripts] = useState<TranscriptLine[]>([
@@ -2629,6 +2646,7 @@ export default function App() {
       { id: '18', title: '10x Shader, Bokeh Galaxy, Living Lens & Core Crystal RMS Sync', status: 'PENDING', detail: 'Waiting...' },
       { id: '19', title: 'GUI Amendment v3.0 Zero-Overlap Layout & 36x24mm Optical Matrix', status: 'PENDING', detail: 'Waiting...' },
       { id: '20', title: 'v4.0 cerebro-ui/4 Read-Only get_page_state, ActionReceipt & 3D Media Tube', status: 'PENDING', detail: 'Waiting...' },
+      { id: '21', title: 'PR #130 (8e8cf6d) Spatial Navigation, Closed Orbital Loops & TeamChatChip', status: 'PENDING', detail: 'Waiting...' },
     ];
     setSelfTestResults(initialChecks);
 
@@ -3030,6 +3048,29 @@ export default function App() {
         schemaOk && receiptOk ? 'PASS' : 'FAIL',
         `schema=${stateCallParsed?.resultingState?.schema} · receipt=${tubeParsed?.resultingState?.receipt?.runId} · 24-tile 3D Tube verified`
       );
+
+      // 21: PR #130 (Commit 8e8cf6d) Spatial Navigation, Closed Orbital Loops & TeamChatChip
+      updateCheck('21', 'RUNNING', 'Verifying spatialNavigation.tsx, closed orbital loops, 5-axis widget & TeamChatChip...');
+      const poseDesktop = masterPose(16 / 9);
+      const poseMobile = masterPose(9 / 16);
+      const snap = createResizeSnapshot(1440, 900);
+      const closedLoop = buildClosedOrbitalLoopPoints(6.24, 6.24, 72);
+      const fiveAxesCount = Object.keys(DEFAULT_FIVE_AXIS_STATE).length;
+      const chatChipEl = document.querySelector('[data-testid="sphere-open-chat"]');
+      const pr130Ok =
+        CDE_TAXONOMY.glass.ior === 1.48 &&
+        poseDesktop.fov === 46 &&
+        poseMobile.fov === 52 &&
+        flightMs(10) === 1400 &&
+        snap.aspect === 1440 / 900 &&
+        closedLoop.curve.closed === true &&
+        fiveAxesCount === 5 &&
+        Boolean(chatChipEl);
+      updateCheck(
+        '21',
+        pr130Ok ? 'PASS' : 'FAIL',
+        `IOR=${CDE_TAXONOMY.glass.ior} · FOV=${poseDesktop.fov}°/${poseMobile.fov}° · closedCurve=${closedLoop.curve.closed} · 5-axis=${fiveAxesCount} · TeamChatChip=${Boolean(chatChipEl)}`
+      );
     } finally {
       // Clean up isolated test records so user workspace stays clean
       await fetch('/api/test/reset', { method: 'POST' }).catch(() => {});
@@ -3283,23 +3324,25 @@ export default function App() {
 
           return (
             <>
-              <BuildActivityHeader
-                projectName="Cerebro Core HQ"
-                checkpointId={activeCp.id}
-                gitHash={activeCp.gitHash}
-                connectionState={connectionState}
-                lastEventIso={lastEventIso}
-                recordedStartTimeMs={recordedStartTimeMs}
-                recordedPausedDurationMs={recordedPausedDurationMs}
-                verifiedCriteriaCount={verifiedCount}
-                totalCriteriaCount={activeCp.totalCriteriaCount}
-                isHistoricalMode={activeCheckpointId !== liveCheckpointId}
-                portalHudOpen={portalHudOpen}
-                rtl={languageRtl === 'ar'}
-                onChangeConnectionState={setConnectionState}
-                onTogglePortalHud={() => setPortalHudOpen((v) => !v)}
-                onReturnToLive={() => setActiveCheckpointId(liveCheckpointId)}
-              />
+              {(portalHudOpen || openPanels.length > 0) && (
+                <BuildActivityHeader
+                  projectName="Cerebro Core HQ"
+                  checkpointId={activeCp.id}
+                  gitHash={activeCp.gitHash}
+                  connectionState={connectionState}
+                  lastEventIso={lastEventIso}
+                  recordedStartTimeMs={recordedStartTimeMs}
+                  recordedPausedDurationMs={recordedPausedDurationMs}
+                  verifiedCriteriaCount={verifiedCount}
+                  totalCriteriaCount={activeCp.totalCriteriaCount}
+                  isHistoricalMode={activeCheckpointId !== liveCheckpointId}
+                  portalHudOpen={portalHudOpen}
+                  rtl={languageRtl === 'ar'}
+                  onChangeConnectionState={setConnectionState}
+                  onTogglePortalHud={() => setPortalHudOpen((v) => !v)}
+                  onReturnToLive={() => setActiveCheckpointId(liveCheckpointId)}
+                />
+              )}
 
               {/* Primary Visual Toast AlertStack (Standing Hold #1: visual alerts primary, audio opt-in) */}
               {alertStack.length > 0 && (
@@ -4163,6 +4206,45 @@ export default function App() {
         onVoiceDragDeltaChange={setVoiceDragDelta}
         onVoiceExpandedChange={setVoiceExpanded}
         contextualUpdateJson={contextualUpdateJson}
+      />
+
+      {/* 7B. PR #130 & PR #131 Team Chat & Ambience Mute Controls (Outside inert scene-transition container) */}
+      <TeamChatChip
+        active={openPanels.includes('team-room')}
+        onOpenChat={() => ensurePanelOpen('team-room', false)}
+      />
+
+      <div className="fixed bottom-4 right-20 z-[95] pointer-events-auto">
+        <button
+          type="button"
+          data-testid="ambience-mute-toggle"
+          data-cta-id="ambience-toggle"
+          onClick={handleToggleAmbience}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[11px] font-medium border border-[rgba(180,221,255,0.22)] bg-[rgba(20,38,50,0.88)] backdrop-blur-md text-[#BDCBD3] hover:text-[#F2F6F8] hover:border-[#65ACFF] transition-colors shadow-lg cursor-pointer"
+          title="Toggle ambient background soundscape"
+        >
+          <span
+            className={`w-2 h-2 rounded-full transition-colors ${
+              ambienceMuted ? 'bg-white/30' : 'bg-[#9AFFE0] animate-pulse'
+            }`}
+          />
+          <span>Ambience {ambienceMuted ? 'Off' : 'On'}</span>
+        </button>
+      </div>
+
+      {/* 7C. v1.24 Mobile Single-Hand Gesture Controller */}
+      <MobileSingleHandController
+        onZoomGesture={(delta) => {
+          if (delta > 0) dispatchCamera('zoom_in');
+          else dispatchCamera('zoom_out');
+        }}
+        onSelectNode={() => {
+          if (hoveredNodeId) {
+            executeTypedAction({ type: 'focus_project', projectId: hoveredNodeId }, 'gesture');
+          } else {
+            dispatchCamera('zoom_in');
+          }
+        }}
       />
 
       {/* 8. Full Project .ZIP Download Modal */}
