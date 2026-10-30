@@ -14,115 +14,139 @@ export interface ColourTokenSpec {
 }
 
 /**
- * NEURAL OBSERVATORY v1.1 — NOCTURNAL CRYO-GLASS & WARM CAUSTIC CINEMA
- * Locked 15-Token Color Script + 3 Sacred Semantic Reservations.
- * Zero Purple · Zero Gold · Zero Default Tailwind Grays.
+ * CEREBRO-NOJARA D0 v1.24 DESIGN SYSTEM — COLOUR TOKENS
  */
-export const COLOUR_TOKENS = {
-  // 15 Locked Neural Observatory v1.1 Tokens
-  canvas: '#101D27',                       // 01. --token-canvas
-  glassSolid: '#142632',                   // 02. --token-glass-solid
-  glassRgba: 'rgba(20, 38, 50, 0.78)',     // 03. --token-glass
-  glassSubtle: 'rgba(11, 20, 28, 0.82)',   // 04. --token-glass-subtle
-  dividerHairline: 'rgba(255, 255, 255, 0.14)', // 05. --token-divider
-  textPrimary: '#F2F6F8',                  // 06. --token-text-primary
-  textSecondary: '#BDCBD3',                // 07. --token-text-secondary
-  cobaltAccent: '#4C8DFF',                 // 08. --token-cobalt (Sphere 01 & ST-01 Projects)
-  focusRing: '#65ACFF',                    // 09. --token-focus (2px focus rings & Cryo-Silica Lattice)
-  sphereWireframe: '#B4DDFF',              // 10. --token-focus-glow (Fresnel rim glow & specular highlights)
-  highlight: '#FFF1D4',                    // 11. --token-highlight (Warm ivory cardiac spline pulse beads)
-  stationProjects: '#4C8DFF',              // 08. ST-01 Projects accent
-  stationProjectDetail: '#4C8DFF',         // 08. ST-01 Project Detail accent
-  stationTasks: '#5CC8D7',                 // 12. --token-station-tasks (ST-02 Tasks & Cyan Acoustic Resonator)
-  stationPeople: '#7CE0B8',                // 13. --token-station-people (ST-03 People/RACI & Mint Plasma)
-  stationFiles: '#9DB8D6',                 // 14. --token-station-files (ST-04 Drive Files & Brushed Steel)
-  stationMedia: '#F2B66D',                 // 15. --token-station-media (Sphere 02 CDE & ST-05 Media)
+export const viewportBackground = {
+  base: '#1B2230',
+  gradientEnd: '#101622',
+  ambientTint: '#0E141E',
+} as const;
 
-  // 3 Sacred Semantic Reservations
-  voiceOrbMint: '#9AFFE0',                 // --token-voice-orb (EXCLUSIVE to z-110 Voice Pilot Orb)
-  voiceOrbTeal: '#359D8E',                 // Voice Orb mid radial stop
-  voiceOrbDeep: '#133A44',                 // Voice Orb deep radial stop
-  trackingValid: '#36E88D',                // --token-tracking-valid (EXCLUSIVE to valid 21-landmark hand tracking, verified progress & Two-Tap Confirm)
-  systemErrorRed: '#FF5666',               // --token-system-error (EXCLUSIVE to Blocked badges & Voice Stop button)
+export const metallicGold = {
+  primary: '#D4AF37',
+  specularHighlight: '#FFF4D0',
+  shadowTone: '#685218',
+  sheen: '#E6CA65',
+} as const;
+
+export const brushedSilver = {
+  primary: '#C5CCD6',
+  specularHighlight: '#FFFFFF',
+  shadowTone: '#404854',
+} as const;
+
+export const deepSlateBlue = {
+  base: '#3A516E',
+  deep: '#1E2B3D',
+  light: '#5A779C',
+} as const;
+
+export const glassTransmission = {
+  refractionTint: '#EAF2FF',
+  edgeRim: '#A4CBFF',
+} as const;
+
+export const COLOUR_TOKENS = {
+  // Structured v1.24 Token Groups
+  viewportBackground,
+  metallicGold,
+  brushedSilver,
+  deepSlateBlue,
+  glassTransmission,
+
+  // Mapped Unified Tokens (Cerebro-Nojara D0 v1.24)
+  canvas: '#1B2230',
+  glassSolid: '#101622',
+  glassRgba: 'rgba(27, 34, 48, 0.88)',
+  glassSubtle: 'rgba(16, 22, 34, 0.88)',
+  dividerHairline: 'rgba(197, 204, 214, 0.22)',
+  textPrimary: '#F2F6F8',
+  textSecondary: '#C5CCD6',
+  cobaltAccent: '#D4AF37',
+  focusRing: '#D4AF37',
+  sphereWireframe: '#FFF4D0',
+  highlight: '#FFF4D0',
+  stationProjects: '#D4AF37',
+  stationProjectDetail: '#D4AF37',
+  stationTasks: '#C5CCD6',
+  stationPeople: '#FFF4D0',
+  stationFiles: '#C5CCD6',
+  stationMedia: '#D4AF37',
+
+  // Semantic Reservations
+  voiceOrbMint: '#D4AF37',
+  voiceOrbTeal: '#E6CA65',
+  voiceOrbDeep: '#685218',
+  trackingValid: '#36E88D',
+  systemErrorRed: '#FF5666',
 
   // Optical HUD Anatomy & Status helpers
-  hudOuterBg: 'rgba(16, 29, 39, 0.84)',
-  hudPocketBg: 'rgba(20, 38, 50, 0.72)',
-  hudPocketBorder: 'rgba(180, 221, 255, 0.16)',
-  glassPocketRgba: 'rgba(20, 38, 50, 0.72)',
-  cobaltLabel: '#101D27',
-  fieldInner: '#142632',
-  fieldOuter: '#101D27',
-  stationDecisions: '#5CC8D7',
-  outlineControl: 'rgba(255, 255, 255, 0.14)',
-  textCoord: '#BDCBD3',
+  hudOuterBg: 'rgba(27, 34, 48, 0.88)',
+  hudPocketBg: 'rgba(27, 34, 48, 0.88)',
+  hudPocketBorder: 'rgba(197, 204, 214, 0.22)',
+  glassPocketRgba: 'rgba(27, 34, 48, 0.88)',
+  cobaltLabel: '#101622',
+  fieldInner: '#1B2230',
+  fieldOuter: '#101622',
+  stationDecisions: '#C5CCD6',
+  outlineControl: 'rgba(197, 204, 214, 0.22)',
+  textCoord: '#C5CCD6',
   healthOnTrack: '#36E88D',
-  healthAtRisk: '#F2B66D',
-  healthBlocked: '#5CC8D7',
+  healthAtRisk: '#D4AF37',
+  healthBlocked: '#C5CCD6',
 
-  // CDE Dimensions mapped strictly to the 15-token script (Zero Gold / Zero Off-Palette)
-  cdeStrategy: '#4C8DFF',
-  cdeProduction: '#F2B66D',
-  cdeTalent: '#7CE0B8',
-  cdeMediaTech: '#5CC8D7',
-  cdeStory: '#4C8DFF',
-  cdeShowreel: '#F2B66D',
-  cdeLab: '#5CC8D7',
-  cdeConnect: '#7CE0B8',
-  cdeArchive: '#9DB8D6',
+  // CDE Dimensions mapped to Gold & Silver
+  cdeStrategy: '#D4AF37',
+  cdeProduction: '#E6CA65',
+  cdeTalent: '#FFF4D0',
+  cdeMediaTech: '#C5CCD6',
+  cdeStory: '#D4AF37',
+  cdeShowreel: '#E6CA65',
+  cdeLab: '#C5CCD6',
+  cdeConnect: '#FFF4D0',
+  cdeArchive: '#C5CCD6',
 } as const;
 
 export const COLOUR_TABLE: ColourTokenSpec[] = [
   {
     id: 'canvas',
-    token: '--token-canvas',
-    entity: 'Primary deep-space viewport void',
-    element: '01. --token-canvas (Primary deep-space viewport void)',
-    hex: '#101D27',
-    source: 'Neural Observatory v1.1 Master Color Script',
+    token: '--cj-bg-viewport',
+    entity: 'Primary viewport background base',
+    element: '01. --cj-bg-viewport (Viewport base #1B2230 -> #101622)',
+    hex: '#1B2230',
+    source: 'Cerebro-Nojara D0 v1.24 Master Spec',
     sourceFile: 'src/styles/cerebro.tokens.css',
     status: 'CONFIRMED',
   },
   {
     id: 'glass-solid',
-    token: '--token-glass-solid',
-    entity: 'Solid telemetry pills, inputs & fallback surfaces',
-    element: '02. --token-glass-solid (Solid telemetry pills, inputs & fallback surfaces)',
-    hex: '#142632',
-    source: 'Neural Observatory v1.1 Master Color Script',
+    token: '--cj-bg-surface',
+    entity: 'Deep surface & telemetry background',
+    element: '02. --cj-bg-surface (#101622)',
+    hex: '#101622',
+    source: 'Cerebro-Nojara D0 v1.24 Master Spec',
     sourceFile: 'src/styles/cerebro.tokens.css',
     status: 'CONFIRMED',
   },
   {
     id: 'glass-rgba',
-    token: '--token-glass',
-    entity: 'Floating optical glass plate · blur 12px saturate 1.2',
-    element: '03. --token-glass (Floating optical glass plate · blur 12px saturate 1.2)',
-    hex: '#142632',
-    rgba: 'rgba(20, 38, 50, 0.78)',
-    source: 'Neural Observatory v1.1 Master Color Script',
-    sourceFile: 'src/styles/cerebro.tokens.css',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'glass-subtle',
-    token: '--token-glass-subtle',
-    entity: 'Nested sub-drawers, code blocks & inspection wells',
-    element: '04. --token-glass-subtle (Nested sub-drawers, code blocks & inspection wells)',
-    hex: '#0B141C',
-    rgba: 'rgba(11, 20, 28, 0.82)',
-    source: 'Neural Observatory v1.1 Master Color Script',
+    token: '--cj-glass-panel',
+    entity: 'Floating optical glass card · blur 14px',
+    element: '03. --cj-glass-panel (rgba(27, 34, 48, 0.88))',
+    hex: '#1B2230',
+    rgba: 'rgba(27, 34, 48, 0.88)',
+    source: 'Cerebro-Nojara D0 v1.24 Master Spec',
     sourceFile: 'src/styles/cerebro.tokens.css',
     status: 'CONFIRMED',
   },
   {
     id: 'divider-hairline',
-    token: '--token-divider',
-    entity: '1px structural hairlines + top specular catchlight',
-    element: '05. --token-divider (1px structural hairlines + top specular catchlight)',
-    hex: '#FFFFFF',
-    rgba: 'rgba(255, 255, 255, 0.14)',
-    source: 'Neural Observatory v1.1 Master Color Script',
+    token: '--cj-border-hairline',
+    entity: '1px structural silver hairlines',
+    element: '04. --cj-border-hairline (rgba(197, 204, 214, 0.22))',
+    hex: '#C5CCD6',
+    rgba: 'rgba(197, 204, 214, 0.22)',
+    source: 'Cerebro-Nojara D0 v1.24 Master Spec',
     sourceFile: 'src/styles/cerebro.tokens.css',
     status: 'CONFIRMED',
   },
@@ -130,131 +154,70 @@ export const COLOUR_TABLE: ColourTokenSpec[] = [
     id: 'text-primary',
     token: '--token-text-primary',
     entity: 'Primary headlines, active values & body copy',
-    element: '06. --token-text-primary (Primary headlines, active values & body copy)',
+    element: '05. --token-text-primary (#F2F6F8)',
     hex: '#F2F6F8',
-    source: 'Neural Observatory v1.1 Master Color Script',
+    source: 'Cerebro-Nojara D0 v1.24 Master Spec',
     sourceFile: 'src/styles/cerebro.tokens.css',
     status: 'CONFIRMED',
   },
   {
-    id: 'text-secondary',
-    token: '--token-text-secondary',
-    entity: 'Muted metadata, timestamps & secondary labels',
-    element: '07. --token-text-secondary (Muted metadata, timestamps & secondary labels)',
-    hex: '#BDCBD3',
-    source: 'Neural Observatory v1.1 Master Color Script',
+    id: 'silver-metal',
+    token: '--cj-silver-metal',
+    entity: 'Brushed silver secondary & metal UI',
+    element: '06. --cj-silver-metal (#C5CCD6)',
+    hex: '#C5CCD6',
+    source: 'Cerebro-Nojara D0 v1.24 Master Spec',
     sourceFile: 'src/styles/cerebro.tokens.css',
     status: 'CONFIRMED',
   },
   {
-    id: 'cobalt-accent',
-    token: '--token-cobalt',
-    entity: 'Sphere 01 CEREBRO HQ liquid-glass & ST-01 Projects',
-    element: '08. --token-cobalt (Sphere 01 CEREBRO HQ liquid-glass & ST-01 Projects)',
-    hex: '#4C8DFF',
-    source: 'Neural Observatory v1.1 Master Color Script',
+    id: 'gold-primary',
+    token: '--cj-gold-primary',
+    entity: 'Metallic gold primary accent & focus ring',
+    element: '07. --cj-gold-primary (#D4AF37)',
+    hex: '#D4AF37',
+    source: 'Cerebro-Nojara D0 v1.24 Master Spec',
     sourceFile: 'src/styles/cerebro.tokens.css',
     status: 'CONFIRMED',
   },
   {
-    id: 'focus-ring',
-    token: '--token-focus',
-    entity: '2px focus rings, active pocket borders & Cryo-Silica Lattice',
-    element: '09. --token-focus (2px focus rings, active pocket borders & Cryo-Silica Lattice)',
-    hex: '#65ACFF',
-    source: 'Neural Observatory v1.1 Master Color Script',
+    id: 'gold-sheen',
+    token: '--cj-gold-sheen',
+    entity: 'Specular highlight & warm gold sheen',
+    element: '08. --cj-gold-sheen (#FFF4D0)',
+    hex: '#FFF4D0',
+    source: 'Cerebro-Nojara D0 v1.24 Master Spec',
     sourceFile: 'src/styles/cerebro.tokens.css',
     status: 'CONFIRMED',
   },
   {
-    id: 'focus-glow',
-    token: '--token-focus-glow',
-    entity: 'Fresnel rim glow & specular highlights',
-    element: '10. --token-focus-glow (Fresnel rim glow & specular highlights)',
-    hex: '#B4DDFF',
-    source: 'Neural Observatory v1.1 Master Color Script',
+    id: 'slate-blue',
+    token: '--cj-slate-blue',
+    entity: 'Deep slate blue structural accent',
+    element: '09. --cj-slate-blue (#3A516E)',
+    hex: '#3A516E',
+    source: 'Cerebro-Nojara D0 v1.24 Master Spec',
     sourceFile: 'src/styles/cerebro.tokens.css',
     status: 'CONFIRMED',
   },
   {
-    id: 'highlight-ivory',
-    token: '--token-highlight',
-    entity: 'Warm ivory cardiac spline pulse beads & countdowns',
-    element: '11. --token-highlight (Warm ivory cardiac spline pulse beads & countdowns)',
-    hex: '#FFF1D4',
-    source: 'Neural Observatory v1.1 Master Color Script',
-    sourceFile: 'src/styles/cerebro.tokens.css',
+    id: 'glass-refraction',
+    token: 'glassTransmission.refractionTint',
+    entity: 'Optical glass transmission refraction tint',
+    element: '10. glassTransmission.refractionTint (#EAF2FF)',
+    hex: '#EAF2FF',
+    source: 'Cerebro-Nojara D0 v1.24 Master Spec',
+    sourceFile: 'src/tokens/colours.ts',
     status: 'CONFIRMED',
   },
   {
-    id: 'station-tasks',
-    token: '--token-station-tasks',
-    entity: 'ST-02 Tasks & Cyan Acoustic Resonator shader',
-    element: '12. --token-station-tasks (ST-02 Tasks & Cyan Acoustic Resonator shader)',
-    hex: '#5CC8D7',
-    source: 'Neural Observatory v1.1 Master Color Script',
-    sourceFile: 'src/styles/cerebro.tokens.css',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'station-people',
-    token: '--token-station-people',
-    entity: 'ST-03 People/RACI & Mint Plasma shader',
-    element: '13. --token-station-people (ST-03 People/RACI & Mint Plasma shader)',
-    hex: '#7CE0B8',
-    source: 'Neural Observatory v1.1 Master Color Script',
-    sourceFile: 'src/styles/cerebro.tokens.css',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'station-files',
-    token: '--token-station-files',
-    entity: 'ST-04 Drive Files & Brushed Steel Archive shader',
-    element: '14. --token-station-files (ST-04 Drive Files & Brushed Steel Archive shader)',
-    hex: '#9DB8D6',
-    source: 'Neural Observatory v1.1 Master Color Script',
-    sourceFile: 'src/styles/cerebro.tokens.css',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'station-media',
-    token: '--token-station-media',
-    entity: 'Sphere 02 CDE Warm Amber Caustic Crystal & ST-05 Media',
-    element: '15. --token-station-media (Sphere 02 CDE Warm Amber Caustic Crystal & ST-05 Media)',
-    hex: '#F2B66D',
-    source: 'Neural Observatory v1.1 Master Color Script',
-    sourceFile: 'src/styles/cerebro.tokens.css',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'sacred-voice-orb',
-    token: '--token-voice-orb',
-    entity: 'SACRED 01: z-110 Voice Pilot Orb (Radial #9AFFE0 -> #359D8E -> #133A44)',
-    element: 'SACRED 01. --token-voice-orb (RESERVED EXCLUSIVELY for z-110 Voice Pilot Orb)',
-    hex: '#9AFFE0',
-    source: 'Neural Observatory v1.1 Sacred Semantic Reservation',
-    sourceFile: 'src/components/VoiceCard.tsx',
-    status: 'CONFIRMED',
-    notes: 'Radial ramp #9AFFE0 -> #359D8E -> #133A44',
-  },
-  {
-    id: 'sacred-tracking-valid',
-    token: '--token-tracking-valid',
-    entity: 'SACRED 02: Valid 21-landmark hand tracking, verified progress & Two-Tap Confirm',
-    element: 'SACRED 02. --token-tracking-valid (RESERVED EXCLUSIVELY for valid hand tracking, verified progress & Two-Tap Confirm)',
-    hex: '#36E88D',
-    source: 'Neural Observatory v1.1 Sacred Semantic Reservation',
-    sourceFile: 'src/components/HandsOverlay.tsx',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'sacred-system-error',
-    token: '--token-system-error',
-    entity: 'SACRED 03: Blocked insight badges & Voice Stop button',
-    element: 'SACRED 03. --token-system-error (RESERVED EXCLUSIVELY for Blocked badges & Voice Stop button)',
-    hex: '#FF5666',
-    source: 'Neural Observatory v1.1 Sacred Semantic Reservation',
-    sourceFile: 'src/components/VoiceCard.tsx',
+    id: 'glass-edge-rim',
+    token: 'glassTransmission.edgeRim',
+    entity: 'Optical glass edge rim highlight',
+    element: '11. glassTransmission.edgeRim (#A4CBFF)',
+    hex: '#A4CBFF',
+    source: 'Cerebro-Nojara D0 v1.24 Master Spec',
+    sourceFile: 'src/tokens/colours.ts',
     status: 'CONFIRMED',
   },
 ];

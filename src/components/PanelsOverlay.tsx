@@ -678,18 +678,10 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               data-panel-id={`pocket-${st.id}`}
               onPointerDown={(e) => e.stopPropagation()}
               onWheel={(e) => e.stopPropagation()}
-              className="pointer-events-auto rounded-xl px-4 py-3 border neural-reveal flex items-center justify-between gap-3"
-              style={{
-                backgroundColor: 'rgba(16, 29, 39, 0.84)',
-                backdropFilter: 'blur(12px) saturate(1.2)',
-                WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-                borderColor: 'rgba(255, 255, 255, 0.14)',
-                boxShadow:
-                  'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-              }}
+              className="cj-glass-card pointer-events-auto rounded-xl px-4 py-3 neural-reveal flex items-center justify-between gap-3"
             >
               <div className="min-w-0">
-                <div className="flex items-center gap-2 font-mono tabular-nums text-[10px] text-[#BDCBD3]">
+                <div className="flex items-center gap-2 font-mono tabular-nums text-[10px] text-[#C5CCD6]">
                   <span
                     className="w-2 h-2 rounded-full shrink-0"
                     style={{ backgroundColor: st.colour }}
@@ -701,14 +693,14 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 <div className="font-display text-xs font-semibold tracking-[0.08em] uppercase text-[#F2F6F8] truncate mt-0.5">
                   {st.label} ({st.labelAr})
                 </div>
-                <div className="font-sans text-[11px] text-[#BDCBD3] truncate">
+                <div className="font-sans text-[11px] text-[#C5CCD6] truncate">
                   {st.summary}
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => onExpandStationFromDashboard?.(st.id)}
-                className="min-h-[38px] px-3.5 rounded-lg font-mono text-[11px] font-semibold bg-[#142632] border border-[rgba(180,221,255,0.16)] text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer shrink-0"
+                className="min-h-[38px] px-3.5 rounded-lg font-mono text-[11px] font-semibold bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer shrink-0"
               >
                 Open
               </button>
@@ -723,18 +715,10 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               data-panel-id={`pocket-${st.id}`}
               onPointerDown={(e) => e.stopPropagation()}
               onWheel={(e) => e.stopPropagation()}
-              className="pointer-events-auto rounded-xl px-4 py-3 border neural-reveal flex items-center justify-between gap-3"
-              style={{
-                backgroundColor: 'rgba(16, 29, 39, 0.84)',
-                backdropFilter: 'blur(12px) saturate(1.2)',
-                WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-                borderColor: 'rgba(255, 255, 255, 0.14)',
-                boxShadow:
-                  'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-              }}
+              className="cj-glass-card pointer-events-auto rounded-xl px-4 py-3 neural-reveal flex items-center justify-between gap-3"
             >
               <div className="min-w-0">
-                <div className="flex items-center gap-2 font-mono tabular-nums text-[10px] text-[#BDCBD3]">
+                <div className="flex items-center gap-2 font-mono tabular-nums text-[10px] text-[#C5CCD6]">
                   <span
                     className="w-2 h-2 rounded-full shrink-0"
                     style={{ backgroundColor: st.colour }}
@@ -746,14 +730,14 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 <div className="font-display text-xs font-semibold tracking-[0.08em] uppercase text-[#F2F6F8] truncate mt-0.5">
                   {st.label} ({st.labelAr})
                 </div>
-                <div className="font-sans text-[11px] text-[#BDCBD3] truncate">
+                <div className="font-sans text-[11px] text-[#C5CCD6] truncate">
                   {st.summary}
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => onExpandStationFromDashboard?.(st.id)}
-                className="min-h-[38px] px-3.5 rounded-lg font-mono text-[11px] font-semibold bg-[#142632] border border-[rgba(180,221,255,0.16)] text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer shrink-0"
+                className="min-h-[38px] px-3.5 rounded-lg font-mono text-[11px] font-semibold bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer shrink-0"
               >
                 Open
               </button>
@@ -854,7 +838,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
         dir={languageRtl === 'ar' ? 'rtl' : 'ltr'}
         onPointerDown={(e) => e.stopPropagation()}
         onWheel={(e) => e.stopPropagation()}
-        className="fixed pointer-events-auto flex flex-col overflow-hidden neural-reveal cerebro-stellar-glass transition-opacity duration-200"
+        className="fixed pointer-events-auto flex flex-col overflow-hidden neural-reveal cj-glass-card cerebro-stellar-glass transition-opacity duration-200"
         style={{
           left: `${rect.x}px`,
           top: `${rect.y}px`,
@@ -874,7 +858,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
         {tabPanelIds.length > 1 && (
           <div
             className="px-3 pt-2 pb-1.5 border-b flex items-center gap-1.5 overflow-x-auto shrink-0"
-            style={{ borderColor: 'rgba(232, 251, 255, 0.16)' }}
+            style={{ borderColor: 'rgba(197, 204, 214, 0.22)' }}
             role="tablist"
             aria-label={`${slotId} panel tabs`}
           >
@@ -895,8 +879,8 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                   }
                   className={`min-h-[36px] px-2.5 py-1 rounded-lg font-mono text-[11px] uppercase tracking-wider shrink-0 transition-colors cursor-pointer ${
                     isTabActive
-                      ? 'bg-[#65ACFF]/25 border border-[#65ACFF] text-[#F2F6F8] font-semibold'
-                      : 'bg-[#101D27]/65 border border-[rgba(232,251,255,0.16)] text-[#A9BAC6] hover:text-[#F2F6F8]'
+                      ? 'bg-[#D4AF37]/25 border border-[#D4AF37] text-[#F2F6F8] font-semibold'
+                      : 'bg-[#101622]/75 border border-[rgba(197,204,214,0.22)] text-[#C5CCD6] hover:text-[#F2F6F8]'
                   }`}
                 >
                   {tid}
@@ -911,7 +895,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           className="px-4 py-2 border-b flex items-center justify-between gap-2 shrink-0"
           style={{
             minHeight: `${GUI_GLASS_TOKENS.headerH}px`,
-            borderColor: 'rgba(232, 251, 255, 0.24)',
+            borderColor: 'rgba(197, 204, 214, 0.22)',
           }}
         >
           <div className="min-w-0 flex-1">
@@ -924,7 +908,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 {panelNum} · {title}
               </h2>
             </div>
-            <div className="font-mono tabular-nums text-[12px] text-[#A9BAC6] truncate mt-0.5 pl-4">
+            <div className="font-mono tabular-nums text-[12px] text-[#C5CCD6] truncate mt-0.5 pl-4">
               {kicker}
             </div>
           </div>
@@ -932,16 +916,16 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             <span
               className="font-mono tabular-nums text-[11px] px-2 py-0.5 rounded border"
               style={{
-                backgroundColor: '#142632',
-                borderColor: 'rgba(232, 251, 255, 0.24)',
+                backgroundColor: '#101622',
+                borderColor: 'rgba(197, 204, 214, 0.22)',
                 color:
                   honestyBadge === 'LIVE'
                     ? '#5CE0A0'
                     : honestyBadge === 'DRAFT ONLY'
-                    ? '#F2B66D'
+                    ? '#D4AF37'
                     : honestyBadge === 'PROPOSED'
-                    ? '#5CC8D7'
-                    : '#B4DDFF',
+                    ? '#FFF4D0'
+                    : '#C5CCD6',
               }}
             >
               {honestyBadge}
@@ -957,7 +941,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 }}
                 aria-label={`Minimise ${title} panel`}
                 title="Minimise to dock (preserves project, tab, scroll & unsent draft)"
-                className="min-w-[44px] min-h-[44px] rounded-xl border border-[rgba(232,251,255,0.24)] bg-[#142632] text-[#A9BAC6] hover:text-[#F2F6F8] hover:border-[#65ACFF] flex items-center justify-center font-mono text-sm cursor-pointer"
+                className="min-w-[44px] min-h-[44px] rounded-xl border border-[rgba(197,204,214,0.22)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] flex items-center justify-center font-mono text-sm cursor-pointer"
               >
                 –
               </button>
@@ -967,7 +951,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               data-testid={`close-${panelId}`}
               onClick={() => onClosePanel(panelId)}
               aria-label={`Close ${title} panel`}
-              className="min-w-[44px] min-h-[44px] rounded-xl border border-[rgba(232,251,255,0.24)] bg-[#142632] text-[#A9BAC6] hover:text-[#F2F6F8] hover:border-[#65ACFF] flex items-center justify-center font-mono text-sm cursor-pointer"
+              className="min-w-[44px] min-h-[44px] rounded-xl border border-[rgba(197,204,214,0.22)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] flex items-center justify-center font-mono text-sm cursor-pointer"
             >
               ×
             </button>
@@ -1018,26 +1002,18 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
       {/* Persistent Project Health Strip (Top-Center Below Header) */}
       <div
         onPointerDown={(e) => e.stopPropagation()}
-        className="fixed top-16 left-1/2 -translate-x-1/2 z-25 pointer-events-auto hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl border"
-        style={{
-          backgroundColor: 'rgba(16, 29, 39, 0.84)',
-          backdropFilter: 'blur(12px) saturate(1.2)',
-          WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-          borderColor: 'rgba(255, 255, 255, 0.14)',
-          boxShadow:
-            'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-        }}
+        className="cj-glass-card fixed top-16 left-1/2 -translate-x-1/2 z-25 pointer-events-auto hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl"
       >
-        <span className="font-mono text-[10px] text-[#BDCBD3] uppercase tracking-wider">
+        <span className="font-mono text-[10px] text-[#C5CCD6] uppercase tracking-wider">
           Overview:
         </span>
         <span className="font-mono tabular-nums text-[10px] text-[#36E88D]">
           ● {onTrackCount} On track
         </span>
-        <span className="font-mono tabular-nums text-[10px] text-[#F2B66D]">
+        <span className="font-mono tabular-nums text-[10px] text-[#D4AF37]">
           ▲ {atRiskCount} At risk
         </span>
-        <span className="font-mono tabular-nums text-[10px] text-[#FF5666]">
+        <span className="font-mono tabular-nums text-[10px] text-[#C5CCD6]">
           ⧠ {blockedCount} Blocked
         </span>
         <span className="text-white/20">|</span>
@@ -1048,7 +1024,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             onToggleUrgentFilter?.(true);
             onOpenPanel?.('tasks');
           }}
-          className="px-2.5 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#142632] border border-[#F2B66D]/50 text-[#F2B66D] hover:bg-[#F2B66D]/15 cursor-pointer"
+          className="px-2.5 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#101622] border border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/15 cursor-pointer"
         >
           Urgent ({atRiskCount})
         </button>
@@ -1056,7 +1032,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           type="button"
           data-testid="chip-approve-pending"
           onClick={() => onOpenPanel?.('decisions')}
-          className="px-2.5 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#142632] border border-[#7CE0B8]/50 text-[#7CE0B8] hover:bg-[#7CE0B8]/15 cursor-pointer"
+          className="px-2.5 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#101622] border border-[#C5CCD6]/50 text-[#C5CCD6] hover:bg-[#C5CCD6]/15 cursor-pointer"
         >
           Reviews ({pendingDecisionCount})
         </button>
@@ -1068,7 +1044,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             onChangeProjectTab?.('BSOCIAL', 'decisions');
             onOpenPanel?.('decisions');
           }}
-          className="px-2.5 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#142632] border border-[#FF5666]/50 text-[#FF5666] hover:bg-[#FF5666]/15 cursor-pointer"
+          className="px-2.5 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#101622] border border-[#FF5666]/50 text-[#FF5666] hover:bg-[#FF5666]/15 cursor-pointer"
         >
           Blocked ({blockedCount})
         </button>
@@ -1086,14 +1062,14 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               type="button"
               data-testid={`restore-chip-${chip.panelId}`}
               onClick={() => onRestoreChip?.(chip)}
-              className="min-h-[40px] px-3.5 py-1.5 rounded-lg font-mono text-[11px] bg-[#142632] border border-[#65ACFF] text-[#F2F6F8] flex items-center gap-2 hover:bg-[#4C8DFF] hover:text-[#101D27] transition-colors cursor-pointer"
+              className="cj-glass-card min-h-[40px] px-3.5 py-1.5 rounded-lg font-mono text-[11px] text-[#F2F6F8] flex items-center gap-2 hover:bg-[#D4AF37] hover:text-[#101622] transition-colors cursor-pointer"
             >
               <span>▢ {chip.label}</span>
               {chip.subTab && (
                 <span className="text-[9px] opacity-80">[{chip.subTab.toUpperCase()}]</span>
               )}
               {chip.unsentDraft && (
-                <span className="text-[9px] text-[#F2B66D]">[DRAFT SAVED]</span>
+                <span className="text-[9px] text-[#FFF4D0]">[DRAFT SAVED]</span>
               )}
             </button>
           ))}
@@ -1119,7 +1095,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             key={st.id}
             type="button"
             onClick={() => onOpenPanel?.(st.id)}
-            className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#142632] border border-[rgba(180,221,255,0.16)] text-[#F2F6F8] shrink-0 cursor-pointer"
+            className="cj-glass-card min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] text-[#F2F6F8] shrink-0 cursor-pointer"
           >
             {st.label}
           </button>
@@ -1133,7 +1109,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               setPhoneSheetSnap92(nextSnap);
               onChangePhoneSheetState?.(nextSnap ? 'expanded' : 'default');
             }}
-            className="min-h-[44px] px-3 py-1 rounded-lg font-mono tabular-nums text-[11px] bg-[#4C8DFF] text-[#101D27] font-semibold shrink-0 cursor-pointer"
+            className="min-h-[44px] px-3 py-1 rounded-lg font-mono tabular-nums text-[11px] bg-[#D4AF37] text-[#101622] font-semibold shrink-0 cursor-pointer"
           >
             Sheet {effectivePhoneSheetState === 'expanded' ? 'Expanded' : 'Default'}
           </button>

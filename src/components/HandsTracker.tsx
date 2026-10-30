@@ -63,11 +63,11 @@ export function MobileSingleHandController({
         type="button"
         data-testid="toggle-one-hand-gesture-btn"
         onClick={() => (isCameraActive ? stopCamera() : startHandCamera())}
-        className="px-4 py-2.5 rounded-xl bg-[#142632]/90 border border-[#78D3B2]/40 text-[#9AFFE0] text-sm font-medium backdrop-blur-md shadow-lg flex items-center gap-2 cursor-pointer hover:border-[#9AFFE0] transition-colors"
+        className="cj-glass-card px-4 py-2.5 rounded-xl text-[#FFF4D0] text-sm font-medium flex items-center gap-2 cursor-pointer hover:border-[#D4AF37] transition-colors"
       >
         <span
           className={`w-2.5 h-2.5 rounded-full ${
-            isCameraActive ? 'bg-[#9AFFE0] animate-ping' : 'bg-slate-500'
+            isCameraActive ? 'bg-[#D4AF37] animate-ping' : 'bg-[#C5CCD6]/50'
           }`}
         />
         {isCameraActive ? 'One-Hand Mode Active' : 'Enable One-Hand Gesture'}
@@ -78,7 +78,7 @@ export function MobileSingleHandController({
         <div
           data-testid="single-hand-tracking-overlay"
           onClick={() => onSelectNode?.()}
-          className="relative w-36 h-48 rounded-2xl overflow-hidden border border-white/20 bg-black/40 backdrop-blur-md shadow-2xl cursor-pointer"
+          className="cj-glass-card relative w-36 h-48 rounded-2xl overflow-hidden cursor-pointer"
           title="Tap to trigger node select / pinch to zoom"
         >
           <video
@@ -98,20 +98,20 @@ export function MobileSingleHandController({
               cy="66"
               r="18"
               fill="none"
-              stroke="#9AFFE0"
+              stroke="#FFF4D0"
               strokeWidth="1"
               strokeDasharray="3 3"
             />
-            <circle cx="45" cy="55" r="3" fill="#9AFFE0" />
-            <circle cx="60" cy="60" r="3" fill="#9AFFE0" />
+            <circle cx="45" cy="55" r="3" fill="#FFF4D0" />
+            <circle cx="60" cy="60" r="3" fill="#FFF4D0" />
             <path
               d="M45 55 Q 52 45 60 60"
               fill="none"
-              stroke="#78D3B2"
+              stroke="#D4AF37"
               strokeWidth="1"
             />
           </svg>
-          <div className="absolute bottom-2 left-0 right-0 text-center text-[10px] text-[#9AFFE0]/90 font-mono tracking-tight pointer-events-none select-none">
+          <div className="absolute bottom-2 left-0 right-0 text-center text-[10px] text-[#FFF4D0]/90 font-mono tracking-tight pointer-events-none select-none">
             Pinch: Zoom / Tap: Select
           </div>
         </div>

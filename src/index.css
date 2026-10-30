@@ -9,24 +9,51 @@
   font-display: swap;
 }
 
+:root {
+  --cj-bg-viewport: #1B2230;
+  --cj-bg-surface: #101622;
+  --cj-glass-panel: rgba(27, 34, 48, 0.88);
+  --cj-gold-primary: #D4AF37;
+  --cj-gold-sheen: #FFF4D0;
+  --cj-silver-metal: #C5CCD6;
+  --cj-slate-blue: #3A516E;
+  --cj-border-hairline: rgba(197, 204, 214, 0.22);
+  --cj-glow-accent: rgba(212, 175, 55, 0.35);
+}
+
+.cj-viewport-container {
+  background: radial-gradient(circle at 50% 40%, #1B2230 0%, #101622 100%);
+  color: #F2F6F8;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.cj-glass-card {
+  background: var(--cj-glass-panel);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--cj-border-hairline);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
 @layer base {
   :root {
-    --bg-canvas: var(--token-canvas);
-    --bg-glass-solid: var(--token-glass-solid);
-    --bg-glass-rgba: var(--token-glass);
-    --text-primary: var(--token-text-primary);
-    --text-secondary: var(--token-text-secondary);
-    --accent-cobalt: var(--token-cobalt);
-    --focus-ring: var(--token-focus);
-    --station-projects: var(--token-cobalt);
-    --station-tasks: var(--token-station-tasks);
-    --station-people: var(--token-station-people);
-    --station-files: var(--token-station-files);
-    --station-media: var(--token-station-media);
-    --voice-orb-mint: var(--token-voice-orb);
-    --voice-orb-teal: var(--token-voice-orb-mid);
-    --voice-orb-deep: var(--token-voice-orb-deep);
-    --sphere-wireframe: var(--token-focus-glow);
+    --bg-canvas: var(--cj-bg-viewport);
+    --bg-glass-solid: var(--cj-bg-surface);
+    --bg-glass-rgba: var(--cj-glass-panel);
+    --text-primary: #F2F6F8;
+    --text-secondary: var(--cj-silver-metal);
+    --accent-cobalt: var(--cj-gold-primary);
+    --focus-ring: var(--cj-gold-primary);
+    --station-projects: var(--cj-gold-primary);
+    --station-tasks: var(--cj-silver-metal);
+    --station-people: var(--cj-gold-sheen);
+    --station-files: var(--cj-silver-metal);
+    --station-media: var(--cj-gold-primary);
+    --voice-orb-mint: var(--cj-gold-primary);
+    --voice-orb-teal: #E6CA65;
+    --voice-orb-deep: #685218;
+    --sphere-wireframe: var(--cj-gold-sheen);
     --ease-cerebro: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
@@ -37,20 +64,22 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    background-color: var(--token-canvas);
-    color: var(--token-text-primary);
+    background: radial-gradient(circle at 50% 40%, #1B2230 0%, #101622 100%);
+    background-color: var(--cj-bg-viewport);
+    color: #F2F6F8;
     font-family: var(--font-sans);
     font-size: 13.5px;
     line-height: 1.45;
     overflow: hidden;
+    touch-action: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     user-select: none;
   }
 
-  /* Focus ring locked to #65ACFF */
+  /* Focus ring locked to gold #D4AF37 */
   *:focus-visible {
-    outline: 2px solid var(--token-focus);
+    outline: 2px solid var(--cj-gold-primary);
     outline-offset: 2px;
   }
 }
@@ -113,27 +142,33 @@ canvas {
   min-height: 280px !important;
 }
 
-/* D0 "Glass Never Solid": all HUD panels and sheets must use rgba(20, 38, 50, 0.88) blur(12px) */
+/* Unified Cerebro-Nojara D0 v1.24 Glass Card across all HUD panels, cards, docks and sheets */
+.cj-glass-card,
 .glass-panel,
+.cerebro-glass-panel,
 .cerebro-stellar-glass,
 .cerebro-hud-panel,
+.cerebro-hud-elevated,
 .optical-hud-panel,
 .hud-sheet {
-  background: rgba(20, 38, 50, 0.88) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(180, 221, 255, 0.22) !important;
+  background: var(--cj-glass-panel) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border: 1px solid var(--cj-border-hairline) !important;
   border-radius: 16px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.42);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-@supports not ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
+@supports not ((backdrop-filter: blur(14px)) or (-webkit-backdrop-filter: blur(14px))) {
+  .cj-glass-card,
   .glass-panel,
+  .cerebro-glass-panel,
   .cerebro-stellar-glass,
   .cerebro-hud-panel,
+  .cerebro-hud-elevated,
   .optical-hud-panel,
   .hud-sheet {
-    background: rgba(20, 38, 50, 0.94) !important;
+    background: rgba(16, 22, 34, 0.94) !important;
   }
 }
 
@@ -144,7 +179,6 @@ canvas {
 }
 
 @media (max-width: 720px) {
-  /* When a bottom sheet is open on mobile (< 720px), dock/shrink Talk control clear of sheet header and safe-area insets */
   body[data-sheet-open='true'] [data-testid="voice-card"],
   [data-testid="voice-card"][data-compacted='true'] {
     bottom: max(12px, env(safe-area-inset-bottom)) !important;
@@ -155,28 +189,28 @@ canvas {
   }
 }
 
-/* Voice Pilot Orb (#9AFFE0 -> #359D8E -> #133A44) — SACRED RESERVATION */
+/* Voice Pilot Orb — Metallic Gold & Specular Sheen */
 .voice-orb-gradient {
   background: radial-gradient(
     circle at 34% 30%,
-    var(--token-voice-orb) 0%,
-    var(--token-voice-orb-mid) 56%,
-    var(--token-voice-orb-deep) 100%
+    var(--cj-gold-sheen) 0%,
+    var(--cj-gold-primary) 56%,
+    #685218 100%
   );
   box-shadow:
-    0 0 28px rgba(154, 255, 224, 0.36),
-    inset 0 1px 2px rgba(242, 246, 248, 0.45);
+    0 0 28px var(--cj-glow-accent),
+    inset 0 1px 2px rgba(255, 244, 208, 0.55);
 }
 
 @keyframes orbPulse {
   0%,
   100% {
     transform: scale(1);
-    box-shadow: 0 0 24px rgba(154, 255, 224, 0.34);
+    box-shadow: 0 0 24px var(--cj-glow-accent);
   }
   50% {
     transform: scale(1.06);
-    box-shadow: 0 0 38px rgba(154, 255, 224, 0.56);
+    box-shadow: 0 0 38px rgba(212, 175, 55, 0.6);
   }
 }
 
@@ -186,16 +220,16 @@ canvas {
 
 @keyframes shimmerSweep {
   0% {
-    opacity: 0.72;
-    filter: drop-shadow(0 0 6px rgba(180, 221, 255, 0.16));
+    opacity: 0.82;
+    filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.18));
   }
   50% {
     opacity: 1;
-    filter: drop-shadow(0 0 14px rgba(180, 221, 255, 0.44));
+    filter: drop-shadow(0 0 14px rgba(212, 175, 55, 0.45));
   }
   100% {
-    opacity: 0.72;
-    filter: drop-shadow(0 0 6px rgba(180, 221, 255, 0.16));
+    opacity: 0.82;
+    filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.18));
   }
 }
 
@@ -238,7 +272,7 @@ canvas {
   position: absolute;
   inset: -4px;
   border-radius: inherit;
-  border: 1.5px solid var(--token-focus);
+  border: 1.5px solid var(--cj-gold-primary);
   animation: pulseRing 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
   pointer-events: none;
 }
@@ -250,47 +284,16 @@ canvas {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(16, 29, 39, 0.45);
+  background: rgba(16, 22, 34, 0.45);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(180, 221, 255, 0.24);
+  background: rgba(197, 204, 214, 0.28);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(101, 172, 255, 0.52);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 120ms !important;
-  }
-}
-
-/* ============================================================================
-   CEREBRO & NOJARA MASTER FRONT-END & DESIGN SPECIFICATION (v1.24)
-   ============================================================================ */
-
-/* --- Global D0 Background & Surface Skin --- */
-body, html, #root {
-  background-color: #05090E;
-  color: #F2F6F8;
-  font-family: 'Inter', -apple-system, sans-serif;
-  overflow: hidden;
-  touch-action: none;
-}
-
-.cerebro-glass-panel {
-  background: rgba(20, 38, 50, 0.88);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(180, 221, 255, 0.22);
-  border-radius: 16px;
+  background: rgba(212, 175, 55, 0.65);
 }
 
 /* --- Nojara Logo & Animated Arabic Typography --- */
@@ -304,10 +307,12 @@ body, html, #root {
   align-items: center;
   gap: 12px;
   padding: 10px 18px;
-  background: rgba(16, 29, 39, 0.9);
+  background: var(--cj-glass-panel);
   backdrop-filter: blur(14px);
-  border: 1px solid rgba(180, 221, 255, 0.22);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--cj-border-hairline);
   border-radius: 14px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .nojara-logo-title {
@@ -320,18 +325,27 @@ body, html, #root {
 .nojara-arabic-subtitle {
   font-family: 'Cairo', 'Tajawal', sans-serif;
   font-size: 13px;
-  color: #BDCBD3;
+  color: var(--cj-silver-metal);
   animation: angelFloat 6s ease-in-out infinite;
 }
 
 /* Cerebro Angel Watermark Motif */
 .cerebro-angel-emblem {
-  opacity: 0.25;
-  mix-blend-mode: overlay;
+  opacity: 0.35;
+  mix-blend-mode: screen;
   transition: opacity 0.3s ease, filter 0.3s ease;
 }
 .cerebro-angel-emblem:hover, .cerebro-angel-emblem.active {
-  opacity: 0.85;
-  filter: drop-shadow(0 0 24px rgba(154, 255, 224, 0.35));
+  opacity: 0.9;
+  filter: drop-shadow(0 0 24px var(--cj-glow-accent));
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 120ms !important;
+  }
+}

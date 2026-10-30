@@ -3174,7 +3174,7 @@ export default function App() {
   return (
     <div
       dir={languageRtl === 'ar' ? 'rtl' : 'ltr'}
-      className="relative w-screen h-screen overflow-hidden select-none"
+      className="cj-viewport-container relative w-screen h-screen overflow-hidden select-none"
       style={{
         backgroundColor: COLOUR_TOKENS.canvas,
         color: COLOUR_TOKENS.textPrimary,
@@ -3479,7 +3479,7 @@ export default function App() {
       <header className="fixed top-0 left-0 right-0 z-30 pointer-events-none flex flex-wrap items-center justify-between gap-2 px-3 md:px-5 pt-3 pb-2 safe-area-top">
         {/* Top-Left: Bismillah + CEREBRO Lockup + HQ / CDE Switcher + Back Button */}
         <div className="pointer-events-none flex items-center gap-2 flex-wrap max-w-full">
-          <div className="pointer-events-auto px-3 py-1.5 rounded-xl bg-[#101D27]/90 border border-white/25 backdrop-blur-md">
+          <div className="cj-glass-card pointer-events-auto px-3 py-1.5 rounded-xl">
             <BrandLockup
               mode="header"
               activeSphere={activeSphere}
@@ -3495,7 +3495,7 @@ export default function App() {
               data-testid="header-back-btn"
               onClick={handleNavigateBack}
               title="Return to previous workspace context"
-              className="pointer-events-auto min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs bg-[#142632]/90 border border-white/30 text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer"
+              className="cj-glass-card pointer-events-auto min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
             >
               ← Back
             </button>
@@ -3504,7 +3504,7 @@ export default function App() {
           {/* Primary Station / Dimension Pills */}
           <nav
             aria-label="Primary Stations and Dimensions"
-            className="hidden pointer-events-auto items-center gap-1.5 p-1 rounded-xl bg-[#142632]/90 border border-white/30 backdrop-blur-md overflow-x-auto max-w-[92vw] sm:max-w-none"
+            className="cj-glass-card hidden pointer-events-auto items-center gap-1.5 p-1 rounded-xl overflow-x-auto max-w-[92vw] sm:max-w-none"
           >
             {activeSphere === 'hq' ? (
               CEREBRO_STATIONS.map((st) => {
@@ -3519,8 +3519,8 @@ export default function App() {
                     }}
                     className="min-h-[38px] px-2.5 py-1 rounded-lg font-mono text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
                     style={{
-                      backgroundColor: isOpen ? 'rgba(76, 141, 255, 0.22)' : 'transparent',
-                      border: `1px solid ${isOpen ? st.colour : 'rgba(255,255,255,0.18)'}`,
+                      backgroundColor: isOpen ? 'rgba(212, 175, 55, 0.22)' : 'transparent',
+                      border: `1px solid ${isOpen ? st.colour : 'rgba(197,204,214,0.22)'}`,
                       color: COLOUR_TOKENS.textPrimary,
                     }}
                   >
@@ -3550,8 +3550,8 @@ export default function App() {
                       }}
                       className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-xs flex items-center gap-2 transition-colors cursor-pointer"
                       style={{
-                        backgroundColor: isSel ? 'rgba(76, 141, 255, 0.22)' : 'transparent',
-                        border: `1px solid ${isSel ? dim.colour : 'rgba(255,255,255,0.18)'}`,
+                        backgroundColor: isSel ? 'rgba(212, 175, 55, 0.22)' : 'transparent',
+                        border: `1px solid ${isSel ? dim.colour : 'rgba(197,204,214,0.22)'}`,
                         color: COLOUR_TOKENS.textPrimary,
                       }}
                     >
@@ -3573,7 +3573,7 @@ export default function App() {
                   style={{
                     backgroundColor: openPanels.includes('story-journey')
                       ? COLOUR_TOKENS.cobaltAccent
-                      : '#101D27',
+                      : '#101622',
                     color: openPanels.includes('story-journey')
                       ? COLOUR_TOKENS.cobaltLabel
                       : COLOUR_TOKENS.textPrimary,
@@ -3610,10 +3610,10 @@ export default function App() {
                   'header'
                 )
               }
-              className={`hidden md:inline-flex items-center min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] border cursor-pointer ${
+              className={`cj-glass-card hidden md:inline-flex items-center min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] cursor-pointer ${
                 openPanels.includes(surf.id)
-                  ? 'bg-[#4C8DFF] text-[#101D27] border-white font-semibold'
-                  : 'bg-[#142632]/90 text-[#F2F6F8] border-white/25 hover:border-[#4C8DFF]'
+                  ? 'bg-[#D4AF37] text-[#101622] border-[#FFF4D0] font-semibold'
+                  : 'text-[#F2F6F8] hover:border-[#D4AF37]'
               }`}
             >
               {surf.label}
@@ -3624,7 +3624,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => executeTypedAction({ type: 'open_dashboard', mode: 'toggle' }, 'header')}
-            className="min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] border bg-[#142632]/90 text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer"
+            className="cj-glass-card min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
             style={{
               borderColor: dashboardCollapsed
                 ? COLOUR_TOKENS.cobaltAccent
@@ -3659,31 +3659,31 @@ export default function App() {
               type="button"
               data-testid="start-tour-btn"
               onClick={() => executeTypedAction({ type: 'tour_control', action: 'start' }, 'header')}
-              className="min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] border bg-[#142632]/90 text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer"
+              className="cj-glass-card min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
               style={{ borderColor: COLOUR_TOKENS.outlineControl }}
             >
               Take a tour
             </button>
           ) : (
             <div
-              className="min-h-[44px] px-2.5 py-1 rounded-xl border bg-[#142632]/95 flex items-center gap-1.5 font-mono text-[11px]"
+              className="cj-glass-card min-h-[44px] px-2.5 py-1 rounded-xl flex items-center gap-1.5 font-mono text-[11px]"
               style={{ borderColor: COLOUR_TOKENS.focusRing }}
             >
-              <span className="text-[#B4DDFF]">
+              <span className="text-[#FFF4D0]">
                 {tourState.step}/{tourState.total} ·{' '}
                 {tourState.paused ? 'Paused' : `${tourState.secondsLeft}s`}
               </span>
               <button
                 type="button"
                 onClick={handlePrevTourStop}
-                className="px-2 py-1 rounded bg-[#101D27] border border-white/30 text-[#F2F6F8] cursor-pointer"
+                className="px-2 py-1 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#F2F6F8] cursor-pointer"
               >
                 ‹ Back
               </button>
               <button
                 type="button"
                 onClick={handleNextTourStop}
-                className="px-2 py-1 rounded bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
+                className="px-2 py-1 rounded bg-[#D4AF37] text-[#101622] font-semibold cursor-pointer"
               >
                 Next ›
               </button>
@@ -3698,7 +3698,7 @@ export default function App() {
                     'header'
                   )
                 }
-                className="px-2 py-1 rounded bg-[#101D27] border border-white/30 text-[#F2F6F8] cursor-pointer"
+                className="px-2 py-1 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#F2F6F8] cursor-pointer"
               >
                 {tourState.paused ? 'Resume' : 'Pause'}
               </button>
@@ -3708,14 +3708,14 @@ export default function App() {
                   setTourState((prev) => ({ ...prev, autoAdvance: !prev.autoAdvance }))
                 }
                 title="Toggle automatic step advancement vs manual step mode"
-                className="px-2 py-1 rounded bg-[#101D27] border border-white/25 text-[#BDCBD3] cursor-pointer"
+                className="px-2 py-1 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#C5CCD6] cursor-pointer"
               >
                 {tourState.autoAdvance ? 'Auto' : 'Manual'}
               </button>
               <button
                 type="button"
                 onClick={() => executeTypedAction({ type: 'tour_control', action: 'stop' }, 'header')}
-                className="px-2 py-1 rounded bg-[#101D27] border border-white/30 text-[#F2B66D] cursor-pointer"
+                className="px-2 py-1 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#D4AF37] cursor-pointer"
               >
                 Stop
               </button>
@@ -3727,14 +3727,14 @@ export default function App() {
             type="button"
             data-testid="header-more-btn"
             onClick={() => setShowMoreMenu((v) => !v)}
-            className="min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] border bg-[#101D27]/90 text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer"
+            className="cj-glass-card min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
             style={{ borderColor: COLOUR_TOKENS.outlineControl }}
           >
             More ▾
           </button>
 
           {showMoreMenu && (
-            <div className="absolute right-0 top-14 w-56 rounded-2xl border border-white/30 bg-[#101D27]/95 backdrop-blur-md p-2 shadow-2xl flex flex-col gap-1 z-50">
+            <div className="cj-glass-card absolute right-0 top-14 w-56 rounded-2xl p-2 flex flex-col gap-1 z-50">
               {(
                 [
                   { id: 'decisions', label: 'Reviews' },
@@ -3755,12 +3755,12 @@ export default function App() {
                       'more_menu'
                     );
                   }}
-                  className="min-h-[40px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#F2F6F8] hover:bg-[#142632] cursor-pointer"
+                  className="min-h-[40px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#F2F6F8] hover:bg-[#101622] cursor-pointer"
                 >
                   {item.label}
                 </button>
               ))}
-              <div className="border-t border-white/15 my-1" />
+              <div className="border-t border-[rgba(197,204,214,0.22)] my-1" />
               <button
                 type="button"
                 data-testid="open-developer-view-btn"
@@ -3768,7 +3768,7 @@ export default function App() {
                   setShowMoreMenu(false);
                   setShowDeveloperDrawer(true);
                 }}
-                className="min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#B4DDFF] hover:bg-[#142632] cursor-pointer"
+                className="min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#C5CCD6] hover:bg-[#101622] cursor-pointer"
               >
                 Developer View & Self-Tests
               </button>
@@ -3779,7 +3779,7 @@ export default function App() {
                   setShowMoreMenu(false);
                   setShowGuiQaHud((v) => !v);
                 }}
-                className="min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#9AFFE0] hover:bg-[#142632] cursor-pointer"
+                className="min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#D4AF37] hover:bg-[#101622] cursor-pointer"
               >
                 GUI v3.0 Layout & Lens QA
               </button>
@@ -3791,11 +3791,11 @@ export default function App() {
       {/* 5. Compact 3D Cinema Optics & Camera Controls Bar (Bottom-Left above Voice Card) */}
       <div
         onPointerDown={(e) => e.stopPropagation()}
-        className="fixed left-4 bottom-24 z-25 pointer-events-auto hidden lg:flex flex-col gap-1.5 p-2.5 rounded-xl bg-[#101D27]/88 border border-white/20 backdrop-blur-md font-mono text-[10px] text-[#D0DCE3] max-w-[680px]"
+        className="cj-glass-card fixed left-4 bottom-24 z-25 pointer-events-auto hidden lg:flex flex-col gap-1.5 p-2.5 rounded-xl font-mono text-[10px] text-[#C5CCD6] max-w-[680px]"
       >
         {/* Row 1: Live Optical Telemetry & Cinema Prime / Macro Lens Selector */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-white/10">
-          <div className="flex items-center gap-1.5 text-[10px] text-[#B4DDFF]">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-[rgba(197,204,214,0.22)]">
+          <div className="flex items-center gap-1.5 text-[10px] text-[#C5CCD6]">
             <span className="font-semibold text-[#F2F6F8]">OPTICS</span>
             <span aria-hidden="true">·</span>
             <span data-testid="camera-telemetry-readout">
@@ -3830,8 +3830,8 @@ export default function App() {
                   }
                   className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
                     isActive
-                      ? 'bg-[#4C8DFF] text-[#081118] font-semibold'
-                      : 'bg-[#142632] text-[#D0DCE3] hover:text-[#F2F6F8] border border-white/15'
+                      ? 'bg-[#D4AF37] text-[#101622] font-semibold'
+                      : 'bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] border border-[rgba(197,204,214,0.22)]'
                   }`}
                 >
                   {lens.label}
@@ -3865,8 +3865,8 @@ export default function App() {
                 }
                 className={`min-h-[30px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
                   isAngActive
-                    ? 'bg-[#1B3444] border-[#4C8DFF] text-[#B4DDFF]'
-                    : 'bg-[#142632] border-white/20 hover:border-[#4C8DFF] text-[#F2F6F8]'
+                    ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#FFF4D0]'
+                    : 'bg-[#101622] border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8]'
                 }`}
               >
                 {ang.label}
@@ -3903,8 +3903,8 @@ export default function App() {
                 }
                 className={`min-h-[30px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
                   isLoopActive
-                    ? 'bg-[#5CC8D7]/20 border-[#5CC8D7] text-[#5CC8D7] font-semibold'
-                    : 'bg-[#142632] border-[rgba(180,221,255,0.16)] hover:border-[#65ACFF] text-[#F2F6F8]'
+                    ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#FFF4D0] font-semibold'
+                    : 'bg-[#101622] border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8]'
                 }`}
               >
                 {lp.label}
@@ -3919,42 +3919,42 @@ export default function App() {
           <button
             type="button"
             onClick={() => dispatchCamera('zoom_in')}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#142632] border border-white/25 hover:border-[#4C8DFF] text-[#F2F6F8] cursor-pointer"
+            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
           >
             + Zoom
           </button>
           <button
             type="button"
             onClick={() => dispatchCamera('zoom_out')}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#142632] border border-white/25 hover:border-[#4C8DFF] text-[#F2F6F8] cursor-pointer"
+            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
           >
             - Zoom
           </button>
           <button
             type="button"
             onClick={() => dispatchCamera('pan', { deltaPanX: -2.2, deltaPanY: 0 })}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#142632] border border-white/25 hover:border-[#4C8DFF] text-[#F2F6F8] cursor-pointer"
+            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
           >
             Pan Left
           </button>
           <button
             type="button"
             onClick={() => dispatchCamera('pan', { deltaPanX: 2.2, deltaPanY: 0 })}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#142632] border border-white/25 hover:border-[#4C8DFF] text-[#F2F6F8] cursor-pointer"
+            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
           >
             Pan Right
           </button>
           <button
             type="button"
             onClick={() => dispatchCamera('stop')}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#142632] border border-white/25 hover:border-[#F2B66D] text-[#F2B66D] cursor-pointer"
+            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#D4AF37] cursor-pointer"
           >
             Stop
           </button>
           <button
             type="button"
             onClick={() => dispatchCamera('center', { targetSphere: activeSphere })}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#142632] border border-white/25 hover:border-[#4C8DFF] text-[#F2F6F8] cursor-pointer"
+            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
           >
             Center
           </button>
@@ -4053,19 +4053,13 @@ export default function App() {
             data-testid="tour-scrubber-pill"
             onPointerDown={(e) => e.stopPropagation()}
             onWheel={(e) => e.stopPropagation()}
-            className="fixed top-16 left-1/2 -translate-x-1/2 z-40 pointer-events-auto flex flex-wrap items-center gap-2 px-3.5 py-2 rounded-2xl border backdrop-blur-xl shadow-2xl max-w-[95vw]"
-            style={{
-              backgroundColor: 'rgba(16, 29, 39, 0.90)',
-              borderColor: COLOUR_TOKENS.focusRing,
-              boxShadow:
-                'inset 0 1px 0 rgba(180, 221, 255, 0.24), 0 14px 36px rgba(0, 0, 0, 0.65)',
-            }}
+            className="cj-glass-card fixed top-16 left-1/2 -translate-x-1/2 z-40 pointer-events-auto flex flex-wrap items-center gap-2 px-3.5 py-2 rounded-2xl max-w-[95vw]"
           >
             {/* Stage Badge S01..S18 + Screen Title */}
-            <div className="flex items-center gap-2 pr-2 border-r border-white/15">
+            <div className="flex items-center gap-2 pr-2 border-r border-[rgba(197,204,214,0.22)]">
               <span
                 data-testid="tour-stage-badge"
-                className="px-2 py-0.5 rounded-md font-mono text-[11px] font-bold bg-[#65ACFF] text-[#101D27]"
+                className="px-2 py-0.5 rounded-md font-mono text-[11px] font-bold bg-[#D4AF37] text-[#101622]"
               >
                 {currentStop.screenId} · {tourState.step}/{tourState.total}
               </span>
@@ -4073,7 +4067,7 @@ export default function App() {
                 <div className="font-display text-xs font-semibold text-[#F2F6F8] truncate">
                   {currentStop.title}
                 </div>
-                <div className="font-mono text-[10px] text-[#B4DDFF] truncate">
+                <div className="font-mono text-[10px] text-[#C5CCD6] truncate">
                   {currentStop.panelNumber} ·{' '}
                   {tourState.paused ? 'PAUSED' : `Next in ${tourState.secondsLeft}s`}
                   {screenStore.activePulsedCta?.ctaId
@@ -4098,7 +4092,7 @@ export default function App() {
                   'tour_hud'
                 )
               }
-              className="min-h-[34px] px-2 py-1 rounded-lg bg-[#142632] border border-white/20 font-mono text-[10px] text-[#F2F6F8] cursor-pointer"
+              className="min-h-[34px] px-2 py-1 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] font-mono text-[10px] text-[#F2F6F8] cursor-pointer"
             >
               <option value="full-18-screen">Full 18-Screen (S01–S18)</option>
               <option value="hq-ops">HQ Ops (S02–S16)</option>
@@ -4120,7 +4114,7 @@ export default function App() {
                   'tour_hud'
                 )
               }
-              className="min-h-[34px] px-2 py-1 rounded-lg bg-[#142632] border border-white/20 font-mono text-[10px] text-[#9AFFE0] cursor-pointer"
+              className="min-h-[34px] px-2 py-1 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] font-mono text-[10px] text-[#FFF4D0] cursor-pointer"
             >
               {CEREBRO_18_TOUR_CHOREOGRAPHY.map((s) => (
                 <option key={s.screenId} value={s.screenId}>
@@ -4135,7 +4129,7 @@ export default function App() {
                 type="button"
                 data-cta-id="tour-hud-prev"
                 onClick={handlePrevTourStop}
-                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#142632] border border-white/25 text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
+                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
               >
                 Prev ‹
               </button>
@@ -4151,7 +4145,7 @@ export default function App() {
                     'tour_hud'
                   )
                 }
-                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#142632] border border-[#65ACFF] text-[#B4DDFF] hover:bg-[#4C8DFF] hover:text-[#101D27] cursor-pointer"
+                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#101622] border border-[#D4AF37] text-[#FFF4D0] hover:bg-[#D4AF37] hover:text-[#101622] cursor-pointer"
               >
                 {tourState.paused ? 'Resume' : 'Pause'}
               </button>
@@ -4159,7 +4153,7 @@ export default function App() {
                 type="button"
                 data-cta-id="tour-hud-next"
                 onClick={handleNextTourStop}
-                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
+                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#D4AF37] text-[#101622] font-semibold cursor-pointer"
               >
                 Next ›
               </button>
@@ -4167,7 +4161,7 @@ export default function App() {
                 type="button"
                 data-cta-id="tour-hud-exit"
                 onClick={handleStopTourImmediately}
-                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#142632] border border-[#FF5666] text-[#FF5666] hover:bg-[#FF5666]/15 cursor-pointer"
+                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#101622] border border-[#FF5666] text-[#FF5666] hover:bg-[#FF5666]/15 cursor-pointer"
               >
                 Exit Tour
               </button>
@@ -4220,12 +4214,12 @@ export default function App() {
           data-testid="ambience-mute-toggle"
           data-cta-id="ambience-toggle"
           onClick={handleToggleAmbience}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[11px] font-medium border border-[rgba(180,221,255,0.22)] bg-[rgba(20,38,50,0.88)] backdrop-blur-md text-[#BDCBD3] hover:text-[#F2F6F8] hover:border-[#65ACFF] transition-colors shadow-lg cursor-pointer"
+          className="cj-glass-card flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[11px] font-medium text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] transition-colors cursor-pointer"
           title="Toggle ambient background soundscape"
         >
           <span
             className={`w-2 h-2 rounded-full transition-colors ${
-              ambienceMuted ? 'bg-white/30' : 'bg-[#9AFFE0] animate-pulse'
+              ambienceMuted ? 'bg-white/30' : 'bg-[#D4AF37] animate-pulse'
             }`}
           />
           <span>Ambience {ambienceMuted ? 'Off' : 'On'}</span>
@@ -4258,27 +4252,21 @@ export default function App() {
         <div
           onPointerDown={(e) => e.stopPropagation()}
           onWheel={(e) => e.stopPropagation()}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#101D27]/85 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#101622]/85 backdrop-blur-md"
         >
           <div
             data-testid="developer-view-modal"
-            className="w-full max-w-4xl max-h-[88vh] rounded-xl border p-5 flex flex-col gap-4 shadow-2xl neural-reveal overflow-hidden"
-            style={{
-              backgroundColor: 'rgba(16, 29, 39, 0.84)',
-              borderColor: 'rgba(255, 255, 255, 0.14)',
-              boxShadow:
-                'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-            }}
+            className="cj-glass-card w-full max-w-4xl max-h-[88vh] rounded-xl p-5 flex flex-col gap-4 shadow-2xl neural-reveal overflow-hidden"
           >
-            <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.14)] pb-3 shrink-0">
+            <div className="flex items-center justify-between border-b border-[rgba(197,204,214,0.22)] pb-3 shrink-0">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#4C8DFF] shrink-0" />
+                  <span className="w-2 h-2 rounded-full bg-[#D4AF37] shrink-0" />
                   <h2 className="font-display text-xs md:text-sm font-semibold tracking-[0.08em] uppercase text-[#F2F6F8]">
                     Developer View — Diagnostics, Tool Schemas, Telemetry & Self-Tests
                   </h2>
                 </div>
-                <div className="font-mono tabular-nums text-[10px] text-[#BDCBD3] pl-4 mt-0.5">
+                <div className="font-mono tabular-nums text-[10px] text-[#C5CCD6] pl-4 mt-0.5">
                   AUTHENTICATED DEVELOPER DIAGNOSTICS · BUILD v{BUILD_VERSION} (CHECKPOINT v1.25.0 SAVED)
                 </div>
               </div>
@@ -4288,14 +4276,14 @@ export default function App() {
                   data-testid="run-self-test-btn"
                   disabled={selfTestRunning}
                   onClick={runAutomatedJourneySelfTest}
-                  className="min-h-[40px] px-3.5 py-1.5 rounded-lg font-mono text-xs bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer disabled:opacity-50"
+                  className="min-h-[40px] px-3.5 py-1.5 rounded-lg font-mono text-xs bg-[#D4AF37] text-[#101622] font-semibold cursor-pointer disabled:opacity-50"
                 >
                   {selfTestRunning ? 'Running 16 Assertions...' : 'Run 16-Point Self-Test'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowDeveloperDrawer(false)}
-                  className="min-w-[40px] min-h-[40px] rounded-lg border border-[rgba(180,221,255,0.16)] bg-[#142632] text-[#BDCBD3] hover:text-[#F2F6F8] font-mono cursor-pointer"
+                  className="min-w-[40px] min-h-[40px] rounded-lg border border-[rgba(197,204,214,0.22)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] font-mono cursor-pointer"
                 >
                   ×
                 </button>
@@ -4303,25 +4291,25 @@ export default function App() {
             </div>
 
             {!isOwnerOnly ? (
-              <div className="p-6 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] text-center space-y-2">
+              <div className="p-6 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] text-center space-y-2">
                 <div className="font-display text-sm font-semibold text-[#F2F6F8]">
                   Owner Authentication Required
                 </div>
-                <p className="font-sans text-xs text-[#BDCBD3]">
+                <p className="font-sans text-xs text-[#C5CCD6]">
                   Switch Audience Privacy to "Owner only" to access developer diagnostics, source exports, and self-tests.
                 </p>
               </div>
             ) : (
               <div className="overflow-y-auto flex-1 space-y-4 pr-1">
                 {/* Developer Action Bar */}
-                <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)]">
+                <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)]">
                   <button
                     type="button"
                     onClick={() => {
                       setShowDeveloperDrawer(false);
                       setShowDownloadModal(true);
                     }}
-                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#7CE0B8] text-[#101D27] font-semibold cursor-pointer"
+                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#D4AF37] text-[#101622] font-semibold cursor-pointer"
                   >
                     ↓ Download Full Source (.ZIP)
                   </button>
@@ -4331,7 +4319,7 @@ export default function App() {
                       setShowDeveloperDrawer(false);
                       ensurePanelOpen('phase0-audit', true);
                     }}
-                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#142632] border border-[rgba(180,221,255,0.16)] text-[#F2F6F8] cursor-pointer"
+                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#1B2230] border border-[rgba(197,204,214,0.22)] text-[#F2F6F8] cursor-pointer"
                   >
                     Open Source Map & Colour Audit Panel
                   </button>
@@ -4341,14 +4329,14 @@ export default function App() {
                       setShowDeveloperDrawer(false);
                       setOpenAgentModalTrigger((c) => c + 1);
                     }}
-                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#142632] border border-[#65ACFF]/50 text-[#B4DDFF] cursor-pointer"
+                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#1B2230] border border-[#D4AF37]/50 text-[#FFF4D0] cursor-pointer"
                   >
                     Voice Agent ID & 18-Tool Provisioning
                   </button>
                   <button
                     type="button"
                     onClick={() => setForceWebglFallback((v) => !v)}
-                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#142632] border border-[#F2B66D]/50 text-[#F2B66D] cursor-pointer"
+                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#1B2230] border border-[#C5CCD6]/50 text-[#C5CCD6] cursor-pointer"
                   >
                     {forceWebglFallback ? 'Restore 3D WebGL Scene' : 'Test Reduced-Graphics Fallback'}
                   </button>
@@ -4356,16 +4344,16 @@ export default function App() {
 
                 {/* Live Camera Telemetry & Tool Registry Audit */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="p-3 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] font-mono tabular-nums text-xs space-y-1">
-                    <div className="text-[#4C8DFF] font-semibold">LIVE 3D CAMERA TELEMETRY</div>
+                  <div className="p-3 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] font-mono tabular-nums text-xs space-y-1">
+                    <div className="text-[#D4AF37] font-semibold">LIVE 3D CAMERA TELEMETRY</div>
                     <div>Sphere: {telemetry.sphere.toUpperCase()} · Node: {telemetry.focusedNodeId || 'none'}</div>
                     <div>Distance: {telemetry.distance}u · Azimuth: {telemetry.azimuthDeg}° · Polar: {telemetry.polarDeg}°</div>
                     <div>Pan Offset: [{telemetry.panOffset.join(', ')}]</div>
                     <div>Auto-Orbit: {String(telemetry.autoOrbit)} ({telemetry.turnSeconds}s/turn) · Moving: {String(telemetry.isMoving)}</div>
                     <div>Last Verb: {telemetry.lastCommand}</div>
                   </div>
-                  <div className="p-3 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] font-mono tabular-nums text-xs space-y-1">
-                    <div className="text-[#7CE0B8] font-semibold">VOICE AGENT & TOOL REGISTRY AUDIT</div>
+                  <div className="p-3 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] font-mono tabular-nums text-xs space-y-1">
+                    <div className="text-[#C5CCD6] font-semibold">VOICE AGENT & TOOL REGISTRY AUDIT</div>
                     <div>Default Agent ID: {DEFAULT_INTERNAL_AGENT_ID}</div>
                     <div>
                       Advertised Tools: {toolAuditEntries.length} · Implemented:{' '}
@@ -4380,16 +4368,16 @@ export default function App() {
                 </div>
 
                 {/* Unattached Assets & External Integrations Disclosure */}
-                <div className="p-3 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] space-y-1.5">
-                  <div className="font-mono text-xs text-[#F2B66D] font-semibold">
+                <div className="p-3 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] space-y-1.5">
+                  <div className="font-mono text-xs text-[#D4AF37] font-semibold">
                     DOCUMENTED UNATTACHED SOURCE ITEMS & EXTERNAL INTEGRATIONS ({MISSING_ITEMS.length})
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {MISSING_ITEMS.map((m) => (
-                      <div key={m.id} className="p-2 rounded-lg bg-[#142632] border border-[rgba(180,221,255,0.16)] font-mono text-[10px]">
-                        <span className="text-[#F2B66D]">[{m.id}]</span>{' '}
+                      <div key={m.id} className="p-2 rounded-lg bg-[#1B2230] border border-[rgba(197,204,214,0.22)] font-mono text-[10px]">
+                        <span className="text-[#D4AF37]">[{m.id}]</span>{' '}
                         <span className="text-[#F2F6F8]">{m.item}</span>
-                        <div className="text-[#BDCBD3] mt-0.5">{m.currentFallbackInPhase0}</div>
+                        <div className="text-[#C5CCD6] mt-0.5">{m.currentFallbackInPhase0}</div>
                       </div>
                     ))}
                   </div>
@@ -4398,19 +4386,19 @@ export default function App() {
                 {/* 16-Point Real Assertion-Based Self-Test Results */}
                 {selfTestResults.length > 0 && (
                   <div className="space-y-1.5">
-                    <div className="font-mono text-xs text-[#65ACFF] font-semibold">
+                    <div className="font-mono text-xs text-[#D4AF37] font-semibold">
                       16-POINT ASSERTION-BASED SELF-TEST RESULTS (ISOLATED TEST DATA CLEANED UP)
                     </div>
                     {selfTestResults.map((chk) => (
                       <div
                         key={chk.id}
-                        className="rounded-lg p-2.5 border border-[rgba(180,221,255,0.16)] bg-[rgba(20,38,50,0.72)] flex items-center justify-between gap-3"
+                        className="rounded-lg p-2.5 border border-[rgba(197,204,214,0.22)] bg-[#101622] flex items-center justify-between gap-3"
                       >
                         <div className="min-w-0">
                           <div className="font-display text-xs font-semibold text-[#F2F6F8]">
                             [{chk.id}] {chk.title}
                           </div>
-                          <div className="font-mono text-[10px] text-[#BDCBD3] truncate">
+                          <div className="font-mono text-[10px] text-[#C5CCD6] truncate">
                             {chk.detail}
                           </div>
                         </div>
@@ -4422,7 +4410,7 @@ export default function App() {
                                 ? 'rgba(54, 232, 141, 0.2)'
                                 : chk.status === 'FAIL'
                                 ? 'rgba(255, 86, 102, 0.2)'
-                                : '#142632',
+                                : '#1B2230',
                             color:
                               chk.status === 'PASS'
                                 ? COLOUR_TOKENS.healthOnTrack

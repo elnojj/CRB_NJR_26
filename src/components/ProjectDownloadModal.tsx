@@ -169,33 +169,25 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
   const fileKeys = Object.keys(filesMap).sort();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-[#101D27]/85 backdrop-blur-md">
-      <div
-        className="w-full max-w-4xl max-h-[88vh] rounded-xl border flex flex-col overflow-hidden shadow-2xl neural-reveal"
-        style={{
-          backgroundColor: 'rgba(16, 29, 39, 0.84)',
-          borderColor: 'rgba(255, 255, 255, 0.14)',
-          boxShadow:
-            'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-        }}
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-[#101622]/85 backdrop-blur-md">
+      <div className="cj-glass-card w-full max-w-4xl max-h-[88vh] rounded-xl flex flex-col overflow-hidden shadow-2xl neural-reveal">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-[rgba(255,255,255,0.14)] flex items-center justify-between gap-4 shrink-0">
+        <div className="px-5 py-4 border-b border-[rgba(197,204,214,0.22)] flex items-center justify-between gap-4 shrink-0">
           <div>
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#9DB8D6] shrink-0" />
+              <span className="w-2 h-2 rounded-full bg-[#D4AF37] shrink-0" />
               <h2 className="font-display text-xs md:text-sm font-semibold tracking-[0.08em] uppercase text-[#F2F6F8]">
                 CEREBRO + CDE v1.25 — Full Project Download
               </h2>
             </div>
-            <div className="font-mono tabular-nums text-[10px] text-[#BDCBD3] pl-4 mt-0.5">
+            <div className="font-mono tabular-nums text-[10px] text-[#C5CCD6] pl-4 mt-0.5">
               NOJARA STUDIOS · FULL SOURCE ARCHIVE & ELEVENLABS BUNDLE
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-lg border border-[rgba(180,221,255,0.16)] bg-[#142632] text-[#BDCBD3] hover:text-[#F2F6F8] font-mono text-base cursor-pointer"
+            className="w-9 h-9 rounded-lg border border-[rgba(197,204,214,0.22)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] font-mono text-base cursor-pointer"
           >
             ×
           </button>
@@ -205,15 +197,15 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
         <div className="p-5 space-y-4 overflow-y-auto flex-1">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* 1. Full Project ZIP */}
-            <div className="rounded-lg p-4 border border-[rgba(180,221,255,0.16)] bg-[rgba(20,38,50,0.72)] flex flex-col justify-between gap-3">
+            <div className="cj-glass-card rounded-lg p-4 flex flex-col justify-between gap-3">
               <div className="space-y-1">
-                <span className="font-mono text-[10px] text-[#7CE0B8]">
+                <span className="font-mono text-[10px] text-[#D4AF37]">
                   COMPLETE SOURCE CODE (.ZIP)
                 </span>
                 <h3 className="font-display text-sm font-semibold text-[#F2F6F8]">
                   Full Project Bundle ({fileKeys.length} Files)
                 </h3>
-                <p className="font-sans text-xs text-[#BDCBD3]">
+                <p className="font-sans text-xs text-[#C5CCD6]">
                   Includes all TypeScript/React components, Three.js dual-sphere engine, MediaPipe CV rig, Express server, CSS tokens, and Vite config.
                 </p>
               </div>
@@ -221,7 +213,7 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
                 type="button"
                 disabled={downloadingZip || loadingFiles}
                 onClick={handleDownloadFullZip}
-                className="w-full min-h-[42px] px-4 py-2 rounded-lg font-mono text-xs font-semibold bg-[#7CE0B8] text-[#101D27] hover:opacity-95 cursor-pointer disabled:opacity-50"
+                className="w-full min-h-[42px] px-4 py-2 rounded-lg font-mono text-xs font-semibold bg-[#D4AF37] text-[#101622] hover:opacity-95 cursor-pointer disabled:opacity-50"
               >
                 {downloadingZip
                   ? 'Building ZIP...'
@@ -230,15 +222,15 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
             </div>
 
             {/* 2. ElevenLabs Cro-cde-google Manifest */}
-            <div className="rounded-lg p-4 border border-[rgba(180,221,255,0.16)] bg-[rgba(20,38,50,0.72)] flex flex-col justify-between gap-3">
+            <div className="cj-glass-card rounded-lg p-4 flex flex-col justify-between gap-3">
               <div className="space-y-1">
-                <span className="font-mono text-[10px] text-[#4C8DFF]">
+                <span className="font-mono text-[10px] text-[#C5CCD6]">
                   ELEVENLABS AGENT MANIFEST (.JSON)
                 </span>
                 <h3 className="font-display text-sm font-semibold text-[#F2F6F8]">
                   Agent: {CRO_CDE_GOOGLE_AGENT_NAME} (18 Tools)
                 </h3>
-                <p className="font-sans text-xs text-[#BDCBD3]">
+                <p className="font-sans text-xs text-[#C5CCD6]">
                   Complete system prompt, locked greeting, and all 18 client tool schemas ready for ElevenLabs ConvAI import.
                 </p>
               </div>
@@ -255,22 +247,22 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
                     }
                   )
                 }
-                className="w-full min-h-[42px] px-4 py-2 rounded-lg font-mono text-xs font-semibold bg-[#4C8DFF] text-[#101D27] hover:opacity-95 cursor-pointer"
+                className="w-full min-h-[42px] px-4 py-2 rounded-lg font-mono text-xs font-semibold bg-[#C5CCD6] text-[#101622] hover:opacity-95 cursor-pointer"
               >
                 Download 18-Tool Agent (.JSON)
               </button>
             </div>
 
             {/* 3. NOJARA Project Register & Source Snapshot */}
-            <div className="rounded-lg p-4 border border-[rgba(180,221,255,0.16)] bg-[rgba(20,38,50,0.72)] flex flex-col justify-between gap-3">
+            <div className="cj-glass-card rounded-lg p-4 flex flex-col justify-between gap-3">
               <div className="space-y-1">
-                <span className="font-mono text-[10px] text-[#F2B66D]">
+                <span className="font-mono text-[10px] text-[#FFF4D0]">
                   SOURCE OF TRUTH SNAPSHOT (.JSON)
                 </span>
                 <h3 className="font-display text-sm font-semibold text-[#F2F6F8]">
                   52 PMO Records + RACI + 5 Showreels
                 </h3>
-                <p className="font-sans text-xs text-[#BDCBD3]">
+                <p className="font-sans text-xs text-[#C5CCD6]">
                   Exports the complete read-only NOJARA register snapshot, colour token registry, RACI matrix, and 8 story chapters.
                 </p>
               </div>
@@ -288,7 +280,7 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
                     storyChapters: STORY_CHAPTERS,
                   })
                 }
-                className="w-full min-h-[42px] px-4 py-2 rounded-lg font-mono text-xs font-semibold bg-[#F2B66D] text-[#101D27] hover:opacity-95 cursor-pointer"
+                className="w-full min-h-[42px] px-4 py-2 rounded-lg font-mono text-xs font-semibold bg-[#D4AF37] text-[#101622] hover:opacity-95 cursor-pointer"
               >
                 Download Register Data (.JSON)
               </button>
@@ -296,20 +288,20 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
           </div>
 
           {statusMessage && (
-            <div className="px-4 py-2 rounded-lg bg-[#142632] border border-[#36E88D]/50 font-mono text-xs text-[#36E88D]">
+            <div className="px-4 py-2 rounded-lg bg-[#101622] border border-[#D4AF37]/50 font-mono text-xs text-[#FFF4D0]">
               {statusMessage}
             </div>
           )}
 
           {/* Interactive Codebase File Inspector */}
-          <div className="rounded-lg border border-[rgba(180,221,255,0.16)] bg-[#101D27] overflow-hidden">
-            <div className="px-4 py-2.5 bg-[#142632] border-b border-[rgba(255,255,255,0.14)] flex flex-wrap items-center justify-between gap-2">
+          <div className="rounded-lg border border-[rgba(197,204,214,0.22)] bg-[#101622] overflow-hidden">
+            <div className="px-4 py-2.5 bg-[#1B2230] border-b border-[rgba(197,204,214,0.22)] flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs text-[#BDCBD3]">Inspect File:</span>
+                <span className="font-mono text-xs text-[#C5CCD6]">Inspect File:</span>
                 <select
                   value={selectedFile}
                   onChange={(e) => setSelectedFile(e.target.value)}
-                  className="px-2.5 py-1 rounded-lg bg-[#101D27] border border-[rgba(180,221,255,0.16)] font-mono text-xs text-[#F2F6F8]"
+                  className="px-2.5 py-1 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] font-mono text-xs text-[#F2F6F8]"
                 >
                   {fileKeys.map((k) => (
                     <option key={k} value={k}>
@@ -325,12 +317,12 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
                   navigator.clipboard?.writeText(content);
                   setStatusMessage(`Copied ${selectedFile} to clipboard`);
                 }}
-                className="px-3 py-1 rounded-lg font-mono text-[11px] bg-[#101D27] border border-[rgba(180,221,255,0.16)] text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
+                className="px-3 py-1 rounded-lg font-mono text-[11px] bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
               >
                 Copy File Content
               </button>
             </div>
-            <pre className="p-4 max-h-60 overflow-auto font-mono text-[11px] text-[#BDCBD3] leading-relaxed">
+            <pre className="p-4 max-h-60 overflow-auto font-mono text-[11px] text-[#C5CCD6] leading-relaxed">
               {filesMap[selectedFile] || 'Loading project files...'}
             </pre>
           </div>

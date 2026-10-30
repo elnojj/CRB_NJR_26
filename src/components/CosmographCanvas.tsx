@@ -306,7 +306,7 @@ export function buildProjectMediaTubeItems(projectId: string): ProjectMediaTubeI
     const row = Math.floor(idx / PROJECT_MEDIA_TUBE_SPECS.columns) + 1;
     const col = (idx % PROJECT_MEDIA_TUBE_SPECS.columns) + 1;
     const accentHex =
-      kind === 'video' ? '#F2B66D' : kind === 'pdf' ? '#9DB8D6' : '#65ACFF';
+      kind === 'video' ? '#D4AF37' : kind === 'pdf' ? '#C5CCD6' : '#FFF4D0';
     return {
       index: idx,
       id: `tube-${cleanProj.toLowerCase()}-${String(idx + 1).padStart(2, '0')}`,
@@ -412,9 +412,9 @@ const CinemaFilmGrainVignetteShader = {
       float dist = length(dir);
       vec4 baseCol = texture2D(tDiffuse, vUv);
 
-      // Controlled dark navy vignette (#05090E, v4.0 strength 0.14)
+      // Controlled dark slate vignette (#101622, v1.24 strength 0.14)
       float vig = smoothstep(0.34, 0.88, dist);
-      vec3 navyVignette = vec3(0.0196, 0.0353, 0.0549);
+      vec3 navyVignette = vec3(0.0627, 0.0863, 0.1333);
       vec3 graded = mix(baseCol.rgb, navyVignette, vig * uVignetteStrength);
 
       // 2.5% monochromatic film grain quantized at 24Hz
@@ -447,45 +447,45 @@ function buildLiquidGlassGalaxySphere(
   const paletteHex =
     sphereTag === 'hq'
       ? [
-          '#B4DDFF',
-          '#4C8DFF',
-          '#65ACFF',
-          '#5CC8D7',
-          '#7CE0B8',
-          '#9DB8D6',
+          '#FFF4D0',
+          '#D4AF37',
+          '#C5CCD6',
+          '#E6CA65',
+          '#EAF2FF',
+          '#3A516E',
         ]
       : [
-          '#F2B66D',
-          '#FFF1D4',
-          '#B4DDFF',
-          '#5CC8D7',
-          '#7CE0B8',
-          '#4C8DFF',
+          '#D4AF37',
+          '#FFF4D0',
+          '#E6CA65',
+          '#C5CCD6',
+          '#EAF2FF',
+          '#3A516E',
         ];
 
   const arms = 4;
   for (let i = 0; i < particleCount; i++) {
     const layer = i % 3; // 3-layer vertical thickness & orbital stratification
     const armIndex = i % arms;
-    const t = Math.pow((i / particleCount), 0.78);
-    const radius = 1.15 + t * 6.55;
+    const t = Math.pow(i / particleCount, 0.78);
+    const radius = 0.65 + t * 4.35;
     const spinAngle = radius * 1.15 + (armIndex * Math.PI * 2) / arms;
 
-    //Deterministic golden-ratio scatter
+    // Deterministic golden-ratio scatter
     const rand1 = ((i * 1.6180339887) % 1) * 2 - 1;
     const rand2 = ((i * 2.4142135623) % 1) * 2 - 1;
     const rand3 = ((i * 3.1415926535) % 1) * 2 - 1;
 
-    const layerSpreadY = layer === 0 ? 0.55 : layer === 1 ? 1.85 : 3.65;
-    const armSpread = (0.28 + radius * 0.085) * rand1;
+    const layerSpreadY = layer === 0 ? 0.42 : layer === 1 ? 1.35 : 2.65;
+    const armSpread = (0.24 + radius * 0.075) * rand1;
 
-    const x = Math.cos(spinAngle + armSpread) * radius + rand2 * 0.25;
-    const z = Math.sin(spinAngle + armSpread) * radius + rand1 * 0.25;
+    const x = Math.cos(spinAngle + armSpread) * radius + rand2 * 0.2;
+    const z = Math.sin(spinAngle + armSpread) * radius + rand1 * 0.2;
     const y = rand3 * layerSpreadY * (1 - t * 0.38);
 
-    // Clamp strictly inside the 7.8u interior of the 8.2u liquid glass sphere
+    // Clamp strictly inside the 5.35u interior of the 6.2u containment sphere
     const vLen = Math.hypot(x, y, z);
-    const scaleClamp = vLen > 7.65 ? 7.65 / vLen : 1.0;
+    const scaleClamp = vLen > 5.35 ? 5.35 / vLen : 1.0;
 
     positions[i * 3] = x * scaleClamp;
     positions[i * 3 + 1] = y * scaleClamp;
@@ -496,7 +496,7 @@ function buildLiquidGlassGalaxySphere(
     colors[i * 3 + 1] = _scratchColor.g;
     colors[i * 3 + 2] = _scratchColor.b;
 
-    sizes[i] = (layer === 0 ? 15.0 : layer === 1 ? 11.5 : 8.5) * (0.65 + 0.55 * Math.abs(rand2));
+    sizes[i] = (layer === 0 ? 7.5 : layer === 1 ? 5.5 : 4.0) * (0.55 + 0.45 * Math.abs(rand2));
     phases[i] = (i * 0.73) % (Math.PI * 2);
   }
 
@@ -565,9 +565,9 @@ function buildLiquidGlassGalaxySphere(
         float sharpStar = exp(-d * d * 7.5);
         float softBokeh = smoothstep(1.0, 0.15, d) * (0.55 + 0.45 * smoothstep(0.45, 0.82, d));
         float profile = mix(sharpStar, softBokeh, vBokehBlur);
-        float alpha = profile * mix(0.88, 0.34, vBokehBlur) * vTwinkle;
+        float alpha = profile * mix(0.32, 0.12, vBokehBlur) * vTwinkle;
 
-        gl_FragColor = vec4(vColor * (1.05 + (1.0 - vBokehBlur) * 0.35), clamp(alpha, 0.0, 0.92));
+        gl_FragColor = vec4(vColor * (0.95 + (1.0 - vBokehBlur) * 0.25), clamp(alpha, 0.0, 0.42));
       }
     `,
     transparent: true,
@@ -655,12 +655,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     lastUserInputTime: 0,
     targetCenter: new THREE.Vector3(0, 0, 0),
     currentCenter: new THREE.Vector3(0, 0, 0),
-    azimuth: -0.35,
-    polar: 1.32,
-    radius: 21.5,
-    targetAzimuth: 0.12,
-    targetPolar: 1.42,
-    targetRadius: 19.0,
+    azimuth: -0.18,
+    polar: 1.48,
+    radius: 17.5,
+    targetAzimuth: 0.04,
+    targetPolar: 1.50,
+    targetRadius: 15.6,
     panOffset: new THREE.Vector3(0, 0, 0),
     targetPanOffset: new THREE.Vector3(0, 0, 0),
     focalLengthMm: 35,
@@ -1292,7 +1292,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.AgXToneMapping;
     renderer.toneMappingExposure = 1.0;
-    renderer.setClearColor(0x05090E, 1);
+    renderer.setClearColor(0x1B2230);
     renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
     renderer.setSize(initW, initH);
     renderer.shadowMap.enabled = !isSoftwareGl;
@@ -1321,7 +1321,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     domEl.addEventListener('webglcontextrestored', handleContextRestored, false);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x05090E, 0.015);
+    scene.fog = new THREE.FogExp2(0x1B2230, 0.015);
 
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
     scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
@@ -1352,19 +1352,20 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       composer.addPass(cinemaPass);
     }
 
-    // Locked Three-Point Cinema Rig ("THE SET"):
-    // 1. Deep slate ambient fill (#142632, intensity 1.4)
-    const ambientFill = new THREE.AmbientLight(0x142632, 1.4);
-    scene.add(ambientFill);
+    // Cerebro-Nojara D0 v1.24 Four-Light Rig:
+    const ambientLight = new THREE.AmbientLight(0x2a3648, 1.2);
+    scene.add(ambientLight);
 
-    // 2. Cool ivory key light (#F2F6F8, intensity 1.6 at [16, 22, 20])
-    const keyLight = new THREE.DirectionalLight(0xF2F6F8, 1.6);
-    keyLight.position.set(16, 22, 20);
+    const keyLight = new THREE.DirectionalLight(0xfff5e6, 2.4);
+    keyLight.position.set(15, 25, 20);
     scene.add(keyLight);
 
-    // 3. Cobalt rim back-light (#65ACFF, intensity 1.25 at [-18, -14, -16])
-    const rimLight = new THREE.DirectionalLight(0x65ACFF, 1.25);
-    rimLight.position.set(-18, -14, -16);
+    const fillLight = new THREE.DirectionalLight(0x8cb4ff, 1.2);
+    fillLight.position.set(-20, -10, -15);
+    scene.add(fillLight);
+
+    const rimLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    rimLight.position.set(0, 30, -20);
     scene.add(rimLight);
 
     const glassUniforms = {
@@ -1372,6 +1373,514 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       uAudioRms: { value: 0 },
       uInteriorDome: { value: 0 },
     };
+
+    const maxAniso = renderer.capabilities.getMaxAnisotropy?.() || 4;
+    const extraDisposables: Array<{ dispose: () => void }> = [];
+
+    // Procedural sinusoidal stripe texture for Gold Ribbed material
+    const createSinusoidalStripeBumpTexture = (): THREE.DataTexture => {
+      const width = 64;
+      const height = 256;
+      const data = new Uint8Array(width * height * 4);
+      for (let y = 0; y < height; y++) {
+        const stripe = Math.round((0.5 + 0.5 * Math.sin((y / height) * Math.PI * 2 * 24)) * 255);
+        for (let x = 0; x < width; x++) {
+          const i = (y * width + x) * 4;
+          data[i] = stripe;
+          data[i + 1] = stripe;
+          data[i + 2] = stripe;
+          data[i + 3] = 255;
+        }
+      }
+      const tex = new THREE.DataTexture(data, width, height, THREE.RGBAFormat);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(4, 16);
+      tex.needsUpdate = true;
+      return tex;
+    };
+
+    /**
+     * Procedural Wavy / Chevron Gold & Slate-Blue PBR Texture Set
+     * Matches the exact undulating sinusoidal gold & slate-blue spheres and tori in IMG_3020
+     */
+    const createWavyPatternMaterial = (opts: {
+      bands: number;
+      waveCycles: number;
+      waveAmp: number;
+      goldLight: [number, number, number];
+      goldBase: [number, number, number];
+      slateBase: [number, number, number];
+      slateDark: [number, number, number];
+      slateMetalness?: number;
+      slateRoughness?: number;
+      repeatX?: number;
+      repeatY?: number;
+    }): THREE.MeshPhysicalMaterial => {
+      const w = 512;
+      const h = 256;
+      const colorData = new Uint8Array(w * h * 4);
+      const roughData = new Uint8Array(w * h * 4);
+      const metalData = new Uint8Array(w * h * 4);
+      const bumpData = new Uint8Array(w * h * 4);
+
+      const sMetal = Math.round((opts.slateMetalness ?? 0.25) * 255);
+      const sRough = Math.round((opts.slateRoughness ?? 0.46) * 255);
+
+      for (let y = 0; y < h; y++) {
+        const v = y / h;
+        for (let x = 0; x < w; x++) {
+          const u = x / w;
+          const waveOffset =
+            Math.sin(u * Math.PI * 2 * opts.waveCycles) * opts.waveAmp +
+            0.22 * Math.sin(u * Math.PI * 2 * (opts.waveCycles * 2) + 0.8) * opts.waveAmp;
+          const s = Math.sin((v * opts.bands + waveOffset) * Math.PI * 2);
+          // Smooth anti-aliased transition between gold band and slate band
+          const mixGold = THREE.MathUtils.clamp(0.5 + s * 2.4, 0, 1);
+          const ridgeHighlight = Math.max(0, s);
+
+          const gR = opts.goldBase[0] + (opts.goldLight[0] - opts.goldBase[0]) * ridgeHighlight;
+          const gG = opts.goldBase[1] + (opts.goldLight[1] - opts.goldBase[1]) * ridgeHighlight;
+          const gB = opts.goldBase[2] + (opts.goldLight[2] - opts.goldBase[2]) * ridgeHighlight;
+
+          const troughShade = Math.max(0, -s);
+          const slR = opts.slateBase[0] + (opts.slateDark[0] - opts.slateBase[0]) * troughShade;
+          const slG = opts.slateBase[1] + (opts.slateDark[1] - opts.slateBase[1]) * troughShade;
+          const slB = opts.slateBase[2] + (opts.slateDark[2] - opts.slateBase[2]) * troughShade;
+
+          const idx = (y * w + x) * 4;
+          colorData[idx] = Math.round(slR + (gR - slR) * mixGold);
+          colorData[idx + 1] = Math.round(slG + (gG - slG) * mixGold);
+          colorData[idx + 2] = Math.round(slB + (gB - slB) * mixGold);
+          colorData[idx + 3] = 255;
+
+          const mVal = Math.round(sMetal + (242 - sMetal) * mixGold);
+          metalData[idx] = mVal;
+          metalData[idx + 1] = mVal;
+          metalData[idx + 2] = mVal;
+          metalData[idx + 3] = 255;
+
+          const rVal = Math.round(sRough + (44 - sRough) * mixGold);
+          roughData[idx] = rVal;
+          roughData[idx + 1] = rVal;
+          roughData[idx + 2] = rVal;
+          roughData[idx + 3] = 255;
+
+          const bVal = Math.round(80 + 175 * (0.5 + 0.5 * s) * (0.4 + 0.6 * mixGold));
+          bumpData[idx] = bVal;
+          bumpData[idx + 1] = bVal;
+          bumpData[idx + 2] = bVal;
+          bumpData[idx + 3] = 255;
+        }
+      }
+
+      const makeTex = (arr: Uint8Array, isSrgb: boolean) => {
+        const t = new THREE.DataTexture(arr, w, h, THREE.RGBAFormat);
+        t.wrapS = THREE.RepeatWrapping;
+        t.wrapT = THREE.RepeatWrapping;
+        t.repeat.set(opts.repeatX ?? 1, opts.repeatY ?? 1);
+        t.colorSpace = isSrgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+        t.anisotropy = maxAniso;
+        t.needsUpdate = true;
+        extraDisposables.push(t);
+        return t;
+      };
+
+      const mat = new THREE.MeshPhysicalMaterial({
+        color: 0xffffff,
+        map: makeTex(colorData, true),
+        metalness: 1.0,
+        metalnessMap: makeTex(metalData, false),
+        roughness: 1.0,
+        roughnessMap: makeTex(roughData, false),
+        bumpMap: makeTex(bumpData, false),
+        bumpScale: 0.045,
+        clearcoat: 0.28,
+        clearcoatRoughness: 0.14,
+        sheen: 0.45,
+        sheenRoughness: 0.28,
+        sheenColor: new THREE.Color(0xFFF4D0),
+      });
+      extraDisposables.push(mat);
+      return mat;
+    };
+
+    /**
+     * Procedural Ultra-Fine Concentric Lathe-Grooved Champagne-Gold & Slate Material
+     * Matches the concentric circular grooved spheres in IMG_3020
+     */
+    const createConcentricGroovedMaterial = (opts: {
+      rings: number;
+      ridgeRgb: [number, number, number];
+      grooveRgb: [number, number, number];
+    }): THREE.MeshPhysicalMaterial => {
+      const w = 128;
+      const h = 512;
+      const colorData = new Uint8Array(w * h * 4);
+      const roughData = new Uint8Array(w * h * 4);
+      const metalData = new Uint8Array(w * h * 4);
+      const bumpData = new Uint8Array(w * h * 4);
+
+      for (let y = 0; y < h; y++) {
+        const v = y / h;
+        const s = Math.sin(v * Math.PI * 2 * opts.rings);
+        const ridge = 0.5 + 0.5 * s;
+        const sharpRidge = THREE.MathUtils.clamp(0.5 + s * 1.65, 0, 1);
+
+        const rCol = Math.round(opts.grooveRgb[0] + (opts.ridgeRgb[0] - opts.grooveRgb[0]) * sharpRidge);
+        const gCol = Math.round(opts.grooveRgb[1] + (opts.ridgeRgb[1] - opts.grooveRgb[1]) * sharpRidge);
+        const bCol = Math.round(opts.grooveRgb[2] + (opts.ridgeRgb[2] - opts.grooveRgb[2]) * sharpRidge);
+        const mVal = Math.round(78 + (238 - 78) * sharpRidge);
+        const rVal = Math.round(115 + (42 - 115) * sharpRidge);
+        const bmp = Math.round(40 + 215 * ridge);
+
+        for (let x = 0; x < w; x++) {
+          const idx = (y * w + x) * 4;
+          colorData[idx] = rCol;
+          colorData[idx + 1] = gCol;
+          colorData[idx + 2] = bCol;
+          colorData[idx + 3] = 255;
+
+          metalData[idx] = mVal;
+          metalData[idx + 1] = mVal;
+          metalData[idx + 2] = mVal;
+          metalData[idx + 3] = 255;
+
+          roughData[idx] = rVal;
+          roughData[idx + 1] = rVal;
+          roughData[idx + 2] = rVal;
+          roughData[idx + 3] = 255;
+
+          bumpData[idx] = bmp;
+          bumpData[idx + 1] = bmp;
+          bumpData[idx + 2] = bmp;
+          bumpData[idx + 3] = 255;
+        }
+      }
+
+      const makeTex = (arr: Uint8Array, isSrgb: boolean) => {
+        const t = new THREE.DataTexture(arr, w, h, THREE.RGBAFormat);
+        t.wrapS = THREE.RepeatWrapping;
+        t.wrapT = THREE.RepeatWrapping;
+        t.colorSpace = isSrgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+        t.anisotropy = maxAniso;
+        t.needsUpdate = true;
+        extraDisposables.push(t);
+        return t;
+      };
+
+      const mat = new THREE.MeshPhysicalMaterial({
+        color: 0xffffff,
+        map: makeTex(colorData, true),
+        metalness: 1.0,
+        metalnessMap: makeTex(metalData, false),
+        roughness: 1.0,
+        roughnessMap: makeTex(roughData, false),
+        bumpMap: makeTex(bumpData, false),
+        bumpScale: 0.055,
+        clearcoat: 0.35,
+        clearcoatRoughness: 0.12,
+        anisotropy: 0.65,
+        sheen: 0.4,
+        sheenColor: new THREE.Color(0xFFF4D0),
+      });
+      extraDisposables.push(mat);
+      return mat;
+    };
+
+    /**
+     * Slotted / Perforated Gold Lattice Cage Material (mid-left sphere in IMG_3020)
+     */
+    const createSlottedGoldLatticeMaterial = (): THREE.MeshPhysicalMaterial => {
+      const w = 256;
+      const h = 128;
+      const alphaData = new Uint8Array(w * h * 4);
+      for (let y = 0; y < h; y++) {
+        const v = y / h;
+        const latRing = Math.abs(Math.sin(v * Math.PI * 9)) < 0.34;
+        for (let x = 0; x < w; x++) {
+          const u = x / w;
+          const lonRib = Math.abs(Math.sin((u + (Math.floor(v * 9) % 2) * 0.04) * Math.PI * 18)) < 0.32;
+          const solid = latRing || lonRib ? 255 : 0;
+          const idx = (y * w + x) * 4;
+          alphaData[idx] = solid;
+          alphaData[idx + 1] = solid;
+          alphaData[idx + 2] = solid;
+          alphaData[idx + 3] = 255;
+        }
+      }
+      const alphaTex = new THREE.DataTexture(alphaData, w, h, THREE.RGBAFormat);
+      alphaTex.wrapS = THREE.RepeatWrapping;
+      alphaTex.wrapT = THREE.RepeatWrapping;
+      alphaTex.needsUpdate = true;
+      extraDisposables.push(alphaTex);
+
+      const mat = new THREE.MeshPhysicalMaterial({
+        color: 0xE2B23C,
+        metalness: 0.95,
+        roughness: 0.16,
+        clearcoat: 0.4,
+        clearcoatRoughness: 0.1,
+        alphaMap: alphaTex,
+        alphaTest: 0.5,
+        side: THREE.DoubleSide,
+      });
+      extraDisposables.push(mat);
+      return mat;
+    };
+
+    const goldRibbedBumpMap = createSinusoidalStripeBumpTexture();
+
+    // Shared Gold Ribbed Material (rings, ribs, metal frames)
+    const sharedGoldRibbedMat = new THREE.MeshPhysicalMaterial({
+      color: 0xD4AF37,
+      metalness: 0.92,
+      roughness: 0.22,
+      clearcoat: 0.3,
+      clearcoatRoughness: 0.1,
+      sheen: 0.6,
+      sheenRoughness: 0.3,
+      sheenColor: new THREE.Color(0xFFF4D0),
+      bumpMap: goldRibbedBumpMap,
+      bumpScale: 0.05,
+    });
+
+    // Shared Polished 24K Gold Material (hoop rings, accent beads)
+    const sharedPolishedGoldMat = new THREE.MeshPhysicalMaterial({
+      color: 0xE5B842,
+      metalness: 0.96,
+      roughness: 0.12,
+      clearcoat: 0.45,
+      clearcoatRoughness: 0.08,
+      sheen: 0.5,
+      sheenColor: new THREE.Color(0xFFF4D0),
+    });
+    extraDisposables.push(sharedPolishedGoldMat);
+
+    // Shared Satin Champagne-Pearl Silver Material (prominent smooth metallic spheres in IMG_3020)
+    const sharedSatinPearlSilverMat = new THREE.MeshPhysicalMaterial({
+      color: 0xDDD6C7,
+      metalness: 0.88,
+      roughness: 0.20,
+      clearcoat: 0.32,
+      clearcoatRoughness: 0.15,
+      sheen: 0.4,
+      sheenRoughness: 0.25,
+      sheenColor: new THREE.Color(0xFFF4D0),
+    });
+    extraDisposables.push(sharedSatinPearlSilverMat);
+
+    // Shared Satin Slate-Blue Material (large left recessed sphere in IMG_3020)
+    const sharedSatinSlateBlueMat = new THREE.MeshPhysicalMaterial({
+      color: 0x4A6482,
+      metalness: 0.26,
+      roughness: 0.36,
+      clearcoat: 0.18,
+      clearcoatRoughness: 0.24,
+      sheen: 0.48,
+      sheenRoughness: 0.35,
+      sheenColor: new THREE.Color(0x8CB4FF),
+    });
+    extraDisposables.push(sharedSatinSlateBlueMat);
+
+    // Shared Dark Navy Crater Interior Material (recessed circular cavity in IMG_3020)
+    const sharedDarkCraterMat = new THREE.MeshPhysicalMaterial({
+      color: 0x131B28,
+      metalness: 0.15,
+      roughness: 0.58,
+    });
+    extraDisposables.push(sharedDarkCraterMat);
+
+    // Shared Satin Periwinkle / Slate-Lavender Material (lower-left sphere & plump tori in IMG_3020)
+    const sharedSatinPeriwinkleMat = new THREE.MeshPhysicalMaterial({
+      color: 0x6E7691,
+      metalness: 0.46,
+      roughness: 0.30,
+      clearcoat: 0.24,
+      clearcoatRoughness: 0.18,
+      sheen: 0.5,
+      sheenRoughness: 0.3,
+      sheenColor: new THREE.Color(0xC5D0EA),
+    });
+    extraDisposables.push(sharedSatinPeriwinkleMat);
+
+    // Shared Crystal-Clear Optical Glass Bubble Material (interior glass spheres in IMG_3020)
+    const sharedCrystalGlassBubbleMat = new THREE.MeshPhysicalMaterial({
+      color: 0xFFFFFF,
+      metalness: 0,
+      roughness: 0.02,
+      ior: 1.52,
+      transmission: isSoftwareGl ? 0 : 0.98,
+      thickness: 1.45,
+      attenuationColor: new THREE.Color(0xEAF2FF),
+      attenuationDistance: 4.5,
+      specularIntensity: 1.0,
+      specularColor: new THREE.Color(0xFFFFFF),
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.02,
+      transparent: true,
+      opacity: isSoftwareGl ? 0.32 : 0.96,
+    });
+    extraDisposables.push(sharedCrystalGlassBubbleMat);
+
+    // Signature Patterned PBR Materials from IMG_3020:
+    const sharedWavyGoldSlateLargeMat = createWavyPatternMaterial({
+      bands: 9,
+      waveCycles: 6,
+      waveAmp: 0.52,
+      goldLight: [255, 240, 185],
+      goldBase: [216, 165, 52],
+      slateBase: [82, 95, 120],
+      slateDark: [48, 58, 76],
+      slateMetalness: 0.25,
+      slateRoughness: 0.46,
+    });
+
+    const sharedWavyGoldSilverHeroMat = createWavyPatternMaterial({
+      bands: 7,
+      waveCycles: 5,
+      waveAmp: 0.45,
+      goldLight: [255, 246, 208],
+      goldBase: [224, 178, 68],
+      slateBase: [188, 196, 208],
+      slateDark: [110, 120, 138],
+      slateMetalness: 0.78,
+      slateRoughness: 0.24,
+    });
+
+    const sharedWavyGoldDarkSlateMat = createWavyPatternMaterial({
+      bands: 10,
+      waveCycles: 7,
+      waveAmp: 0.48,
+      goldLight: [252, 232, 168],
+      goldBase: [212, 162, 50],
+      slateBase: [72, 82, 102],
+      slateDark: [38, 45, 58],
+      slateMetalness: 0.30,
+      slateRoughness: 0.42,
+    });
+
+    const sharedWavyTorusMat = createWavyPatternMaterial({
+      bands: 6,
+      waveCycles: 4,
+      waveAmp: 0.55,
+      goldLight: [255, 242, 192],
+      goldBase: [220, 172, 58],
+      slateBase: [104, 116, 140],
+      slateDark: [64, 74, 94],
+      slateMetalness: 0.38,
+      slateRoughness: 0.36,
+      repeatX: 2,
+      repeatY: 1,
+    });
+
+    const sharedConcentricChampagneMat = createConcentricGroovedMaterial({
+      rings: 38,
+      ridgeRgb: [236, 224, 196],
+      grooveRgb: [72, 92, 118],
+    });
+
+    const sharedConcentricBronzeMat = createConcentricGroovedMaterial({
+      rings: 32,
+      ridgeRgb: [212, 168, 76],
+      grooveRgb: [46, 54, 68],
+    });
+
+    const sharedSlottedGoldLatticeMat = createSlottedGoldLatticeMaterial();
+
+    // Shared Optical Glass Material (Master Containment Sphere shell)
+    const sharedOpticalGlassMat = new THREE.MeshPhysicalMaterial({
+      metalness: 0,
+      roughness: 0.04,
+      ior: 1.48,
+      transmission: isSoftwareGl ? 0 : 0.98,
+      thickness: 1.2,
+      specularIntensity: 1,
+      specularColor: new THREE.Color(0xB4DDFF),
+      transparent: true,
+      opacity: isSoftwareGl ? 0.16 : 0.42,
+      side: THREE.FrontSide,
+      depthWrite: false,
+    });
+
+    const sharedBackOpticalGlassMat = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color(0x1E2B3D),
+      metalness: 0,
+      roughness: 0.04,
+      ior: 1.48,
+      transmission: isSoftwareGl ? 0 : 0.98,
+      thickness: 1.2,
+      specularIntensity: 1,
+      specularColor: new THREE.Color(0xB4DDFF),
+      transparent: true,
+      opacity: isSoftwareGl ? 0.10 : 0.24,
+      side: THREE.BackSide,
+      depthWrite: false,
+    });
+
+    // Shared Titanium Material (silver spheres, nodes, hardware)
+    const sharedTitaniumMat = new THREE.MeshPhysicalMaterial({
+      color: 0xC5CCD6,
+      metalness: 0.85,
+      roughness: 0.18,
+      clearcoat: 0.5,
+      clearcoatRoughness: 0.1,
+    });
+
+    const rimColVec = new THREE.Color(0xA4CBFF);
+    const bodyColVec = new THREE.Color(0xEAF2FF);
+
+    const injectCausticShader = (mat: THREE.MeshPhysicalMaterial, isBack: boolean) => {
+      mat.onBeforeCompile = (shader) => {
+        shader.uniforms.uTime = glassUniforms.uTime;
+        shader.uniforms.uAudioRms = glassUniforms.uAudioRms;
+        shader.uniforms.uInteriorDome = glassUniforms.uInteriorDome;
+        shader.vertexShader =
+          `uniform float uTime;\nuniform float uAudioRms;\n` +
+          shader.vertexShader.replace(
+            '#include <begin_vertex>',
+            `#include <begin_vertex>
+            float wave = sin(position.x * 0.65 + uTime * 1.15) * cos(position.y * 0.65 + uTime * 0.9) * sin(position.z * 0.65 + uTime * 1.05);
+            transformed += normal * (wave * (0.025 + uAudioRms * 0.045));`
+          );
+        shader.fragmentShader =
+          `uniform float uTime;\nuniform float uAudioRms;\nuniform float uInteriorDome;\n` +
+          shader.fragmentShader;
+
+        const patchedOpaque = patchFresnelRimOnOpaqueFragment(
+          shader,
+          rimColVec,
+          bodyColVec,
+          isBack ? 2.1 : 2.9
+        );
+        if (!patchedOpaque) {
+          shader.fragmentShader = shader.fragmentShader.replace(
+            '#include <dithering_fragment>',
+            `#include <dithering_fragment>
+            float fresnel = pow(1.0 - abs(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0))), ${
+              isBack ? '2.1' : '2.9'
+            });
+            vec3 causticRim = vec3(${rimColVec.r.toFixed(3)}, ${rimColVec.g.toFixed(3)}, ${rimColVec.b.toFixed(3)});
+            vec3 causticBody = vec3(${bodyColVec.r.toFixed(3)}, ${bodyColVec.g.toFixed(3)}, ${bodyColVec.b.toFixed(3)});
+            float causticWave = 0.5 + 0.5 * sin(uTime * 1.6 + gl_FragCoord.x * 0.012 + gl_FragCoord.y * 0.012);
+            vec3 rimTint = mix(causticBody, causticRim, causticWave) * fresnel * (0.24 + uAudioRms * 0.35);
+            gl_FragColor.rgb += rimTint;`
+          );
+        }
+      };
+    };
+
+    injectCausticShader(sharedBackOpticalGlassMat, true);
+    injectCausticShader(sharedOpticalGlassMat, false);
+
+    // Shared Geometries for zero redundant allocations
+    const sharedShellGeo = new THREE.SphereGeometry(6.2, 64, 48);
+    const sharedOuterRibTorusGeo = new THREE.TorusGeometry(6.16, 0.022, 12, 96);
+    const sharedHaloGeo = new THREE.RingGeometry(0.76, 0.82, 48);
+    const sharedPlanetBeadGeo = new THREE.SphereGeometry(0.085, 16, 16);
+    const sharedSatBeadGeo = new THREE.SphereGeometry(0.11, 16, 16);
+    const sharedUnitSphereGeo = new THREE.SphereGeometry(1.0, 48, 48);
+    extraDisposables.push(sharedUnitSphereGeo);
 
     const pulseBeads: {
       mesh: THREE.Mesh;
@@ -1389,6 +1898,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       nodeB: string;
     }[] = [];
 
+    // Strictly clamp any local component position inside the 6.2u Master Containment Sphere
+    const clampInsideSphere = (vec: THREE.Vector3, maxR = 4.65): THREE.Vector3 => {
+      const len = vec.length();
+      if (len > maxR) {
+        vec.multiplyScalar(maxR / len);
+      }
+      return vec;
+    };
+
     const buildSphereAssembly = (
       center: THREE.Vector3,
       sphereTag: 'hq' | 'cde',
@@ -1398,121 +1916,25 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       root.position.copy(center);
 
       const shellGroup = new THREE.Group();
-      // Sphere 01 (HQ) & Sphere 02 (CDE): radius 6.2u per Wireframes v1.1 spec
-      const shellGeo = new THREE.SphereGeometry(6.2, 56, 40);
-
       const isHq = sphereTag === 'hq';
-      const matPreset = isHq ? sphereMaterials.hq : sphereMaterials.cde;
-      const matColors = getDomainMaterialColors(matPreset);
-      const primaryShellColor = isHq ? '#4C8DFF' : '#F2B66D';
-      const primaryRimColor = isHq ? '#B4DDFF' : '#FFF1D4';
-      const resolvedShellHex =
-        (isHq && matPreset === 'cobalt-glass') || (!isHq && matPreset === 'amber-crystal')
-          ? primaryShellColor
-          : matColors.shellHex;
-      const resolvedRimHex =
-        (isHq && matPreset === 'cobalt-glass') || (!isHq && matPreset === 'amber-crystal')
-          ? primaryRimColor
-          : matColors.rimHex;
 
-      // 1. BackSide Inner Refraction & Interior Planetary Dome Shell
-      const backShellMat = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color(isHq ? '#132836' : '#2A1F14'),
-        transmission: isSoftwareGl ? 0 : 1.0,
-        transparent: true,
-        opacity: isSoftwareGl ? 0.14 : 0.54,
-        roughness: 0.06,
-        metalness: 0.0,
-        ior: 1.48,
-        thickness: 0.8,
-        side: THREE.BackSide,
-        depthWrite: false,
-        wireframe: matColors.wireframeOnly,
-      });
+      const backShellMat = sharedBackOpticalGlassMat;
+      const frontShellMat = sharedOpticalGlassMat;
 
-      // 2. FrontSide Outer Chromatic Fresnel Caustic Shell (v1.24 Optical Glass)
-      const frontShellMat = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color(resolvedShellHex),
-        transmission: isSoftwareGl ? 0 : 1.0,
-        transparent: true,
-        opacity: isSoftwareGl ? 0.22 : 0.92,
-        roughness: 0.06,
-        metalness: 0.0,
-        ior: 1.48,
-        thickness: 0.8,
-        specularIntensity: 1.0,
-        specularColor: new THREE.Color('#B4DDFF'),
-        sheen: 0.8,
-        sheenRoughness: 0.2,
-        sheenColor: new THREE.Color('#9AFFE0'),
-        clearcoat: 0.8,
-        clearcoatRoughness: 0.06,
-        side: THREE.FrontSide,
-        depthWrite: false,
-        wireframe: matColors.wireframeOnly,
-      });
-
-      const rimColVec = new THREE.Color(resolvedRimHex);
-      const bodyColVec = new THREE.Color(resolvedShellHex);
-
-      const injectCausticShader = (mat: THREE.MeshPhysicalMaterial, isBack: boolean) => {
-        mat.onBeforeCompile = (shader) => {
-          shader.uniforms.uTime = glassUniforms.uTime;
-          shader.uniforms.uAudioRms = glassUniforms.uAudioRms;
-          shader.uniforms.uInteriorDome = glassUniforms.uInteriorDome;
-          shader.vertexShader =
-            `uniform float uTime;\nuniform float uAudioRms;\n` +
-            shader.vertexShader.replace(
-              '#include <begin_vertex>',
-              `#include <begin_vertex>
-              float wave = sin(position.x * 0.65 + uTime * 1.15) * cos(position.y * 0.65 + uTime * 0.9) * sin(position.z * 0.65 + uTime * 1.05);
-              transformed += normal * (wave * (0.048 + uAudioRms * 0.065));`
-            );
-          shader.fragmentShader =
-            `uniform float uTime;\nuniform float uAudioRms;\nuniform float uInteriorDome;\n` +
-            shader.fragmentShader;
-
-          // Blueprint V2.0 v2 Fix #1: Target #include <opaque_fragment> (Three r154+) with warning guard
-          const patchedOpaque = patchFresnelRimOnOpaqueFragment(
-            shader,
-            rimColVec,
-            bodyColVec,
-            isBack ? 1.9 : 2.6
-          );
-          if (!patchedOpaque) {
-            shader.fragmentShader = shader.fragmentShader.replace(
-              '#include <dithering_fragment>',
-              `#include <dithering_fragment>
-              float fresnel = pow(1.0 - abs(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0))), ${
-                isBack ? '1.9' : '2.6'
-              });
-              vec3 causticRim = vec3(${rimColVec.r.toFixed(3)}, ${rimColVec.g.toFixed(3)}, ${rimColVec.b.toFixed(3)});
-              vec3 causticBody = vec3(${bodyColVec.r.toFixed(3)}, ${bodyColVec.g.toFixed(3)}, ${bodyColVec.b.toFixed(3)});
-              float causticWave = 0.5 + 0.5 * sin(uTime * 1.6 + gl_FragCoord.x * 0.012 + gl_FragCoord.y * 0.012);
-              vec3 rimTint = mix(causticBody, causticRim, causticWave) * fresnel * (0.34 + uAudioRms * 0.45);
-              gl_FragColor.rgb += rimTint;`
-            );
-          }
-        };
-      };
-
-      injectCausticShader(backShellMat, true);
-      injectCausticShader(frontShellMat, false);
-
-      const backShellMesh = new THREE.Mesh(shellGeo, backShellMat);
+      const backShellMesh = new THREE.Mesh(sharedShellGeo, backShellMat);
       backShellMesh.renderOrder = 1;
       shellGroup.add(backShellMesh);
 
-      const frontShellMesh = new THREE.Mesh(shellGeo, frontShellMat);
-      frontShellMesh.renderOrder = 3;
+      const frontShellMesh = new THREE.Mesh(sharedShellGeo, frontShellMat);
+      frontShellMesh.renderOrder = 4;
       shellGroup.add(frontShellMesh);
 
       // Interior Planetary Dome Constellation / Hex Horizon Grid (visible when camera.radius < 8.2u)
       const domeGridGroup = new THREE.Group();
-      const domeWireGeo = new THREE.IcosahedronGeometry(6.05, 2);
+      const domeWireGeo = new THREE.IcosahedronGeometry(5.95, 2);
       const domeEdges = new THREE.EdgesGeometry(domeWireGeo);
       const domeGridMat = new THREE.LineBasicMaterial({
-        color: new THREE.Color(resolvedRimHex),
+        color: new THREE.Color(0xD4AF37),
         transparent: true,
         opacity: 0.0,
         depthWrite: false,
@@ -1521,22 +1943,205 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       domeGridGroup.add(domeGridLines);
       shellGroup.add(domeGridGroup);
 
+      // -----------------------------------------------------------------------
+      // INTERIOR SCULPTURAL CLUSTER (Mimics IMG_3020 & Contained Inside Sphere)
+      // -----------------------------------------------------------------------
+      const interiorSculptureGroup = new THREE.Group();
+
+      // 1. Large Left Satin Slate-Blue Sphere with Dark Navy Recessed Circular Crater
+      const slateHemisphereGroup = new THREE.Group();
+      slateHemisphereGroup.position.set(-1.35, -0.14, -0.62);
+      const mainSlateSphere = new THREE.Mesh(sharedUnitSphereGeo, sharedSatinSlateBlueMat);
+      mainSlateSphere.scale.setScalar(2.02);
+      slateHemisphereGroup.add(mainSlateSphere);
+
+      // Dark navy circular concave crater on the upper-right front face of the slate sphere
+      const craterDish = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.62, 0.58, 0.18, 48),
+        sharedDarkCraterMat
+      );
+      craterDish.position.set(0.56, 0.44, 1.82);
+      craterDish.rotation.set(Math.PI / 2 - 0.22, 0, -0.28);
+      slateHemisphereGroup.add(craterDish);
+
+      const craterRim = new THREE.Mesh(
+        new THREE.TorusGeometry(0.62, 0.025, 16, 48),
+        sharedSatinSlateBlueMat
+      );
+      craterRim.position.set(0.56, 0.44, 1.89);
+      craterRim.rotation.set(-0.22, 0.28, 0);
+      slateHemisphereGroup.add(craterRim);
+      interiorSculptureGroup.add(slateHemisphereGroup);
+
+      // 2. Large Lower-Right Wavy Gold & Slate-Blue Striped Sphere
+      const wavyRightSphere = new THREE.Mesh(sharedUnitSphereGeo, sharedWavyGoldSlateLargeMat);
+      wavyRightSphere.position.set(1.22, -0.58, -0.52);
+      wavyRightSphere.scale.setScalar(1.94);
+      wavyRightSphere.rotation.set(0.32, -0.48, 0.24);
+      interiorSculptureGroup.add(wavyRightSphere);
+
+      // 3. Upper-Back Dark Bronze-Gold Concentric Grooved Sphere
+      const upperBackGroovedSphere = new THREE.Mesh(sharedUnitSphereGeo, sharedConcentricBronzeMat);
+      upperBackGroovedSphere.position.set(0.58, 1.62, -0.82);
+      upperBackGroovedSphere.scale.setScalar(1.08);
+      upperBackGroovedSphere.rotation.set(0.55, 0.25, -0.35);
+      interiorSculptureGroup.add(upperBackGroovedSphere);
+
+      // 4. Sweeping Ribbed Champagne-Gold Torus Arch (upper-left to center arch)
+      const sweepingGoldArch = new THREE.Mesh(
+        new THREE.TorusGeometry(1.52, 0.21, 32, 96, Math.PI * 1.18),
+        sharedGoldRibbedMat
+      );
+      sweepingGoldArch.position.set(-0.12, 0.85, -0.12);
+      sweepingGoldArch.rotation.set(0.18, -0.22, 0.14);
+      interiorSculptureGroup.add(sweepingGoldArch);
+
+      // 5. Sleek Polished Gold Hoop Ring with Threaded Micro-Torus & Slate Pearl
+      const goldHoopGroup = new THREE.Group();
+      goldHoopGroup.position.set(0.22, 1.06, 0.96);
+      goldHoopGroup.rotation.set(0.16, -0.28, -0.18);
+      const goldHoop = new THREE.Mesh(
+        new THREE.TorusGeometry(0.84, 0.048, 24, 96),
+        sharedPolishedGoldMat
+      );
+      goldHoopGroup.add(goldHoop);
+
+      // Threaded plump gold micro-torus on the lower-left arc of the hoop
+      const threadedTorus = new THREE.Mesh(
+        new THREE.TorusGeometry(0.19, 0.068, 24, 48),
+        sharedPolishedGoldMat
+      );
+      threadedTorus.position.set(-0.52, -0.32, 0.18);
+      threadedTorus.rotation.set(1.12, 0.42, -0.35);
+      goldHoopGroup.add(threadedTorus);
+
+      const hoopPearl = new THREE.Mesh(sharedSatBeadGeo, sharedSatinPeriwinkleMat);
+      hoopPearl.position.set(-0.52, -0.12, 0.24);
+      hoopPearl.scale.setScalar(0.82);
+      goldHoopGroup.add(hoopPearl);
+
+      const hoopLowerGoldBead = new THREE.Mesh(sharedSatBeadGeo, sharedPolishedGoldMat);
+      hoopLowerGoldBead.position.set(-0.18, -0.82, 0.12);
+      hoopLowerGoldBead.scale.setScalar(1.25);
+      goldHoopGroup.add(hoopLowerGoldBead);
+      interiorSculptureGroup.add(goldHoopGroup);
+
+      // 6. Plump Wavy Gold & Slate-Blue Torus Ring (right-center foreground)
+      const wavyPlumpTorus = new THREE.Mesh(
+        new THREE.TorusGeometry(0.72, 0.20, 32, 84),
+        sharedWavyTorusMat
+      );
+      wavyPlumpTorus.position.set(1.32, -0.28, 1.15);
+      wavyPlumpTorus.rotation.set(0.62, 0.44, -0.52);
+      interiorSculptureGroup.add(wavyPlumpTorus);
+
+      // 7. Plump Satin Periwinkle Torus Ring (mid-left foreground) & lower-left mini torus
+      const periwinkleTorus = new THREE.Mesh(
+        new THREE.TorusGeometry(0.36, 0.11, 28, 64),
+        sharedSatinPeriwinkleMat
+      );
+      periwinkleTorus.position.set(-0.66, -0.26, 1.44);
+      periwinkleTorus.rotation.set(0.28, 0.54, -0.32);
+      interiorSculptureGroup.add(periwinkleTorus);
+
+      const lowerPeriwinkleTorus = new THREE.Mesh(
+        new THREE.TorusGeometry(0.24, 0.075, 24, 48),
+        sharedSatinPeriwinkleMat
+      );
+      lowerPeriwinkleTorus.position.set(-0.68, -1.72, 1.18);
+      lowerPeriwinkleTorus.rotation.set(1.15, -0.32, 0.45);
+      interiorSculptureGroup.add(lowerPeriwinkleTorus);
+
+      // 8. Satin Silver Torus Ring (upper-right behind concentric sphere)
+      const upperRightSilverTorus = new THREE.Mesh(
+        new THREE.TorusGeometry(0.38, 0.095, 24, 64),
+        sharedSatinPearlSilverMat
+      );
+      upperRightSilverTorus.position.set(2.42, 1.48, 0.55);
+      upperRightSilverTorus.rotation.set(-0.42, -0.38, 0.25);
+      interiorSculptureGroup.add(upperRightSilverTorus);
+
+      // 9. Dark Matte Navy Accent Sphere (bottom-center-left)
+      const darkNavyAccentSphere = new THREE.Mesh(sharedUnitSphereGeo, sharedDarkCraterMat);
+      darkNavyAccentSphere.position.set(-0.18, -1.72, 1.28);
+      darkNavyAccentSphere.scale.setScalar(0.38);
+      interiorSculptureGroup.add(darkNavyAccentSphere);
+
+      // 10. Contained Micro-Satellites (Crystal Glass Bubbles, 24K Gold Beads, Satin Silver & Periwinkle Pearls)
+      // All strictly positioned inside the 6.2u Master Containment Sphere
+      const microSatellites: Array<{
+        pos: [number, number, number];
+        r: number;
+        kind: 'glass' | 'gold' | 'silver' | 'periwinkle';
+      }> = [
+        // Center & left cluster micro-satellites
+        { pos: [-0.36, -0.62, 1.65], r: 0.26, kind: 'glass' },
+        { pos: [-0.28, -1.08, 1.72], r: 0.19, kind: 'glass' },
+        { pos: [0.06, -1.16, 1.68], r: 0.14, kind: 'gold' },
+        { pos: [0.56, -1.15, 1.72], r: 0.19, kind: 'glass' },
+        { pos: [0.82, 0.86, 1.55], r: 0.14, kind: 'glass' },
+        { pos: [-0.12, 2.02, 0.65], r: 0.13, kind: 'periwinkle' },
+        { pos: [-1.72, 0.08, 1.52], r: 0.08, kind: 'periwinkle' },
+        // Upper-right constellation (contained inside r <= 4.8u)
+        { pos: [2.88, 2.28, 0.62], r: 0.14, kind: 'glass' },
+        { pos: [3.22, 2.48, 0.45], r: 0.08, kind: 'gold' },
+        { pos: [3.48, 2.32, 0.35], r: 0.14, kind: 'glass' },
+        { pos: [3.12, 1.98, 0.55], r: 0.07, kind: 'gold' },
+        { pos: [2.75, 1.12, 0.72], r: 0.24, kind: 'periwinkle' },
+        { pos: [2.42, -0.58, 1.15], r: 0.065, kind: 'gold' },
+        { pos: [1.58, -1.68, 1.28], r: 0.12, kind: 'periwinkle' },
+        // Lower & outer-left contained droplets
+        { pos: [-2.85, -0.68, 0.85], r: 0.065, kind: 'gold' },
+        { pos: [-3.15, -1.18, 0.75], r: 0.08, kind: 'periwinkle' },
+        { pos: [-3.25, -1.92, 0.65], r: 0.13, kind: 'periwinkle' },
+        { pos: [-2.68, -2.58, 0.92], r: 0.14, kind: 'glass' },
+        { pos: [-1.85, -2.52, 1.08], r: 0.11, kind: 'silver' },
+        { pos: [-0.42, -2.42, 1.15], r: 0.16, kind: 'glass' },
+        { pos: [0.88, -2.58, 1.05], r: 0.14, kind: 'glass' },
+      ];
+
+      microSatellites.forEach((sat) => {
+        const satMat =
+          sat.kind === 'glass'
+            ? sharedCrystalGlassBubbleMat
+            : sat.kind === 'gold'
+            ? sharedPolishedGoldMat
+            : sat.kind === 'silver'
+            ? sharedSatinPearlSilverMat
+            : sharedSatinPeriwinkleMat;
+        const satMesh = new THREE.Mesh(sharedUnitSphereGeo, satMat);
+        satMesh.position.set(...sat.pos);
+        clampInsideSphere(satMesh.position, 5.2);
+        satMesh.scale.setScalar(sat.r);
+        if (sat.kind === 'glass') {
+          satMesh.renderOrder = 3;
+          // Tiny internal gold glint bead inside larger glass bubbles
+          if (sat.r >= 0.16) {
+            const innerGlint = new THREE.Mesh(sharedUnitSphereGeo, sharedPolishedGoldMat);
+            innerGlint.scale.setScalar(0.28);
+            innerGlint.position.set(0.12, -0.08, -0.15);
+            satMesh.add(innerGlint);
+          }
+        }
+        interiorSculptureGroup.add(satMesh);
+      });
+
+      shellGroup.add(interiorSculptureGroup);
       root.add(shellGroup);
 
-      // 6,400-Particle Multi-Layer Spiral Galaxy with GPU Bokeh (3,200 per sphere on GPU = 6,400 total)
+      // Contained Multi-Layer Galaxy Dust with GPU Bokeh
       const galaxy = buildLiquidGlassGalaxySphere(root, sphereTag, isSoftwareGl);
 
-      // 420 Spiral Shell Particles (#65ACFF for Sphere 01 HQ, #F2B66D for Sphere 02 CDE)
-      // Blueprint V2.0 v2 Fix #3: Preserve immutable spiralBasePos & spiralPhases for bounded non-accumulating drift
+      // 420 Contained Spiral Shell Particles (strictly inside r = 5.45u < 6.2u)
       const spiralCount = 420;
       const spiralPos = new Float32Array(spiralCount * 3);
       const spiralPhases = new Float32Array(spiralCount);
       for (let sp = 0; sp < spiralCount; sp++) {
         const u = sp / spiralCount;
-        const theta = sp * 2.3999632; // Golden angle spiral
+        const theta = sp * 2.3999632;
         const y = 1 - u * 2;
         const rSlice = Math.sqrt(Math.max(0, 1 - y * y));
-        const shellR = 5.85 + (sp % 5) * 0.06;
+        const shellR = 5.25 + (sp % 5) * 0.05;
         spiralPos[sp * 3] = Math.cos(theta) * rSlice * shellR;
         spiralPos[sp * 3 + 1] = y * shellR;
         spiralPos[sp * 3 + 2] = Math.sin(theta) * rSlice * shellR;
@@ -1547,10 +2152,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const spiralPosAttr = new THREE.BufferAttribute(spiralPos, 3);
       spiralGeo.setAttribute('position', spiralPosAttr);
       const spiralMat = new THREE.PointsMaterial({
-        color: new THREE.Color(isHq ? '#65ACFF' : '#F2B66D'),
-        size: 0.09,
+        color: new THREE.Color(isHq ? '#D4AF37' : '#FFF4D0'),
+        size: 0.065,
         transparent: true,
-        opacity: 0.72,
+        opacity: 0.38,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
       });
@@ -1558,23 +2163,22 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       shellGroup.add(spiralPoints);
 
       const wireMat = new THREE.LineBasicMaterial({
-        color: new THREE.Color(resolvedRimHex),
+        color: new THREE.Color(0xC5CCD6),
         transparent: true,
-        opacity: 0.28,
+        opacity: 0.16,
       });
       const rimMat = new THREE.LineBasicMaterial({
-        color: new THREE.Color(resolvedRimHex),
+        color: new THREE.Color(0xD4AF37),
         transparent: true,
-        opacity: 0.62,
+        opacity: 0.38,
       });
 
-      // 2 Tilted Orbital Rings + structural meridians
-      // Blueprint V2.0 v2 Fix #4: Drop duplicate endpoint from EllipseCurve.getPoints() and close CatmullRomCurve3
+      // Contained Gold Ribbed Orbital Containment Rings (r <= 6.16u)
       const orbitalRingsGroup = new THREE.Group();
       const ringRadii = [
-        { rx: 6.24, rotX: 0.34, rotY: 0.64, rotZ: -0.28, mat: rimMat },
-        { rx: 6.24, rotX: -0.34, rotY: -0.64, rotZ: 0.28, mat: rimMat },
-        { rx: 6.2, rotX: Math.PI / 2, rotY: 0, rotZ: 0, mat: wireMat },
+        { rx: 6.16, rotX: 0.34, rotY: 0.64, rotZ: -0.28, mat: rimMat },
+        { rx: 6.16, rotX: -0.34, rotY: -0.64, rotZ: 0.28, mat: rimMat },
+        { rx: 5.95, rotX: Math.PI / 2, rotY: 0, rotZ: 0, mat: wireMat },
         { rx: 4.85, rotX: Math.PI / 2, rotY: 0.2, rotZ: 0, mat: wireMat },
       ];
       ringRadii.forEach((cfg, idx) => {
@@ -1583,42 +2187,50 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         const line = new THREE.LineLoop(geo, idx < 2 ? rimMat : wireMat);
         line.rotation.set(cfg.rotX, cfg.rotY, cfg.rotZ);
         orbitalRingsGroup.add(line);
+
+        if (idx < 2) {
+          const goldRibMesh = new THREE.Mesh(sharedOuterRibTorusGeo, sharedGoldRibbedMat);
+          goldRibMesh.rotation.set(cfg.rotX, cfg.rotY, cfg.rotZ);
+          orbitalRingsGroup.add(goldRibMesh);
+        }
       });
       shellGroup.add(orbitalRingsGroup);
 
-      // Audio-Reactive Core Crystal Assembly (high emissive intensity for selective UnrealBloomPass)
+      // Central Optical Crystal Glass Core Sphere with Internal Concentric Grooved Gold Core
+      // Matches the central clear glass sphere in IMG_3020 at [0.32, -0.18, 1.48]
       const coreGroup = new THREE.Group();
-      const coreCrystalGeo = new THREE.OctahedronGeometry(0.66, 1);
+      const coreLocalPos = new THREE.Vector3(0.32, -0.18, 1.48);
+      coreGroup.position.copy(coreLocalPos);
+
       const coreCrystalMat = new THREE.MeshStandardMaterial({
-        color: new THREE.Color('#F2F6F8'),
+        color: new THREE.Color('#FFF4D0'),
         emissive: new THREE.Color(coreColour),
-        emissiveIntensity: 1.35, // Exceeds 0.78 bloom threshold
-        roughness: 0.14,
-        metalness: 0.84,
+        emissiveIntensity: 0.55,
+        roughness: 0.16,
+        metalness: 0.92,
+        bumpMap: goldRibbedBumpMap,
+        bumpScale: 0.04,
       });
-      coreGroup.add(new THREE.Mesh(coreCrystalGeo, coreCrystalMat));
-
-      const gimbal1Geo = new THREE.TorusGeometry(0.95, 0.035, 12, 48);
-      const gimbalMat = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(coreColour),
-        emissive: new THREE.Color(coreColour),
-        emissiveIntensity: 0.45,
-        roughness: 0.25,
-        metalness: 0.88,
-      });
-      const gimbal1 = new THREE.Mesh(gimbal1Geo, gimbalMat);
-      gimbal1.rotation.x = Math.PI / 3;
-      coreGroup.add(gimbal1);
-
-      const gimbal2 = new THREE.Mesh(new THREE.TorusGeometry(1.18, 0.025, 12, 48), gimbalMat);
-      gimbal2.rotation.y = Math.PI / 4;
-      coreGroup.add(gimbal2);
-
-      const spindle = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.04, 0.04, 2.1, 12),
-        new THREE.MeshStandardMaterial({ color: 0xf2f6f8, roughness: 0.4, metalness: 0.7 })
+      const innerGroovedCore = new THREE.Mesh(
+        new THREE.SphereGeometry(0.28, 36, 36),
+        coreCrystalMat
       );
-      coreGroup.add(spindle);
+      innerGroovedCore.rotation.set(0.4, 0.2, 0.1);
+      coreGroup.add(innerGroovedCore);
+
+      const outerCrystalBubble = new THREE.Mesh(
+        new THREE.SphereGeometry(0.62, 48, 48),
+        sharedCrystalGlassBubbleMat
+      );
+      outerCrystalBubble.renderOrder = 3;
+      coreGroup.add(outerCrystalBubble);
+
+      const coreGimbal = new THREE.Mesh(
+        new THREE.TorusGeometry(0.42, 0.022, 16, 48),
+        sharedPolishedGoldMat
+      );
+      coreGimbal.rotation.set(Math.PI / 2.6, 0.3, 0);
+      coreGroup.add(coreGimbal);
 
       root.add(coreGroup);
 
@@ -1628,6 +2240,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       coreGroup.traverse((child) => {
         child.userData = coreUserData;
       });
+      slateHemisphereGroup.userData = coreUserData;
+      slateHemisphereGroup.traverse((child) => {
+        child.userData = coreUserData;
+      });
+      wavyRightSphere.userData = coreUserData;
+
       nodeRegistryRef.current.set(coreId, {
         id: coreId,
         canonicalId: coreId,
@@ -1635,13 +2253,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         sublabel: sphereTag === 'hq' ? 'HQ Orchestrator' : 'NOJARA Universe',
         colour: COLOUR_TOKENS.textPrimary,
         sphere: sphereTag,
-        worldPos: center.clone(),
+        worldPos: center.clone().add(coreLocalPos),
         baseScale: 1.0,
         nodeType: 'core',
         connectedIds: new Set<string>(),
         currentBrightness: 1.0,
         groupMesh: coreGroup,
-        emissiveMats: [coreCrystalMat, gimbalMat],
+        emissiveMats: [coreCrystalMat],
       });
 
       scene.add(root);
@@ -1661,13 +2279,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     };
 
     /**
-     * 6 Sculptural Node Archetypes:
-     * - Projects (`project`): Glowing photosphere core + additive chromosphere + 3 tilted orbital rings with planetoid beads + inverse proximity scale expansion (1.0x to 2.1x)
-     * - Media (`media`): Concentric machined lens barrel rings with a glowing #F2B66D amber optical core
-     * - Files (`files`): Bevelled glass slab tile with emerald #3DDC97 edge light
-     * - Tasks (`tasks`): Sculptural bead surrounded by a segmented radial progress arc (#B8F04A) + etched waveform disc (C24) for Meetings
-     * - People (`people`): Rose-gold/pink (#E6A2B4) gimbals with orbital satellite beads
-     * - Dimensions / Subdomains (`dimension` / `subdomain`): Sculptural crystalline bipyramid + orbital collar
+     * Sculptural Node Archetypes Matching IMG_3020
+     * Every station, dimension, subdomain, and project orb is a high-craft PBR sculpture
+     * contained strictly inside the 6.2u Master Sphere.
      */
     const buildSculpturalNodeArchetype = (
       canonicalId: string,
@@ -1679,224 +2293,171 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       const idLower = canonicalId.toLowerCase();
 
-      if (nodeType === 'project' && idLower !== 'projects') {
-        // Archetype 1: Project Sun — Glowing photosphere core + additive chromosphere + 3 tilted orbital rings with planetoid beads
-        const photosphereMat = new THREE.MeshStandardMaterial({
-          color: col,
-          emissive: col,
-          emissiveIntensity: 1.45, // Triggers selective UnrealBloomPass
-          roughness: 0.16,
-          metalness: 0.35,
-        });
-        emissiveMats.push(photosphereMat);
-        const photosphere = new THREE.Mesh(new THREE.IcosahedronGeometry(0.36, 2), photosphereMat);
-        group.add(photosphere);
+      const accentEmissiveMat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(0xE5B842),
+        emissive: col,
+        emissiveIntensity: 0.45,
+        roughness: 0.14,
+        metalness: 0.94,
+      });
+      emissiveMats.push(accentEmissiveMat);
 
-        const chromosphere = new THREE.Mesh(
-          new THREE.SphereGeometry(0.46, 20, 20),
-          new THREE.MeshBasicMaterial({
-            color: col,
-            transparent: true,
-            opacity: 0.28,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
-          })
-        );
-        group.add(chromosphere);
+      if (idLower === 'projects' || idLower === 'strategy') {
+        // Upper-Center-Left Hero Sphere in IMG_3020: Wavy Champagne-Gold & Brushed-Silver Sphere
+        const heroSphere = new THREE.Mesh(sharedUnitSphereGeo, sharedWavyGoldSilverHeroMat);
+        heroSphere.scale.setScalar(0.76);
+        heroSphere.rotation.set(0.28, -0.35, 0.18);
+        group.add(heroSphere);
 
-        const ringTilts: [number, number, number][] = [
-          [Math.PI / 2.3, 0.25, 0],
-          [-Math.PI / 3.1, -0.45, 0.3],
-          [0.42, Math.PI / 2.6, -0.52],
-        ];
-        ringTilts.forEach((rot, rIdx) => {
-          const orbitGroup = new THREE.Group();
-          orbitGroup.rotation.set(rot[0], rot[1], rot[2]);
-          const orbitRadius = 0.56 + rIdx * 0.14;
-          const ringMat = new THREE.MeshStandardMaterial({
-            color: new THREE.Color('#F2F6F8'),
-            emissive: col,
-            emissiveIntensity: 0.42,
-            roughness: 0.32,
-            metalness: 0.88,
-          });
-          emissiveMats.push(ringMat);
-          const ringMesh = new THREE.Mesh(
-            new THREE.TorusGeometry(orbitRadius, 0.016, 10, 42),
-            ringMat
-          );
-          orbitGroup.add(ringMesh);
+        const goldBead = new THREE.Mesh(sharedSatBeadGeo, accentEmissiveMat);
+        goldBead.position.set(0.68, -0.26, 0.34);
+        goldBead.scale.setScalar(1.18);
+        group.add(goldBead);
+      } else if (idLower === 'media' || idLower === 'production') {
+        // Upper-Right Sphere in IMG_3020: Fine Concentric Lathe-Grooved Champagne-Silver & Slate Sphere
+        const groovedSphere = new THREE.Mesh(sharedUnitSphereGeo, sharedConcentricChampagneMat);
+        groovedSphere.scale.setScalar(0.78);
+        groovedSphere.rotation.set(0.72, -0.42, 0.35);
+        group.add(groovedSphere);
 
-          const planetBead = new THREE.Mesh(
-            new THREE.SphereGeometry(0.055, 10, 10),
-            photosphereMat
-          );
-          const angle = (rIdx * 2.1) % (Math.PI * 2);
-          planetBead.position.set(
-            Math.cos(angle) * orbitRadius,
-            Math.sin(angle) * orbitRadius,
-            0
-          );
-          orbitGroup.add(planetBead);
-          group.add(orbitGroup);
-        });
-      } else if (idLower === 'media') {
-        // Archetype 2: Media — Concentric machined lens barrel rings with a glowing #F2B66D amber optical core
-        const amberCol = new THREE.Color('#F2B66D');
-        const opticalCoreMat = new THREE.MeshStandardMaterial({
-          color: amberCol,
-          emissive: amberCol,
-          emissiveIntensity: 1.35,
-          roughness: 0.12,
-          metalness: 0.65,
-        });
-        emissiveMats.push(opticalCoreMat);
-        group.add(new THREE.Mesh(new THREE.SphereGeometry(0.28, 20, 20), opticalCoreMat));
-
-        const barrelMat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color('#1B3444'),
-          emissive: amberCol,
-          emissiveIntensity: 0.45,
-          roughness: 0.25,
-          metalness: 0.92,
-        });
-        emissiveMats.push(barrelMat);
-        [0.42, 0.56, 0.7].forEach((r, idx) => {
-          const barrelRing = new THREE.Mesh(
-            new THREE.CylinderGeometry(r, r, 0.14 - idx * 0.025, 28, 1, true),
-            barrelMat
-          );
-          barrelRing.rotation.x = Math.PI / 2;
-          group.add(barrelRing);
-        });
+        const trimBead = new THREE.Mesh(sharedSatBeadGeo, accentEmissiveMat);
+        trimBead.position.set(-0.56, -0.45, 0.38);
+        group.add(trimBead);
       } else if (idLower === 'files') {
-        // Archetype 3: Files — Bevelled glass slab tile with emerald #3DDC97 edge light
-        const emeraldCol = new THREE.Color('#3DDC97');
-        const slabMat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color('#142632'),
-          emissive: emeraldCol,
-          emissiveIntensity: 0.68,
-          roughness: 0.15,
-          metalness: 0.82,
-        });
-        emissiveMats.push(slabMat);
-        const slab = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.48, 0.12), slabMat);
-        slab.rotation.set(0.22, -0.35, 0.08);
-        group.add(slab);
+        // Mid-Left Sphere in IMG_3020: Perforated / Slotted Gold Lattice Cage Sphere
+        const innerCore = new THREE.Mesh(sharedUnitSphereGeo, sharedDarkCraterMat);
+        innerCore.scale.setScalar(0.32);
+        group.add(innerCore);
 
-        const edgeLightMat = new THREE.MeshStandardMaterial({
-          color: emeraldCol,
-          emissive: emeraldCol,
-          emissiveIntensity: 1.35,
-          roughness: 0.18,
-          metalness: 0.75,
-        });
-        emissiveMats.push(edgeLightMat);
-        const edgeFrame = new THREE.Mesh(
-          new THREE.TorusGeometry(0.46, 0.024, 12, 4),
-          edgeLightMat
-        );
-        edgeFrame.rotation.set(0.22, -0.35, Math.PI / 4 + 0.08);
-        group.add(edgeFrame);
-      } else if (idLower === 'tasks') {
-        // Archetype 4: Tasks & Meetings — Cyan Acoustic Resonator (#5CC8D7) + etched waveform disc
-        const cyanCol = new THREE.Color('#5CC8D7');
-        const taskCoreMat = new THREE.MeshStandardMaterial({
-          color: cyanCol,
-          emissive: cyanCol,
-          emissiveIntensity: 1.15,
-          roughness: 0.2,
-          metalness: 0.78,
-        });
-        emissiveMats.push(taskCoreMat);
-        group.add(new THREE.Mesh(new THREE.DodecahedronGeometry(0.3, 0), taskCoreMat));
+        const latticeSphere = new THREE.Mesh(sharedUnitSphereGeo, sharedSlottedGoldLatticeMat);
+        latticeSphere.scale.setScalar(0.42);
+        latticeSphere.rotation.set(0.35, 0.48, -0.22);
+        group.add(latticeSphere);
 
-        // Segmented radial progress arcs (#5CC8D7)
-        for (let seg = 0; seg < 4; seg++) {
-          const arcMesh = new THREE.Mesh(
-            new THREE.TorusGeometry(0.54, 0.028, 10, 18, Math.PI * 0.36),
-            taskCoreMat
-          );
-          arcMesh.rotation.z = seg * (Math.PI * 0.5);
-          group.add(arcMesh);
-        }
+        const goldPin = new THREE.Mesh(sharedPlanetBeadGeo, accentEmissiveMat);
+        goldPin.position.set(0.34, 0.22, 0.25);
+        group.add(goldPin);
+      } else if (idLower === 'tasks' || idLower === 'talent') {
+        // Lower-Left Satin Periwinkle Sphere with Gold Bead & Crystal Glass Bubble Crown in IMG_3020
+        const periwinkleSphere = new THREE.Mesh(sharedUnitSphereGeo, sharedSatinPeriwinkleMat);
+        periwinkleSphere.scale.setScalar(0.74);
+        group.add(periwinkleSphere);
 
-        // Etched waveform disc (C24) for Meetings
-        const discMat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color('#B4DDFF'),
-          emissive: cyanCol,
-          emissiveIntensity: 0.38,
-          roughness: 0.3,
-          metalness: 0.85,
-          side: THREE.DoubleSide,
-        });
-        emissiveMats.push(discMat);
-        const waveformDisc = new THREE.Mesh(new THREE.RingGeometry(0.36, 0.46, 32), discMat);
-        waveformDisc.rotation.x = Math.PI / 2.2;
-        group.add(waveformDisc);
+        const frontGoldBead = new THREE.Mesh(sharedSatBeadGeo, accentEmissiveMat);
+        frontGoldBead.position.set(-0.28, -0.18, 0.72);
+        frontGoldBead.scale.setScalar(1.45);
+        group.add(frontGoldBead);
+
+        const crownGlassBubble = new THREE.Mesh(sharedUnitSphereGeo, sharedCrystalGlassBubbleMat);
+        crownGlassBubble.position.set(-0.18, 0.68, 0.35);
+        crownGlassBubble.scale.setScalar(0.24);
+        crownGlassBubble.renderOrder = 3;
+        group.add(crownGlassBubble);
+
+        const topMicroGlass = new THREE.Mesh(sharedUnitSphereGeo, sharedCrystalGlassBubbleMat);
+        topMicroGlass.position.set(-0.16, 0.94, 0.38);
+        topMicroGlass.scale.setScalar(0.14);
+        topMicroGlass.renderOrder = 3;
+        group.add(topMicroGlass);
       } else if (idLower === 'people') {
-        // Archetype 5: People — Mint Plasma / Faceted Prism (#7CE0B8) gimbals with orbital satellite beads
-        const mintCol = new THREE.Color('#7CE0B8');
-        const mintMat = new THREE.MeshStandardMaterial({
-          color: mintCol,
-          emissive: mintCol,
-          emissiveIntensity: 1.12,
-          roughness: 0.2,
-          metalness: 0.88,
-        });
-        emissiveMats.push(mintMat);
-        group.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.32, 1), mintMat));
+        // Lower-Left Foreground Smooth Satin Champagne-Pearl Silver Sphere in IMG_3020
+        const pearlSphere = new THREE.Mesh(sharedUnitSphereGeo, sharedSatinPearlSilverMat);
+        pearlSphere.scale.setScalar(0.62);
+        group.add(pearlSphere);
 
-        for (let g = 0; g < 3; g++) {
-          const gimbal = new THREE.Mesh(
-            new THREE.TorusGeometry(0.48 + g * 0.11, 0.022, 12, 40),
-            mintMat
-          );
-          gimbal.rotation.set(g * 0.9, g * 1.1, 0.4);
-          group.add(gimbal);
+        const accentBead = new THREE.Mesh(sharedPlanetBeadGeo, accentEmissiveMat);
+        accentBead.position.set(-0.48, -0.35, 0.32);
+        group.add(accentBead);
+      } else if (idLower === 'seven' || idLower === 'sub-3d') {
+        // Right-Center Wavy Gold & Dark-Slate Sphere (nested above the wavy torus in IMG_3020)
+        const wavyDarkSphere = new THREE.Mesh(sharedUnitSphereGeo, sharedWavyGoldDarkSlateMat);
+        wavyDarkSphere.scale.setScalar(0.68);
+        wavyDarkSphere.rotation.set(1.22, -0.38, 0.42);
+        group.add(wavyDarkSphere);
 
-          const sat = new THREE.Mesh(new THREE.SphereGeometry(0.065, 12, 12), mintMat);
-          const a = g * 2.09;
-          sat.position.set(Math.cos(a) * (0.48 + g * 0.11), Math.sin(a) * (0.48 + g * 0.11), 0);
-          gimbal.add(sat);
-        }
+        const rimBead = new THREE.Mesh(sharedPlanetBeadGeo, accentEmissiveMat);
+        rimBead.position.set(-0.52, 0.32, 0.38);
+        group.add(rimBead);
+      } else if (idLower === 'yah' || idLower === 'mediatech') {
+        // Upper-Right-Center Smooth Satin Champagne-Pearl Silver Sphere in IMG_3020
+        const upperPearlSphere = new THREE.Mesh(sharedUnitSphereGeo, sharedSatinPearlSilverMat);
+        upperPearlSphere.scale.setScalar(0.68);
+        group.add(upperPearlSphere);
+
+        const goldCollar = new THREE.Mesh(sharedPlanetBeadGeo, accentEmissiveMat);
+        goldCollar.position.set(0.48, -0.38, 0.35);
+        group.add(goldCollar);
+      } else if (idLower === 'mhe' || idLower === 'sub-pract') {
+        // Lower-Left Concentric Grooved Champagne Bullseye Sphere in IMG_3020
+        const bullseyeSphere = new THREE.Mesh(sharedUnitSphereGeo, sharedConcentricChampagneMat);
+        bullseyeSphere.scale.setScalar(0.66);
+        bullseyeSphere.rotation.set(1.38, 0.42, -0.28);
+        group.add(bullseyeSphere);
+
+        const goldStud = new THREE.Mesh(sharedPlanetBeadGeo, accentEmissiveMat);
+        goldStud.position.set(0.46, 0.28, 0.38);
+        group.add(goldStud);
+      } else if (idLower === 'al-ahram' || idLower === 'sub-dest') {
+        // Top-Right Crystal-Clear Glass Sphere with Internal Gold Cluster in IMG_3020
+        const innerGold = new THREE.Mesh(sharedUnitSphereGeo, accentEmissiveMat);
+        innerGold.scale.setScalar(0.18);
+        innerGold.position.set(0.08, -0.05, -0.08);
+        group.add(innerGold);
+
+        const innerRing = new THREE.Mesh(
+          new THREE.TorusGeometry(0.24, 0.025, 16, 36),
+          sharedGoldRibbedMat
+        );
+        innerRing.rotation.set(0.8, 0.4, 0);
+        group.add(innerRing);
+
+        const topGlassSphere = new THREE.Mesh(sharedUnitSphereGeo, sharedCrystalGlassBubbleMat);
+        topGlassSphere.scale.setScalar(0.54);
+        topGlassSphere.renderOrder = 3;
+        group.add(topGlassSphere);
+      } else if (idLower === 'el-batron' || idLower === 'sub-act') {
+        // Top-Right Satin Pearl-Silver Companion Sphere in IMG_3020
+        const silverOrb = new THREE.Mesh(sharedUnitSphereGeo, sharedSatinPearlSilverMat);
+        silverOrb.scale.setScalar(0.34);
+        group.add(silverOrb);
+
+        const goldDot = new THREE.Mesh(sharedPlanetBeadGeo, accentEmissiveMat);
+        goldDot.position.set(0.28, 0.18, 0.22);
+        group.add(goldDot);
+      } else if (idLower === 'museum-of-almost' || idLower === 'sub-spatial') {
+        // Far-Right Wavy Gold & Slate Sphere in IMG_3020
+        const farRightWavy = new THREE.Mesh(sharedUnitSphereGeo, sharedWavyGoldSlateLargeMat);
+        farRightWavy.scale.setScalar(0.42);
+        farRightWavy.rotation.set(-0.45, 0.65, 0.25);
+        group.add(farRightWavy);
+      } else if (idLower === 'bsocial' || idLower === 'sub-museums') {
+        // Lower-Right Satin Periwinkle Sphere in IMG_3020
+        const lowerRightPeriwinkle = new THREE.Mesh(sharedUnitSphereGeo, sharedSatinPeriwinkleMat);
+        lowerRightPeriwinkle.scale.setScalar(0.44);
+        group.add(lowerRightPeriwinkle);
+
+        const goldAccent = new THREE.Mesh(sharedPlanetBeadGeo, accentEmissiveMat);
+        goldAccent.position.set(-0.34, 0.24, 0.26);
+        group.add(goldAccent);
       } else {
-        // Archetype 6: Stations (`projects`), CDE Dimensions & Subdomains — Sculptural crystalline assembly + collar
-        const primaryMat = new THREE.MeshStandardMaterial({
-          color: col,
-          emissive: col,
-          emissiveIntensity: 0.95,
-          roughness: 0.2,
-          metalness: 0.82,
-        });
-        emissiveMats.push(primaryMat);
-        const primaryGeo =
-          nodeType === 'dimension' || idLower === 'projects'
-            ? new THREE.DodecahedronGeometry(0.42, 0)
-            : new THREE.OctahedronGeometry(0.34, 0);
-        group.add(new THREE.Mesh(primaryGeo, primaryMat));
+        // Gondwana & Remaining Subdomains: Dual-Tone Wavy Gold & Slate Sphere with Gold Bead
+        const customSphere = new THREE.Mesh(sharedUnitSphereGeo, sharedWavyGoldDarkSlateMat);
+        customSphere.scale.setScalar(0.36);
+        customSphere.rotation.set(0.52, -0.44, 0.32);
+        group.add(customSphere);
 
-        const collarMat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color('#F2F6F8'),
-          emissive: col,
-          emissiveIntensity: 0.42,
-          roughness: 0.42,
-          metalness: 0.92,
-        });
-        emissiveMats.push(collarMat);
-        const collarMesh = new THREE.Mesh(new THREE.TorusGeometry(0.58, 0.03, 12, 36), collarMat);
-        collarMesh.rotation.x = Math.PI / 2.4;
-        group.add(collarMesh);
+        const goldBead = new THREE.Mesh(sharedPlanetBeadGeo, accentEmissiveMat);
+        goldBead.position.set(0.28, -0.22, 0.24);
+        group.add(goldBead);
       }
 
-      const haloGeo = new THREE.RingGeometry(0.74, 0.82, 36);
       const haloMat = new THREE.MeshBasicMaterial({
-        color: col,
+        color: new THREE.Color(0xD4AF37),
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.48,
+        opacity: 0.18,
       });
-      const haloMesh = new THREE.Mesh(haloGeo, haloMat);
+      const haloMesh = new THREE.Mesh(sharedHaloGeo, haloMat);
       group.add(haloMesh);
 
       return { group, haloMesh, emissiveMats };
@@ -1917,7 +2478,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       pulseIndex = 0,
       connectedIds: string[] = []
     ) => {
-      const posVec = new THREE.Vector3(...localPos);
+      // Strictly clamp every node inside the 6.2u Master Containment Sphere
+      const posVec = clampInsideSphere(new THREE.Vector3(...localPos), 4.65);
       const col = new THREE.Color(colourHex);
 
       const { group: nodeGroup, haloMesh, emissiveMats } = buildSculpturalNodeArchetype(
@@ -1929,7 +2491,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       nodeGroup.scale.setScalar(scale);
 
       const hitProxy = new THREE.Mesh(
-        new THREE.SphereGeometry(1.3, 12, 12),
+        new THREE.SphereGeometry(0.95, 12, 12),
         new THREE.MeshBasicMaterial({
           transparent: true,
           opacity: 0,
@@ -1947,30 +2509,31 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       parentGroup.add(nodeGroup);
 
       const midCtrl = posVec.clone().multiplyScalar(0.52);
-      midCtrl.y += 0.9;
-      const curve = new THREE.QuadraticBezierCurve3(new THREE.Vector3(0, 0, 0), midCtrl, posVec);
+      midCtrl.y += 0.45;
+      clampInsideSphere(midCtrl, 4.5);
+      const curve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(0.32, -0.18, 1.48),
+        midCtrl,
+        posVec
+      );
       const curvePts = curve.getPoints(32);
       const lineGeo = new THREE.BufferGeometry().setFromPoints(curvePts);
       const lineMat = new THREE.LineBasicMaterial({
-        color: col,
+        color: new THREE.Color(0xD4AF37),
         transparent: true,
-        opacity: nodeType === 'project' ? 0.34 : 0.44,
+        opacity: nodeType === 'project' ? 0.12 : 0.18,
       });
       parentGroup.add(new THREE.Line(lineGeo, lineMat));
 
       const beadMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.07, 8, 8),
-        new THREE.MeshBasicMaterial({
-          color: col.clone().multiplyScalar(1.35), // Emits selective bloom
-          transparent: true,
-          opacity: 0.92,
-        })
+        new THREE.SphereGeometry(0.055, 12, 12),
+        sharedPolishedGoldMat
       );
       parentGroup.add(beadMesh);
       pulseBeads.push({
         mesh: beadMesh,
         curve,
-        speed: 0.22 + (pulseIndex % 5) * 0.04,
+        speed: 0.16 + (pulseIndex % 5) * 0.03,
         offset: (pulseIndex * 0.19) % 1,
       });
 
@@ -2012,11 +2575,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       nodeIdB: string,
       colourHex: string
     ) => {
-      const vA = new THREE.Vector3(...posA);
-      const vB = new THREE.Vector3(...posB);
-      const mid = vA.clone().lerp(vB, 0.5).multiplyScalar(0.78);
+      const vA = clampInsideSphere(new THREE.Vector3(...posA), 4.65);
+      const vB = clampInsideSphere(new THREE.Vector3(...posB), 4.65);
+      const mid = vA.clone().lerp(vB, 0.5).multiplyScalar(0.84);
+      clampInsideSphere(mid, 4.5);
       const curve = new THREE.CatmullRomCurve3([vA, mid, vB]);
-      const tubeGeo = new THREE.TubeGeometry(curve, 36, 0.022, 6, false);
+      const tubeGeo = new THREE.TubeGeometry(curve, 36, 0.014, 6, false);
       const uniforms = {
         uTime: { value: 0 },
         uDimFactor: { value: 1.0 },
@@ -2043,9 +2607,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             float peak1 = exp(-pow((phase - 0.18) * 18.0, 2.0));
             float peak2 = 0.65 * exp(-pow((phase - 0.31) * 22.0, 2.0));
             float heartbeat = peak1 + peak2;
-            vec3 col = mix(uColor * 0.55, vec3(0.706, 0.867, 1.0), heartbeat * 0.75);
-            float alpha = (0.16 + heartbeat * 0.72) * uDimFactor;
-            gl_FragColor = vec4(col * (0.9 + heartbeat * 0.9), alpha);
+            vec3 col = mix(uColor * 0.65, vec3(1.0, 0.957, 0.816), heartbeat * 0.75);
+            float alpha = (0.08 + heartbeat * 0.28) * uDimFactor;
+            gl_FragColor = vec4(col * (0.85 + heartbeat * 0.65), alpha);
           }
         `,
         transparent: true,
@@ -2191,29 +2755,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const childSphereGroup = new THREE.Group();
       childSphereGroup.position.copy(dirVec);
 
-      const childShellMat = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color(domMatColors.shellHex || '#7CE0B8'),
-        transmission: isSoftwareGl ? 0 : 0.82,
-        transparent: true,
-        opacity: isSoftwareGl ? 0.24 : 0.44,
-        roughness: 0.12,
-        metalness: 0.08,
-        ior: 1.46,
-        thickness: 1.1,
-        clearcoat: 1.0,
-        side: THREE.FrontSide,
-        depthWrite: false,
-      });
-      const childShellMesh = new THREE.Mesh(new THREE.SphereGeometry(4.4, 40, 28), childShellMat);
+      const childShellMesh = new THREE.Mesh(new THREE.SphereGeometry(4.4, 40, 28), sharedOpticalGlassMat);
       childSphereGroup.add(childShellMesh);
 
-      // Mint/Cyan rim ring (#5CC8D7) on child sphere r = 4.4u
       const childRimCurve = new THREE.EllipseCurve(0, 0, 4.42, 4.42, 0, Math.PI * 2, false, 0);
       const childRimGeo = new THREE.BufferGeometry().setFromPoints(
         childRimCurve.getPoints(64).map((p) => new THREE.Vector3(p.x, p.y, 0))
       );
       const childRimMat = new THREE.LineBasicMaterial({
-        color: new THREE.Color(domMatColors.rimHex || '#5CC8D7'),
+        color: new THREE.Color(0xD4AF37),
         transparent: true,
         opacity: 0.62,
       });
@@ -2232,7 +2782,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         dom.id,
         dom.name,
         `Sphere 0${dIdx + 3} · ${dom.materialPreset}`,
-        '#7CE0B8',
+        '#D4AF37',
         childLocalCenter,
         'subdomain',
         1.05,
@@ -2240,7 +2790,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         [dom.parentNodeId]
       );
 
-      // Arched CatmullRomCurve3 cardiac tube (#65ACFF, opacity: 0.55) with synchronized #FFF1D4 pulse bead
       const startPt = new THREE.Vector3(0, 0, 0);
       const endPt = dirVec.clone();
       const midArch = startPt.clone().lerp(endPt, 0.5);
@@ -2248,7 +2797,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const childCardiacCurve = new THREE.CatmullRomCurve3([startPt, midArch, endPt]);
       const childTubeGeo = new THREE.TubeGeometry(childCardiacCurve, 48, 0.032, 8, false);
       const childTubeMat = new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#65ACFF'),
+        color: new THREE.Color(0xD4AF37),
         transparent: true,
         opacity: 0.55,
         depthWrite: false,
@@ -2258,7 +2807,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const childPulseBead = new THREE.Mesh(
         new THREE.SphereGeometry(0.12, 10, 10),
         new THREE.MeshBasicMaterial({
-          color: new THREE.Color('#FFF1D4'),
+          color: new THREE.Color(0xFFF4D0),
           transparent: true,
           opacity: 0.96,
         })
@@ -2273,7 +2822,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     });
 
     // Inter-Sphere CatmullRomCurve3 Cardiac Spline connecting HQ [0,0,0] and CDE [38,4,-22]
-    // Styled with #65ACFF (opacity: 0.55) carrying synchronized #FFF1D4 traveling light pulse beads
     const bridgeCurve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(6.2, 0.8, -2.5),
       new THREE.Vector3(19.0, 5.8, -11.0),
@@ -2281,7 +2829,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     ]);
     const bridgeTubeGeo = new THREE.TubeGeometry(bridgeCurve, 64, 0.036, 8, false);
     const bridgeMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color('#65ACFF'),
+      color: new THREE.Color(0xD4AF37),
       transparent: true,
       opacity: 0.55,
       depthWrite: false,
@@ -2293,7 +2841,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const bridgeBead = new THREE.Mesh(
         new THREE.SphereGeometry(0.13, 10, 10),
         new THREE.MeshBasicMaterial({
-          color: new THREE.Color('#FFF1D4'),
+          color: new THREE.Color(0xFFF4D0),
           transparent: true,
           opacity: 0.95,
         })
@@ -2307,14 +2855,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       });
     }
 
-    // 28-Segment Comet Navigation Weave (dual-strand trailing ribbon during camera flights)
+    // 28-Segment Comet Navigation Weave (pre-allocated ring buffer, zero per-frame allocations)
     const maxCometPts = 28;
+    stateRef.current.cometPoints = Array.from({ length: maxCometPts }, () => new THREE.Vector3());
     const cometPositions = new Float32Array(maxCometPts * 3);
     const cometWeavePositions = new Float32Array(maxCometPts * 3);
     const cometGeo = new THREE.BufferGeometry();
     cometGeo.setAttribute('position', new THREE.BufferAttribute(cometPositions, 3));
     const cometMat = new THREE.LineBasicMaterial({
-      color: new THREE.Color('#B4DDFF'),
+      color: new THREE.Color(0xFFF4D0),
       transparent: true,
       opacity: 0.68,
     });
@@ -2324,7 +2873,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const cometWeaveGeo = new THREE.BufferGeometry();
     cometWeaveGeo.setAttribute('position', new THREE.BufferAttribute(cometWeavePositions, 3));
     const cometWeaveMat = new THREE.LineBasicMaterial({
-      color: new THREE.Color('#65ACFF'),
+      color: new THREE.Color(0xD4AF37),
       transparent: true,
       opacity: 0.48,
     });
@@ -2995,11 +3544,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       );
       const domeMix = glassUniforms.uInteriorDome.value;
       hqAssembly.frontShellMat.opacity = isSoftwareGl
-        ? 0.22 * (1 - domeMix * 0.75)
+        ? 0.16 * (1 - domeMix * 0.75)
         : 0.42 * (1 - domeMix * 0.72);
       cdeAssembly.frontShellMat.opacity = isSoftwareGl
-        ? 0.22 * (1 - domeMix * 0.75)
-        : 0.46 * (1 - domeMix * 0.72);
+        ? 0.16 * (1 - domeMix * 0.75)
+        : 0.42 * (1 - domeMix * 0.72);
       hqAssembly.domeGridMat.opacity = domeMix * 0.24;
       cdeAssembly.domeGridMat.opacity = domeMix * 0.24;
 
@@ -3080,14 +3629,18 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           s.stoppedExplicitly || s.reducedMotion ? 0 : elapsedTotal;
       }
 
-      // 28-Segment Comet Navigation Weave trailing ribbon
+      // 28-Segment Comet Navigation Weave trailing ribbon (in-place shift, zero per-frame allocation)
       const lookPoint = _scratchVec2.copy(camera.position).lerp(s.currentCenter, 0.62);
-      s.cometPoints.unshift(lookPoint.clone());
-      if (s.cometPoints.length > maxCometPts) s.cometPoints.pop();
+      for (let i = maxCometPts - 1; i > 0; i--) {
+        s.cometPoints[i].copy(s.cometPoints[i - 1]);
+      }
+      if (s.cometPoints.length > 0) {
+        s.cometPoints[0].copy(lookPoint);
+      }
       const posAttr = cometGeo.getAttribute('position') as THREE.BufferAttribute;
       const weaveAttr = cometWeaveGeo.getAttribute('position') as THREE.BufferAttribute;
       for (let i = 0; i < maxCometPts; i++) {
-        const pt = s.cometPoints[Math.min(i, s.cometPoints.length - 1)] || lookPoint;
+        const pt = s.cometPoints[i] || lookPoint;
         posAttr.setXYZ(i, pt.x, pt.y, pt.z);
         const weaveAngle = elapsedTotal * 5.0 + i * 0.45;
         const weaveAmp = s.flightActive ? 0.16 * (1 - i / maxCometPts) : 0.02;
@@ -3347,6 +3900,32 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       if (composer) {
         composer.dispose();
       }
+      scene.traverse((obj) => {
+        const mesh = obj as THREE.Mesh;
+        if (mesh.geometry) {
+          mesh.geometry.dispose();
+        }
+        if (mesh.material) {
+          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+          mats.forEach((m) => {
+            const anyMat = m as unknown as { map?: THREE.Texture; bumpMap?: THREE.Texture };
+            anyMat.map?.dispose();
+            anyMat.bumpMap?.dispose();
+            m.dispose();
+          });
+        }
+      });
+      goldRibbedBumpMap.dispose();
+      sharedGoldRibbedMat.dispose();
+      sharedOpticalGlassMat.dispose();
+      sharedBackOpticalGlassMat.dispose();
+      sharedTitaniumMat.dispose();
+      sharedShellGeo.dispose();
+      sharedOuterRibTorusGeo.dispose();
+      sharedHaloGeo.dispose();
+      sharedPlanetBeadGeo.dispose();
+      sharedSatBeadGeo.dispose();
+      extraDisposables.forEach((d) => d.dispose());
       renderer.dispose();
     };
   }, [customDomains.length, sphereMaterials.hq, sphereMaterials.cde]);
@@ -3369,7 +3948,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           className="fixed inset-0 z-15 flex items-center justify-center p-6 pointer-events-auto"
         >
           <div
-            className="max-w-xl w-full rounded-2xl border p-5 space-y-4 shadow-2xl"
+            className="cj-glass-card max-w-xl w-full rounded-2xl border p-5 space-y-4 shadow-2xl"
             style={{
               backgroundColor: COLOUR_TOKENS.glassRgba,
               borderColor: COLOUR_TOKENS.outlineControl,
@@ -3377,14 +3956,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           >
             <div className="flex items-center justify-between border-b border-white/15 pb-3">
               <div>
-                <div className="font-mono text-[10px] text-[#F2B66D] uppercase">
+                <div className="font-mono text-[10px] text-[#D4AF37] uppercase">
                   REDUCED-GRAPHICS SPATIAL WORKSPACE
                 </div>
                 <h2 className="font-display text-sm md:text-base font-semibold text-[#F2F6F8]">
                   {activeSphere === 'hq' ? 'HQ Spatial Map' : 'CDE Universe Map'}
                 </h2>
               </div>
-              <span className="font-mono text-[11px] text-[#BDCBD3]">
+              <span className="font-mono text-[11px] text-[#C5CCD6]">
                 {webglReason || '2D Spatial Navigation Active'}
               </span>
             </div>
@@ -3396,7 +3975,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                       key={st.id}
                       type="button"
                       onClick={() => onSelectNode(st.id, 'station', 'hq')}
-                      className="min-h-[44px] p-2.5 rounded-xl border border-white/25 bg-[#101D27] hover:border-[#4C8DFF] text-left cursor-pointer"
+                      className="min-h-[44px] p-2.5 rounded-xl border border-[#C5CCD6]/25 bg-[#101622] hover:border-[#D4AF37] text-left cursor-pointer"
                     >
                       <div className="font-mono text-[10px]" style={{ color: st.colour }}>
                         {st.code}
@@ -3411,7 +3990,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                       key={dim.id}
                       type="button"
                       onClick={() => onSelectNode(dim.id, 'dimension', 'cde')}
-                      className="min-h-[44px] p-2.5 rounded-xl border border-white/25 bg-[#101D27] hover:border-[#4C8DFF] text-left cursor-pointer"
+                      className="min-h-[44px] p-2.5 rounded-xl border border-[#C5CCD6]/25 bg-[#101622] hover:border-[#D4AF37] text-left cursor-pointer"
                     >
                       <div className="font-mono text-[10px]" style={{ color: dim.colour }}>
                         CDE DIMENSION
@@ -3424,14 +4003,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             </div>
 
             <div className="pt-2 border-t border-white/15">
-              <div className="font-mono text-[10px] text-[#BDCBD3] mb-2">PROJECTS</div>
+              <div className="font-mono text-[10px] text-[#C5CCD6] mb-2">PROJECTS</div>
               <div className="flex flex-wrap gap-1.5">
                 {PROJECTS_DATA.map((p) => (
                   <button
                     key={p.id}
                     type="button"
                     onClick={() => onSelectNode(p.id, 'project', activeSphere)}
-                    className="min-h-[38px] px-3 py-1 rounded-lg border border-white/25 bg-[#101D27] font-mono text-xs text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer"
+                    className="min-h-[38px] px-3 py-1 rounded-lg border border-[#C5CCD6]/25 bg-[#101622] font-mono text-xs text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
                   >
                     {p.code}
                   </button>
@@ -3501,12 +4080,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                 style={{
                   transform: `translate3d(${Math.round(item.x)}px, ${Math.round(item.y)}px, 0)`,
                   opacity: isBehindGlass ? 0.38 : 1,
-                  borderColor: item.isFocused ? item.colour : 'rgba(255,255,255,0.32)',
+                  borderColor: item.isFocused ? '#D4AF37' : 'rgba(197,204,214,0.22)',
                   backgroundColor: item.isFocused
-                    ? 'rgba(20, 38, 50, 0.95)'
-                    : 'rgba(16, 29, 39, 0.84)',
+                    ? 'rgba(27, 34, 48, 0.95)'
+                    : 'rgba(27, 34, 48, 0.88)',
                 }}
-                className="fixed top-0 left-0 min-h-[38px] pointer-events-auto cursor-pointer px-2.5 py-1 rounded-lg border transition-opacity duration-150 flex items-center gap-2 text-left group hover:border-[#4C8DFF]"
+                className="cj-glass-card fixed top-0 left-0 min-h-[38px] pointer-events-auto cursor-pointer px-2.5 py-1 rounded-lg border transition-opacity duration-150 flex items-center gap-2 text-left group hover:border-[#D4AF37]"
               >
                 <span
                   className="w-2 h-2 rounded-full shrink-0"
@@ -3517,7 +4096,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                     {item.label}
                   </span>
                   {item.sublabel && (
-                    <span className="font-mono text-[10px] text-[#BDCBD3] leading-tight whitespace-nowrap">
+                    <span className="font-mono text-[10px] text-[#C5CCD6] leading-tight whitespace-nowrap">
                       {item.sublabel}
                     </span>
                   )}
@@ -3528,19 +4107,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
           {captionBubble && (
             <div
-              className="fixed left-1/2 top-[16%] -translate-x-1/2 z-20 max-w-md px-4 py-2.5 rounded-xl border neural-reveal pointer-events-none"
-              style={{
-                backgroundColor: 'rgba(16, 29, 39, 0.84)',
-                borderColor: 'rgba(255, 255, 255, 0.14)',
-                boxShadow: 'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-              }}
+              className="cj-glass-card fixed left-1/2 top-[16%] -translate-x-1/2 z-20 max-w-md px-4 py-2.5 rounded-xl border neural-reveal pointer-events-none"
             >
               <div className="flex items-center gap-2 mb-0.5">
                 <span
                   className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: '#65ACFF' }}
+                  style={{ backgroundColor: '#D4AF37' }}
                 />
-                <span className="font-mono text-[10px] uppercase tracking-wider text-[#B4DDFF]">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-[#FFF4D0]">
                   Cerebro
                 </span>
               </div>
@@ -3560,14 +4134,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                 data-testid="project-media-tube-hud"
                 data-ui-id="project-media-tube-hud"
                 onPointerDown={(e) => e.stopPropagation()}
-                className="fixed left-1/2 bottom-28 -translate-x-1/2 z-30 pointer-events-auto flex flex-wrap items-center gap-2 px-4 py-2.5 rounded-2xl border backdrop-blur-xl shadow-2xl max-w-[94vw]"
-                style={{
-                  backgroundColor: 'rgba(20, 38, 50, 0.86)',
-                  borderColor: 'rgba(255, 255, 255, 0.18)',
-                }}
+                className="cj-glass-card fixed left-1/2 bottom-28 -translate-x-1/2 z-30 pointer-events-auto flex flex-wrap items-center gap-2 px-4 py-2.5 rounded-2xl border backdrop-blur-xl shadow-2xl max-w-[94vw]"
               >
                 <div className="pr-2 border-r border-white/15">
-                  <div className="font-mono text-[10px] text-[#F2B66D] uppercase">
+                  <div className="font-mono text-[10px] text-[#D4AF37] uppercase">
                     3D MEDIA TUBE · {mediaTubeState.projectId} (8×3 CYLINDER · 5.4u)
                   </div>
                   <div className="font-sans text-xs font-semibold text-[#F2F6F8]">
@@ -3583,7 +4153,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                       const prevIdx = (focusedIdx - 1 + tubeItems.length) % tubeItems.length;
                       onSelectMediaTubeTile?.(prevIdx, tubeItems[prevIdx]);
                     }}
-                    className="min-h-[38px] px-2.5 py-1 rounded-lg font-mono text-xs bg-[#101D27] border border-white/20 text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
+                    className="min-h-[38px] px-2.5 py-1 rounded-lg font-mono text-xs bg-[#101622] border border-[#C5CCD6]/25 text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
                   >
                     ‹ Prev Tile
                   </button>
@@ -3595,7 +4165,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                       const nextIdx = (focusedIdx + 1) % tubeItems.length;
                       onSelectMediaTubeTile?.(nextIdx, tubeItems[nextIdx]);
                     }}
-                    className="min-h-[38px] px-2.5 py-1 rounded-lg font-mono text-xs bg-[#101D27] border border-white/20 text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
+                    className="min-h-[38px] px-2.5 py-1 rounded-lg font-mono text-xs bg-[#101622] border border-[#C5CCD6]/25 text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
                   >
                     Next Tile ›
                   </button>
@@ -3604,7 +4174,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                     data-cta-id="media-tube-fullview"
                     data-action-id="media.open"
                     onClick={() => onOpenMediaTubeFullView?.(focusedTile)}
-                    className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-xs bg-[#F2B66D] text-[#101D27] font-semibold cursor-pointer"
+                    className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-xs bg-[#D4AF37] text-[#101622] font-semibold cursor-pointer"
                   >
                     Open Full View
                   </button>
@@ -3613,7 +4183,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                     data-cta-id="media-tube-close"
                     data-action-id="media.close"
                     onClick={() => onCloseMediaTube?.()}
-                    className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-xs bg-[#101D27] border border-[#65ACFF] text-[#B4DDFF] hover:bg-[#4C8DFF] hover:text-[#101D27] cursor-pointer"
+                    className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-xs bg-[#101622] border border-[#D4AF37] text-[#FFF4D0] hover:bg-[#D4AF37] hover:text-[#101622] cursor-pointer"
                   >
                     ← Return to Project
                   </button>

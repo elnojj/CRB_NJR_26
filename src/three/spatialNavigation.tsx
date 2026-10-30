@@ -17,16 +17,16 @@ export const CDE_TAXONOMY = {
   dimensions: ['Projects', 'Files', 'Media', 'Tasks', 'People'] as const,
   glass: {
     metalness: 0.0,
-    roughness: 0.06,
+    roughness: 0.04,
     ior: 1.48,
-    transmission: 1.0,
-    thickness: 0.8,
+    transmission: 0.98,
+    thickness: 1.2,
     specularIntensity: 1.0,
     specularColor: '#B4DDFF',
-    sheen: 0.8,
-    sheenRoughness: 0.2,
-    sheenColor: '#9AFFE0',
-    opacity: 0.92,
+    sheen: 0.6,
+    sheenRoughness: 0.3,
+    sheenColor: '#FFF4D0',
+    opacity: 0.95,
   },
   bloomThresholdProposal: {
     threshold: 0.88,
@@ -560,31 +560,30 @@ export function TeamChatChip({ onOpenChat, unreadCount = 3, active = false }: Te
           onOpenChat();
         }
       }}
-      className="fixed flex items-center gap-2 transition-transform hover:scale-[1.03] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65ACFF]"
+      className="cj-glass-card fixed flex items-center gap-2 transition-transform hover:scale-[1.03] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
       style={{
         right: 'max(16px, env(safe-area-inset-right))',
         bottom: 'max(16px, env(safe-area-inset-bottom))',
         zIndex: 95,
-        background: active ? 'rgba(76, 141, 255, 0.22)' : '#142632',
+        background: active ? 'rgba(212, 175, 55, 0.22)' : 'rgba(27, 34, 48, 0.88)',
         color: '#F2F6F8',
         border: active
-          ? '1px solid rgba(101, 172, 255, 0.65)'
-          : '1px solid rgba(180, 221, 255, 0.25)',
+          ? '1px solid #D4AF37'
+          : '1px solid rgba(197, 204, 214, 0.22)',
         padding: '10px 18px',
         borderRadius: '20px',
         fontFamily: '"Space Grotesk", "IBM Plex Sans", sans-serif',
         fontSize: '14px',
         textDecoration: 'none',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
       }}
     >
       <span
         className="w-2 h-2 rounded-full shrink-0"
-        style={{ backgroundColor: active ? '#36E88D' : '#7CE0B8' }}
+        style={{ backgroundColor: active ? '#FFF4D0' : '#D4AF37' }}
       />
       <span>Team chat</span>
       {unreadCount > 0 && (
-        <span className="font-mono text-[11px] text-[#B4DDFF] opacity-85">
+        <span className="font-mono text-[11px] text-[#C5CCD6] opacity-85">
           · {unreadCount}
         </span>
       )}

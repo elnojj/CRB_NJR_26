@@ -1,97 +1,116 @@
 /* ==========================================================================
-   NEURAL OBSERVATORY v1.1 — NOCTURNAL CRYO-GLASS & WARM CAUSTIC CINEMA
-   Locked 15-Token Color Script & 3 Sacred Semantic Reservations
-   Zero Purple · Zero Gold · Zero Default Tailwind Grays
+   CEREBRO-NOJARA D0 v1.24 DESIGN SYSTEM
+   Unified Metallic Gold, Brushed Silver, Deep Slate & Optical Glass Tokens
    ========================================================================== */
 
 :root {
   /* ------------------------------------------------------------------------
-     15 LOCKED NEURAL OBSERVATORY v1.1 TOKENS
+     CEREBRO-NOJARA D0 v1.24 MASTER TOKENS
      ------------------------------------------------------------------------ */
-  --token-canvas: #05090E;                      /* 01. D0 Primary deep-space viewport void (#05090E to #142632) */
-  --token-canvas-gradient: linear-gradient(180deg, #05090E 0%, #142632 100%);
-  --token-glass-solid: #142632;                 /* 02. Solid telemetry pills, inputs, and fallback surfaces */
-  --token-glass: rgba(20, 38, 50, 0.88);        /* 03. D0 Glass Never Solid (rgba(20, 38, 50, 0.88) blur 12px) */
-  --token-glass-subtle: rgba(11, 20, 28, 0.88); /* 04. Nested sub-drawers, code blocks, and inspection wells */
-  --token-divider: rgba(180, 221, 255, 0.22);   /* 05. D0 1px structural hairlines rgba(180, 221, 255, 0.22) */
-  --token-text-primary: #F2F6F8;                /* 06. Primary headlines, active values, and body copy */
-  --token-text-secondary: #BDCBD3;              /* 07. Muted metadata, timestamps, and secondary labels */
-  --token-cobalt: #4C8DFF;                      /* 08. Sphere 01 (CEREBRO HQ) refractive liquid-glass & ST-01 Projects */
-  --token-focus: #65ACFF;                       /* 09. 2px focus rings, active pocket borders & Cryo-Silica Lattice */
-  --token-focus-glow: #B4DDFF;                  /* 10. Fresnel rim glow and specular highlights */
-  --token-highlight: #FFF1D4;                   /* 11. Warm ivory cardiac spline pulse beads, countdowns & callouts */
-  --token-station-tasks: #5CC8D7;               /* 12. ST-02 Tasks station accent & Cyan Acoustic Resonator shader */
-  --token-station-people: #7CE0B8;              /* 13. ST-03 People/RACI accent & Mint Plasma / Faceted Prism shader */
-  --token-station-files: #9DB8D6;               /* 14. ST-04 Drive Files accent & Brushed Steel Archive shader */
-  --token-station-media: #F2B66D;               /* 15. Sphere 02 (CDE Universe) Warm Amber Caustic Crystal & ST-05 Media */
+  --cj-bg-viewport: #1B2230;
+  --cj-bg-surface: #101622;
+  --cj-glass-panel: rgba(27, 34, 48, 0.88);
+  --cj-gold-primary: #D4AF37;
+  --cj-gold-sheen: #FFF4D0;
+  --cj-silver-metal: #C5CCD6;
+  --cj-slate-blue: #3A516E;
+  --cj-border-hairline: rgba(197, 204, 214, 0.22);
+  --cj-glow-accent: rgba(212, 175, 55, 0.35);
 
   /* ------------------------------------------------------------------------
-     3 SACRED SEMANTIC RESERVATIONS (STRICTLY EXCLUSIVE)
+     UNIFIED TOKEN MAPPINGS (Mapped strictly to Cerebro-Nojara D0 v1.24)
      ------------------------------------------------------------------------ */
-  --token-voice-orb: #9AFFE0;                   /* Strictly exclusive to z-110 Voice Pilot Orb */
-  --token-voice-orb-mid: #359D8E;               /* Voice Orb radial mid ramp */
-  --token-voice-orb-deep: #133A44;              /* Voice Orb radial deep core */
-  --token-tracking-valid: #36E88D;              /* Strictly exclusive to valid 21-landmark hand tracking, verified progress & Two-Tap Confirm */
-  --token-system-error: #FF5666;                /* Strictly exclusive to Blocked insight badges & Voice Stop button */
+  --token-canvas: var(--cj-bg-viewport);
+  --token-canvas-gradient: radial-gradient(circle at 50% 40%, #1B2230 0%, #101622 100%);
+  --token-glass-solid: var(--cj-bg-surface);
+  --token-glass: var(--cj-glass-panel);
+  --token-glass-subtle: rgba(16, 22, 34, 0.88);
+  --token-divider: var(--cj-border-hairline);
+  --token-text-primary: #F2F6F8;
+  --token-text-secondary: var(--cj-silver-metal);
+  --token-cobalt: var(--cj-gold-primary);
+  --token-focus: var(--cj-gold-primary);
+  --token-focus-glow: var(--cj-gold-sheen);
+  --token-highlight: var(--cj-gold-sheen);
+  --token-station-tasks: var(--cj-silver-metal);
+  --token-station-people: var(--cj-gold-sheen);
+  --token-station-files: var(--cj-silver-metal);
+  --token-station-media: var(--cj-gold-primary);
 
   /* ------------------------------------------------------------------------
-     OPTICAL HUD ANATOMY SURFACES (D0: Glass Never Solid)
+     SEMANTIC RESERVATIONS
      ------------------------------------------------------------------------ */
-  --token-hud-outer-bg: rgba(20, 38, 50, 0.88);
-  --token-hud-outer-border: rgba(180, 221, 255, 0.22);
-  --token-hud-outer-shadow: inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55);
-  --token-hud-pocket-bg: rgba(20, 38, 50, 0.88);
-  --token-hud-pocket-border: rgba(180, 221, 255, 0.22);
+  --token-voice-orb: #D4AF37;
+  --token-voice-orb-mid: #E6CA65;
+  --token-voice-orb-deep: #685218;
+  --token-tracking-valid: #36E88D;
+  --token-system-error: #FF5666;
 
   /* ------------------------------------------------------------------------
-     UNIFIED ALIAS MAPPINGS (Backwards-compatible with Portal v1.5 tokens,
-     purged of all purple/gold/slate off-palette values)
+     OPTICAL HUD ANATOMY SURFACES
      ------------------------------------------------------------------------ */
-  --surface-void: var(--token-canvas);
-  --surface-canvas: var(--token-canvas);
-  --surface-hud: var(--token-hud-outer-bg);
-  --surface-elevated: var(--token-glass-solid);
-  --surface-glass-border: var(--token-divider);
+  --token-hud-outer-bg: var(--cj-glass-panel);
+  --token-hud-outer-border: var(--cj-border-hairline);
+  --token-hud-outer-shadow: 0 16px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --token-hud-pocket-bg: var(--cj-glass-panel);
+  --token-hud-pocket-border: var(--cj-border-hairline);
 
-  --text-primary: var(--token-text-primary);
-  --text-secondary: var(--token-text-secondary);
-  --text-muted: var(--token-station-files);
+  /* ------------------------------------------------------------------------
+     UNIFIED ALIAS MAPPINGS
+     ------------------------------------------------------------------------ */
+  --surface-void: var(--cj-bg-viewport);
+  --surface-canvas: var(--cj-bg-viewport);
+  --surface-hud: var(--cj-glass-panel);
+  --surface-elevated: var(--cj-bg-surface);
+  --surface-glass-border: var(--cj-border-hairline);
 
-  /* 4-Tier Truthful Status Colors (Mapped strictly to Neural Observatory v1.1) */
-  --status-planned: var(--token-station-files);      /* #9DB8D6 Brushed Steel */
-  --status-running: var(--token-focus);              /* #65ACFF Cryo Focus */
-  --status-implemented: var(--token-cobalt);         /* #4C8DFF Cobalt (Zero Purple) */
-  --status-verified: var(--token-tracking-valid);    /* #36E88D Verified Emerald */
-  --status-awaiting: var(--token-station-media);     /* #F2B66D Warm Caustic Amber */
-  --status-blocked: var(--token-system-error);       /* #FF5666 System Error */
-  --status-held: var(--token-station-tasks);         /* #5CC8D7 Cyan Resonator (Zero Purple) */
+  --text-primary: #F2F6F8;
+  --text-secondary: var(--cj-silver-metal);
+  --text-muted: var(--cj-silver-metal);
+
+  /* 4-Tier Truthful Status Colors */
+  --status-planned: var(--cj-silver-metal);
+  --status-running: var(--cj-gold-primary);
+  --status-implemented: var(--cj-gold-primary);
+  --status-verified: var(--token-tracking-valid);
+  --status-awaiting: var(--cj-gold-sheen);
+  --status-blocked: var(--token-system-error);
+  --status-held: var(--cj-slate-blue);
 
   /* Locked 4-Font Typographic Hierarchy */
   --font-display: 'Sora', 'JaapokkiSubtract', 'Inter', system-ui, sans-serif;
   --font-sans: 'Inter', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
-  --font-arabic: 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif;
+  --font-arabic: 'Cairo', 'Tajawal', 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif;
 }
 
+.cj-viewport-container {
+  background: radial-gradient(circle at 50% 40%, #1B2230 0%, #101622 100%);
+  color: #F2F6F8;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.cj-glass-card,
 .cerebro-hud-panel,
 .optical-hud-panel {
-  background: var(--token-hud-outer-bg);
-  backdrop-filter: blur(12px) saturate(1.2);
-  -webkit-backdrop-filter: blur(12px) saturate(1.2);
-  border: 1px solid var(--token-hud-outer-border);
-  border-radius: 12px;
-  box-shadow: var(--token-hud-outer-shadow);
-  color: var(--token-text-primary);
+  background: var(--cj-glass-panel);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--cj-border-hairline);
+  border-radius: 16px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: #F2F6F8;
 }
 
 .optical-sub-pocket {
-  background: var(--token-hud-pocket-bg);
-  border: 1px solid var(--token-hud-pocket-border);
+  background: var(--cj-glass-panel);
+  border: 1px solid var(--cj-border-hairline);
   border-radius: 8px;
   transition: border-color 180ms cubic-bezier(0.22, 1, 0.36, 1), background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .optical-sub-pocket[data-active='true'],
 .optical-sub-pocket:focus-within {
-  border-color: var(--token-focus);
+  border-color: var(--cj-gold-primary);
 }

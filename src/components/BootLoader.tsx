@@ -88,24 +88,14 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
         data-testid="owner-gate-keypad"
         className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 select-none safe-top safe-bottom pointer-events-auto"
         style={{
-          backgroundColor: 'rgba(16, 29, 39, 0.36)',
+          backgroundColor: 'rgba(16, 22, 34, 0.45)',
         }}
       >
-        <div
-          className="w-full max-w-sm rounded-xl p-5 flex flex-col items-center gap-4 border neural-reveal"
-          style={{
-            background: 'rgba(16, 29, 39, 0.84)',
-            backdropFilter: 'blur(12px) saturate(1.2)',
-            WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-            borderColor: 'rgba(255, 255, 255, 0.14)',
-            boxShadow:
-              'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-          }}
-        >
+        <div className="cj-glass-card w-full max-w-sm rounded-xl p-5 flex flex-col items-center gap-4 neural-reveal">
           {/* Standardized Panel Header Bar (#17) */}
           <div
             className="w-full flex items-center justify-between gap-2 pb-2.5 border-b"
-            style={{ borderColor: 'rgba(255, 255, 255, 0.14)' }}
+            style={{ borderColor: 'rgba(197, 204, 214, 0.22)' }}
           >
             <div className="flex items-center gap-2 min-w-0">
               <span
@@ -119,9 +109,9 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
             <span
               className="font-mono tabular-nums text-[10px] px-2 py-0.5 rounded border shrink-0"
               style={{
-                backgroundColor: '#142632',
-                borderColor: 'rgba(180, 221, 255, 0.16)',
-                color: '#B4DDFF',
+                backgroundColor: '#101622',
+                borderColor: 'rgba(197, 204, 214, 0.22)',
+                color: '#C5CCD6',
               }}
             >
               LIVE
@@ -143,7 +133,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
               width="132"
               height="20"
               rx="2"
-              stroke="#B4DDFF"
+              stroke="#C5CCD6"
               strokeOpacity="0.45"
               strokeWidth="1"
             />
@@ -157,9 +147,9 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
           <BrandLockup mode="loader" />
 
           <div className="text-center">
-            <div className="text-xs text-[#BDCBD3]">
+            <div className="text-xs text-[#C5CCD6]">
               Enter 4-digit Owner Code (
-              <span className="font-mono tabular-nums text-[#FFF1D4]">3939</span>) to
+              <span className="font-mono tabular-nums text-[#FFF4D0]">3939</span>) to
               unlock CEREBRO HQ
             </div>
           </div>
@@ -174,13 +164,13 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
                   className="w-11 h-12 rounded-lg border flex items-center justify-center font-mono tabular-nums text-lg font-bold transition-all"
                   style={{
                     backgroundColor: filled
-                      ? 'rgba(20, 38, 50, 0.92)'
-                      : 'rgba(20, 38, 50, 0.72)',
+                      ? 'rgba(27, 34, 48, 0.92)'
+                      : 'rgba(16, 22, 34, 0.78)',
                     borderColor: pinError
                       ? COLOUR_TOKENS.systemErrorRed
                       : filled
                       ? COLOUR_TOKENS.focusRing
-                      : 'rgba(180, 221, 255, 0.16)',
+                      : 'rgba(197, 204, 214, 0.22)',
                     color: COLOUR_TOKENS.textPrimary,
                   }}
                 >
@@ -211,10 +201,10 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
                 type="button"
                 data-testid={`keypad-digit-${d}`}
                 onClick={() => handleDigitPress(d)}
-                className="h-11 rounded-lg border font-mono tabular-nums text-base font-semibold text-[#F2F6F8] hover:border-[#65ACFF] active:scale-95 transition-all cursor-pointer"
+                className="h-11 rounded-lg border font-mono tabular-nums text-base font-semibold text-[#F2F6F8] hover:border-[#D4AF37] active:scale-95 transition-all cursor-pointer"
                 style={{
-                  backgroundColor: 'rgba(20, 38, 50, 0.72)',
-                  borderColor: 'rgba(180, 221, 255, 0.16)',
+                  backgroundColor: 'rgba(16, 22, 34, 0.78)',
+                  borderColor: 'rgba(197, 204, 214, 0.22)',
                 }}
               >
                 {d}
@@ -226,10 +216,10 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
                 setPinCode('');
                 setPinError(null);
               }}
-              className="h-11 rounded-lg border font-mono text-xs text-[#BDCBD3] hover:text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
+              className="h-11 rounded-lg border font-mono text-xs text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
               style={{
-                backgroundColor: 'rgba(20, 38, 50, 0.72)',
-                borderColor: 'rgba(180, 221, 255, 0.16)',
+                backgroundColor: 'rgba(16, 22, 34, 0.78)',
+                borderColor: 'rgba(197, 204, 214, 0.22)',
               }}
             >
               CLR
@@ -238,10 +228,10 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
               type="button"
               data-testid="keypad-digit-0"
               onClick={() => handleDigitPress('0')}
-              className="h-11 rounded-lg border font-mono tabular-nums text-base font-semibold text-[#F2F6F8] hover:border-[#65ACFF] active:scale-95 transition-all cursor-pointer"
+              className="h-11 rounded-lg border font-mono tabular-nums text-base font-semibold text-[#F2F6F8] hover:border-[#D4AF37] active:scale-95 transition-all cursor-pointer"
               style={{
-                backgroundColor: 'rgba(20, 38, 50, 0.72)',
-                borderColor: 'rgba(180, 221, 255, 0.16)',
+                backgroundColor: 'rgba(16, 22, 34, 0.78)',
+                borderColor: 'rgba(197, 204, 214, 0.22)',
               }}
             >
               0
@@ -256,7 +246,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
               className="h-11 rounded-lg border font-mono tabular-nums text-xs font-bold cursor-pointer"
               style={{
                 backgroundColor: COLOUR_TOKENS.cobaltAccent,
-                color: '#101D27',
+                color: '#101622',
                 borderColor: COLOUR_TOKENS.focusRing,
               }}
             >
@@ -269,10 +259,10 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
             data-testid="boot-take-off"
             data-cta-id="loader-take-off"
             onClick={onTakeOff}
-            className="w-full py-2.5 rounded-lg font-mono text-xs uppercase tracking-wider text-[#BDCBD3] hover:text-[#F2F6F8] hover:border-[#65ACFF] border cursor-pointer"
+            className="w-full py-2.5 rounded-lg font-mono text-xs uppercase tracking-wider text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] border cursor-pointer"
             style={{
-              backgroundColor: 'rgba(20, 38, 50, 0.72)',
-              borderColor: 'rgba(180, 221, 255, 0.16)',
+              backgroundColor: 'rgba(16, 22, 34, 0.78)',
+              borderColor: 'rgba(197, 204, 214, 0.22)',
             }}
           >
             Instant Take off Bypass ›
@@ -290,24 +280,14 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
       data-testid="boot-loader-screen"
       className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 select-none safe-top safe-bottom pointer-events-auto"
       style={{
-        backgroundColor: 'rgba(16, 29, 39, 0.36)',
+        backgroundColor: 'rgba(16, 22, 34, 0.45)',
       }}
     >
-      <div
-        className="w-full max-w-xl rounded-xl p-6 flex flex-col items-center gap-5 border neural-reveal"
-        style={{
-          background: 'rgba(16, 29, 39, 0.84)',
-          backdropFilter: 'blur(12px) saturate(1.2)',
-          WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-          borderColor: 'rgba(255, 255, 255, 0.14)',
-          boxShadow:
-            'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-        }}
-      >
+      <div className="cj-glass-card w-full max-w-xl rounded-xl p-6 flex flex-col items-center gap-5 neural-reveal">
         {/* Standardized Panel Header Bar (#17) */}
         <div
           className="w-full flex items-center justify-between gap-2 pb-2.5 border-b"
-          style={{ borderColor: 'rgba(255, 255, 255, 0.14)' }}
+          style={{ borderColor: 'rgba(197, 204, 214, 0.22)' }}
         >
           <div className="flex items-center gap-2 min-w-0">
             <span
@@ -319,16 +299,16 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="font-mono tabular-nums text-[11px] text-[#FFF1D4]">
+            <span className="font-mono tabular-nums text-[11px] text-[#FFF4D0]">
               {(elapsedMs / 1000).toFixed(1)}s / 8.0s
             </span>
             <button
               type="button"
               onClick={() => setPhase('keypad')}
-              className="px-2 py-0.5 rounded-lg text-[10px] font-mono tabular-nums border text-[#BDCBD3] hover:text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
+              className="px-2 py-0.5 rounded-lg text-[10px] font-mono tabular-nums border text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
               style={{
-                backgroundColor: '#142632',
-                borderColor: 'rgba(180, 221, 255, 0.16)',
+                backgroundColor: '#101622',
+                borderColor: 'rgba(197, 204, 214, 0.22)',
               }}
             >
               3939 Gate
@@ -336,9 +316,9 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
             <span
               className="font-mono tabular-nums text-[10px] px-2 py-0.5 rounded border"
               style={{
-                backgroundColor: '#142632',
-                borderColor: 'rgba(180, 221, 255, 0.16)',
-                color: '#B4DDFF',
+                backgroundColor: '#101622',
+                borderColor: 'rgba(197, 204, 214, 0.22)',
+                color: '#C5CCD6',
               }}
             >
               LIVE
@@ -361,7 +341,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
             width="152"
             height="24"
             rx="3"
-            stroke="#B4DDFF"
+            stroke="#C5CCD6"
             strokeOpacity="0.45"
             strokeWidth="1.2"
           />
@@ -380,15 +360,15 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
           <div
             className="w-full h-1.5 rounded-full overflow-hidden border"
             style={{
-              backgroundColor: '#142632',
-              borderColor: 'rgba(180, 221, 255, 0.16)',
+              backgroundColor: '#101622',
+              borderColor: 'rgba(197, 204, 214, 0.22)',
             }}
           >
             <div
               className="h-full transition-all duration-75"
               style={{
                 width: `${Math.round(progressRatio * 100)}%`,
-                backgroundColor: COLOUR_TOKENS.trackingValid,
+                backgroundColor: COLOUR_TOKENS.cobaltAccent,
               }}
             />
           </div>
@@ -398,8 +378,8 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
         <div
           className="w-full rounded-lg p-4 flex flex-col gap-2.5 border"
           style={{
-            backgroundColor: 'rgba(20, 38, 50, 0.72)',
-            borderColor: 'rgba(180, 221, 255, 0.16)',
+            backgroundColor: 'rgba(16, 22, 34, 0.78)',
+            borderColor: 'rgba(197, 204, 214, 0.22)',
           }}
         >
           {STATUS_LINES.map((line, idx) => {
@@ -411,7 +391,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
                 className={`text-xs flex items-center justify-between transition-opacity duration-200 ${
                   isReached
                     ? 'opacity-100 text-[#F2F6F8]'
-                    : 'opacity-45 text-[#BDCBD3]'
+                    : 'opacity-45 text-[#C5CCD6]'
                 }`}
               >
                 <span className="truncate pr-3">
@@ -425,7 +405,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
                         ? COLOUR_TOKENS.trackingValid
                         : isCurrent
                         ? COLOUR_TOKENS.focusRing
-                        : '#BDCBD3',
+                        : '#C5CCD6',
                   }}
                 >
                   {progressRatio >= 1 || idx < activeLineIndex
@@ -449,7 +429,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
             className="min-h-[42px] min-w-[140px] px-7 py-2 rounded-lg font-display font-semibold text-xs tracking-[0.08em] uppercase transition-transform active:scale-95 cursor-pointer border"
             style={{
               backgroundColor: COLOUR_TOKENS.cobaltAccent,
-              color: '#101D27',
+              color: '#101622',
               borderColor: COLOUR_TOKENS.focusRing,
             }}
           >

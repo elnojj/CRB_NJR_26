@@ -34,7 +34,7 @@ export const PORTAL_ORBITAL_STATIONS: PortalOrbitalStation[] = [
     cluster: 'hq',
     xPct: 50,
     yPct: 46,
-    accentHex: '#4C8DFF',
+    accentHex: '#D4AF37',
     linkedTaskId: 'UI-101',
   },
   {
@@ -44,7 +44,7 @@ export const PORTAL_ORBITAL_STATIONS: PortalOrbitalStation[] = [
     cluster: 'crew',
     xPct: 28,
     yPct: 34,
-    accentHex: '#7CE0B8',
+    accentHex: '#C5CCD6',
     linkedTaskId: 'TASK-BGH-005',
   },
   {
@@ -54,7 +54,7 @@ export const PORTAL_ORBITAL_STATIONS: PortalOrbitalStation[] = [
     cluster: 'blueprint',
     xPct: 32,
     yPct: 66,
-    accentHex: '#9DB8D6',
+    accentHex: '#FFF4D0',
     linkedTaskId: 'UI-102',
   },
   {
@@ -64,7 +64,7 @@ export const PORTAL_ORBITAL_STATIONS: PortalOrbitalStation[] = [
     cluster: 'design-gate',
     xPct: 69,
     yPct: 35,
-    accentHex: '#F2B66D',
+    accentHex: '#D4AF37',
     linkedTaskId: 'TASK-BGH-006',
   },
   {
@@ -74,7 +74,7 @@ export const PORTAL_ORBITAL_STATIONS: PortalOrbitalStation[] = [
     cluster: 'gods-eye',
     xPct: 68,
     yPct: 65,
-    accentHex: '#5CC8D7',
+    accentHex: '#C5CCD6',
     linkedTaskId: 'UI-105',
   },
 ];
@@ -87,17 +87,17 @@ export const SPHERE_FALLBACK_REST_DATA_URI = `data:image/svg+xml;utf8,${encodeUR
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" fill="none">
     <defs>
       <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#4C8DFF" stop-opacity="0.32"/>
-        <stop offset="45%" stop-color="#142632" stop-opacity="0.48"/>
-        <stop offset="100%" stop-color="#101D27" stop-opacity="0.96"/>
+        <stop offset="0%" stop-color="#D4AF37" stop-opacity="0.32"/>
+        <stop offset="45%" stop-color="#1B2230" stop-opacity="0.48"/>
+        <stop offset="100%" stop-color="#101622" stop-opacity="0.96"/>
       </radialGradient>
     </defs>
-    <rect width="800" height="800" fill="#101D27"/>
-    <circle cx="400" cy="400" r="290" fill="url(#coreGlow)" stroke="#B4DDFF" stroke-opacity="0.35" stroke-width="1.5"/>
-    <circle cx="400" cy="400" r="230" stroke="#4C8DFF" stroke-opacity="0.25" stroke-width="1" stroke-dasharray="6 6"/>
-    <ellipse cx="400" cy="400" rx="285" ry="110" stroke="#B4DDFF" stroke-opacity="0.28" stroke-width="1.2" transform="rotate(-18 400 400)"/>
-    <ellipse cx="400" cy="400" rx="285" ry="110" stroke="#7CE0B8" stroke-opacity="0.22" stroke-width="1.2" transform="rotate(24 400 400)"/>
-    <circle cx="400" cy="400" r="26" fill="#4C8DFF" fill-opacity="0.25" stroke="#F2F6F8" stroke-width="2"/>
+    <rect width="800" height="800" fill="#1B2230"/>
+    <circle cx="400" cy="400" r="290" fill="url(#coreGlow)" stroke="#C5CCD6" stroke-opacity="0.35" stroke-width="1.5"/>
+    <circle cx="400" cy="400" r="230" stroke="#D4AF37" stroke-opacity="0.28" stroke-width="1" stroke-dasharray="6 6"/>
+    <ellipse cx="400" cy="400" rx="285" ry="110" stroke="#FFF4D0" stroke-opacity="0.28" stroke-width="1.2" transform="rotate(-18 400 400)"/>
+    <ellipse cx="400" cy="400" rx="285" ry="110" stroke="#C5CCD6" stroke-opacity="0.22" stroke-width="1.2" transform="rotate(24 400 400)"/>
+    <circle cx="400" cy="400" r="26" fill="#D4AF37" fill-opacity="0.28" stroke="#F2F6F8" stroke-width="2"/>
   </svg>`
 )}`;
 
