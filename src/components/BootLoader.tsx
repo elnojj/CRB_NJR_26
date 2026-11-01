@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { BrandLockup } from './BrandLockup';
 import { COLOUR_TOKENS } from '../tokens/colours';
 
@@ -25,6 +25,16 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
   const [phase, setPhase] = useState<'keypad' | 'loader'>(initialPhase);
   const [pinCode, setPinCode] = useState<string>('');
   const [pinError, setPinError] = useState<string | null>(null);
+  const onTakeOffRef = useRef(onTakeOff);
+  const lockOnCompleteRef = useRef(lockOnComplete);
+
+  useEffect(() => {
+    onTakeOffRef.current = onTakeOff;
+  }, [onTakeOff]);
+
+  useEffect(() => {
+    lockOnCompleteRef.current = lockOnComplete;
+  }, [lockOnComplete]);
 
   useEffect(() => {
     setPhase(initialPhase);
@@ -37,14 +47,15 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
     if (phase !== 'loader') return;
     const start = performance.now();
     let completed = false;
+    setElapsedMs(0);
 
     // 12-second watchdog timeout: entry never stalls on desktop or phone
     const watchdog = window.setTimeout(() => {
-      if (!completed && !lockOnComplete) {
+      if (!completed && !lockOnCompleteRef.current) {
         completed = true;
         window.clearInterval(interval);
         console.warn('[BootLoader] 12s watchdog timeout reached — invoking onTakeOff immediately');
-        onTakeOff();
+        onTakeOffRef.current();
       }
     }, 12000);
 
@@ -56,8 +67,8 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
         completed = true;
         window.clearInterval(interval);
         window.clearTimeout(watchdog);
-        if (!lockOnComplete) {
-          onTakeOff();
+        if (!lockOnCompleteRef.current) {
+          onTakeOffRef.current();
         }
       }
     }, 50);
@@ -66,7 +77,9 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
       window.clearInterval(interval);
       window.clearTimeout(watchdog);
     };
-  }, [phase, totalDurationMs, lockOnComplete, onTakeOff]);
+    // Intentionally omit onTakeOff/lockOnComplete: parent re-renders (telemetry,
+    // audio RMS, panel layout) must not reset the 8s boot clock mid-flight.
+  }, [phase, totalDurationMs]);
 
   const handleDigitPress = (digit: string) => {
     setPinError(null);
@@ -274,6 +287,8 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
 
   const progressRatio = Math.min(1, elapsedMs / totalDurationMs);
   const activeLineIndex = Math.min(3, Math.floor(progressRatio * 4));
+  const loadedPct = Math.round(progressRatio * 100);
+  const durationLabelSec = (totalDurationMs / 1000).toFixed(1);
 
   return (
     <div
@@ -295,12 +310,12 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
               style={{ backgroundColor: COLOUR_TOKENS.cobaltAccent }}
             />
             <span className="font-display font-semibold text-xs tracking-[0.08em] uppercase text-[#F2F6F8] truncate">
-              #17 · S02 TELEMETRY BOOT LOADER
+              CEREBRO · SPATIAL KINEMATIC BOOT
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <span className="font-mono tabular-nums text-[11px] text-[#FFF4D0]">
-              {(elapsedMs / 1000).toFixed(1)}s / 8.0s
+              {(elapsedMs / 1000).toFixed(1)}s / {durationLabelSec}s
             </span>
             <button
               type="button"
@@ -355,8 +370,22 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
 
         <BrandLockup mode="loader" />
 
+        <div className="w-full text-center space-y-1">
+          <div className="font-display text-sm md:text-base font-semibold tracking-[0.06em] uppercase text-[#F2F6F8]">
+            Initializing Spatial Workspace
+          </div>
+          <div className="font-mono text-[11px] text-[#C5CCD6]">
+            HQ [0,0,0] &amp; CDE [38,4,-22] dual-sphere core
+          </div>
+        </div>
+
         {/* Progress Bar */}
         <div className="w-full flex flex-col gap-1.5">
+          <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-wider text-[#C5CCD6]">
+            <span>Orbit: Dual-Sphere</span>
+            <span className="text-[#FFF4D0] tabular-nums">{loadedPct}% Loaded</span>
+            <span>Spatial Audio: Armed</span>
+          </div>
           <div
             className="w-full h-1.5 rounded-full overflow-hidden border"
             style={{
@@ -367,7 +396,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
             <div
               className="h-full transition-all duration-75"
               style={{
-                width: `${Math.round(progressRatio * 100)}%`,
+                width: `${loadedPct}%`,
                 backgroundColor: COLOUR_TOKENS.cobaltAccent,
               }}
             />
@@ -434,7 +463,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
                 borderColor: COLOUR_TOKENS.focusRing,
               }}
             >
-              Open Dashboard · Take off →
+              Enter Cerebro →
             </button>
             <button
               type="button"

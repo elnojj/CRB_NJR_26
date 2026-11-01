@@ -3518,12 +3518,19 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         );
       }
 
-      // Align camera optical center to unobstructed centerSafeRect when panels are open
+      // Align camera optical center to unobstructed centerSafeRect when panels are open.
+      // EffectComposer + UnrealBloomPass mishandles PerspectiveCamera.setViewOffset and
+      // paints a solid clear-color slab over half the framebuffer (seen as a blue rectangle
+      // when the Media/Projects inspector is open on iPad). Skip viewOffset while composer
+      // is active; optical framing still comes from camera presets + pan.
       const curW = domEl.clientWidth || window.innerWidth;
       const curH = domEl.clientHeight || window.innerHeight;
       if (unobstructedRectRef.current && curW > 0 && curH > 0) {
         const sub = computeSubFrustumOffset(curW, curH, unobstructedRectRef.current);
-        if (Math.abs(sub.offsetX) > 2 || Math.abs(sub.offsetY) > 2) {
+        const wantsOffset = Math.abs(sub.offsetX) > 2 || Math.abs(sub.offsetY) > 2;
+        if (composer || !wantsOffset) {
+          camera.clearViewOffset();
+        } else {
           camera.setViewOffset(
             sub.fullWidth,
             sub.fullHeight,
@@ -3532,9 +3539,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             sub.width,
             sub.height
           );
-        } else {
-          camera.clearViewOffset();
         }
+      } else {
+        camera.clearViewOffset();
       }
 
       if (isSoftwareGl || !composer) {
@@ -3610,28 +3617,40 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         });
 
         projected.sort((a, b) => a.y - b.y);
-        const minLabelGapY = 40;
-        const minLabelGapX = 148;
+        const minLabelGapY = 46;
+        const minLabelGapX = 168;
+        const safe = unobstructedRectRef.current;
+        const minX = safe ? Math.max(16, safe.x + 12) : 20;
+        const maxX = safe
+          ? Math.max(minX + 120, safe.x + safe.w - 188)
+          : width - 195;
+        const minY = safe ? Math.max(64, safe.y + 10) : 72;
+        const maxY = safe
+          ? Math.max(minY + 80, safe.y + safe.h - 36)
+          : height - 120;
 
-        for (let pass = 0; pass < 4; pass++) {
+        for (let pass = 0; pass < 6; pass++) {
           for (let i = 0; i < projected.length; i++) {
             for (let j = i + 1; j < projected.length; j++) {
               const dx = Math.abs(projected[i].x - projected[j].x);
               const dy = Math.abs(projected[i].y - projected[j].y);
               if (dx < minLabelGapX && dy < minLabelGapY) {
-                const pushY = (minLabelGapY - dy) * 0.42 + 1.5;
+                const pushY = (minLabelGapY - dy) * 0.5 + 2;
                 projected[i].y -= pushY;
                 projected[j].y += pushY;
-                const pushX = ((minLabelGapX - dx) * 0.18) * (projected[i].x <= projected[j].x ? 1 : -1);
+                const pushX =
+                  (minLabelGapX - dx) *
+                  0.22 *
+                  (projected[i].x <= projected[j].x ? 1 : -1);
                 projected[i].x -= pushX;
                 projected[j].x += pushX;
               }
             }
-            if (projected[i].x < 240 && projected[i].y < 96) {
-              projected[i].y = 100;
+            if (projected[i].x < minX + 40 && projected[i].y < minY + 28) {
+              projected[i].y = minY + 36;
             }
-            projected[i].x = THREE.MathUtils.clamp(projected[i].x, 20, width - 195);
-            projected[i].y = THREE.MathUtils.clamp(projected[i].y, 72, height - 120);
+            projected[i].x = THREE.MathUtils.clamp(projected[i].x, minX, maxX);
+            projected[i].y = THREE.MathUtils.clamp(projected[i].y, minY, maxY);
           }
         }
 

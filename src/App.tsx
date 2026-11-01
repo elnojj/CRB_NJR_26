@@ -2603,6 +2603,14 @@ export default function App() {
     [activeSphere, dispatchCamera, ensurePanelOpen, handleUserTouchPauseTour]
   );
 
+  const handleBootTakeOff = useCallback(() => {
+    setBootDone(true);
+    setOpenPanels([]);
+    setFocusedNodeId(null);
+    setDashboardCollapsed(false);
+    dispatchCamera('arrival', { targetSphere: 'hq' });
+  }, [dispatchCamera]);
+
   // 21-Point Assertion-Based Self-Test Suite (Runs inside Developer View using isolated isTest: true data + cleanup)
   const runAutomatedJourneySelfTest = useCallback(async () => {
     setShowDeveloperDrawer(true);
@@ -3169,13 +3177,7 @@ export default function App() {
         <BootLoader
           reducedMotion={reducedMotion}
           initialPhase={bootInitialMode}
-          onTakeOff={() => {
-            setBootDone(true);
-            setOpenPanels([]);
-            setFocusedNodeId(null);
-            setDashboardCollapsed(false);
-            dispatchCamera('arrival', { targetSphere: 'hq' });
-          }}
+          onTakeOff={handleBootTakeOff}
         />
       )}
 
