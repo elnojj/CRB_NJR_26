@@ -37,6 +37,8 @@ import {
   executeAtomicReframe,
   IDLE_MS,
 } from '../three/spatialNavigation';
+import { mountSphereVideoTexture, type SphereVideoHandle } from '../lib/sphereVideoTexture';
+import { getSphereTextureAsset } from '../data/driveMediaCatalog';
 
 // ---------------------------------------------------------------------------
 // CEREBRO-NOJARA D0 v1.24 — SECTION 2: THREE.JS RENDERER, MATERIALS, LIGHTS
@@ -2398,6 +2400,27 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     nodeRegistryRef.current.clear();
 
     const hqAssembly = buildSphereAssembly(HQ_CENTER, 'hq', COLOUR_TOKENS.cobaltAccent);
+
+    // Drive-backed showreel VideoTexture on HQ sphere:
+    // - portal disk with aspect-correct UVs (no circular crop stretch)
+    // - equatorial shell band (phi-limited SphereGeometry — avoids polar pinch)
+    let hqSphereVideo: SphereVideoHandle | null = null;
+    try {
+      hqSphereVideo = mountSphereVideoTexture({
+        parent: hqAssembly.shellGroup,
+        asset: getSphereTextureAsset(),
+        portalRadius: 5.05,
+        shellBandRadius: 5.92,
+      });
+      extraDisposables.push({
+        dispose: () => {
+          hqSphereVideo?.dispose();
+          hqSphereVideo = null;
+        },
+      });
+    } catch (err) {
+      console.warn('[CosmographCanvas] Sphere video texture failed to mount', err);
+    }
     const allProjectIds = PROJECTS_DATA.map((p) => p.id);
     CEREBRO_STATIONS.forEach((st, idx) => {
       buildNodeWithSignal(

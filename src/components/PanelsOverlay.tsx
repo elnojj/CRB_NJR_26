@@ -25,6 +25,7 @@ import {
   TeamRoomMessage,
 } from '../data/sourceData';
 import { WireframesV11PanelContent } from './WireframesV11Panels';
+import { AboutUsDrivePanel } from './AboutUsDrivePanel';
 import { ScreenElementAmendment } from '../utils/geminiScreenOrchestrator';
 import {
   ComputedGuiLayout,
@@ -1458,6 +1459,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             posClass,
             <>
               <WireframesV11PanelContent {...sharedV11Props} panelId="people" />
+              <AboutUsDrivePanel />
               <div className="flex items-center gap-1 p-1 rounded-xl bg-[#101D27] border border-white/25">
                 {(['HQ', 'Team and Contracts', 'RACI'] as const).map((tab) => (
                   <button
