@@ -1529,7 +1529,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.AgXToneMapping;
     renderer.toneMappingExposure = 1.04;
-    renderer.setClearColor(0x101D27, 1);
+    // Deep ink void with cool rim — not a flat navy slab.
+    const voidColor = introBridge.enabled ? 0x060d16 : 0x101d27;
+    renderer.setClearColor(voidColor, 1);
     renderer.setPixelRatio(
       introBridge.enabled
         ? Math.min(window.devicePixelRatio || 1, 2)
@@ -1564,7 +1566,45 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     domEl.addEventListener('webglcontextrestored', handleContextRestored, false);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x101D27, 0.014);
+    // Atmospheric radial field behind the dual spheres (intro + workspace).
+    const bgCanvas = document.createElement('canvas');
+    bgCanvas.width = 1024;
+    bgCanvas.height = 1024;
+    {
+      const bgCtx = bgCanvas.getContext('2d')!;
+      const g = bgCtx.createRadialGradient(512, 480, 40, 512, 520, 620);
+      g.addColorStop(0, '#1a2a3c');
+      g.addColorStop(0.28, '#101d2b');
+      g.addColorStop(0.58, '#0a1520');
+      g.addColorStop(1, '#03060c');
+      bgCtx.fillStyle = g;
+      bgCtx.fillRect(0, 0, 1024, 1024);
+      // Soft ice bloom upper-left, warm gold dust lower-right — brand, not purple.
+      const ice = bgCtx.createRadialGradient(280, 260, 20, 280, 260, 340);
+      ice.addColorStop(0, 'rgba(180,221,255,0.16)');
+      ice.addColorStop(1, 'rgba(180,221,255,0)');
+      bgCtx.fillStyle = ice;
+      bgCtx.fillRect(0, 0, 1024, 1024);
+      const gold = bgCtx.createRadialGradient(760, 780, 10, 760, 780, 300);
+      gold.addColorStop(0, 'rgba(212,175,55,0.08)');
+      gold.addColorStop(1, 'rgba(212,175,55,0)');
+      bgCtx.fillStyle = gold;
+      bgCtx.fillRect(0, 0, 1024, 1024);
+      // Sparse star dust
+      for (let i = 0; i < 160; i++) {
+        const x = (Math.sin(i * 12.9898) * 43758.5453) % 1;
+        const y = (Math.sin(i * 78.233) * 12345.6789) % 1;
+        const px = Math.abs(x) * 1024;
+        const py = Math.abs(y) * 1024;
+        const a = 0.12 + (Math.abs((Math.sin(i * 3.1) * 10000) % 1)) * 0.35;
+        bgCtx.fillStyle = `rgba(242,246,248,${a.toFixed(3)})`;
+        bgCtx.fillRect(px, py, i % 17 === 0 ? 1.6 : 1, i % 17 === 0 ? 1.6 : 1);
+      }
+    }
+    const bgTexture = new THREE.CanvasTexture(bgCanvas);
+    bgTexture.colorSpace = THREE.SRGBColorSpace;
+    scene.background = bgTexture;
+    scene.fog = new THREE.FogExp2(voidColor, introBridge.enabled ? 0.009 : 0.014);
 
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
     scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
@@ -1619,6 +1659,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     };
 
     const extraDisposables: Array<{ dispose: () => void }> = [];
+    extraDisposables.push(bgTexture);
 
     // Procedural subtle brushed silver anisotropy bump map (Sehly metal_core #BCC9D4)
     const createSinusoidalStripeBumpTexture = (): THREE.DataTexture => {
