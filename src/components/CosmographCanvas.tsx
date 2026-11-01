@@ -12,6 +12,7 @@ import {
   PROJECTS_DATA,
   ProjectHealth,
 } from '../data/sourceData';
+import { PUBLIC_BRAND_MEDIA } from '../data/publicBrandMedia';
 import { soundEngine } from '../utils/soundEngine';
 import {
   CustomDomain3D,
@@ -392,6 +393,8 @@ export interface ProjectMediaTubeItem {
   aspect: '16:9' | '4:3' | '1:1' | 'A4';
   accentHex: string;
   url?: string;
+  posterUrl?: string;
+  isRealVideo?: boolean;
 }
 
 export const PROJECT_MEDIA_TUBE_SPECS = {
@@ -414,33 +417,131 @@ export function buildProjectMediaTubeItems(projectId: string): ProjectMediaTubeI
   const cleanProj = (projectId || 'SEVEN').toUpperCase();
   const baseKinds: Array<'image' | 'video' | 'pdf'> = ['image', 'video', 'pdf', 'image'];
   const baseAspects: Array<'16:9' | '4:3' | '1:1' | 'A4'> = ['16:9', '16:9', 'A4', '4:3'];
-  const baseTitles = [
-    `${cleanProj} · Hero Architectural Keyframe`,
-    `${cleanProj} · Spatial Walkthrough Reel`,
-    `${cleanProj} · Executive Deck & RACI Spec`,
-    `${cleanProj} · Lighting & Material Study`,
-    `${cleanProj} · Crowd Flow Simulation`,
-    `${cleanProj} · Acoustic & AV Rig Cutaway`,
-    `${cleanProj} · Masterplan Elevation Plate`,
-    `${cleanProj} · Stakeholder Sign-off Dossier`,
-  ];
 
   return Array.from({ length: PROJECT_MEDIA_TUBE_SPECS.maxMountedTiles }).map((_, idx) => {
-    const kind = baseKinds[idx % baseKinds.length];
-    const aspect = baseAspects[idx % baseAspects.length];
+    const defaultKind = baseKinds[idx % baseKinds.length];
+    const defaultAspect = baseAspects[idx % baseAspects.length];
     const row = Math.floor(idx / PROJECT_MEDIA_TUBE_SPECS.columns) + 1;
     const col = (idx % PROJECT_MEDIA_TUBE_SPECS.columns) + 1;
-    const accentHex =
-      kind === 'video' ? '#D4AF37' : kind === 'pdf' ? '#C5CCD6' : '#FFF4D0';
+    const defaultAccent =
+      defaultKind === 'video' ? '#D4AF37' : defaultKind === 'pdf' ? '#C5CCD6' : '#FFF4D0';
+
+    // 1. EL-BATRON: Real El Batron showreel on the first available video tile (tile 0)
+    if (cleanProj === 'EL-BATRON') {
+      if (idx === 0) {
+        return {
+          index: idx,
+          id: `tube-el-batron-${String(idx + 1).padStart(2, '0')}`,
+          projectId: cleanProj,
+          title: PUBLIC_BRAND_MEDIA.elBatron.title,
+          subtitle: 'VIDEO · 720p Official Showreel · 16:9',
+          kind: 'video',
+          aspect: '16:9',
+          accentHex: '#D4AF37',
+          url: PUBLIC_BRAND_MEDIA.elBatron.url,
+          posterUrl: PUBLIC_BRAND_MEDIA.elBatron.posterUrl,
+          isRealVideo: true,
+        };
+      }
+      if (defaultKind === 'video') {
+        return {
+          index: idx,
+          id: `tube-el-batron-${String(idx + 1).padStart(2, '0')}`,
+          projectId: cleanProj,
+          title: `El Batron · Live Spatial Audio Rig (${row}.${col})`,
+          subtitle: 'VIDEO · No cleared video linked · 16:9',
+          kind: 'video',
+          aspect: '16:9',
+          accentHex: '#D4AF37',
+          isRealVideo: false,
+        };
+      }
+    }
+
+    // 2. NOJARA Studios: Showreel 2023 and LaLiga in distinct slots (tiles 0 and 1)
+    if (cleanProj === 'NOJARA') {
+      if (idx === 0) {
+        return {
+          index: idx,
+          id: `tube-nojara-${String(idx + 1).padStart(2, '0')}`,
+          projectId: cleanProj,
+          title: PUBLIC_BRAND_MEDIA.showreel2023.title,
+          subtitle: 'VIDEO · 720p Master Showreel · 16:9',
+          kind: 'video',
+          aspect: '16:9',
+          accentHex: '#D4AF37',
+          url: PUBLIC_BRAND_MEDIA.showreel2023.url,
+          posterUrl: PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
+          isRealVideo: true,
+        };
+      }
+      if (idx === 1) {
+        return {
+          index: idx,
+          id: `tube-nojara-${String(idx + 1).padStart(2, '0')}`,
+          projectId: cleanProj,
+          title: PUBLIC_BRAND_MEDIA.laligaFilm.title,
+          subtitle: 'VIDEO · 720p Official Film · 16:9',
+          kind: 'video',
+          aspect: '16:9',
+          accentHex: '#D4AF37',
+          url: PUBLIC_BRAND_MEDIA.laligaFilm.url,
+          posterUrl: PUBLIC_BRAND_MEDIA.laligaFilm.posterUrl,
+          isRealVideo: true,
+        };
+      }
+    }
+
+    // 3. SEVEN: Real verified Tabuk renders on image tiles
+    if (cleanProj === 'SEVEN') {
+      if (idx === 0) {
+        return {
+          index: idx,
+          id: `tube-seven-${String(idx + 1).padStart(2, '0')}`,
+          projectId: cleanProj,
+          title: 'SEVEN Tabuk — Concept Render Desktop',
+          subtitle: 'IMAGE · Attached 06 Render · 16:9',
+          kind: 'image',
+          aspect: '16:9',
+          accentHex: '#FFF4D0',
+          url: '/assets/aistudio/06_SEVEN_Tabuk_concept_render_desktop_3840x2160_a125f8eb.jpg',
+          posterUrl: '/assets/aistudio/06_SEVEN_Tabuk_concept_render_desktop_3840x2160_a125f8eb.jpg',
+          isRealVideo: false,
+        };
+      }
+      if (idx === 3) {
+        return {
+          index: idx,
+          id: `tube-seven-${String(idx + 1).padStart(2, '0')}`,
+          projectId: cleanProj,
+          title: 'SEVEN Tabuk — Concept Render Mobile',
+          subtitle: 'IMAGE · Attached 06 Render · 9:16',
+          kind: 'image',
+          aspect: '16:9',
+          accentHex: '#FFF4D0',
+          url: '/assets/aistudio/06_SEVEN_Tabuk_concept_render_mobile_1080x1920_8efe6dff.jpg',
+          posterUrl: '/assets/aistudio/06_SEVEN_Tabuk_concept_render_mobile_1080x1920_8efe6dff.jpg',
+          isRealVideo: false,
+        };
+      }
+    }
+
+    // Default / Unknown project truthful document items
+    const isVideo = defaultKind === 'video';
+    const sub = isVideo
+      ? 'VIDEO · No cleared video linked · 16:9'
+      : `${defaultKind.toUpperCase()} · Row ${row} Col ${col} · ${defaultAspect}`;
+
     return {
       index: idx,
       id: `tube-${cleanProj.toLowerCase()}-${String(idx + 1).padStart(2, '0')}`,
       projectId: cleanProj,
-      title: `${baseTitles[idx % baseTitles.length]} (${row}.${col})`,
-      subtitle: `${kind.toUpperCase()} · Row ${row} Col ${col} · ${aspect}`,
-      kind,
-      aspect,
-      accentHex,
+      title: `${cleanProj} · ${defaultKind === 'video' ? 'Walkthrough Reel' : defaultKind === 'pdf' ? 'Executive Dossier' : 'Keyframe Plate'} (${row}.${col})`,
+      subtitle: sub,
+      kind: defaultKind,
+      aspect: defaultAspect,
+      accentHex: defaultAccent,
+      isRealVideo: false,
     };
   });
 }
@@ -1740,6 +1841,121 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const sharedUnitSphereGeo = new THREE.SphereGeometry(1.0, 48, 48);
     extraDisposables.push(sharedInnerSilverCoreGeo, sharedPortalRimGeo, sharedUnitSphereGeo);
 
+    // Directive 04 & 05: Genuine Dynamic Media Showcase Texture inside Spheres & ST-05 Media Portal
+    const createLiveMediaScreenTexture = (
+      title: string,
+      posterUrl: string,
+      accentHex: string
+    ): THREE.CanvasTexture => {
+      const c = document.createElement('canvas');
+      c.width = 512;
+      c.height = 512;
+      const ctx = c.getContext('2d')!;
+
+      const drawBase = () => {
+        const grad = ctx.createRadialGradient(256, 256, 40, 256, 256, 256);
+        grad.addColorStop(0, '#1B2230');
+        grad.addColorStop(0.7, '#101622');
+        grad.addColorStop(1, '#05090E');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 512, 512);
+
+        // Circular cinematic frame
+        ctx.strokeStyle = accentHex;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(256, 256, 240, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Secondary inner dash ring
+        ctx.strokeStyle = 'rgba(255, 244, 208, 0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([8, 6]);
+        ctx.beginPath();
+        ctx.arc(256, 256, 224, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Brand & Title
+        ctx.fillStyle = accentHex;
+        ctx.font = 'bold 20px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('NOJARA STUDIOS · SHOWREEL', 256, 230);
+
+        ctx.fillStyle = '#F2F6F8';
+        ctx.font = 'bold 22px "Space Grotesk", sans-serif';
+        ctx.fillText(title.slice(0, 26), 256, 270);
+
+        ctx.fillStyle = '#C5CCD6';
+        ctx.font = '13px "JetBrains Mono", monospace';
+        ctx.fillText('720p MASTER · SPATIAL AUDIO', 256, 305);
+      };
+
+      drawBase();
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+
+      if (posterUrl) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          try {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(256, 256, 240, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.drawImage(img, 0, 48, 512, 384);
+
+            const ov = ctx.createLinearGradient(0, 0, 0, 512);
+            ov.addColorStop(0, 'rgba(10, 18, 24, 0.28)');
+            ov.addColorStop(0.65, 'rgba(10, 18, 24, 0.15)');
+            ov.addColorStop(1, 'rgba(10, 18, 24, 0.88)');
+            ctx.fillStyle = ov;
+            ctx.fillRect(0, 0, 512, 512);
+
+            ctx.strokeStyle = accentHex;
+            ctx.lineWidth = 6;
+            ctx.stroke();
+
+            ctx.fillStyle = '#FFF4D0';
+            ctx.font = 'bold 20px "Space Grotesk", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(title.slice(0, 26), 256, 440);
+
+            ctx.restore();
+            tex.needsUpdate = true;
+          } catch {
+            // fallback gracefully
+          }
+        };
+        img.src = posterUrl;
+      }
+      return tex;
+    };
+
+    const hqMediaDiscTexture = createLiveMediaScreenTexture(
+      PUBLIC_BRAND_MEDIA.showreel2023.title,
+      PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
+      '#D4AF37'
+    );
+    extraDisposables.push(hqMediaDiscTexture);
+
+    const sharedMediaScreenMat = new THREE.MeshPhysicalMaterial({
+      map: hqMediaDiscTexture,
+      emissive: new THREE.Color(0xFFF4D0),
+      emissiveMap: hqMediaDiscTexture,
+      emissiveIntensity: 0.42,
+      roughness: 0.16,
+      metalness: 0.15,
+      clearcoat: 0.7,
+      clearcoatRoughness: 0.08,
+      transparent: true,
+      opacity: 0.94,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    extraDisposables.push(sharedMediaScreenMat);
+
     const pulseBeads: {
       mesh: THREE.Mesh;
       curve: THREE.Curve<THREE.Vector3>;
@@ -1779,24 +1995,30 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const backShellMat = sharedBackOpticalGlassMat;
       const frontShellMat = sharedOpticalGlassMat;
 
-      // 1. Outer Refractive Liquid Glass Shell (1.0R = 6.2u)
+      // Render Order per Directive 04:
+      // Inner geometry (1) -> Back faces of the shell (2) -> Internal media surfaces (3) -> Front face of the shell (4)
+      const innerSilverCoreMesh = new THREE.Mesh(sharedInnerSilverCoreGeo, sharedInnerSilverEnvelopeMat);
+      innerSilverCoreMesh.renderOrder = 1;
+      shellGroup.add(innerSilverCoreMesh);
+
       const backShellMesh = new THREE.Mesh(sharedShellGeo, backShellMat);
-      backShellMesh.renderOrder = 1;
+      backShellMesh.renderOrder = 2;
       shellGroup.add(backShellMesh);
 
-      // 2. Inner Brushed Silver Core Envelope (0.82R = 5.084u from regenerate_starter_meshes.py)
-      const innerSilverCoreMesh = new THREE.Mesh(sharedInnerSilverCoreGeo, sharedInnerSilverEnvelopeMat);
-      innerSilverCoreMesh.renderOrder = 2;
-      shellGroup.add(innerSilverCoreMesh);
+      // 3. Recessed Media Portal Aperture Rim & Internal Media Surface (Directive 04: Translucent 3D media containers)
+      const portalRimMesh = new THREE.Mesh(sharedPortalRimGeo, sharedBrushedSilverCoreMat);
+      portalRimMesh.rotation.set(0.18, -0.24, 0.08);
+      shellGroup.add(portalRimMesh);
+
+      const mediaLensGeo = new THREE.CircleGeometry(6.2 * 0.84, 64);
+      const mediaLensMesh = new THREE.Mesh(mediaLensGeo, sharedMediaScreenMat);
+      mediaLensMesh.rotation.set(0.18, -0.24, 0.08);
+      mediaLensMesh.renderOrder = 3;
+      shellGroup.add(mediaLensMesh);
 
       const frontShellMesh = new THREE.Mesh(sharedShellGeo, frontShellMat);
       frontShellMesh.renderOrder = 4;
       shellGroup.add(frontShellMesh);
-
-      // 3. Recessed Media Portal Aperture Rim (0.85R = 5.27u from regenerate_starter_meshes.py)
-      const portalRimMesh = new THREE.Mesh(sharedPortalRimGeo, sharedBrushedSilverCoreMat);
-      portalRimMesh.rotation.set(0.18, -0.24, 0.08);
-      shellGroup.add(portalRimMesh);
 
       // Interior Planetary Dome Constellation / Hex Horizon Grid (visible when camera.radius < 8.2u)
       const domeGridGroup = new THREE.Group();
@@ -2090,11 +2312,21 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
         const portalGlassCore = new THREE.Mesh(sharedUnitSphereGeo, sharedPortalDarkGlassMat);
         portalGlassCore.scale.setScalar(0.58);
+        portalGlassCore.renderOrder = 1;
         group.add(portalGlassCore);
+
+        // Internal media surface disk inside the media station portal
+        const nodeMediaDisc = new THREE.Mesh(
+          new THREE.CircleGeometry(0.54, 32),
+          sharedMediaScreenMat
+        );
+        nodeMediaDisc.rotation.set(0.18, -0.22, 0.12);
+        nodeMediaDisc.renderOrder = 2;
+        group.add(nodeMediaDisc);
 
         const outerGlassShell = new THREE.Mesh(sharedUnitSphereGeo, sharedCrystalGlassBubbleMat);
         outerGlassShell.scale.setScalar(0.68);
-        outerGlassShell.renderOrder = 3;
+        outerGlassShell.renderOrder = 4;
         group.add(outerGlassShell);
 
         const portalApertureRim = new THREE.Mesh(
@@ -2421,6 +2653,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     } catch (err) {
       console.warn('[CosmographCanvas] Sphere video texture failed to mount', err);
     }
+
     const allProjectIds = PROJECTS_DATA.map((p) => p.id);
     CEREBRO_STATIONS.forEach((st, idx) => {
       buildNodeWithSignal(
@@ -2692,7 +2925,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       c.width = 320;
       c.height = 180;
       const ctx = c.getContext('2d');
-      if (ctx) {
+
+      const drawBaseCard = () => {
+        if (!ctx) return;
         const grad = ctx.createLinearGradient(0, 0, 320, 180);
         grad.addColorStop(0, '#142632');
         grad.addColorStop(1, '#101D27');
@@ -2718,17 +2953,50 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
         // Title & subtitle
         ctx.fillStyle = '#F2F6F8';
-        ctx.font = 'bold 15px "Space Grotesk", sans-serif';
+        ctx.font = 'bold 14px "Space Grotesk", sans-serif';
         ctx.fillText(tile.title.slice(0, 32), 18, 96);
         ctx.fillStyle = '#BDCBD3';
-        ctx.font = '12px "JetBrains Mono", monospace';
-        ctx.fillText(tile.subtitle, 18, 126);
-      }
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.fillText(tile.subtitle.slice(0, 38), 18, 126);
+      };
+
+      drawBaseCard();
       const tex = new THREE.CanvasTexture(c);
       tex.colorSpace = THREE.SRGBColorSpace;
+
+      if (tile.posterUrl) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          if (!ctx) return;
+          try {
+            ctx.drawImage(img, 0, 0, 320, 180);
+            ctx.fillStyle = 'rgba(16, 29, 39, 0.55)';
+            ctx.fillRect(0, 0, 320, 38);
+            ctx.fillRect(0, 140, 320, 40);
+            ctx.strokeStyle = tile.accentHex;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(4, 4, 312, 172);
+            ctx.fillStyle = tile.accentHex;
+            ctx.font = 'bold 12px "JetBrains Mono", monospace';
+            ctx.fillText(`${tile.kind.toUpperCase()} · #${String(tile.index + 1).padStart(2, '0')}`, 16, 26);
+            ctx.fillStyle = '#F2F6F8';
+            ctx.font = 'bold 13px "Space Grotesk", sans-serif';
+            ctx.fillText(tile.title.slice(0, 32), 16, 166);
+            tex.needsUpdate = true;
+          } catch {
+            // Clean fallback to already rendered base card
+          }
+        };
+        img.onerror = () => {
+          // CORS or decode failure: retains clean base card
+        };
+        img.src = tile.posterUrl;
+      }
       return tex;
     };
 
+    let mountedTubeProjectId = 'SEVEN';
     const initialTubeItems = buildProjectMediaTubeItems('SEVEN');
     const [tileW, tileH] = PROJECT_MEDIA_TUBE_SPECS.slotSizeU;
     for (let idx = 0; idx < PROJECT_MEDIA_TUBE_SPECS.maxMountedTiles; idx++) {
@@ -3253,6 +3521,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       );
       s.cameraRollDeg = THREE.MathUtils.damp(s.cameraRollDeg, s.targetRollDeg, dampFactor, dt);
 
+      // Directive 06 & P1: Settle thresholds & zero-jitter snap
+      if (Math.abs(s.azimuth - s.targetAzimuth) < 0.00015) s.azimuth = s.targetAzimuth;
+      if (Math.abs(s.polar - s.targetPolar) < 0.00015) s.polar = s.targetPolar;
+      if (Math.abs(s.radius - s.targetRadius) < 0.001) s.radius = s.targetRadius;
+      if (Math.abs(s.focalLengthMm - s.targetFocalLengthMm) < 0.01) s.focalLengthMm = s.targetFocalLengthMm;
+      if (Math.abs(s.cameraRollDeg - s.targetRollDeg) < 0.01) s.cameraRollDeg = s.targetRollDeg;
+      if (s.currentCenter.distanceTo(s.targetCenter) < 0.001) s.currentCenter.copy(s.targetCenter);
+      if (s.panOffset.distanceTo(s.targetPanOffset) < 0.001) s.panOffset.copy(s.targetPanOffset);
+
       if (s.flightActive && s.flightCurve) {
         const elapsed = now - s.flightStartTime;
         const rawT = Math.min(1, elapsed / Math.max(100, s.flightDurationMs));
@@ -3399,6 +3676,26 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         hqAssembly.frontShellMat.opacity *= 0.22;
         cdeAssembly.frontShellMat.opacity *= 0.22;
 
+        if (tubeProp?.projectId && tubeProp.projectId !== mountedTubeProjectId) {
+          mountedTubeProjectId = tubeProp.projectId;
+          const freshItems = buildProjectMediaTubeItems(mountedTubeProjectId);
+          for (let ti = 0; ti < mediaTubeTileMeshes.length; ti++) {
+            const item = freshItems[ti];
+            if (item) {
+              const mesh = mediaTubeTileMeshes[ti];
+              const oldMat = mesh.material as THREE.MeshBasicMaterial;
+              oldMat.map?.dispose();
+              oldMat.dispose();
+              mesh.material = new THREE.MeshBasicMaterial({
+                map: buildTileCanvasTexture(item),
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.94,
+              });
+            }
+          }
+        }
+
         if (typeof tubeProp?.focusedTileIndex === 'number') {
           const col = tubeProp.focusedTileIndex % PROJECT_MEDIA_TUBE_SPECS.columns;
           const targetRotY = -((col / PROJECT_MEDIA_TUBE_SPECS.columns) * Math.PI * 2);
@@ -3543,9 +3840,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       // Align camera optical center to unobstructed centerSafeRect when panels are open.
       // EffectComposer + UnrealBloomPass mishandles PerspectiveCamera.setViewOffset and
-      // paints a solid clear-color slab over half the framebuffer (seen as a blue rectangle
+      // paints a solid clear-color slab over the right/bottom of the canvas (visible
       // when the Media/Projects inspector is open on iPad). Skip viewOffset while composer
-      // is active; optical framing still comes from camera presets + pan.
+      // is active; labels still clamp into the safe rect below.
       const curW = domEl.clientWidth || window.innerWidth;
       const curH = domEl.clientHeight || window.innerHeight;
       if (unobstructedRectRef.current && curW > 0 && curH > 0) {

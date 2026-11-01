@@ -1,4 +1,5 @@
 import { COLOUR_TOKENS, StationId, CdeDimensionId } from '../tokens/colours';
+import { PUBLIC_BRAND_MEDIA } from './publicBrandMedia';
 
 export interface SourceMapEntry {
   code: string;
@@ -1100,9 +1101,12 @@ export interface MediaAssetItem {
   id: string;
   title: string;
   subtitle: string;
-  type: 'Render JPG' | '3D Sculptural Spec' | 'Showreel Video [SAMPLE]';
+  type: 'Render JPG' | '3D Sculptural Spec' | 'Showreel Video [SAMPLE]' | 'Direct Public MP4 Video';
+  kind?: 'video' | 'image' | 'pdf' | 'spec';
   url?: string;
-  aspect: '16:9' | '9:16' | '1:1';
+  posterUrl?: string;
+  videoUrl?: string;
+  aspect: '16:9' | '9:16' | '1:1' | '4:3' | 'A4';
   material?: string;
   companionSticker?: string;
   motionSpec?: string;
@@ -1218,69 +1222,116 @@ export interface ShowreelSpec {
   projectCode: string;
   timecodePreview: string;
   drivePath: string;
-  sourceKind: 'Attached 4K Render' | 'Hotspot_26_media [SAMPLE]' | 'Vimeo / Custom Embed';
+  sourceKind:
+    | 'Direct Public MP4 Video'
+    | 'Attached 4K Render'
+    | 'Hotspot_26_media [SAMPLE]'
+    | 'Vimeo / Custom Embed';
   posterUrl?: string;
+  videoUrl?: string;
+  desktop1080Url?: string;
   embedUrl?: string;
   companionSticker: string;
+  isRealVideo?: boolean;
+  expectedDurationSec?: number;
+  durationSec?: number;
+  type?: string;
 }
 
+/**
+ * Genuine NOJARA Public Showreels (ordered: NOJARA 2023, NOJARA × LaLiga, El Batron)
+ * Consumed directly by HTML5 <video> elements with browser metadata duration authority.
+ */
 export const SHOWREEL_ITEMS: ShowreelSpec[] = [
   {
-    id: 'med-njr-showreel',
-    title: '01 · NOJARA Studios Showreel 2023',
-    subtitle: 'Hotspot_26_media · Sphere VideoTexture primary / About Us anchor',
+    id: PUBLIC_BRAND_MEDIA.showreel2023.id,
+    title: PUBLIC_BRAND_MEDIA.showreel2023.title,
+    subtitle: 'Official Studio Showreel · 720p Master Video',
     projectCode: 'NOJARA',
-    timecodePreview: '00:00 — curated overview · Drive 143QDgWYEcU9kI7F87XVMHr9WZuWl6HBe',
-    drivePath: 'drive:1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh/1- NJR Showreel.mp4',
+    timecodePreview: '00:00 — 02:21 · 720p MP4',
+    drivePath: 'wix:227dff_5eb47ff9d6fc4753802d517fa87f3a43',
+    sourceKind: 'Direct Public MP4 Video',
+    type: 'Direct Public MP4 Video',
+    posterUrl: PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
+    videoUrl: PUBLIC_BRAND_MEDIA.showreel2023.url,
+    companionSticker: 'Scale without sameness',
+    isRealVideo: true,
+    expectedDurationSec: PUBLIC_BRAND_MEDIA.showreel2023.expectedDurationSec,
+    durationSec: PUBLIC_BRAND_MEDIA.showreel2023.expectedDurationSec,
+  },
+  {
+    id: PUBLIC_BRAND_MEDIA.laligaFilm.id,
+    title: PUBLIC_BRAND_MEDIA.laligaFilm.title,
+    subtitle: 'Cairo–Riyadh Sports Culture & Multidisciplinary Activation',
+    projectCode: 'NOJARA',
+    timecodePreview: '00:00 — 03:25 · 720p / 1080p MP4',
+    drivePath: 'wix:227dff_8649ac6a450c471683cc3e72a2655a02',
+    sourceKind: 'Direct Public MP4 Video',
+    type: 'Direct Public MP4 Video',
+    posterUrl: PUBLIC_BRAND_MEDIA.laligaFilm.posterUrl,
+    videoUrl: PUBLIC_BRAND_MEDIA.laligaFilm.url,
+    desktop1080Url: PUBLIC_BRAND_MEDIA.laligaFilm.desktop1080Url,
+    companionSticker: 'Let disciplines collide',
+    isRealVideo: true,
+    expectedDurationSec: PUBLIC_BRAND_MEDIA.laligaFilm.expectedDurationSec,
+    durationSec: PUBLIC_BRAND_MEDIA.laligaFilm.expectedDurationSec,
+  },
+  {
+    id: PUBLIC_BRAND_MEDIA.elBatron.id,
+    title: PUBLIC_BRAND_MEDIA.elBatron.title,
+    subtitle: 'NOJARA Programme Identity · Live Spatial Experience',
+    projectCode: 'EL-BATRON',
+    timecodePreview: '00:00 — 02:18 · 720p MP4',
+    drivePath: 'wix:227dff_620a67c30ded4fcfbd798648a3dacc6a',
+    sourceKind: 'Direct Public MP4 Video',
+    type: 'Direct Public MP4 Video',
+    posterUrl: PUBLIC_BRAND_MEDIA.elBatron.posterUrl,
+    videoUrl: PUBLIC_BRAND_MEDIA.elBatron.url,
+    companionSticker: 'Film meets experience',
+    isRealVideo: true,
+    expectedDurationSec: PUBLIC_BRAND_MEDIA.elBatron.expectedDurationSec,
+    durationSec: PUBLIC_BRAND_MEDIA.elBatron.expectedDurationSec,
+  },
+];
+
+/**
+ * CDE Studies and Source Documents (Blueprint treatments, 4K stills and concept decks)
+ */
+export const CDE_STUDY_DOCUMENTS: ShowreelSpec[] = [
+  {
+    id: 'med-mission-lotus',
+    title: 'Mission Lotus — Spatial & Experiential Study',
+    subtitle: 'NOJARA Studios · Experiential Direction & Production Leadership',
+    projectCode: 'MISSION-LOTUS',
+    timecodePreview: '00:00 — 02:14 · 4K 24fps Spec',
+    drivePath: 'drive:Hotspot_26_media/Mission_Lotus_Master_Reel_2026.mp4',
     sourceKind: 'Hotspot_26_media [SAMPLE]',
-    posterUrl: '/media/about-tarek-afrima.jpg',
-    embedUrl: '/api/drive/stream/143QDgWYEcU9kI7F87XVMHr9WZuWl6HBe',
-    companionSticker: 'Creative ambition. Production discipline.',
+    companionSticker: 'Scale without sameness',
+    isRealVideo: false,
   },
   {
     id: 'med-seven-reel',
-    title: '02 · SEVEN × NOJARA — A Reason to Return (Tabuk)',
+    title: 'SEVEN × NOJARA — A Reason to Return (Tabuk)',
     subtitle: 'Destination Participation, Creator Collisions & Architectural Walkthrough',
     projectCode: 'SEVEN',
-    timecodePreview: '00:00 — 02:59 · 3840×2160',
+    timecodePreview: '00:00 — 02:59 · 3840×2160 Still',
     drivePath: 'local:/assets/aistudio/06_SEVEN_Tabuk_concept_render_desktop_3840x2160_a125f8eb.jpg',
     sourceKind: 'Attached 4K Render',
     posterUrl: '/assets/aistudio/06_SEVEN_Tabuk_concept_render_desktop_3840x2160_a125f8eb.jpg',
     companionSticker: 'Every destination has a story',
+    isRealVideo: false,
   },
   {
-    id: 'med-laliga',
-    title: '03 · NOJARA × LaLiga — Cultural Collision & Live Broadcast',
-    subtitle: 'Cairo–Riyadh Sports Culture & Multidisciplinary Activation',
-    projectCode: 'LALIGA',
-    timecodePreview: '00:00 — 01:48 · Drive 1JuftO8KtXKGeEcEPCXDpDXmtiS5a9orQ',
-    drivePath: 'drive:1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh/noj laliga wal3ana copy 2.mp4',
+    id: 'med-yah-highlight',
+    title: 'Young & Human (YAH) — Three-World Opening Study',
+    subtitle: 'Talent Accelerator, Creator Quiz Paths & Interactive Exhibition',
+    projectCode: 'YAH',
+    timecodePreview: '00:00 — 01:56 · 4K Concept',
+    drivePath: 'drive:1P-cbrL4pRtu5ywBj-uA4A61HrJexKWMR/YAH_Opening_Reel',
     sourceKind: 'Hotspot_26_media [SAMPLE]',
-    embedUrl: '/api/drive/stream/1JuftO8KtXKGeEcEPCXDpDXmtiS5a9orQ',
-    companionSticker: 'Let disciplines collide',
-  },
-  {
-    id: 'med-el-batron',
-    title: '04 · El Batron — Immersive World & Sonic Identity',
-    subtitle: 'NOJARA Programme Identity · Live Spatial Experience',
-    projectCode: 'EL-BATRON',
-    timecodePreview: '00:00 — Drive 1xh0Dqv4yo-sUO7oSZbThIG0e1RDXLln8',
-    drivePath: 'drive:1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh/Batron showreel.mp4',
-    sourceKind: 'Hotspot_26_media [SAMPLE]',
-    embedUrl: '/api/drive/stream/1xh0Dqv4yo-sUO7oSZbThIG0e1RDXLln8',
-    companionSticker: 'Film meets experience',
-  },
-  {
-    id: 'med-riyadh-sphere',
-    title: '05 · Riyadh Season Launch — Sphere Texture Plate',
-    subtitle: 'Mapped onto HQ glass equator band + media portal (UV-correct 16:9)',
-    projectCode: 'RIYADH-SEASON',
-    timecodePreview: 'Loop · Drive 1WOsaz0C-F9sTnWl_xQaSN1wt86I_jRoA',
-    drivePath: 'drive:1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh/HH_Turki Alshaikh - Riyadh season launch campaign .mp4',
-    sourceKind: 'Hotspot_26_media [SAMPLE]',
-    posterUrl: '/media/about-tarek-afrima.jpg',
-    embedUrl: '/media/sphere-showreel-fallback.mp4',
+    posterUrl: '/assets/aistudio/06_SEVEN_Tabuk_concept_render_mobile_1080x1920_8efe6dff.jpg',
     companionSticker: 'Design the next moment',
+    isRealVideo: false,
   },
 ];
 

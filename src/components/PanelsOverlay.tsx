@@ -9,6 +9,7 @@ import {
   FILES_DATA,
   MEDIA_ITEMS,
   SHOWREEL_ITEMS,
+  CDE_STUDY_DOCUMENTS,
   CDE_DIMENSIONS,
   STORY_CHAPTERS,
   SOURCE_MAP,
@@ -34,6 +35,8 @@ import {
   computeGuiLayout,
 } from '../gui/layoutEngine';
 import { GUI_GLASS_TOKENS, GUI_Z_LAYERS } from '../gui/guiTokens';
+import { PublicShowreelPlayer } from './PublicShowreelPlayer';
+import { PUBLIC_BRAND_MEDIA } from '../data/publicBrandMedia';
 
 export interface StatefulCheckpointItem extends TeamCheckpointItem {
   status?: 'Pending 39 Sign-off' | 'Approved' | 'Revision Requested' | 'Rejected';
@@ -140,6 +143,10 @@ interface PanelsOverlayProps {
   onSelectChapter: (chapterIdx: number) => void;
   onFileSearchChange: (q: string) => void;
   onOpenFullscreenMedia: (item: MediaAssetItem | null) => void;
+  onVideoRefReady?: (video: HTMLVideoElement | null) => void;
+  onVideoTimeUpdate?: (currentTime: number, duration: number) => void;
+  onVideoPlayChange?: (playing: boolean) => void;
+  onVideoMuteChange?: (muted: boolean) => void;
   onChangeAudience?: (level: AudienceLevel) => void;
   onToggleReducedMotion?: () => void;
   onToggleSoundMuted?: () => void;
@@ -277,6 +284,10 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
   onSelectChapter,
   onFileSearchChange,
   onOpenFullscreenMedia,
+  onVideoRefReady,
+  onVideoTimeUpdate,
+  onVideoPlayChange,
+  onVideoMuteChange,
   onChangeAudience,
   onToggleReducedMotion,
   onToggleSoundMuted,
@@ -533,9 +544,26 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
 
   // Full-Screen Media View — preserves playback position & context on enter and exit
   if (fullscreenMedia) {
+    const isVideoItem =
+      fullscreenMedia.kind === 'video' ||
+      fullscreenMedia.type === 'Direct Public MP4 Video' ||
+      Boolean(fullscreenMedia.videoUrl) ||
+      (typeof fullscreenMedia.url === 'string' && fullscreenMedia.url.endsWith('.mp4'));
+    const resolvedVideoSrc =
+      fullscreenMedia.videoUrl ||
+      (fullscreenMedia.url?.endsWith('.mp4') ? fullscreenMedia.url : '');
+    const resolvedPoster =
+      fullscreenMedia.posterUrl ||
+      (fullscreenMedia.url && !fullscreenMedia.url.endsWith('.mp4')
+        ? fullscreenMedia.url
+        : PUBLIC_BRAND_MEDIA.showreel2023.posterUrl);
+
     const pct =
       mediaPlayback.durationSec > 0
-        ? Math.min(100, Math.round((mediaPlayback.currentTimeSec / mediaPlayback.durationSec) * 100))
+        ? Math.min(
+            100,
+            Math.round((mediaPlayback.currentTimeSec / mediaPlayback.durationSec) * 100)
+          )
         : 0;
 
     return (
@@ -567,8 +595,10 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 color: COLOUR_TOKENS.stationMedia,
               }}
             >
-              {fullscreenMedia.isSample
-                ? 'Source file not attached in 09 Media — interactive preview active'
+              {isVideoItem
+                ? 'Official Public Showreel MP4'
+                : fullscreenMedia.isSample
+                ? 'Source file not attached in 09 Media'
                 : 'Verified attached render (06)'}
             </span>
           </div>
@@ -581,7 +611,22 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
         </div>
 
         <div className="relative flex-1 my-4 rounded-2xl overflow-hidden border border-white/25 bg-[#101D27] flex items-center justify-center">
-          {fullscreenMedia.url ? (
+          {isVideoItem && resolvedVideoSrc ? (
+            <PublicShowreelPlayer
+              id={fullscreenMedia.id}
+              title={fullscreenMedia.title}
+              src={resolvedVideoSrc}
+              poster={resolvedPoster}
+              autoPlay={mediaPlayback.playing}
+              initialTimeSec={mediaPlayback.currentTimeSec}
+              isMuted={mediaPlayback.muted}
+              onVideoReady={onVideoRefReady}
+              onTimeUpdate={onVideoTimeUpdate}
+              onPlayStateChange={onVideoPlayChange}
+              onMuteStateChange={onVideoMuteChange}
+              className="w-full h-full"
+            />
+          ) : fullscreenMedia.url && !fullscreenMedia.url.endsWith('.mp4') ? (
             <img
               src={fullscreenMedia.url}
               alt={fullscreenMedia.title}
@@ -651,7 +696,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             <input
               type="range"
               min={0}
-              max={mediaPlayback.durationSec}
+              max={mediaPlayback.durationSec || 100}
               value={mediaPlayback.currentTimeSec}
               onChange={(e) => onMediaControl?.('seek', Number(e.target.value))}
               aria-label="Seek media timeline"
@@ -1816,14 +1861,15 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           );
         }
 
-        // 6. MEDIA & SHOWREEL PANEL (With Interactive Playback, Seek, Mute & Fullscreen Controls)
+        // 6. MEDIA & SHOWREEL PANEL (With Interactive Real HTML5 Video, Seek, Mute & Fullscreen Controls)
         if (panelId === 'media') {
-          const customUrl = customEmbeds[activeReel.id] || activeReel.embedUrl || '';
+          // User custom iframe from localStorage only if not one of the 3 canonical public MP4 items
+          const userCustomEmbed = !activeReel.videoUrl && customEmbeds[activeReel.id] ? customEmbeds[activeReel.id] : '';
 
           return renderPanelFrame(
             'media',
             'Media & Showreel',
-            'HQ · 5 SHOWREELS & TABUK 4K RENDERS',
+            'HQ · NOJARA SHOWREELS & CDE STUDIES',
             COLOUR_TOKENS.stationMedia,
             posClass,
             <>
@@ -1833,51 +1879,38 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               >
                 <div className="flex items-center justify-between font-mono text-[10px]">
                   <span className="text-token-amber font-semibold">
-                    SHOWREEL 0{safeShowreelIdx + 1}/0{SHOWREEL_ITEMS.length}
+                    OFFICIAL REEL 0{safeShowreelIdx + 1}/0{SHOWREEL_ITEMS.length}
                   </span>
                   <span className="text-[#BDCBD3]" data-testid="panel-media-timecode">
                     {formatTimecode(mediaPlayback.currentTimeSec)} /{' '}
-                    {formatTimecode(mediaPlayback.durationSec)}
+                    {formatTimecode(mediaPlayback.durationSec || activeReel.expectedDurationSec || 120)}
                   </span>
                 </div>
 
-                <div className="rounded-xl overflow-hidden border border-white/25 bg-[#05090E]">
-                  {customUrl ? (
-                    <iframe
-                      src={customUrl}
+                {/* Primary 16:9 Video Viewport */}
+                <div className="public-showreel-panel-viewport">
+                  {activeReel.videoUrl ? (
+                    <PublicShowreelPlayer
+                      id={activeReel.id}
                       title={activeReel.title}
-                      className="w-full h-36 border-0"
+                      src={activeReel.videoUrl}
+                      poster={activeReel.posterUrl || ''}
+                      autoPlay={mediaPlayback.playing}
+                      initialTimeSec={mediaPlayback.currentTimeSec}
+                      isMuted={mediaPlayback.muted}
+                      onVideoReady={onVideoRefReady}
+                      onTimeUpdate={onVideoTimeUpdate}
+                      onPlayStateChange={onVideoPlayChange}
+                      onMuteStateChange={onVideoMuteChange}
+                      className="w-full h-full"
+                    />
+                  ) : userCustomEmbed ? (
+                    <iframe
+                      src={userCustomEmbed}
+                      title={activeReel.title}
+                      className="w-full h-full border-0"
                       allow="autoplay; fullscreen; picture-in-picture"
                     />
-                  ) : activeReel.posterUrl ? (
-                    <div
-                      onClick={() => {
-                        onMediaControl?.('fullscreen_enter');
-                        onOpenFullscreenMedia({
-                          id: activeReel.id,
-                          title: activeReel.title,
-                          subtitle: activeReel.subtitle,
-                          type: 'Render JPG',
-                          url: activeReel.posterUrl,
-                          aspect: '16:9',
-                          companionSticker: activeReel.companionSticker,
-                          isSample: false,
-                        });
-                      }}
-                      className="relative h-36 cursor-pointer group"
-                    >
-                      <img
-                        src={activeReel.posterUrl}
-                        alt={activeReel.title}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-[#05090E]/45 flex items-center justify-center">
-                        <span className="px-3 py-1.5 rounded-lg font-mono text-[11px] bg-[#101D27]/90 border border-[#F2B66D] text-[#F2B66D]">
-                          {mediaPlayback.playing ? '▶ Playing · Fullscreen' : '▶ Open Fullscreen'}
-                        </span>
-                      </div>
-                    </div>
                   ) : (
                     <div
                       onClick={() => {
@@ -1893,7 +1926,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                           isSample: true,
                         });
                       }}
-                      className="h-32 p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-[#142632]/50 transition-colors"
+                      className="w-full h-full p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-[#142632]/50 transition-colors"
                     >
                       <span className="font-mono text-[10px] text-token-amber">
                         Source file not attached in 09 Media — interactive preview
@@ -1915,7 +1948,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       type="button"
                       data-testid="media-play-toggle"
                       onClick={() => onMediaControl?.('toggle_play')}
-                      className="min-h-[38px] px-3 rounded-lg font-mono text-[11px] font-semibold bg-[#F2B66D] text-[#101D27] cursor-pointer"
+                      className="min-h-[44px] px-3.5 rounded-lg font-mono text-[11px] font-semibold bg-[#F2B66D] text-[#101D27] cursor-pointer"
                     >
                       {mediaPlayback.playing ? 'Pause' : 'Play'}
                     </button>
@@ -1923,7 +1956,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       type="range"
                       data-testid="media-seek-slider"
                       min={0}
-                      max={mediaPlayback.durationSec}
+                      max={mediaPlayback.durationSec || activeReel.expectedDurationSec || 100}
                       value={mediaPlayback.currentTimeSec}
                       onChange={(e) => onMediaControl?.('seek', Number(e.target.value))}
                       aria-label="Seek showreel timeline"
@@ -1933,7 +1966,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       type="button"
                       data-testid="media-mute-toggle"
                       onClick={() => onMediaControl?.('toggle_mute')}
-                      className="min-h-[38px] px-2.5 rounded-lg font-mono text-[10px] bg-[#142632] border border-white/25 text-[#F2F6F8] cursor-pointer"
+                      className="min-h-[44px] px-3 rounded-lg font-mono text-[10px] bg-[#142632] border border-white/25 text-[#F2F6F8] cursor-pointer"
                     >
                       {mediaPlayback.muted ? 'Muted' : 'Audio'}
                     </button>
@@ -1946,14 +1979,17 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                           id: activeReel.id,
                           title: activeReel.title,
                           subtitle: activeReel.subtitle,
-                          type: activeReel.posterUrl ? 'Render JPG' : 'Showreel Video [SAMPLE]',
-                          url: activeReel.posterUrl,
+                          type: activeReel.videoUrl ? 'Direct Public MP4 Video' : 'Render JPG',
+                          kind: activeReel.videoUrl ? 'video' : 'image',
+                          videoUrl: activeReel.videoUrl,
+                          url: activeReel.videoUrl || activeReel.posterUrl,
+                          posterUrl: activeReel.posterUrl,
                           aspect: '16:9',
                           companionSticker: activeReel.companionSticker,
-                          isSample: !activeReel.posterUrl,
+                          isSample: !activeReel.videoUrl && !activeReel.posterUrl,
                         });
                       }}
-                      className="min-h-[38px] px-2.5 rounded-lg font-mono text-[10px] bg-[#142632] border border-[#F2B66D]/60 text-[#F2B66D] cursor-pointer"
+                      className="min-h-[44px] px-3 rounded-lg font-mono text-[10px] bg-[#142632] border border-[#F2B66D]/60 text-[#F2B66D] cursor-pointer"
                     >
                       Fullscreen
                     </button>
@@ -1963,25 +1999,11 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                     {activeReel.title}
                   </div>
                   <div className="font-mono text-[10px] text-[#BDCBD3] truncate">
-                    Path: {activeReel.drivePath}
+                    {activeReel.subtitle} · {activeReel.timecodePreview}
                   </div>
-                  <input
-                    type="text"
-                    value={customUrl}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const next = { ...customEmbeds, [activeReel.id]: val };
-                      setCustomEmbeds(next);
-                      try {
-                        localStorage.setItem('cerebro_showreel_embeds_v1', JSON.stringify(next));
-                      } catch {}
-                    }}
-                    placeholder="Optional: Paste live Vimeo / Drive embed URL..."
-                    className="w-full min-h-[38px] px-2.5 py-1 rounded-lg bg-[#05090E] border border-white/25 font-mono text-[10px] text-[#F2F6F8] placeholder-[#BDCBD3]/50 focus:outline-none focus:border-[#F2B66D]"
-                  />
                 </div>
 
-                <div className="flex items-center justify-between gap-2 pt-1">
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/10">
                   <button
                     type="button"
                     data-testid="media-prev-reel"
@@ -1990,11 +2012,11 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                         (safeShowreelIdx - 1 + SHOWREEL_ITEMS.length) % SHOWREEL_ITEMS.length
                       )
                     }
-                    className="min-h-[40px] px-3 py-1 rounded-lg font-mono text-[11px] bg-[#142632] border border-white/30 text-[#F2F6F8] hover:border-[#F2B66D] cursor-pointer"
+                    className="min-h-[44px] px-3.5 py-1 rounded-lg font-mono text-[11px] bg-[#142632] border border-white/30 text-[#F2F6F8] hover:border-[#F2B66D] cursor-pointer"
                   >
                     ‹ Prev
                   </button>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     {SHOWREEL_ITEMS.map((r, rIdx) => (
                       <button
                         key={r.id}
@@ -2002,7 +2024,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                         onClick={() => onChangeShowreelIndex?.(rIdx)}
                         className="h-2.5 rounded-full transition-all cursor-pointer"
                         style={{
-                          width: rIdx === safeShowreelIdx ? '18px' : '8px',
+                          width: rIdx === safeShowreelIdx ? '20px' : '8px',
                           backgroundColor:
                             rIdx === safeShowreelIdx
                               ? COLOUR_TOKENS.stationMedia
@@ -2017,17 +2039,108 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                     onClick={() =>
                       onChangeShowreelIndex?.((safeShowreelIdx + 1) % SHOWREEL_ITEMS.length)
                     }
-                    className="min-h-[40px] px-3 py-1 rounded-lg font-mono text-[11px] bg-[#F2B66D] text-[#101D27] font-semibold cursor-pointer"
+                    className="min-h-[44px] px-3.5 py-1 rounded-lg font-mono text-[11px] bg-[#F2B66D] text-[#101D27] font-semibold cursor-pointer"
                   >
                     Next ›
                   </button>
                 </div>
               </div>
 
-              <div className="font-mono text-[11px] text-[#F2B66D] pt-1">
-                SEVEN Tabuk Concept Renders (Attached in 06) + Sculptural Specs
+              {/* Three Official Showreels Selection List */}
+              <div className="space-y-2 pt-1">
+                <div className="font-mono text-[11px] text-[#F2B66D] font-semibold uppercase tracking-wider">
+                  Verified Public Showreels
+                </div>
+                {SHOWREEL_ITEMS.map((reel, rIdx) => {
+                  const isSelected = rIdx === safeShowreelIdx;
+                  return (
+                    <div
+                      key={reel.id}
+                      onClick={() => onChangeShowreelIndex?.(rIdx)}
+                      className={`rounded-xl p-2.5 border transition-all cursor-pointer flex items-center gap-3 ${
+                        isSelected
+                          ? 'border-[#F2B66D] bg-[#142632]'
+                          : 'border-white/20 bg-[#101D27]/80 hover:border-white/40'
+                      }`}
+                    >
+                      {reel.posterUrl ? (
+                        <img
+                          src={reel.posterUrl}
+                          alt={reel.title}
+                          referrerPolicy="no-referrer"
+                          className="w-16 h-12 rounded-lg object-cover border border-white/20 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-16 h-12 rounded-lg bg-[#142632] border border-white/20 flex items-center justify-center font-mono text-[10px] text-[#F2B66D] shrink-0">
+                          VIDEO
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="font-display text-xs font-semibold text-[#F2F6F8] truncate">
+                          {reel.title}
+                        </div>
+                        <div className="font-sans text-[11px] text-[#BDCBD3] truncate">
+                          {reel.subtitle}
+                        </div>
+                        <div className="font-mono text-[10px] text-[#F2B66D] mt-0.5">
+                          {isSelected ? '▶ Active in Player' : 'Tap to load in player →'}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <div className="space-y-2.5">
+
+              {/* Studies and Source Documents Section */}
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <div className="font-mono text-[11px] text-[#BDCBD3] font-semibold uppercase tracking-wider">
+                  Studies and source documents (CDE Blueprint & Concept Stills)
+                </div>
+
+                {CDE_STUDY_DOCUMENTS.map((doc) => (
+                  <div
+                    key={doc.id}
+                    onClick={() => {
+                      onOpenFullscreenMedia({
+                        id: doc.id,
+                        title: doc.title,
+                        subtitle: doc.subtitle,
+                        type: doc.posterUrl ? 'Render JPG' : 'Showreel Video [SAMPLE]',
+                        aspect: '16:9',
+                        url: doc.posterUrl,
+                        material: `CDE Treatment & Spec: ${doc.drivePath}`,
+                        companionSticker: doc.companionSticker,
+                        isSample: !doc.posterUrl,
+                      });
+                    }}
+                    className="rounded-xl p-2.5 border border-white/15 bg-[#101D27]/70 hover:border-[#BDCBD3] transition-colors cursor-pointer flex items-center gap-3"
+                  >
+                    {doc.posterUrl ? (
+                      <img
+                        src={doc.posterUrl}
+                        alt={doc.title}
+                        referrerPolicy="no-referrer"
+                        className="w-16 h-12 rounded-lg object-cover border border-white/20 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-16 h-12 rounded-lg bg-[#142632] border border-white/20 flex items-center justify-center font-mono text-[10px] text-[#BDCBD3] shrink-0">
+                        DOC
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="font-display text-xs font-semibold text-[#F2F6F8] truncate">
+                        {doc.title}
+                      </div>
+                      <div className="font-sans text-[11px] text-[#BDCBD3] truncate">
+                        {doc.subtitle}
+                      </div>
+                      <div className="font-mono text-[10px] text-[#C5CCD6] mt-0.5">
+                        {doc.timecodePreview} · Tap to inspect
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
                 {MEDIA_ITEMS.map((item) => (
                   <div
                     key={item.id}
@@ -2035,7 +2148,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       onMediaControl?.('fullscreen_enter');
                       onOpenFullscreenMedia(item);
                     }}
-                    className="rounded-xl p-2.5 border border-white/25 bg-[#101D27]/90 hover:border-[#F2B66D] transition-colors cursor-pointer flex items-center gap-3"
+                    className="rounded-xl p-2.5 border border-white/15 bg-[#101D27]/70 hover:border-[#BDCBD3] transition-colors cursor-pointer flex items-center gap-3"
                   >
                     {item.url ? (
                       <img
@@ -2063,10 +2176,10 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       <div className="font-sans text-[11px] text-[#BDCBD3] truncate">
                         {item.subtitle}
                       </div>
-                      <div className="font-mono text-[10px] text-[#F2B66D] mt-0.5">
+                      <div className="font-mono text-[10px] text-[#C5CCD6] mt-0.5">
                         {item.isSample
                           ? 'Source file not attached in 09 Media'
-                          : 'Verified attached render — Open fullscreen →'}
+                          : 'Attached render plate — Open fullscreen →'}
                       </div>
                     </div>
                   </div>
