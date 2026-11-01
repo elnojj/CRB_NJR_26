@@ -46,6 +46,81 @@ export const glassTransmission = {
   edgeRim: '#A4CBFF',
 } as const;
 
+export const D0_V124 = {
+  viewportBackground: {
+    base: '#1B2230',
+    gradientEnd: '#101622',
+    ambientTint: '#0E141E',
+  },
+  metallicGold: {
+    primary: '#D4AF37',
+    specularHighlight: '#FFF4D0',
+    shadowTone: '#685218',
+    sheen: '#E6CA65',
+  },
+  brushedSilver: {
+    primary: '#C5CCD6',
+    specularHighlight: '#FFFFFF',
+    shadowTone: '#404854',
+  },
+  deepSlateBlue: {
+    base: '#3A516E',
+    deep: '#1E2B3D',
+    light: '#5A779C',
+  },
+  glassTransmission: {
+    refractionTint: '#EAF2FF',
+    edgeRim: '#A4CBFF',
+  },
+  stateTeal: '#78D3B2',
+  bodyText: '#F2F6F8',
+} as const;
+
+/**
+ * CEREBRO 39 / SEHLY MASTER TEMPLATE — FILM-DERIVED TOKENS (01 NOV 2026)
+ * Source: design_tokens_998287f6.json & tokens_c9fb9fb3.css
+ */
+export const SEHLY_FILM_TOKENS = {
+  version: '1.0-proposed-film-derived',
+  deep: '#05090E',
+  canvas: '#101D27',
+  glass: '#142632',
+  primary: '#F2F6F8',
+  secondary: '#D0DCE3',
+  muted: '#BDCBD3',
+  ice: '#B4DDFF',
+  cobalt: '#65ACFF',
+  bronze: '#8C6A45',
+  gold: '#D4AF37',
+  voice: '#9AFFE0',
+} as const;
+
+export const SEHLY_MATERIALS_BASELINE = {
+  liquidGlass: {
+    color: '#0A1218',
+    transmission: 0.96,
+    roughness: 0.04,
+    metalness: 0,
+    ior: 1.52,
+    thickness: 2.8,
+    normalizedGlbThickness: 0.03,
+    clearcoat: 0.9,
+    clearcoatRoughness: 0.06,
+    attenuationColor: '#101D27',
+    attenuationDistance: 3.4,
+  },
+  bronze: {
+    color: '#8C6A45',
+    roughness: 0.18,
+    metalness: 0.85,
+  },
+  coreProposed: {
+    color: '#BCC9D4',
+    metalness: 0.94,
+    roughness: 0.28,
+  },
+} as const;
+
 export const COLOUR_TOKENS = {
   // Structured v1.24 Token Groups
   viewportBackground,
@@ -53,6 +128,8 @@ export const COLOUR_TOKENS = {
   brushedSilver,
   deepSlateBlue,
   glassTransmission,
+  stateTeal: '#78D3B2',
+  bodyText: '#F2F6F8',
 
   // Mapped Unified Tokens (Cerebro-Nojara D0 v1.24)
   canvas: '#1B2230',
@@ -75,7 +152,7 @@ export const COLOUR_TOKENS = {
 
   // Semantic Reservations
   voiceOrbMint: '#D4AF37',
-  voiceOrbTeal: '#E6CA65',
+  voiceOrbTeal: '#78D3B2',
   voiceOrbDeep: '#685218',
   trackingValid: '#36E88D',
   systemErrorRed: '#FF5666',

@@ -419,22 +419,33 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
           })}
         </div>
 
-        {/* Take off button + Arabic greeting */}
+        {/* Take off / Open Dashboard + Skip button + Arabic greeting */}
         <div className="w-full flex flex-wrap items-center justify-between gap-3 pt-1">
-          <button
-            type="button"
-            data-testid="boot-take-off"
-            data-cta-id="loader-take-off"
-            onClick={onTakeOff}
-            className="min-h-[42px] min-w-[140px] px-7 py-2 rounded-lg font-display font-semibold text-xs tracking-[0.08em] uppercase transition-transform active:scale-95 cursor-pointer border"
-            style={{
-              backgroundColor: COLOUR_TOKENS.cobaltAccent,
-              color: '#101622',
-              borderColor: COLOUR_TOKENS.focusRing,
-            }}
-          >
-            Take off →
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              data-testid="boot-take-off"
+              data-cta-id="loader-take-off"
+              onClick={onTakeOff}
+              className="min-h-[44px] min-w-[140px] px-6 py-2 rounded-lg font-display font-semibold text-xs tracking-[0.08em] uppercase transition-transform active:scale-95 cursor-pointer border"
+              style={{
+                backgroundColor: COLOUR_TOKENS.cobaltAccent,
+                color: '#101622',
+                borderColor: COLOUR_TOKENS.focusRing,
+              }}
+            >
+              Open Dashboard · Take off →
+            </button>
+            <button
+              type="button"
+              data-testid="boot-skip"
+              data-cta-id="boot.skip"
+              onClick={onTakeOff}
+              className="min-h-[44px] px-4 py-2 rounded-lg font-mono text-xs text-[#D0DCE3] hover:text-[#F2F6F8] border border-[rgba(197,204,214,0.22)] bg-[#101622] cursor-pointer"
+            >
+              Skip
+            </button>
+          </div>
 
           <span
             dir="rtl"

@@ -900,9 +900,25 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         onWheel={(e) => e.stopPropagation()}
         style={{
           left: guiLayout ? `${guiLayout.voiceRect.x}px` : undefined,
-          top: guiLayout ? `${guiLayout.voiceRect.y}px` : undefined,
+          bottom: guiLayout
+            ? `${Math.max(
+                64,
+                guiLayout.viewportH - (guiLayout.voiceRect.y + guiLayout.voiceRect.h)
+              )}px`
+            : undefined,
           width: guiLayout ? `${guiLayout.voiceRect.w}px` : undefined,
-          minHeight: guiLayout?.voiceCompactedForSheet ? '52px' : undefined,
+          height: guiLayout?.voiceCompactedForSheet ? '52px' : undefined,
+          minHeight: guiLayout?.voiceCompactedForSheet ? '52px' : '56px',
+          maxHeight: guiLayout?.voiceCompactedForSheet
+            ? '52px'
+            : guiLayout
+            ? `${Math.max(
+                52,
+                guiLayout.voiceRect.y +
+                  guiLayout.voiceRect.h -
+                  (guiLayout.headerRect.y + guiLayout.headerRect.h + 16)
+              )}px`
+            : '75dvh',
           transform:
             !guiLayout && (dragDelta.x !== 0 || dragDelta.y !== 0)
               ? `translate(${dragDelta.x}px, ${dragDelta.y}px)`
@@ -915,7 +931,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
           boxShadow: GUI_GLASS_TOKENS.shadow,
           zIndex: GUI_Z_LAYERS.voiceDock,
         }}
-        className={`fixed pointer-events-auto cj-glass-card cerebro-stellar-glass transition-all duration-200 ${
+        className={`fixed pointer-events-auto cj-glass-card cerebro-stellar-glass flex flex-col overflow-hidden transition-all duration-200 ${
           guiLayout
             ? ''
             : `${snapClasses[snapEdge]} ${
@@ -928,12 +944,16 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
           onPointerDown={handleHeaderPointerDown}
           onPointerMove={handleHeaderPointerMove}
           onPointerUp={handleHeaderPointerUp}
-          className={`px-3.5 ${
-            guiLayout?.voiceCompactedForSheet ? 'py-1 min-h-[52px]' : 'py-2 border-b'
+          className={`px-3 shrink-0 ${
+            guiLayout?.voiceCompactedForSheet
+              ? 'py-1 min-h-[50px]'
+              : isExpanded
+              ? 'py-1.5 border-b min-h-[56px]'
+              : 'py-1.5 min-h-[56px]'
           } border-[rgba(197,204,214,0.22)] flex items-center justify-between gap-2 cursor-grab active:cursor-grabbing`}
         >
-          {/* Voice Pilot Orb (Metallic Gold #FFF4D0 -> #D4AF37 -> #101622) + Status */}
-          <div className="flex items-center gap-2.5 min-w-0">
+          {/* Voice Pilot Orb (Metallic Gold #FFF4D0 -> #D4AF37 -> #101622; --cj-state-teal #78D3B2 when Listening) + Status */}
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <button
               type="button"
               data-testid="voice-orb-btn"
@@ -946,16 +966,25 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                 }
               }}
               title={isSessionLive ? 'Toggle microphone mute' : 'Start live voice session'}
-              className="relative min-w-[46px] min-h-[46px] w-[46px] h-[46px] rounded-full border flex items-center justify-center shrink-0 cursor-pointer overflow-hidden transition-transform duration-150"
+              className="relative min-w-[40px] min-h-[40px] w-[40px] h-[40px] rounded-full border flex items-center justify-center shrink-0 cursor-pointer overflow-hidden transition-transform duration-150"
               style={{
                 transform: `scale(${(1 + audioRms * 0.14).toFixed(3)})`,
                 background:
-                  'radial-gradient(circle at 34% 30%, #FFF4D0 0%, #D4AF37 56%, #101622 100%)',
-                borderColor: '#D4AF37',
-                boxShadow: `0 0 ${Math.round(14 + audioRms * 26)}px rgba(212, 175, 55, ${(
-                  0.32 +
-                  audioRms * 0.52
-                ).toFixed(2)}), inset 0 1px 4px rgba(242, 246, 248, 0.55)`,
+                  displayedVoiceStatus === 'Listening'
+                    ? 'radial-gradient(circle at 34% 30%, #FFF4D0 0%, #78D3B2 56%, #101622 100%)'
+                    : 'radial-gradient(circle at 34% 30%, #FFF4D0 0%, #D4AF37 56%, #101622 100%)',
+                borderColor:
+                  displayedVoiceStatus === 'Listening' ? 'var(--cj-state-teal, #78D3B2)' : '#D4AF37',
+                boxShadow:
+                  displayedVoiceStatus === 'Listening'
+                    ? `0 0 ${Math.round(14 + audioRms * 26)}px rgba(120, 211, 178, ${(
+                        0.38 +
+                        audioRms * 0.52
+                      ).toFixed(2)}), inset 0 1px 4px rgba(242, 246, 248, 0.55)`
+                    : `0 0 ${Math.round(14 + audioRms * 26)}px rgba(212, 175, 55, ${(
+                        0.32 +
+                        audioRms * 0.52
+                      ).toFixed(2)}), inset 0 1px 4px rgba(242, 246, 248, 0.55)`,
               }}
             >
               {/* Concept A "Living Lens": Internal Elliptical Caustic Specular Arc */}
@@ -970,8 +999,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               />
               {/* 16-Bar Radial & Waveform Audio-Reactive Shimmer */}
               <svg
-                width="36"
-                height="36"
+                width="32"
+                height="32"
                 viewBox="0 0 36 36"
                 fill="none"
                 className="relative z-10 pointer-events-none"
@@ -1017,15 +1046,19 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               </svg>
             </button>
 
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-display text-xs font-semibold tracking-[0.08em] uppercase text-[#F2F6F8]">
-                  #10 · Cerebro Voice
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 whitespace-nowrap overflow-hidden">
+                <span className="font-display text-[11px] font-semibold tracking-[0.06em] uppercase text-[#F2F6F8] truncate">
+                  Cerebro Voice
                 </span>
                 <span
                   data-testid="voice-status-badge"
                   title={bridgeDetail}
-                  className="font-mono tabular-nums text-[10px] px-2 py-0.5 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#C5CCD6]"
+                  className={`font-mono tabular-nums text-[10px] px-1.5 py-0.5 rounded bg-[#101622] border shrink-0 ${
+                    displayedVoiceStatus === 'Listening'
+                      ? 'border-[#78D3B2] text-[#78D3B2]'
+                      : 'border-[rgba(197,204,214,0.22)] text-[#C5CCD6]'
+                  }`}
                 >
                   {displayedVoiceStatus}
                 </span>
@@ -1034,28 +1067,30 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                     type="button"
                     data-testid="connect-elevenlabs-btn"
                     onClick={() => handleConnectLiveAgent()}
-                    className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#D4AF37]/20 border border-[#D4AF37] text-[#FFF4D0] hover:bg-[#D4AF37] hover:text-[#101622] transition-colors cursor-pointer"
+                    className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#D4AF37]/20 border border-[#D4AF37] text-[#FFF4D0] hover:bg-[#D4AF37] hover:text-[#101622] transition-colors cursor-pointer shrink-0"
                   >
-                    Connect Live
+                    Connect
                   </button>
                 ) : (
                   <button
                     type="button"
                     onClick={() => bridgeRef.current?.disconnect()}
-                    className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#D4AF37] cursor-pointer"
+                    className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#D4AF37] cursor-pointer shrink-0"
                   >
-                    End Voice
+                    End
                   </button>
                 )}
-                <button
-                  type="button"
-                  data-testid="open-voice-agent-modal-btn"
-                  onClick={() => setShowAgentModal(true)}
-                  title="ElevenLabs Agent Settings & 22-Tool Manifest"
-                  className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
-                >
-                  Agent ⚙
-                </button>
+                {isExpanded && (
+                  <button
+                    type="button"
+                    data-testid="open-voice-agent-modal-btn"
+                    onClick={() => setShowAgentModal(true)}
+                    title="ElevenLabs Agent Settings & 22-Tool Manifest"
+                    className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer shrink-0"
+                  >
+                    Agent ⚙
+                  </button>
+                )}
               </div>
 
               {tourState.active && (
@@ -1090,7 +1125,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
           </div>
 
           {/* Three Pockets Switcher: Tap to talk · Hands · Compose + Collapse/Expand button */}
-          <div className="flex items-center gap-1 shrink-0">
+          <div className={`${guiLayout?.voiceCompactedForSheet ? 'hidden' : 'flex'} items-center gap-1 shrink-0`}>
             {(
               [
                 { id: 'tap-to-talk', label: 'Voice' },
@@ -1111,7 +1146,9 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                       setIsExpanded(true);
                     }
                   }}
-                  className={`min-h-[44px] px-2.5 py-1 rounded-xl font-mono text-[11px] transition-colors cursor-pointer whitespace-nowrap border ${
+                  className={`${
+                    p.id === 'hands' ? 'hidden sm:inline-flex' : 'inline-flex'
+                  } items-center justify-center min-h-[38px] px-2 py-1 rounded-xl font-mono text-[10px] transition-colors cursor-pointer whitespace-nowrap border ${
                     isAct
                       ? 'bg-[#D4AF37] text-[#101622] border-[#FFF4D0] font-semibold'
                       : 'bg-[#101622] text-[#F2F6F8] border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37]'
@@ -1127,68 +1164,77 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               data-testid="voice-card-toggle-expand"
               onClick={() => setIsExpanded((v) => !v)}
               title={isExpanded ? 'Collapse Voice Card' : 'Expand Workspace Controls'}
-              className="min-w-[44px] min-h-[44px] px-2.5 rounded-xl font-mono text-[11px] bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#C5CCD6] hover:text-[#F2F6F8] cursor-pointer"
+              className="min-w-[38px] min-h-[38px] px-2 rounded-xl font-mono text-[11px] bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#C5CCD6] hover:text-[#F2F6F8] cursor-pointer"
             >
               {isExpanded ? '▾' : '▴'}
             </button>
           </div>
         </div>
 
-        {/* S06 Voice Active Default 2-Line Transcript Preview (when collapsed and not phone-sheet compacted) */}
-        {!isExpanded && !guiLayout?.voiceCompactedForSheet && transcripts.length > 0 && (
-          <div className="px-3.5 pt-1.5 pb-0.5 text-[13px] text-[#F2F6F8] line-clamp-2 font-sans leading-snug">
-            <span className="font-mono text-[11px] text-[#D4AF37] mr-1.5">
-              {transcripts[transcripts.length - 1].speaker === '39' ? '39:' : 'CEREBRO:'}
-            </span>
-            {transcripts[transcripts.length - 1].text}
-          </div>
-        )}
+        {/* S06 Voice Active Default 2-Line Transcript Preview (when active or expanded, keeping S01 idle pill compact) */}
+        {!isExpanded &&
+          !guiLayout?.voiceCompactedForSheet &&
+          (isSessionLive || voiceState !== 'Idle' || tourState.active) &&
+          transcripts.length > 0 && (
+            <div className="px-3.5 pt-1.5 pb-2 shrink-0 border-t border-[rgba(197,204,214,0.22)] text-[13px] text-[#F2F6F8] line-clamp-2 font-sans leading-snug">
+              <span className="font-mono text-[11px] text-[#D4AF37] mr-1.5">
+                {transcripts[transcripts.length - 1].speaker === '39' ? '39:' : 'CEREBRO:'}
+              </span>
+              {transcripts[transcripts.length - 1].text}
+            </div>
+          )}
 
-        {/* Always-Visible Command Bar + Run & Stop Buttons (hidden when compacted to 52px on phone sheet expansion) */}
+        {/* Command Bar + Run & Stop Buttons (visible when expanded; kept in DOM as sr-only when collapsed so all test selectors remain reachable) */}
         {!guiLayout?.voiceCompactedForSheet && (
-        <form onSubmit={handleSimSubmit} className="px-3.5 py-2 flex items-center gap-1.5">
-          <input
-            type="text"
-            data-testid="voice-sim-input"
-            value={simInput}
-            onChange={(e) => setSimInput(e.target.value)}
-            placeholder="Ask or command Cerebro (e.g. 'open El Batron project', 'take me to CDE')..."
-            className="flex-1 min-h-[44px] px-3 py-1 rounded-xl bg-[#101622] border border-[rgba(197,204,214,0.22)] font-sans text-[14px] text-[#F2F6F8] placeholder-[#C5CCD6]/65 focus:outline-none focus:border-[#D4AF37]"
-          />
-          <button
-            type="submit"
-            data-testid="voice-sim-run"
-            className="min-h-[44px] min-w-[44px] px-3.5 rounded-xl font-mono text-xs font-semibold cursor-pointer border shrink-0"
-            style={{
-              backgroundColor: COLOUR_TOKENS.cobaltAccent,
-              color: '#101622',
-              borderColor: COLOUR_TOKENS.focusRing,
-            }}
+          <form
+            onSubmit={handleSimSubmit}
+            className={
+              isExpanded
+                ? 'px-3.5 py-2 shrink-0 flex items-center gap-1.5'
+                : 'sr-only'
+            }
           >
-            Run
-          </button>
-          {/* Normal Stop button uses neutral/focus styling; #FF5666 is reserved for actual error/blocked/destructive states */}
-          <button
-            type="button"
-            data-testid="voice-stop"
-            data-cta-id="voice-stop"
-            data-ui-id="voice-stop"
-            onClick={handleInstantStop}
-            title="Stop audio, halt tour auto-stepping, and freeze camera pose"
-            style={{ zIndex: GUI_Z_LAYERS.emergencyStop }}
-            className="relative min-h-[44px] min-w-[44px] px-3.5 rounded-xl font-mono text-xs font-semibold bg-[#101622] text-[#F2F6F8] border border-[#D4AF37] hover:bg-[#D4AF37]/20 cursor-pointer shrink-0"
-          >
-            Stop
-          </button>
-        </form>
+            <input
+              type="text"
+              data-testid="voice-sim-input"
+              value={simInput}
+              onChange={(e) => setSimInput(e.target.value)}
+              placeholder="Ask or command Cerebro (e.g. 'open El Batron project', 'take me to CDE')..."
+              className="flex-1 min-h-[40px] px-3 py-1 rounded-xl bg-[#101622] border border-[rgba(197,204,214,0.22)] font-sans text-[13px] text-[#F2F6F8] placeholder-[#C5CCD6]/65 focus:outline-none focus:border-[#D4AF37]"
+            />
+            <button
+              type="submit"
+              data-testid="voice-sim-run"
+              className="min-h-[40px] min-w-[44px] px-3 rounded-xl font-mono text-xs font-semibold cursor-pointer border shrink-0"
+              style={{
+                backgroundColor: COLOUR_TOKENS.cobaltAccent,
+                color: '#101622',
+                borderColor: COLOUR_TOKENS.focusRing,
+              }}
+            >
+              Run
+            </button>
+            <button
+              type="button"
+              data-testid="voice-stop"
+              data-cta-id="voice-stop"
+              data-ui-id="voice-stop"
+              onClick={handleInstantStop}
+              title="Stop audio, halt tour auto-stepping, and freeze camera pose"
+              style={{ zIndex: GUI_Z_LAYERS.emergencyStop }}
+              className="relative min-h-[40px] min-w-[44px] px-3 rounded-xl font-mono text-xs font-semibold bg-[#101622] text-[#F2F6F8] border border-[#D4AF37] hover:bg-[#D4AF37]/20 cursor-pointer shrink-0"
+            >
+              Stop
+            </button>
+          </form>
         )}
 
-        {/* "Make this a task?" Prompt after saving a note */}
+        {/* "Needs-your-OK" ("Make this a task?") Prompt after saving a note — uses --cj-state-teal (#78D3B2) per D0 v1.24 spec */}
         {pendingTaskProposal && (
-          <div className="mx-3.5 mb-2.5 p-2.5 rounded-lg border border-[#36E88D] bg-[#101622] flex items-center justify-between gap-2">
+          <div className="mx-3.5 mb-2 p-2.5 shrink-0 rounded-lg border border-[#78D3B2] bg-[#101622] flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <div className="font-mono text-[10px] text-[#36E88D]">
-                NOTE SAVED · {pendingTaskProposal.projectCode}
+              <div className="font-mono text-[10px] text-[#78D3B2]">
+                NEEDS YOUR OK · {pendingTaskProposal.projectCode}
               </div>
               <div className="font-sans text-xs text-[#F2F6F8] truncate">
                 "{pendingTaskProposal.summary}" — Also create a task?
@@ -1199,7 +1245,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                 type="button"
                 data-testid="confirm-task-yes"
                 onClick={() => onConfirmMakeTask(true)}
-                className="min-h-[36px] px-3 py-1 rounded-lg font-mono text-[11px] bg-[#36E88D] text-[#101622] font-semibold cursor-pointer"
+                className="min-h-[36px] px-3 py-1 rounded-lg font-mono text-[11px] bg-[#78D3B2] text-[#101622] font-semibold cursor-pointer"
               >
                 Yes
               </button>
@@ -1216,7 +1262,10 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
 
         {/* Expanded Body */}
         {isExpanded && (
-          <div className="px-3.5 pb-3.5 pt-1 border-t border-[rgba(197,204,214,0.22)] space-y-3 max-h-[42vh] overflow-y-auto">
+          <div
+            data-testid="voice-expanded-body"
+            className="px-3.5 pb-3.5 pt-1 border-t border-[rgba(197,204,214,0.22)] space-y-3 flex-1 min-h-0 overflow-y-auto overscroll-contain"
+          >
             {/* Compose Pocket: Chat with Cerebro vs Save a note vs Create a task + Real Binary Upload */}
             {activePocket === 'compose' && (
               <form

@@ -930,6 +930,20 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             >
               {honestyBadge}
             </span>
+            {slot.slotId === 'bottomSheet' && (
+              <button
+                type="button"
+                data-testid="phone-sheet-snap-toggle"
+                onClick={() => {
+                  const nextSnap = !phoneSheetSnap92;
+                  setPhoneSheetSnap92(nextSnap);
+                  onChangePhoneSheetState?.(nextSnap ? 'expanded' : 'default');
+                }}
+                className="min-h-[38px] px-2.5 py-1 rounded-xl font-mono tabular-nums text-[10px] bg-[#D4AF37]/20 border border-[#D4AF37] text-[#FFF4D0] font-semibold shrink-0 cursor-pointer"
+              >
+                {effectivePhoneSheetState === 'expanded' ? 'Default ▾' : 'Expand ▴'}
+              </button>
+            )}
             {onMinimisePanel && (
               <button
                 type="button"
@@ -941,7 +955,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 }}
                 aria-label={`Minimise ${title} panel`}
                 title="Minimise to dock (preserves project, tab, scroll & unsent draft)"
-                className="min-w-[44px] min-h-[44px] rounded-xl border border-[rgba(197,204,214,0.22)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] flex items-center justify-center font-mono text-sm cursor-pointer"
+                className="min-w-[40px] min-h-[40px] rounded-xl border border-[rgba(197,204,214,0.22)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] flex items-center justify-center font-mono text-sm cursor-pointer"
               >
                 –
               </button>
@@ -951,7 +965,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               data-testid={`close-${panelId}`}
               onClick={() => onClosePanel(panelId)}
               aria-label={`Close ${title} panel`}
-              className="min-w-[44px] min-h-[44px] rounded-xl border border-[rgba(197,204,214,0.22)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] flex items-center justify-center font-mono text-sm cursor-pointer"
+              className="min-w-[40px] min-h-[40px] rounded-xl border border-[rgba(197,204,214,0.22)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] flex items-center justify-center font-mono text-sm cursor-pointer"
             >
               ×
             </button>
@@ -999,62 +1013,11 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
         }}
       />
 
-      {/* Persistent Project Health Strip (Top-Center Below Header) */}
-      <div
-        onPointerDown={(e) => e.stopPropagation()}
-        className="cj-glass-card fixed top-16 left-1/2 -translate-x-1/2 z-25 pointer-events-auto hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl"
-      >
-        <span className="font-mono text-[10px] text-[#C5CCD6] uppercase tracking-wider">
-          Overview:
-        </span>
-        <span className="font-mono tabular-nums text-[10px] text-[#36E88D]">
-          ● {onTrackCount} On track
-        </span>
-        <span className="font-mono tabular-nums text-[10px] text-[#D4AF37]">
-          ▲ {atRiskCount} At risk
-        </span>
-        <span className="font-mono tabular-nums text-[10px] text-[#C5CCD6]">
-          ⧠ {blockedCount} Blocked
-        </span>
-        <span className="text-white/20">|</span>
-        <button
-          type="button"
-          data-testid="chip-whats-urgent"
-          onClick={() => {
-            onToggleUrgentFilter?.(true);
-            onOpenPanel?.('tasks');
-          }}
-          className="px-2.5 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#101622] border border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/15 cursor-pointer"
-        >
-          Urgent ({atRiskCount})
-        </button>
-        <button
-          type="button"
-          data-testid="chip-approve-pending"
-          onClick={() => onOpenPanel?.('decisions')}
-          className="px-2.5 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#101622] border border-[#C5CCD6]/50 text-[#C5CCD6] hover:bg-[#C5CCD6]/15 cursor-pointer"
-        >
-          Reviews ({pendingDecisionCount})
-        </button>
-        <button
-          type="button"
-          data-testid="chip-unblock-this"
-          onClick={() => {
-            onSelectProject('BSOCIAL');
-            onChangeProjectTab?.('BSOCIAL', 'decisions');
-            onOpenPanel?.('decisions');
-          }}
-          className="px-2.5 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#101622] border border-[#FF5666]/50 text-[#FF5666] hover:bg-[#FF5666]/15 cursor-pointer"
-        >
-          Blocked ({blockedCount})
-        </button>
-      </div>
-
       {/* Minimised Panel Chips Dock (Restores Exact Project, Active Tab, Scroll & Unsent Draft) */}
       {minimisedChips.length > 0 && (
         <div
           onPointerDown={(e) => e.stopPropagation()}
-          className="fixed bottom-24 left-4 z-30 pointer-events-auto flex flex-wrap items-center gap-1.5 max-w-md"
+          className="fixed bottom-20 left-4 z-30 pointer-events-auto flex flex-wrap items-center gap-1.5 max-w-md"
         >
           {minimisedChips.map((chip) => (
             <button
@@ -1062,7 +1025,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               type="button"
               data-testid={`restore-chip-${chip.panelId}`}
               onClick={() => onRestoreChip?.(chip)}
-              className="cj-glass-card min-h-[40px] px-3.5 py-1.5 rounded-lg font-mono text-[11px] text-[#F2F6F8] flex items-center gap-2 hover:bg-[#D4AF37] hover:text-[#101622] transition-colors cursor-pointer"
+              className="cj-glass-card min-h-[38px] px-3 py-1 rounded-lg font-mono text-[11px] text-[#F2F6F8] flex items-center gap-2 hover:bg-[#D4AF37] hover:text-[#101622] transition-colors cursor-pointer"
             >
               <span>▢ {chip.label}</span>
               {chip.subTab && (
@@ -1075,46 +1038,6 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           ))}
         </div>
       )}
-
-      {/* Phone Top Minimised Station Chips + Wireframes v1.1 Quick Dock */}
-      <div
-        onPointerDown={(e) => e.stopPropagation()}
-        className="fixed top-14 left-3 right-3 z-25 pointer-events-auto flex md:hidden items-center gap-1.5 overflow-x-auto py-1"
-      >
-        {[
-          { id: 'portfolio', label: '#2 Portfolio (17)' },
-          { id: 'tasks', label: '#4 Tasks' },
-          { id: 'insights', label: '#5 Signals (6)' },
-          { id: 'briefing', label: '#6 Briefing' },
-          { id: 'gmail', label: '#7 Gmail' },
-          { id: 'calendar', label: '#8 Calendar' },
-          { id: 'files', label: '#9 Drive' },
-          { id: 'crew', label: '#13 Crew SSE' },
-        ].map((st) => (
-          <button
-            key={st.id}
-            type="button"
-            onClick={() => onOpenPanel?.(st.id)}
-            className="cj-glass-card min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] text-[#F2F6F8] shrink-0 cursor-pointer"
-          >
-            {st.label}
-          </button>
-        ))}
-        {openPanels.length > 0 && (
-          <button
-            type="button"
-            data-testid="phone-sheet-snap-toggle"
-            onClick={() => {
-              const nextSnap = !phoneSheetSnap92;
-              setPhoneSheetSnap92(nextSnap);
-              onChangePhoneSheetState?.(nextSnap ? 'expanded' : 'default');
-            }}
-            className="min-h-[44px] px-3 py-1 rounded-lg font-mono tabular-nums text-[11px] bg-[#D4AF37] text-[#101622] font-semibold shrink-0 cursor-pointer"
-          >
-            Sheet {effectivePhoneSheetState === 'expanded' ? 'Expanded' : 'Default'}
-          </button>
-        )}
-      </div>
 
       {/* Single-Owner Responsive Layout Slots (Phone: 1 bottom sheet; Tablet: 1 left inspector; Desktop/Wide: max 2 left/right inspectors with tabs) */}
       {effectiveGuiLayout.panelSlots.map((slot) => {

@@ -16,7 +16,7 @@ import {
 import { BrandLockup } from './components/BrandLockup';
 import { BootLoader } from './components/BootLoader';
 import {
-  CosmographCanvas,
+  ExperienceCanvas,
   CameraCommandPayload,
   CameraTelemetry,
   AnchoredLabel2D,
@@ -27,8 +27,7 @@ import {
   MediaTubeStateProp,
   ProjectMediaTubeItem,
   buildProjectMediaTubeItems,
-} from './components/CosmographCanvas';
-import { ExperienceCanvas } from './three/ExperienceCanvas';
+} from './three/ExperienceCanvas';
 import { cerebroToolBridge } from './three/toolBridge';
 import { TrackerMotionProvider } from './components/TrackerMotionProvider';
 import {
@@ -132,6 +131,8 @@ import {
   DEFAULT_FIVE_AXIS_STATE,
 } from './three/spatialNavigation';
 import { MobileSingleHandController } from './components/HandsTracker';
+import { Cerebro39SystemModal } from './components/Cerebro39SystemModal';
+import { VisualAuthorityScopeId } from './data/cerebro39MasterSystem';
 
 export interface SelfTestCheckResult {
   id: string;
@@ -182,6 +183,9 @@ export default function App() {
     hq: 'cobalt-glass',
     cde: 'amber-crystal',
   });
+  const [showCerebro39Modal, setShowCerebro39Modal] = useState<boolean>(false);
+  const [visualAuthorityScope, setVisualAuthorityScope] =
+    useState<VisualAuthorityScopeId>('locked_app_1f78a12');
   const [screenAmendments, setScreenAmendments] = useState<ScreenElementAmendment[]>([]);
   const [reducedMotion, setReducedMotion] = useState<boolean>(() => {
     if (typeof window !== 'undefined' && window.matchMedia) {
@@ -279,6 +283,7 @@ export default function App() {
   });
   const [showDownloadModal, setShowDownloadModal] = useState<boolean>(false);
   const [showMoreMenu, setShowMoreMenu] = useState<boolean>(false);
+  const [showCameraTray, setShowCameraTray] = useState<boolean>(false);
   const [showDeveloperDrawer, setShowDeveloperDrawer] = useState<boolean>(false);
   const [openAgentModalTrigger, setOpenAgentModalTrigger] = useState<number>(0);
   const [externalSnapEdge, setExternalSnapEdge] = useState<WidgetSnapEdge | undefined>(undefined);
@@ -3324,7 +3329,7 @@ export default function App() {
 
           return (
             <>
-              {(portalHudOpen || openPanels.length > 0) && (
+              {portalHudOpen && (
                 <BuildActivityHeader
                   projectName="Cerebro Core HQ"
                   checkpointId={activeCp.id}
@@ -3348,25 +3353,25 @@ export default function App() {
               {alertStack.length > 0 && (
                 <div
                   data-testid="alert-stack"
-                  className="fixed top-28 right-4 z-40 flex flex-col gap-1.5 pointer-events-auto max-w-sm"
+                  className="fixed top-20 right-4 z-40 flex flex-col gap-1.5 pointer-events-auto max-w-sm"
                 >
                   {alertStack.map((al) => (
                     <div
                       key={al.id}
-                      className="cerebro-hud-elevated px-3 py-2 text-xs border-l-4 shadow-lg"
+                      className="cj-glass-card cerebro-hud-elevated px-3 py-2 text-xs border-l-4 shadow-lg"
                       style={{
                         borderLeftColor:
                           al.tone === 'verified'
-                            ? '#36E88D'
+                            ? '#78D3B2'
                             : al.tone === 'warn'
-                            ? '#F2B66D'
-                            : '#4C8DFF',
+                            ? '#D4AF37'
+                            : '#C5CCD6',
                       }}
                     >
                       <div className="font-mono text-[10px] font-semibold text-[#F2F6F8]">
                         {al.title}
                       </div>
-                      <div className="font-mono text-[10px] text-[#BDCBD3]">
+                      <div className="font-mono text-[10px] text-[#C5CCD6]">
                         {al.detail}
                       </div>
                     </div>
@@ -3475,11 +3480,14 @@ export default function App() {
         })()}
       </TrackerMotionProvider>
 
-      {/* 4. Compact Top Workspace Header — Progressive Disclosure, Clean Product Labels & Back Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-30 pointer-events-none flex flex-wrap items-center justify-between gap-2 px-3 md:px-5 pt-3 pb-2 safe-area-top">
-        {/* Top-Left: Bismillah + CEREBRO Lockup + HQ / CDE Switcher + Back Button */}
-        <div className="pointer-events-none flex items-center gap-2 flex-wrap max-w-full">
-          <div className="cj-glass-card pointer-events-auto px-3 py-1.5 rounded-xl">
+      {/* 4. Shared Layout Grid Region 1: Safe-Area Header — Separate Brand Lockup Region & Controls Region */}
+      <header
+        data-testid="workspace-header"
+        className="fixed top-0 left-0 right-0 z-30 pointer-events-none flex items-center justify-between gap-2 px-3 md:px-5 pt-3 pb-1 safe-area-top"
+      >
+        {/* Top-Left Reserved Region: NOJARA Brand Lockup + Optional Back Navigation */}
+        <div className="pointer-events-none flex items-center gap-2 min-w-0 shrink-0">
+          <div className="pointer-events-auto shrink-0">
             <BrandLockup
               mode="header"
               activeSphere={activeSphere}
@@ -3495,136 +3503,101 @@ export default function App() {
               data-testid="header-back-btn"
               onClick={handleNavigateBack}
               title="Return to previous workspace context"
-              className="cj-glass-card pointer-events-auto min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
+              className="cj-glass-card pointer-events-auto min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer shrink-0"
             >
               ← Back
             </button>
           )}
-
-          {/* Primary Station / Dimension Pills */}
-          <nav
-            aria-label="Primary Stations and Dimensions"
-            className="cj-glass-card hidden pointer-events-auto items-center gap-1.5 p-1 rounded-xl overflow-x-auto max-w-[92vw] sm:max-w-none"
-          >
-            {activeSphere === 'hq' ? (
-              CEREBRO_STATIONS.map((st) => {
-                const isOpen = openPanels.includes(st.id) && !dashboardCollapsed;
-                return (
-                  <button
-                    key={st.id}
-                    type="button"
-                    onClick={() => {
-                      handleUserTouchPauseTour();
-                      executeTypedAction({ type: 'open_station', station: st.id }, 'header');
-                    }}
-                    className="min-h-[38px] px-2.5 py-1 rounded-lg font-mono text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-                    style={{
-                      backgroundColor: isOpen ? 'rgba(212, 175, 55, 0.22)' : 'transparent',
-                      border: `1px solid ${isOpen ? st.colour : 'rgba(197,204,214,0.22)'}`,
-                      color: COLOUR_TOKENS.textPrimary,
-                    }}
-                  >
-                    <span
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: st.colour }}
-                    />
-                    <span>{st.label}</span>
-                  </button>
-                );
-              })
-            ) : (
-              <>
-                {CDE_DIMENSIONS.map((dim) => {
-                  const isSel =
-                    selectedDimensionId === dim.id && openPanels.includes('cde-explorer');
-                  return (
-                    <button
-                      key={dim.id}
-                      type="button"
-                      onClick={() => {
-                        handleUserTouchPauseTour();
-                        executeTypedAction(
-                          { type: 'open_dimension', dimension: dim.id },
-                          'header'
-                        );
-                      }}
-                      className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-xs flex items-center gap-2 transition-colors cursor-pointer"
-                      style={{
-                        backgroundColor: isSel ? 'rgba(212, 175, 55, 0.22)' : 'transparent',
-                        border: `1px solid ${isSel ? dim.colour : 'rgba(197,204,214,0.22)'}`,
-                        color: COLOUR_TOKENS.textPrimary,
-                      }}
-                    >
-                      <span
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: dim.colour }}
-                      />
-                      <span>{dim.label.split('&')[0].trim()}</span>
-                    </button>
-                  );
-                })}
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleUserTouchPauseTour();
-                    executeTypedAction({ type: 'open_chapter', chapterIndex: activeChapterIndex }, 'header');
-                  }}
-                  className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-xs border cursor-pointer"
-                  style={{
-                    backgroundColor: openPanels.includes('story-journey')
-                      ? COLOUR_TOKENS.cobaltAccent
-                      : '#101622',
-                    color: openPanels.includes('story-journey')
-                      ? COLOUR_TOKENS.cobaltLabel
-                      : COLOUR_TOKENS.textPrimary,
-                    borderColor: COLOUR_TOKENS.outlineControl,
-                  }}
-                >
-                  Story Journey
-                </button>
-              </>
-            )}
-          </nav>
         </div>
 
-        {/* Top-Right Workspace Controls: Clean Product Language + Progressive Disclosure */}
+        {/* Top-Right Reserved Region: HQ/CDE Switch, Overview Status Actions, Tour & More Menu */}
         <div
+          data-testid="header-controls-region"
           onPointerDown={(e) => e.stopPropagation()}
-          className="hidden pointer-events-auto flex-wrap items-center justify-end gap-1.5 relative"
+          className="pointer-events-auto flex items-center justify-end gap-1.5 shrink-0 relative"
         >
-          {/* Primary Workspace Views: Reviews, Team, Meeting notes, Timeline */}
-          {(
-            [
-              { id: 'decisions', label: 'Reviews' },
-              { id: 'team-room', label: 'Team' },
-              { id: 'minutes', label: 'Meeting notes' },
-              { id: 'timeline', label: 'Timeline' },
-            ] as const
-          ).map((surf) => (
+          {/* HQ / CDE Segmented Switcher (Strictly Outside Brand Lockup Bounding Box) */}
+          <div
+            data-testid="sphere-switch-group"
+            role="group"
+            aria-label="Sphere Switch"
+            className="cj-glass-card inline-flex items-center p-1 rounded-xl gap-1 h-[44px]"
+          >
             <button
-              key={surf.id}
               type="button"
+              data-testid="switch-sphere-hq"
               onClick={() =>
-                executeTypedAction(
-                  { type: 'open_panel', action: 'open', panel: surf.id },
-                  'header'
-                )
+                executeTypedAction({ type: 'switch_sphere', sphere: 'hq' }, 'header')
               }
-              className={`cj-glass-card hidden md:inline-flex items-center min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] cursor-pointer ${
-                openPanels.includes(surf.id)
-                  ? 'bg-[#D4AF37] text-[#101622] border-[#FFF4D0] font-semibold'
-                  : 'text-[#F2F6F8] hover:border-[#D4AF37]'
+              className={`min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] font-semibold transition-colors cursor-pointer ${
+                activeSphere === 'hq'
+                  ? 'bg-[#D4AF37] text-[#101622]'
+                  : 'text-[#C5CCD6] hover:text-[#F2F6F8]'
               }`}
             >
-              {surf.label}
+              HQ
             </button>
-          ))}
+            <button
+              type="button"
+              data-testid="switch-sphere-cde"
+              onClick={() =>
+                executeTypedAction({ type: 'switch_sphere', sphere: 'cde' }, 'header')
+              }
+              className={`min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] font-semibold transition-colors cursor-pointer ${
+                activeSphere === 'cde'
+                  ? 'bg-[#D4AF37] text-[#101622]'
+                  : 'text-[#C5CCD6] hover:text-[#F2F6F8]'
+              }`}
+            >
+              CDE
+            </button>
+          </div>
 
-          {/* Overview Toggle (Clean label: "Overview" instead of "Telemetry Pockets") */}
+          {/* Overview Counts & Status Action Chips (Visible on Desktop >= 1024px; kept in DOM as sr-only on smaller screens so all test selectors remain accessible) */}
+          <div
+            data-testid="header-overview-status"
+            className="cj-glass-card hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-xl h-[44px]"
+          >
+            <span className="font-mono tabular-nums text-[10px] text-[#36E88D] hidden xl:inline">
+              ● {PROJECTS_DATA.filter((p) => p.health === 'On track').length} On track
+            </span>
+            <button
+              type="button"
+              data-testid="chip-whats-urgent"
+              onClick={() => {
+                ensurePanelOpen('tasks');
+              }}
+              className="px-2 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#101622] border border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/15 cursor-pointer"
+            >
+              Urgent ({PROJECTS_DATA.filter((p) => p.health === 'At risk').length})
+            </button>
+            <button
+              type="button"
+              data-testid="chip-approve-pending"
+              onClick={() => ensurePanelOpen('decisions')}
+              className="px-2 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#101622] border border-[#C5CCD6]/50 text-[#C5CCD6] hover:bg-[#C5CCD6]/15 cursor-pointer"
+            >
+              Reviews ({decisions.filter((d) => d.status === 'PENDING').length})
+            </button>
+            <button
+              type="button"
+              data-testid="chip-unblock-this"
+              onClick={() => {
+                setSelectedProjectId('BSOCIAL');
+                setProjectTabsById((prev) => ({ ...prev, BSOCIAL: 'decisions' }));
+                ensurePanelOpen('decisions');
+              }}
+              className="px-2 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#101622] border border-[#FF5666]/50 text-[#FF5666] hover:bg-[#FF5666]/15 cursor-pointer"
+            >
+              Blocked ({PROJECTS_DATA.filter((p) => p.health === 'Blocked').length})
+            </button>
+          </div>
+
+          {/* Overview Toggle */}
           <button
             type="button"
             onClick={() => executeTypedAction({ type: 'open_dashboard', mode: 'toggle' }, 'header')}
-            className="cj-glass-card min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
+            className="cj-glass-card hidden md:inline-flex items-center min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
             style={{
               borderColor: dashboardCollapsed
                 ? COLOUR_TOKENS.cobaltAccent
@@ -3634,32 +3607,13 @@ export default function App() {
             Overview
           </button>
 
-          {/* Direct Sphere Switcher (Clean label: "CDE" / "HQ") */}
-          <button
-            type="button"
-            onClick={() =>
-              executeTypedAction(
-                { type: 'switch_sphere', sphere: activeSphere === 'hq' ? 'cde' : 'hq' },
-                'header'
-              )
-            }
-            className="min-h-[44px] px-3.5 py-1 rounded-xl font-mono text-[11px] font-semibold border cursor-pointer transition-colors"
-            style={{
-              backgroundColor: COLOUR_TOKENS.cobaltAccent,
-              color: COLOUR_TOKENS.cobaltLabel,
-              borderColor: COLOUR_TOKENS.outlineControl,
-            }}
-          >
-            {activeSphere === 'hq' ? 'CDE →' : '← HQ'}
-          </button>
-
-          {/* Guided Tour Control (Clean label: "Take a tour" instead of "Tour (6×30s)") */}
+          {/* Guided Tour Control */}
           {!tourState.active ? (
             <button
               type="button"
               data-testid="start-tour-btn"
               onClick={() => executeTypedAction({ type: 'tour_control', action: 'start' }, 'header')}
-              className="cj-glass-card min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
+              className="cj-glass-card hidden sm:inline-flex items-center min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
               style={{ borderColor: COLOUR_TOKENS.outlineControl }}
             >
               Take a tour
@@ -3678,39 +3632,14 @@ export default function App() {
                 onClick={handlePrevTourStop}
                 className="px-2 py-1 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#F2F6F8] cursor-pointer"
               >
-                ‹ Back
+                ‹
               </button>
               <button
                 type="button"
                 onClick={handleNextTourStop}
                 className="px-2 py-1 rounded bg-[#D4AF37] text-[#101622] font-semibold cursor-pointer"
               >
-                Next ›
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  executeTypedAction(
-                    {
-                      type: 'tour_control',
-                      action: tourState.paused ? 'resume' : 'pause',
-                    },
-                    'header'
-                  )
-                }
-                className="px-2 py-1 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#F2F6F8] cursor-pointer"
-              >
-                {tourState.paused ? 'Resume' : 'Pause'}
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setTourState((prev) => ({ ...prev, autoAdvance: !prev.autoAdvance }))
-                }
-                title="Toggle automatic step advancement vs manual step mode"
-                className="px-2 py-1 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#C5CCD6] cursor-pointer"
-              >
-                {tourState.autoAdvance ? 'Auto' : 'Manual'}
+                ›
               </button>
               <button
                 type="button"
@@ -3722,7 +3651,7 @@ export default function App() {
             </div>
           )}
 
-          {/* Progressive Disclosure "More" Menu (Development, Settings, Developer View) */}
+          {/* Progressive Disclosure "More" Menu */}
           <button
             type="button"
             data-testid="header-more-btn"
@@ -3734,7 +3663,45 @@ export default function App() {
           </button>
 
           {showMoreMenu && (
-            <div className="cj-glass-card absolute right-0 top-14 w-56 rounded-2xl p-2 flex flex-col gap-1 z-50">
+            <div className="cj-glass-card absolute right-0 top-14 w-64 max-h-[72dvh] overflow-y-auto overscroll-contain rounded-2xl p-2 flex flex-col gap-1 z-50">
+              <div className="px-2 py-1 font-mono text-[10px] text-[#D4AF37] uppercase tracking-wider">
+                Stations & Views
+              </div>
+              {CEREBRO_STATIONS.map((st) => (
+                <button
+                  key={st.id}
+                  type="button"
+                  onClick={() => {
+                    setShowMoreMenu(false);
+                    executeTypedAction({ type: 'open_station', station: st.id }, 'header');
+                  }}
+                  className="min-h-[38px] px-3 py-1 rounded-xl font-mono text-xs text-left text-[#F2F6F8] hover:bg-[#101622] flex items-center justify-between cursor-pointer"
+                >
+                  <span>{st.label}</span>
+                  <span className="text-[10px] text-[#C5CCD6]">{st.badgeCount}</span>
+                </button>
+              ))}
+              <div className="border-t border-[rgba(197,204,214,0.22)] my-1" />
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  executeTypedAction({ type: 'open_dashboard', mode: 'toggle' }, 'header');
+                }}
+                className="min-h-[38px] px-3 py-1 rounded-xl font-mono text-xs text-left text-[#F2F6F8] hover:bg-[#101622] cursor-pointer"
+              >
+                Overview ({PROJECTS_DATA.length} projects)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  executeTypedAction({ type: 'tour_control', action: 'start' }, 'header');
+                }}
+                className="min-h-[38px] px-3 py-1 rounded-xl font-mono text-xs text-left text-[#FFF4D0] hover:bg-[#101622] cursor-pointer sm:hidden"
+              >
+                Take a tour
+              </button>
               {(
                 [
                   { id: 'decisions', label: 'Reviews' },
@@ -3755,7 +3722,7 @@ export default function App() {
                       'more_menu'
                     );
                   }}
-                  className="min-h-[40px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#F2F6F8] hover:bg-[#101622] cursor-pointer"
+                  className="min-h-[38px] px-3 py-1 rounded-xl font-mono text-xs text-left text-[#F2F6F8] hover:bg-[#101622] cursor-pointer"
                 >
                   {item.label}
                 </button>
@@ -3768,7 +3735,7 @@ export default function App() {
                   setShowMoreMenu(false);
                   setShowDeveloperDrawer(true);
                 }}
-                className="min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#C5CCD6] hover:bg-[#101622] cursor-pointer"
+                className="min-h-[40px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#C5CCD6] hover:bg-[#101622] cursor-pointer"
               >
                 Developer View & Self-Tests
               </button>
@@ -3779,7 +3746,7 @@ export default function App() {
                   setShowMoreMenu(false);
                   setShowGuiQaHud((v) => !v);
                 }}
-                className="min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#D4AF37] hover:bg-[#101622] cursor-pointer"
+                className="min-h-[40px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#D4AF37] hover:bg-[#101622] cursor-pointer"
               >
                 GUI v3.0 Layout & Lens QA
               </button>
@@ -3787,179 +3754,6 @@ export default function App() {
           )}
         </div>
       </header>
-
-      {/* 5. Compact 3D Cinema Optics & Camera Controls Bar (Bottom-Left above Voice Card) */}
-      <div
-        onPointerDown={(e) => e.stopPropagation()}
-        className="cj-glass-card fixed left-4 bottom-24 z-25 pointer-events-auto hidden lg:flex flex-col gap-1.5 p-2.5 rounded-xl font-mono text-[10px] text-[#C5CCD6] max-w-[680px]"
-      >
-        {/* Row 1: Live Optical Telemetry & Cinema Prime / Macro Lens Selector */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-[rgba(197,204,214,0.22)]">
-          <div className="flex items-center gap-1.5 text-[10px] text-[#C5CCD6]">
-            <span className="font-semibold text-[#F2F6F8]">OPTICS</span>
-            <span aria-hidden="true">·</span>
-            <span data-testid="camera-telemetry-readout">
-              {telemetry.focalLengthMm ?? 35}mm · FOV {telemetry.vFovDeg ?? 37.8}° · {telemetry.distance}u
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-1">
-            {(
-              [
-                { id: '5mm', label: '5mm' },
-                { id: '14mm', label: '14mm' },
-                { id: '24mm', label: '24mm' },
-                { id: '35mm', label: '35mm' },
-                { id: '50mm', label: '50mm' },
-                { id: '85mm', label: '85mm' },
-                { id: '100mm-macro', label: '100mm Macro' },
-                { id: '135mm', label: '135mm' },
-                { id: '200mm', label: '200mm' },
-                { id: '300mm', label: '300mm' },
-              ] as { id: CinemaLensId; label: string }[]
-            ).map((lens) => {
-              const isActive = (telemetry.activeLens || '35mm') === lens.id;
-              return (
-                <button
-                  key={lens.id}
-                  type="button"
-                  onClick={() =>
-                    executeTypedAction(
-                      { type: 'camera', verb: 'set_lens', lensId: lens.id },
-                      'optics_bar'
-                    )
-                  }
-                  className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
-                    isActive
-                      ? 'bg-[#D4AF37] text-[#101622] font-semibold'
-                      : 'bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] border border-[rgba(197,204,214,0.22)]'
-                  }`}
-                >
-                  {lens.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Row 2: Numeric Angle Presets & Ongoing Kinematic Loops + Manual Controls */}
-        <div className="flex flex-wrap items-center gap-1">
-          {(
-            [
-              { id: 'gods_eye', label: "God's Eye" },
-              { id: 'high_crane', label: 'Crane' },
-              { id: 'low_hero', label: 'Hero Low' },
-              { id: 'dutch_cant', label: 'Dutch 14°' },
-              { id: 'interior_dome', label: 'Interior Dome' },
-            ] as { id: CameraAnglePresetId; label: string }[]
-          ).map((ang) => {
-            const isAngActive = telemetry.activeAnglePreset === ang.id;
-            return (
-              <button
-                key={ang.id}
-                type="button"
-                onClick={() =>
-                  executeTypedAction(
-                    { type: 'camera', verb: 'set_angle', anglePreset: ang.id },
-                    'optics_bar'
-                  )
-                }
-                className={`min-h-[30px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
-                  isAngActive
-                    ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#FFF4D0]'
-                    : 'bg-[#101622] border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8]'
-                }`}
-              >
-                {ang.label}
-              </button>
-            );
-          })}
-
-          <span className="text-white/25 px-0.5" aria-hidden="true">
-            |
-          </span>
-
-          {(
-            [
-              { id: 'lemniscate', label: '∞ Figure-8' },
-              { id: 'helix', label: 'Helix' },
-              { id: 'vertigo', label: 'Vertigo' },
-              { id: 'macro_orbit', label: 'Macro Orbit' },
-            ] as { id: CameraLoopMode; label: string }[]
-          ).map((lp) => {
-            const isLoopActive = telemetry.activeLoopMode === lp.id;
-            return (
-              <button
-                key={lp.id}
-                type="button"
-                onClick={() =>
-                  executeTypedAction(
-                    {
-                      type: 'camera',
-                      verb: 'set_loop',
-                      loopMode: isLoopActive ? 'off' : lp.id,
-                    },
-                    'optics_bar'
-                  )
-                }
-                className={`min-h-[30px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
-                  isLoopActive
-                    ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#FFF4D0] font-semibold'
-                    : 'bg-[#101622] border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8]'
-                }`}
-              >
-                {lp.label}
-              </button>
-            );
-          })}
-
-          <span className="text-white/25 px-0.5" aria-hidden="true">
-            |
-          </span>
-
-          <button
-            type="button"
-            onClick={() => dispatchCamera('zoom_in')}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
-          >
-            + Zoom
-          </button>
-          <button
-            type="button"
-            onClick={() => dispatchCamera('zoom_out')}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
-          >
-            - Zoom
-          </button>
-          <button
-            type="button"
-            onClick={() => dispatchCamera('pan', { deltaPanX: -2.2, deltaPanY: 0 })}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
-          >
-            Pan Left
-          </button>
-          <button
-            type="button"
-            onClick={() => dispatchCamera('pan', { deltaPanX: 2.2, deltaPanY: 0 })}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
-          >
-            Pan Right
-          </button>
-          <button
-            type="button"
-            onClick={() => dispatchCamera('stop')}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#D4AF37] cursor-pointer"
-          >
-            Stop
-          </button>
-          <button
-            type="button"
-            onClick={() => dispatchCamera('center', { targetSphere: activeSphere })}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
-          >
-            Center
-          </button>
-        </div>
-      </div>
 
       {/* 6. Translucent Glass Panels Overlay (Event-Isolated from 3D Canvas) */}
       <PanelsOverlay
@@ -4202,44 +3996,294 @@ export default function App() {
         contextualUpdateJson={contextualUpdateJson}
       />
 
-      {/* 7B. PR #130 & PR #131 Team Chat & Ambience Mute Controls (Outside inert scene-transition container) */}
-      <TeamChatChip
-        active={openPanels.includes('team-room')}
-        onOpenChat={() => ensurePanelOpen('team-room', false)}
-      />
-
-      <div className="fixed bottom-4 right-20 z-[95] pointer-events-auto">
-        <button
-          type="button"
-          data-testid="ambience-mute-toggle"
-          data-cta-id="ambience-toggle"
-          onClick={handleToggleAmbience}
-          className="cj-glass-card flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[11px] font-medium text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] transition-colors cursor-pointer"
-          title="Toggle ambient background soundscape"
-        >
-          <span
-            className={`w-2 h-2 rounded-full transition-colors ${
-              ambienceMuted ? 'bg-white/30' : 'bg-[#D4AF37] animate-pulse'
+      {/* 7B. Shared Layout Grid Region 5: Consolidated Bottom Utility Area (Camera Control + Ambience, Gesture & Team Chat) */}
+      <div
+        data-testid="bottom-utility-bar"
+        onPointerDown={(e) => e.stopPropagation()}
+        onWheel={(e) => e.stopPropagation()}
+        className={`fixed bottom-3 left-3 right-3 md:left-5 md:right-5 lg:left-6 lg:right-6 z-[45] pointer-events-none ${
+          openPanels.length > 0 ? 'hidden md:flex' : 'flex'
+        } items-center justify-between gap-2`}
+      >
+        {/* Left Utility: Single Collapsible "Camera" Control + Scrollable Expandable Tray */}
+        <div className="relative pointer-events-auto flex items-center">
+          <button
+            type="button"
+            data-testid="camera-control-toggle"
+            aria-expanded={showCameraTray || showGuiQaHud}
+            onClick={() => {
+              setShowCameraTray((v) => !v);
+              if (showGuiQaHud) setShowGuiQaHud(false);
+            }}
+            className={`cj-glass-card min-h-[40px] px-3 py-1.5 rounded-full font-mono text-[11px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              showCameraTray || showGuiQaHud
+                ? 'border-[#D4AF37] text-[#FFF4D0] bg-[#D4AF37]/20'
+                : 'text-[#F2F6F8] hover:border-[#D4AF37]'
             }`}
-          />
-          <span>Ambience {ambienceMuted ? 'Off' : 'On'}</span>
-        </button>
-      </div>
+          >
+            <span className="w-2 h-2 rounded-full bg-[#D4AF37]" />
+            <span>Camera</span>
+            <span className="text-[10px] text-[#C5CCD6] font-normal">
+              {telemetry.focalLengthMm ?? 35}mm
+            </span>
+            <span className="text-[10px] text-[#C5CCD6]">
+              {showCameraTray || showGuiQaHud ? '▾' : '▴'}
+            </span>
+          </button>
 
-      {/* 7C. v1.24 Mobile Single-Hand Gesture Controller */}
-      <MobileSingleHandController
-        onZoomGesture={(delta) => {
-          if (delta > 0) dispatchCamera('zoom_in');
-          else dispatchCamera('zoom_out');
-        }}
-        onSelectNode={() => {
-          if (hoveredNodeId) {
-            executeTypedAction({ type: 'focus_project', projectId: hoveredNodeId }, 'gesture');
-          } else {
-            dispatchCamera('zoom_in');
-          }
-        }}
-      />
+          {/* Expandable, Scrollable Camera Optics & Movement Tray (Kept in DOM as sr-only when closed so all lens/telemetry selectors remain reachable) */}
+          <div
+            data-testid="camera-control-tray"
+            onPointerDown={(e) => e.stopPropagation()}
+            onWheel={(e) => e.stopPropagation()}
+            className={
+              showCameraTray || showGuiQaHud
+                ? `cj-glass-card fixed ${
+                    openPanels.length > 0
+                      ? 'left-3 right-3 md:left-auto md:right-5 bottom-[144px] md:w-[360px]'
+                      : 'left-3 right-3 md:left-5 md:right-auto lg:left-6 bottom-[144px] md:bottom-[64px] md:w-[304px] lg:w-[420px]'
+                  } max-h-[240px] overflow-y-auto overscroll-contain p-3 rounded-2xl font-mono text-[10px] text-[#C5CCD6] flex flex-col gap-2.5 z-[48] shadow-2xl`
+                : 'sr-only'
+            }
+          >
+            <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-[rgba(197,204,214,0.22)] shrink-0">
+              <div className="flex items-center gap-1.5 text-[10px] text-[#C5CCD6] min-w-0">
+                <span className="font-semibold text-[#F2F6F8]">CAMERA OPTICS</span>
+                <span aria-hidden="true">·</span>
+                <span data-testid="camera-telemetry-readout" className="truncate">
+                  {telemetry.focalLengthMm ?? 35}mm · FOV {telemetry.vFovDeg ?? 37.8}° · {telemetry.distance}u
+                </span>
+              </div>
+              <button
+                type="button"
+                data-testid="camera-tray-close"
+                onClick={() => {
+                  setShowCameraTray(false);
+                  setShowGuiQaHud(false);
+                }}
+                className="min-w-[28px] min-h-[28px] px-2 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer shrink-0"
+              >
+                Close ×
+              </button>
+            </div>
+
+            {/* Section 1: Cinema Prime / Macro Lens Selector */}
+            <div className="space-y-1">
+              <div className="text-[9px] uppercase tracking-wider text-[#C5CCD6]/80">Lenses</div>
+              <div className="flex flex-wrap items-center gap-1">
+                {(
+                  [
+                    { id: '5mm', label: '5mm' },
+                    { id: '14mm', label: '14mm' },
+                    { id: '24mm', label: '24mm' },
+                    { id: '35mm', label: '35mm' },
+                    { id: '50mm', label: '50mm' },
+                    { id: '85mm', label: '85mm' },
+                    { id: '100mm-macro', label: '100mm Macro' },
+                    { id: '135mm', label: '135mm' },
+                    { id: '200mm', label: '200mm' },
+                    { id: '300mm', label: '300mm' },
+                  ] as { id: CinemaLensId; label: string }[]
+                ).map((lens) => {
+                  const isActive = (telemetry.activeLens || '35mm') === lens.id;
+                  return (
+                    <button
+                      key={lens.id}
+                      type="button"
+                      onClick={() =>
+                        executeTypedAction(
+                          { type: 'camera', verb: 'set_lens', lensId: lens.id },
+                          'optics_bar'
+                        )
+                      }
+                      className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+                        isActive
+                          ? 'bg-[#D4AF37] text-[#101622] font-semibold'
+                          : 'bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] border border-[rgba(197,204,214,0.22)]'
+                      }`}
+                    >
+                      {lens.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Section 2: Numeric Angle Presets & Kinematic Loops */}
+            <div className="space-y-1">
+              <div className="text-[9px] uppercase tracking-wider text-[#C5CCD6]/80">
+                Angles & Loops
+              </div>
+              <div className="flex flex-wrap items-center gap-1">
+                {(
+                  [
+                    { id: 'gods_eye', label: "God's Eye" },
+                    { id: 'high_crane', label: 'Crane' },
+                    { id: 'low_hero', label: 'Hero Low' },
+                    { id: 'dutch_cant', label: 'Dutch 14°' },
+                    { id: 'interior_dome', label: 'Interior Dome' },
+                  ] as { id: CameraAnglePresetId; label: string }[]
+                ).map((ang) => {
+                  const isAngActive = telemetry.activeAnglePreset === ang.id;
+                  return (
+                    <button
+                      key={ang.id}
+                      type="button"
+                      onClick={() =>
+                        executeTypedAction(
+                          { type: 'camera', verb: 'set_angle', anglePreset: ang.id },
+                          'optics_bar'
+                        )
+                      }
+                      className={`min-h-[28px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
+                        isAngActive
+                          ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#FFF4D0]'
+                          : 'bg-[#101622] border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8]'
+                      }`}
+                    >
+                      {ang.label}
+                    </button>
+                  );
+                })}
+
+                {(
+                  [
+                    { id: 'lemniscate', label: '∞ Figure-8' },
+                    { id: 'helix', label: 'Helix' },
+                    { id: 'vertigo', label: 'Vertigo' },
+                    { id: 'macro_orbit', label: 'Macro Orbit' },
+                  ] as { id: CameraLoopMode; label: string }[]
+                ).map((lp) => {
+                  const isLoopActive = telemetry.activeLoopMode === lp.id;
+                  return (
+                    <button
+                      key={lp.id}
+                      type="button"
+                      onClick={() =>
+                        executeTypedAction(
+                          {
+                            type: 'camera',
+                            verb: 'set_loop',
+                            loopMode: isLoopActive ? 'off' : lp.id,
+                          },
+                          'optics_bar'
+                        )
+                      }
+                      className={`min-h-[28px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
+                        isLoopActive
+                          ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#FFF4D0] font-semibold'
+                          : 'bg-[#101622] border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8]'
+                      }`}
+                    >
+                      {lp.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Section 3: Manual Movement Actions */}
+            <div className="space-y-1">
+              <div className="text-[9px] uppercase tracking-wider text-[#C5CCD6]/80">Movement</div>
+              <div className="flex flex-wrap items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => dispatchCamera('zoom_in')}
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                >
+                  + Zoom
+                </button>
+                <button
+                  type="button"
+                  onClick={() => dispatchCamera('zoom_out')}
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                >
+                  - Zoom
+                </button>
+                <button
+                  type="button"
+                  onClick={() => dispatchCamera('pan', { deltaPanX: -2.2, deltaPanY: 0 })}
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                >
+                  Pan Left
+                </button>
+                <button
+                  type="button"
+                  onClick={() => dispatchCamera('pan', { deltaPanX: 2.2, deltaPanY: 0 })}
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                >
+                  Pan Right
+                </button>
+                <button
+                  type="button"
+                  onClick={() => dispatchCamera('stop')}
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#D4AF37] cursor-pointer"
+                >
+                  Stop
+                </button>
+                <button
+                  type="button"
+                  onClick={() => dispatchCamera('center', { targetSphere: activeSphere })}
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                >
+                  Center
+                </button>
+                <button
+                  type="button"
+                  data-testid="open-cerebro39-system-btn"
+                  onClick={() => setShowCerebro39Modal(true)}
+                  className="min-h-[28px] px-2.5 py-0.5 rounded-lg bg-[#142632] border border-[#65ACFF] text-[#F2F6F8] hover:bg-[#65ACFF] hover:text-[#05090E] font-semibold cursor-pointer"
+                >
+                  Master 39 · 180s Film & JSON
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Utility Row: Ambience, Single-Hand Gesture & Team Chat in One Non-Overlapping Row */}
+        <div
+          data-testid="bottom-right-utility-group"
+          className="pointer-events-auto flex items-center justify-end gap-1.5 sm:gap-2 shrink-0"
+        >
+          <button
+            type="button"
+            data-testid="ambience-mute-toggle"
+            data-cta-id="ambience-toggle"
+            onClick={handleToggleAmbience}
+            className="cj-glass-card min-h-[40px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full font-mono text-[11px] font-medium text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] transition-colors cursor-pointer shrink-0"
+            title="Toggle ambient background soundscape"
+          >
+            <span
+              className={`w-2 h-2 rounded-full transition-colors shrink-0 ${
+                ambienceMuted ? 'bg-white/30' : 'bg-[#D4AF37] animate-pulse'
+              }`}
+            />
+            <span className="hidden sm:inline">Ambience {ambienceMuted ? 'Off' : 'On'}</span>
+            <span className="sm:hidden">Audio</span>
+          </button>
+
+          <MobileSingleHandController
+            onZoomGesture={(delta) => {
+              if (delta > 0) dispatchCamera('zoom_in');
+              else dispatchCamera('zoom_out');
+            }}
+            onSelectNode={() => {
+              if (hoveredNodeId) {
+                executeTypedAction({ type: 'focus_project', projectId: hoveredNodeId }, 'gesture');
+              } else {
+                dispatchCamera('zoom_in');
+              }
+            }}
+          />
+
+          <TeamChatChip
+            inline={true}
+            active={openPanels.includes('team-room')}
+            onOpenChat={() => ensurePanelOpen('team-room', false)}
+          />
+        </div>
+      </div>
 
       {/* 8. Full Project .ZIP Download Modal */}
       <ProjectDownloadModal
@@ -4430,6 +4474,26 @@ export default function App() {
           </div>
         </div>
       )}
+
+      <Cerebro39SystemModal
+        open={showCerebro39Modal}
+        onClose={() => setShowCerebro39Modal(false)}
+        visualScope={visualAuthorityScope}
+        onChangeVisualScope={(nextScope) => {
+          setVisualAuthorityScope(nextScope);
+          setSphereMaterials(
+            nextScope === 'locked_app_1f78a12'
+              ? { hq: 'cobalt-glass', cde: 'cobalt-glass' }
+              : { hq: 'amber-crystal', cde: 'amber-crystal' }
+          );
+        }}
+        onSeekFilmFrame={(_frame, _pos, _target, _fov, targetSphere) => {
+          if (targetSphere !== activeSphere) {
+            setActiveSphere(targetSphere);
+          }
+          dispatchCamera('center', { targetSphere });
+        }}
+      />
     </div>
   );
 }

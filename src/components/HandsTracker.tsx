@@ -56,21 +56,26 @@ export function MobileSingleHandController({
   return (
     <div
       data-testid="mobile-single-hand-controller"
-      className="absolute bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-auto"
+      className="relative flex items-center pointer-events-auto shrink-0"
     >
       {/* Toggle Button */}
       <button
         type="button"
         data-testid="toggle-one-hand-gesture-btn"
         onClick={() => (isCameraActive ? stopCamera() : startHandCamera())}
-        className="cj-glass-card px-4 py-2.5 rounded-xl text-[#FFF4D0] text-sm font-medium flex items-center gap-2 cursor-pointer hover:border-[#D4AF37] transition-colors"
+        className="cj-glass-card min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-full text-[#FFF4D0] font-mono text-[11px] font-medium flex items-center gap-1.5 cursor-pointer hover:border-[#D4AF37] transition-colors shrink-0"
       >
         <span
-          className={`w-2.5 h-2.5 rounded-full ${
+          className={`w-2 h-2 rounded-full shrink-0 ${
             isCameraActive ? 'bg-[#D4AF37] animate-ping' : 'bg-[#C5CCD6]/50'
           }`}
         />
-        {isCameraActive ? 'One-Hand Mode Active' : 'Enable One-Hand Gesture'}
+        <span className="hidden md:inline">
+          {isCameraActive ? 'One-Hand Mode Active' : 'Enable One-Hand Gesture'}
+        </span>
+        <span className="md:hidden">
+          {isCameraActive ? 'Gesture On' : 'Gesture'}
+        </span>
       </button>
 
       {/* Minimalist Semi-Transparent Video & Rigging Overlay */}
@@ -78,7 +83,7 @@ export function MobileSingleHandController({
         <div
           data-testid="single-hand-tracking-overlay"
           onClick={() => onSelectNode?.()}
-          className="cj-glass-card relative w-36 h-48 rounded-2xl overflow-hidden cursor-pointer"
+          className="cj-glass-card absolute bottom-full right-0 mb-2.5 w-36 h-48 rounded-2xl overflow-hidden cursor-pointer z-50"
           title="Tap to trigger node select / pinch to zoom"
         >
           <video

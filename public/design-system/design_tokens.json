@@ -1,0 +1,247 @@
+{
+  "$schema": "https://nojara.studios/schemas/cerebro-39-design-tokens-v2.json",
+  "version": "2.0.0-cerebro39-master",
+  "filmBaselineVersion": "1.0-proposed-film-derived",
+  "d0BaselineVersion": "1.24.0-f24f394",
+  "date": "2026-11-01",
+  "authority": "Uploaded approved Sehly / Cerebro Master Design System (01 Nov 2026) + Documented Source Baseline D0 v1.24 (f24f394)",
+  "reference": {
+    "filename": "9DEE5D03-CBD4-4A67-8F51-3A63D9721984.mp4",
+    "duration": 180,
+    "width": 512,
+    "height": 910,
+    "fps": 30,
+    "frames": 5400,
+    "secondary_24fps_frames": 4320,
+    "library_file_id": "libfile_864d9d15ebd081919c5f96f83683d49d",
+    "source_tokens_sha256": "998287f66f320bcf09eaf6dc0f8b92c716b8d35a891440aa9316a96ca477a60c",
+    "source_css_sha256": "c9fb9fb3c1b557fc31c731cdfc1e924526aaae6973fb54b194db24274b043251",
+    "source_pdf_sha256": "11f9ec1ea0840102a13be1b30df510c1def8ad280f019c76e6701ab3242cfaff"
+  },
+  "status": "The film is the selected visual reference. Reconstruction specs are proposed; no source code or exact fonts recovered from film.",
+  "colors": {
+    "deep": "#05090E",
+    "canvas": "#101D27",
+    "glass": "#142632",
+    "primary": "#F2F6F8",
+    "secondary": "#D0DCE3",
+    "muted": "#BDCBD3",
+    "ice": "#B4DDFF",
+    "cobalt": "#65ACFF",
+    "bronze": "#8C6A45",
+    "gold": "#D4AF37",
+    "voice": "#9AFFE0"
+  },
+  "d0_v124_tokens": {
+    "viewportBackground": {
+      "base": "#1B2230",
+      "gradientEnd": "#101622",
+      "ambientTint": "#0E141E"
+    },
+    "metallicGold": {
+      "primary": "#D4AF37",
+      "specularHighlight": "#FFF4D0",
+      "shadowTone": "#685218",
+      "sheen": "#E6CA65"
+    },
+    "brushedSilver": {
+      "primary": "#C5CCD6",
+      "specularHighlight": "#FFFFFF",
+      "shadowTone": "#404854"
+    },
+    "deepSlateBlue": {
+      "base": "#3A516E",
+      "deep": "#1E2B3D",
+      "light": "#5A779C"
+    },
+    "glassTransmission": {
+      "refractionTint": "#EAF2FF",
+      "edgeRim": "#A4CBFF"
+    },
+    "stateTeal": "#78D3B2",
+    "bodyText": "#F2F6F8",
+    "trackingValid": "#36E88D",
+    "systemErrorRed": "#FF5666"
+  },
+  "css_custom_properties": {
+    "--c-deep": "#05090E",
+    "--c-canvas": "#101D27",
+    "--c-glass": "#142632",
+    "--c-primary": "#F2F6F8",
+    "--c-secondary": "#D0DCE3",
+    "--c-muted": "#BDCBD3",
+    "--c-ice": "#B4DDFF",
+    "--c-cobalt": "#65ACFF",
+    "--c-bronze": "#8C6A45",
+    "--c-gold": "#D4AF37",
+    "--c-voice": "#9AFFE0",
+    "--cj-bg-viewport": "#1B2230",
+    "--cj-bg-surface": "#101622",
+    "--cj-glass-panel": "rgba(27, 34, 48, 0.88)",
+    "--cj-sehly-panel": "rgba(20, 38, 50, 0.44)",
+    "--cj-sehly-border": "rgba(180, 221, 255, 0.36)",
+    "--cj-gold-primary": "#D4AF37",
+    "--cj-gold-sheen": "#FFF4D0",
+    "--cj-silver-metal": "#C5CCD6",
+    "--cj-slate-blue": "#3A516E",
+    "--cj-border-hairline": "rgba(197, 204, 214, 0.22)",
+    "--cj-state-teal": "#78D3B2",
+    "--font-display": "\"Jaapokki Subtract\", \"Sora\", sans-serif",
+    "--font-body": "\"Inter\", sans-serif",
+    "--font-mono": "\"JetBrains Mono\", monospace",
+    "--font-arabic": "\"Cairo\", \"Tajawal\", \"IBM Plex Sans Arabic\", sans-serif",
+    "--page-margin": "24px",
+    "--panel-radius": "20px",
+    "--pill-radius": "999px",
+    "--card-radius": "16px",
+    "--motion-ease": "cubic-bezier(0.22, 1, 0.36, 1)"
+  },
+  "color_provenance": "Baseline hex inputs from 02_Cerebro_Design_Tokens_Materials_and_Code_2026-10-31.pdf at f24f394; visually related to film but not reverse-measured film shader values.",
+  "mobile": {
+    "artboard": [390, 844],
+    "comparison_artboards": [
+      [393, 852],
+      [430, 932],
+      [360, 800]
+    ],
+    "grid_columns": 4,
+    "gutter": 12,
+    "margin": 24,
+    "spacing": [4, 8, 12, 16, 24, 32, 48, 64],
+    "tap_target_min": 44,
+    "film_frame": [1080, 1920],
+    "high_res_portrait_frame": [2160, 3840],
+    "layout_status": "proposed scalable reconstruction",
+    "composition_coordinates": {
+      "header": { "x_ratio": 0.5, "y_ratio": 0.064, "font_size_px": 10, "tracking_px": 4.5 },
+      "chapter_eyebrow": { "x_ratio": 0.5, "y_ratio": 0.115, "font_size_px": 9, "tracking_px": 1.8 },
+      "headline": { "x_px": 24, "width_px": 342, "top_ratio": 0.15, "font_size_px": 28, "line_height_px": 31.4, "max_lines": 3 },
+      "supporting_line": { "font_size_px": 14, "line_height_px": 20, "gap_below_headline_px": 8, "max_width_px": 310 },
+      "sphere_stage": { "idle_center_x_ratio": 0.5, "idle_center_y_ratio": 0.52, "projected_diameter_w_ratio": 0.78, "diameter_at_390_px": 304.2 },
+      "voice_capsule": { "center_y_ratio": 0.88, "width_range_px": [220, 256], "height_range_px": [48, 56], "mic_icon_px": 24, "hit_target_min_px": 44, "safe_area_bottom_plus_px": 16 },
+      "listening_rings": { "radii_css_px": [24, 30, 38], "scale_range": [1.0, 1.04], "color": "#9AFFE0", "d0_state_teal": "#78D3B2" },
+      "selected_target_panel": { "x_px": 24, "width_formula": "W-48", "width_at_390_px": 342, "y_ratio": 0.74, "radius_px": 20, "padding_px": 16, "voice_capsule_gap_min_px": 16 },
+      "detail_panel": { "row_min_height_px": 44, "rows": ["Overview", "Explore"], "rule": "May overlay empty sphere area but must not obscure face, title, or selected content" }
+    }
+  },
+  "editorial_9x16_modes": {
+    "visual_to_text_target_ratio": { "visual_pct": 75, "text_pct": 25 },
+    "modes": [
+      { "id": "MODE_A", "name": "Interactive Web Experience", "aspect": "variable", "description": "Responsive functional application layout for mobile (390x844), iPad (820x1180 / 1024x768), and desktop (1440x900+)." },
+      { "id": "MODE_B", "name": "Editorial Portrait", "aspect": "9:16", "resolutions": [[1080, 1920], [2160, 3840]], "description": "Art-directed static 9:16 composition suitable for screenshot capture or social-media cover." },
+      { "id": "MODE_C", "name": "Cinematic Vertical Playback", "aspect": "9:16", "resolutions": [[1080, 1920], [2160, 3840]], "description": "Time-controlled 9:16 animated sequence suitable for recording as a vertical social video." }
+    ],
+    "social_safe_templates": {
+      "clean_master_frame": { "top_inset_px": 48, "bottom_inset_px": 64, "left_inset_px": 24, "right_inset_px": 24 },
+      "tiktok_preview_safe": { "top_inset_px": 108, "bottom_inset_px": 320, "left_inset_px": 24, "right_inset_px": 88 },
+      "instagram_reels_safe": { "top_inset_px": 108, "bottom_inset_px": 310, "left_inset_px": 24, "right_inset_px": 84 },
+      "story_safe": { "top_inset_px": 120, "bottom_inset_px": 200, "left_inset_px": 24, "right_inset_px": 24 }
+    }
+  },
+  "typography": {
+    "display": {
+      "family": "Jaapokki Subtract",
+      "fallbackStack": ["Jaapokki Subtract", "JaapokkiSubtract", "Sora", "Inter", "sans-serif"],
+      "weight": 400,
+      "size": 28,
+      "lineHeight": 1.12,
+      "lineHeightPxAt390": 31.4,
+      "tracking": -0.3
+    },
+    "body": {
+      "family": "Inter",
+      "fallbackStack": ["Inter", "IBM Plex Sans Arabic", "system-ui", "sans-serif"],
+      "weight": 400,
+      "size": 14,
+      "lineHeight": 1.45,
+      "lineHeightPx": 20
+    },
+    "eyebrow": {
+      "size": 9,
+      "tracking": 1.8
+    },
+    "wordmark": {
+      "size": 10,
+      "tracking": 4.5
+    },
+    "arabic_rtl": {
+      "family": "Cairo",
+      "fallbackStack": ["Cairo", "Tajawal", "IBM Plex Sans Arabic", "Inter", "sans-serif"],
+      "direction": "rtl",
+      "lang": "ar",
+      "letterSpacing": 0,
+      "shapingRule": "Preserve connected Arabic script; never apply positive letter-spacing or per-letter split animation; use word-level or container-level reveals and logical CSS properties (margin-inline-start, padding-inline-start)."
+    },
+    "font_status": "Jaapokki family identified in related source baseline; actual licensed font files not included; exact film font identity not proven."
+  },
+  "radii": {
+    "pill": 999,
+    "panel": 20,
+    "card": 16,
+    "subPocket": 8
+  },
+  "materials": {
+    "liquidGlass": {
+      "color": "#0A1218",
+      "baseColorFactor": [0.75, 0.88, 1.0, 1.0],
+      "transmission": 0.96,
+      "roughness": 0.04,
+      "metalness": 0,
+      "ior": 1.52,
+      "thickness": 2.8,
+      "normalizedGlbThickness": 0.03,
+      "clearcoat": 0.9,
+      "clearcoatRoughness": 0.06,
+      "attenuationColor": "#101D27",
+      "attenuationColorLinear": [0.063, 0.114, 0.153],
+      "attenuationDistance": 3.4
+    },
+    "bronze": {
+      "color": "#8C6A45",
+      "baseColorFactor": [0.549, 0.416, 0.271, 1.0],
+      "roughness": 0.18,
+      "metalness": 0.85
+    },
+    "core_proposed": {
+      "color": "#BCC9D4",
+      "baseColorFactor": [0.72, 0.78, 0.84, 1.0],
+      "metalness": 0.94,
+      "roughness": 0.28
+    },
+    "geometry_ratios": {
+      "hero_shell_radius": 1.0,
+      "silver_core_radius": 0.82,
+      "orbital_ring_radius": 1.015,
+      "orbital_ring_tube": 0.008,
+      "gold_node_radius": 0.055,
+      "media_portal_rim_radius": 0.85,
+      "media_portal_rim_tube": 0.025,
+      "portrait_medallion_radius": 0.6,
+      "portrait_medallion_tube": 0.012
+    },
+    "provenance": "Glass/bronze source baseline from documented revision; core values proposed. GLB normalizes geometry radius to 1, thickness 0.03 as a reconstruction; source scene thickness does not transfer unchanged."
+  },
+  "motion": {
+    "micro_ms": 180,
+    "panel_ms": 420,
+    "title_in_ms": 500,
+    "title_hold_min_ms": 2200,
+    "title_out_ms": 350,
+    "easing": [0.22, 1, 0.36, 1],
+    "sphere_idle_yaw_deg_per_second": 2,
+    "status": "proposed timing tokens; film has been sampled, not a full optical-flow motion solve"
+  },
+  "verbatim_film_copy_register": [
+    { "id": "copy-00", "chapter": "00 / INTRO / 3s", "time_s": 3, "frame_30fps": 90, "headline": "A world. Within reach.", "subline": "A spatial operating system." },
+    { "id": "copy-01", "chapter": "01 / AWAKEN / 18s", "time_s": 18, "frame_30fps": 540, "headline": "Begin with a voice.", "subline": "Thought becomes a visible response." },
+    { "id": "copy-02", "chapter": "02 / FOCUS / 39s", "time_s": 39, "frame_30fps": 1170, "headline": "Attention becomes direction.", "subline": "One intention. One clear path." },
+    { "id": "copy-03", "chapter": "03 / DISCOVER / 51s", "time_s": 51, "frame_30fps": 1530, "headline": "Every detail has a purpose.", "subline": "Move closer. Keep the context." },
+    { "id": "copy-04", "chapter": "04 / ENTER / 63s", "time_s": 63, "frame_30fps": 1890, "headline": "Follow the thought.", "subline": "The route unfolds as you move." },
+    { "id": "copy-05", "chapter": "05 / CONNECT / 87s", "time_s": 87, "frame_30fps": 2610, "headline": "One space. Connected.", "subline": "Projects. People. Decisions." },
+    { "id": "copy-06", "chapter": "06 / OPEN / 111s", "time_s": 111, "frame_30fps": 3330, "headline": "A project opens a world.", "subline": "The whole stays within reach." },
+    { "id": "copy-07", "chapter": "07 / EXPLORE / 135s", "time_s": 135, "frame_30fps": 4050, "headline": "Go deeper. Stay connected.", "subline": "Context travels with you." },
+    { "id": "copy-08", "chapter": "08 / REVEAL / 147s", "time_s": 147, "frame_30fps": 4410, "headline": "Bring the work into focus.", "subline": "A lens onto what matters." },
+    { "id": "copy-09", "chapter": "09 / RETURN / 159s", "time_s": 159, "frame_30fps": 4770, "headline": "Everything returns to clarity.", "subline": "A continuous way to think and work." },
+    { "id": "copy-10", "chapter": "10 / FINALE / 175s", "time_s": 175, "frame_30fps": 5250, "headline": "CEREBRO", "subline": "One continuous intelligence." }
+  ]
+}

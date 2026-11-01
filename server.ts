@@ -368,6 +368,37 @@ async function startServer() {
     });
   });
 
+  // 1B. Master 39 / Sehly Design System JSON Registries
+  app.get('/api/design-system', (_req, res) => {
+    try {
+      const bundlePath = path.join(process.cwd(), 'public', 'design-system', 'cerebro-39-master-package.json');
+      if (fs.existsSync(bundlePath)) {
+        res.setHeader('Content-Type', 'application/json');
+        res.send(fs.readFileSync(bundlePath, 'utf-8'));
+        return;
+      }
+      res.status(404).json({ ok: false, error: 'Design system package not found' });
+    } catch (err) {
+      res.status(500).json({ ok: false, error: String(err) });
+    }
+  });
+
+  app.get('/api/design-system/:registry', (req, res) => {
+    try {
+      const safeName = path.basename(req.params.registry).replace(/[^a-zA-Z0-9._-]/g, '');
+      const fileName = safeName.endsWith('.json') ? safeName : `${safeName}.json`;
+      const regPath = path.join(process.cwd(), 'public', 'design-system', fileName);
+      if (fs.existsSync(regPath)) {
+        res.setHeader('Content-Type', 'application/json');
+        res.send(fs.readFileSync(regPath, 'utf-8'));
+        return;
+      }
+      res.status(404).json({ ok: false, error: `Registry ${fileName} not found` });
+    } catch (err) {
+      res.status(500).json({ ok: false, error: String(err) });
+    }
+  });
+
   // 2. Persistent State Snapshot & Audience-Gated Internal Records
   app.get('/api/state', (req, res) => {
     const includeTest = req.query.includeTest === 'true';

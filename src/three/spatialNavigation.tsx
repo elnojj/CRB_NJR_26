@@ -543,9 +543,15 @@ export interface TeamChatChipProps {
   onOpenChat?: () => void;
   unreadCount?: number;
   active?: boolean;
+  inline?: boolean;
 }
 
-export function TeamChatChip({ onOpenChat, unreadCount = 3, active = false }: TeamChatChipProps) {
+export function TeamChatChip({
+  onOpenChat,
+  unreadCount = 3,
+  active = false,
+  inline = true,
+}: TeamChatChipProps) {
   return (
     <a
       href="/chat"
@@ -560,20 +566,15 @@ export function TeamChatChip({ onOpenChat, unreadCount = 3, active = false }: Te
           onOpenChat();
         }
       }}
-      className="cj-glass-card fixed flex items-center gap-2 transition-transform hover:scale-[1.03] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+      className={`cj-glass-card ${
+        inline ? 'relative' : 'fixed right-4 bottom-4 z-[95]'
+      } min-h-[40px] px-2.5 sm:px-3.5 py-1.5 rounded-full flex items-center gap-1.5 font-mono text-[11px] font-medium transition-colors hover:border-[#D4AF37] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] shrink-0`}
       style={{
-        right: 'max(16px, env(safe-area-inset-right))',
-        bottom: 'max(16px, env(safe-area-inset-bottom))',
-        zIndex: 95,
         background: active ? 'rgba(212, 175, 55, 0.22)' : 'rgba(27, 34, 48, 0.88)',
         color: '#F2F6F8',
         border: active
           ? '1px solid #D4AF37'
           : '1px solid rgba(197, 204, 214, 0.22)',
-        padding: '10px 18px',
-        borderRadius: '20px',
-        fontFamily: '"Space Grotesk", "IBM Plex Sans", sans-serif',
-        fontSize: '14px',
         textDecoration: 'none',
       }}
     >
@@ -583,7 +584,7 @@ export function TeamChatChip({ onOpenChat, unreadCount = 3, active = false }: Te
       />
       <span>Team chat</span>
       {unreadCount > 0 && (
-        <span className="font-mono text-[11px] text-[#C5CCD6] opacity-85">
+        <span className="font-mono text-[10px] text-[#C5CCD6] opacity-85 hidden sm:inline">
           · {unreadCount}
         </span>
       )}

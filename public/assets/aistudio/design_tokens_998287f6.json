@@ -1,0 +1,135 @@
+{
+  "version": "1.0-proposed-film-derived",
+  "reference": {
+    "filename": "9DEE5D03-CBD4-4A67-8F51-3A63D9721984.mp4",
+    "duration": 180,
+    "width": 512,
+    "height": 910,
+    "fps": 30,
+    "frames": 5400,
+    "library_file_id": "libfile_864d9d15ebd081919c5f96f83683d49d"
+  },
+  "status": "The film is the selected visual reference. Reconstruction specs are proposed; no source code or exact fonts recovered from film.",
+  "colors": {
+    "deep": "#05090E",
+    "canvas": "#101D27",
+    "glass": "#142632",
+    "primary": "#F2F6F8",
+    "secondary": "#D0DCE3",
+    "muted": "#BDCBD3",
+    "ice": "#B4DDFF",
+    "cobalt": "#65ACFF",
+    "bronze": "#8C6A45",
+    "gold": "#D4AF37",
+    "voice": "#9AFFE0"
+  },
+  "color_provenance": "Baseline hex inputs from 02_Cerebro_Design_Tokens_Materials_and_Code_2026-10-31.pdf at f24f394; visually related to film but not reverse-measured film shader values.",
+  "mobile": {
+    "artboard": [
+      390,
+      844
+    ],
+    "comparison_artboards": [
+      [
+        393,
+        852
+      ],
+      [
+        430,
+        932
+      ],
+      [
+        360,
+        800
+      ]
+    ],
+    "grid_columns": 4,
+    "gutter": 12,
+    "margin": 24,
+    "spacing": [
+      4,
+      8,
+      12,
+      16,
+      24,
+      32,
+      48,
+      64
+    ],
+    "tap_target_min": 44,
+    "film_frame": [
+      1080,
+      1920
+    ],
+    "layout_status": "proposed scalable reconstruction"
+  },
+  "typography": {
+    "display": {
+      "family": "Jaapokki Subtract",
+      "weight": 400,
+      "size": 28,
+      "lineHeight": 1.12,
+      "tracking": -0.3
+    },
+    "body": {
+      "family": "Inter",
+      "weight": 400,
+      "size": 14,
+      "lineHeight": 1.45
+    },
+    "eyebrow": {
+      "size": 9,
+      "tracking": 1.8
+    },
+    "wordmark": {
+      "size": 10,
+      "tracking": 4.5
+    },
+    "font_status": "Jaapokki family identified in related source baseline; actual licensed font files not included; exact film font identity not proven."
+  },
+  "radii": {
+    "pill": 999,
+    "panel": 20,
+    "card": 16
+  },
+  "materials": {
+    "liquidGlass": {
+      "color": "#0A1218",
+      "transmission": 0.96,
+      "roughness": 0.04,
+      "metalness": 0,
+      "ior": 1.52,
+      "thickness": 2.8,
+      "clearcoat": 0.9,
+      "clearcoatRoughness": 0.06,
+      "attenuationColor": "#101D27",
+      "attenuationDistance": 3.4
+    },
+    "bronze": {
+      "color": "#8C6A45",
+      "roughness": 0.18,
+      "metalness": 0.85
+    },
+    "core_proposed": {
+      "color": "#BCC9D4",
+      "metalness": 0.94,
+      "roughness": 0.28
+    },
+    "provenance": "Glass/bronze source baseline from documented revision; core values proposed. GLB normalizes geometry radius to 1, thickness 0.03 as a reconstruction; source scene thickness does not transfer unchanged."
+  },
+  "motion": {
+    "micro_ms": 180,
+    "panel_ms": 420,
+    "title_in_ms": 500,
+    "title_hold_min_ms": 2200,
+    "title_out_ms": 350,
+    "easing": [
+      0.22,
+      1,
+      0.36,
+      1
+    ],
+    "sphere_idle_yaw_deg_per_second": 2,
+    "status": "proposed timing tokens; film has been sampled, not a full optical-flow motion solve"
+  }
+}

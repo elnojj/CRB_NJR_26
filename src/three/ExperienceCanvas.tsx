@@ -5,8 +5,16 @@ import {
   CameraCommandPayload,
   CameraTelemetry,
   AnchoredLabel2D,
+  CinemaLensId,
+  CameraAnglePresetId,
+  CameraLoopMode,
+  CINEMA_LENS_PRESETS,
 } from '../components/DualSphereCanvas';
-import { MediaTubeStateProp, ProjectMediaTubeItem } from '../components/CosmographCanvas';
+import {
+  MediaTubeStateProp,
+  ProjectMediaTubeItem,
+  buildProjectMediaTubeItems,
+} from '../components/CosmographCanvas';
 import {
   CustomDomain3D,
   DomainMaterialPreset,
@@ -14,6 +22,19 @@ import {
 import { GuiRect } from '../gui/CollisionManager';
 import { GuiCameraPresetId } from '../gui/cameraPresets';
 import { ProjectedTargetScreenCoords } from '../gui/GuiFocusOverlay';
+
+export {
+  CINEMA_LENS_PRESETS,
+  buildProjectMediaTubeItems,
+  type CameraCommandPayload,
+  type CameraTelemetry,
+  type AnchoredLabel2D,
+  type CinemaLensId,
+  type CameraAnglePresetId,
+  type CameraLoopMode,
+  type MediaTubeStateProp,
+  type ProjectMediaTubeItem,
+};
 
 export interface PortalOrbitalStation {
   id: string;
@@ -201,52 +222,56 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
             alt="Cerebro Neural Core Sphere (Static Rest Fallback)"
             className="w-[520px] h-[520px] max-w-[78vw] max-h-[78vh] object-contain opacity-45"
           />
-          <svg
-            className="fixed inset-0 w-full h-full pointer-events-none"
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-          >
-            {PORTAL_ORBITAL_STATIONS.map((st) => (
-              <line
-                key={`line-${st.id}`}
-                x1={50}
-                y1={46}
-                x2={st.xPct}
-                y2={st.yPct}
-                stroke={st.accentHex}
-                strokeOpacity="0.35"
-                strokeWidth="0.2"
-                strokeDasharray="0.8 0.6"
-              />
-            ))}
-          </svg>
-          {PORTAL_ORBITAL_STATIONS.map((st) => {
-            const isSelected = selectedBlueprintTaskId === st.linkedTaskId;
-            return (
-              <button
-                key={st.id}
-                type="button"
-                onClick={() => onSelectPortalStation?.(st)}
-                style={{
-                  left: `${st.xPct}%`,
-                  top: `${st.yPct}%`,
-                  borderColor: isSelected ? st.accentHex : 'rgba(255, 255, 255, 0.40)',
-                }}
-                className="fixed -translate-x-1/2 -translate-y-1/2 pointer-events-auto px-2.5 py-1.5 rounded-lg bg-[#142632]/90 border backdrop-blur-md text-left hover:border-[#4C8DFF] transition-colors cursor-pointer"
+          {!forceWebglFallback && (
+            <>
+              <svg
+                className="fixed inset-0 w-full h-full pointer-events-none"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
               >
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className="w-2 h-2 rounded-full inline-block"
-                    style={{ backgroundColor: st.accentHex }}
+                {PORTAL_ORBITAL_STATIONS.map((st) => (
+                  <line
+                    key={`line-${st.id}`}
+                    x1={50}
+                    y1={46}
+                    x2={st.xPct}
+                    y2={st.yPct}
+                    stroke={st.accentHex}
+                    strokeOpacity="0.35"
+                    strokeWidth="0.2"
+                    strokeDasharray="0.8 0.6"
                   />
-                  <span className="font-mono text-[11px] font-semibold text-[#F2F6F8]">
-                    {st.label}
-                  </span>
-                </div>
-                <div className="font-mono text-[9px] text-[#BDCBD3]">{st.sublabel}</div>
-              </button>
-            );
-          })}
+                ))}
+              </svg>
+              {PORTAL_ORBITAL_STATIONS.map((st) => {
+                const isSelected = selectedBlueprintTaskId === st.linkedTaskId;
+                return (
+                  <button
+                    key={st.id}
+                    type="button"
+                    onClick={() => onSelectPortalStation?.(st)}
+                    style={{
+                      left: `${st.xPct}%`,
+                      top: `${st.yPct}%`,
+                      borderColor: isSelected ? st.accentHex : 'rgba(197, 204, 214, 0.22)',
+                    }}
+                    className="cj-glass-card fixed -translate-x-1/2 -translate-y-1/2 pointer-events-auto px-2.5 py-1.5 rounded-lg text-left hover:border-[#D4AF37] transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="w-2 h-2 rounded-full inline-block"
+                        style={{ backgroundColor: st.accentHex }}
+                      />
+                      <span className="font-mono text-[11px] font-semibold text-[#F2F6F8]">
+                        {st.label}
+                      </span>
+                    </div>
+                    <div className="font-mono text-[9px] text-[#C5CCD6]">{st.sublabel}</div>
+                  </button>
+                );
+              })}
+            </>
+          )}
         </div>
       )}
     </>
