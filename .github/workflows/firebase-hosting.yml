@@ -1,0 +1,40 @@
+# Canonical production publish: Firebase Hosting (AI Studio project).
+# Requires repo secret FIREBASE_TOKEN (firebase login:ci).
+name: Deploy Firebase Hosting
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: firebase-hosting-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Deploy Hosting
+        if: ${{ secrets.FIREBASE_TOKEN != '' }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: npx firebase-tools@latest deploy --only hosting --project advance-copilot-489023-c3 --non-interactive
+      - name: Missing token
+        if: ${{ secrets.FIREBASE_TOKEN == '' }}
+        run: |
+          echo "FIREBASE_TOKEN secret is not set — skipped deploy."
+          echo "Create a token with: npx firebase-tools login:ci"
+          echo "Then add it as the FIREBASE_TOKEN repository secret."
+          exit 1

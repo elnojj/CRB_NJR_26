@@ -2,6 +2,27 @@
 
 Spatial dual-sphere project orchestration for NOJARA Studios, plus the **180s JSON-driven introduction** (`CerebroIntro`).
 
+## Production (canonical)
+
+**Firebase Hosting is the production link** for this AI Studio project. All production publishes go through Firebase — not GitHub Pages / Netlify / Vercel.
+
+| | |
+|---|---|
+| Firebase project | `advance-copilot-489023-c3` (from `firebase-applet-config.json`) |
+| Expected live URLs | https://advance-copilot-489023-c3.web.app · https://advance-copilot-489023-c3.firebaseapp.com |
+| Config | `.firebaserc`, `firebase.json` (hosts Vite `dist/`) |
+
+```bash
+npm install
+# One-time auth (CI uses FIREBASE_TOKEN; local can use firebase login)
+export FIREBASE_TOKEN=…   # CI / non-interactive
+npm run deploy             # vite build + firebase deploy --only hosting
+```
+
+GitHub Actions: `.github/workflows/firebase-hosting.yml` deploys `main` on push when `FIREBASE_TOKEN` is set as a repo secret.
+
+Note: Hosting serves the static Vite build (intro + client workspace). Express `/api/*` routes from `server.ts` are not on Hosting; add Cloud Functions later if production needs Drive / ElevenLabs server APIs.
+
 ## Run locally
 
 ```bash

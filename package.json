@@ -12,7 +12,10 @@
     "lint": "tsc --noEmit",
     "typecheck:intro": "tsc --noEmit -p tsconfig.intro.json",
     "qa:intro": "node --experimental-strip-types qa.mjs",
-    "intro": "echo \"Open /?intro=1 (default on movie branch)\""
+    "intro": "echo \"Open /?intro=1 (default on movie branch)\"",
+    "firebase": "firebase",
+    "deploy": "npm run build && firebase deploy --only hosting --project advance-copilot-489023-c3",
+    "deploy:hosting": "npm run deploy"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -38,6 +41,7 @@
     "@types/react-dom": "^19.3.0",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",
+    "firebase-tools": "^15.34.2",
     "playwright": "^1.64.1",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",
