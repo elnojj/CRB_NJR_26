@@ -84,7 +84,7 @@ export function DiskArHealthDashboard({
         <div className="disk-ar-orb" style={{ width: 72, height: 72, top: '12%', right: '18%' }} />
         <div className="disk-ar-orb ice" style={{ width: 48, height: 48, bottom: '18%', left: '28%' }} />
 
-        {cards.map((card) => {
+        {cards.map((card, idx) => {
           const layout = CARD_LAYOUT.find((c) => c.id === card.id)!;
           return (
             <button
@@ -97,6 +97,7 @@ export function DiskArHealthDashboard({
                 width: layout.width,
                 zIndex: layout.z,
                 transform: layout.tilt,
+                animationDelay: `${40 + idx * 70}ms`,
               }}
               onClick={() => card.projectId && onSelectProject?.(card.projectId)}
             >

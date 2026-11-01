@@ -236,8 +236,10 @@
 }
 
 .cerebro-infograph-tether {
-  stroke-dasharray: 6 8;
-  animation: cerebro-infograph-dash 1.65s linear infinite;
+  stroke-dasharray: 4 6;
+  stroke-opacity: 0.92;
+  animation: cerebro-infograph-dash 1.45s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(180, 221, 255, 0.35));
 }
 
 .cerebro-infograph-tether.is-focused {

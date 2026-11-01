@@ -4336,11 +4336,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         <div className="cerebro-infograph-layer fixed inset-0 pointer-events-none z-10">
           <svg className="fixed inset-0 w-full h-full pointer-events-none" aria-hidden="true">
             {labels2D.map((item, idx) => {
+              const viewportW =
+                typeof window !== 'undefined' ? window.innerWidth : 1280;
+              const showProjectsAlways = viewportW >= 1100;
               const isPrimaryStation =
                 item.nodeType === 'station' ||
                 item.nodeType === 'dimension' ||
                 item.nodeType === 'core' ||
-                item.nodeType === 'project';
+                (item.nodeType === 'project' && showProjectsAlways);
               if (
                 (!item.isFocused && !isPrimaryStation) ||
                 item.anchorX === undefined ||
@@ -4388,13 +4391,20 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           </svg>
 
           {labels2D.map((item, idx) => {
+            const viewportW =
+              typeof window !== 'undefined' ? window.innerWidth : 1280;
+            const showProjectsAlways = viewportW >= 1100;
             const isPrimaryStation =
               item.nodeType === 'station' ||
               item.nodeType === 'dimension' ||
               item.nodeType === 'core' ||
-              item.nodeType === 'project';
+              (item.nodeType === 'project' && showProjectsAlways);
             const x = Math.round(item.x);
             const y = Math.round(item.y);
+            // Skip rendering non-primary chips on phone/tablet — keeps motion-graph readable
+            if (!item.isFocused && !isPrimaryStation && viewportW < 1100) {
+              return null;
+            }
             return (
               <button
                 key={`${activeSphere}-${item.id}-${item.nodeType}`}
