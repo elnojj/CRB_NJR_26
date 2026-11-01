@@ -1807,13 +1807,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         shader.uniforms.uTime = glassUniforms.uTime;
         shader.uniforms.uAudioRms = glassUniforms.uAudioRms;
         shader.uniforms.uInteriorDome = glassUniforms.uInteriorDome;
+        // Intro: keep a tiny caustic shimmer without vertex pumping that z-fights the video band.
+        const waveAmp = introBridge.enabled ? '0.002' : '(0.015 + uAudioRms * 0.035)';
         shader.vertexShader =
           `uniform float uTime;\nuniform float uAudioRms;\n` +
           shader.vertexShader.replace(
             '#include <begin_vertex>',
             `#include <begin_vertex>
             float wave = sin(position.x * 0.65 + uTime * 1.15) * cos(position.y * 0.65 + uTime * 0.9) * sin(position.z * 0.65 + uTime * 1.05);
-            transformed += normal * (wave * (0.015 + uAudioRms * 0.035));`
+            transformed += normal * (wave * ${waveAmp});`
           );
         shader.fragmentShader =
           `uniform float uTime;\nuniform float uAudioRms;\nuniform float uInteriorDome;\n` +
@@ -2027,6 +2029,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       const mediaLensGeo = new THREE.CircleGeometry(6.2 * 0.84, 64);
       const mediaLensMesh = new THREE.Mesh(mediaLensGeo, sharedMediaScreenMat);
+      mediaLensMesh.name = `${sphereTag}-media-lens`;
       mediaLensMesh.rotation.set(0.18, -0.24, 0.08);
       mediaLensMesh.renderOrder = 3;
       shellGroup.add(mediaLensMesh);
@@ -3090,7 +3093,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const activeSphereNow = stateRef.current.activeSphere;
       const hitMeshes: THREE.Object3D[] = [];
       nodeRegistryRef.current.forEach((entry) => {
-        if (entry.groupMesh && entry.sphere === activeSphereNow) {
+        // Intro: both HQ and CDE inner spheres are tappable for media focus.
+        const sphereOk =
+          introBridge.enabled || entry.sphere === activeSphereNow;
+        if (entry.groupMesh && sphereOk) {
           hitMeshes.push(entry.groupMesh);
         }
       });
@@ -3368,7 +3374,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     window.addEventListener('resize', onResize);
     // Initial atomic frame composition
     onResize();
-    introBridge.attach({ scene, camera, renderer });
+    introBridge.attach({
+      scene,
+      camera,
+      renderer,
+      hqShell: hqAssembly.shellGroup,
+      cdeShell: cdeAssembly.shellGroup,
+      hqCore: hqAssembly.coreGroup,
+      cdeCore: cdeAssembly.coreGroup,
+    });
 
     const clock = new THREE.Clock();
     let frameId = 0;
@@ -3417,9 +3431,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       if (introBridge.enabled) s.audioRms = introBridge.audioRms(elapsedTotal);
       glassUniforms.uTime.value = s.reducedMotion ? 0 : elapsedTotal;
+      // Intro: damp soundtrack RMS into glass so caustics don't strobe over the video plate.
+      const rmsTarget = introBridge.enabled ? s.audioRms * 0.18 : s.audioRms;
       glassUniforms.uAudioRms.value = THREE.MathUtils.damp(
         glassUniforms.uAudioRms.value,
-        s.audioRms,
+        rmsTarget,
         8.5,
         dt
       );
@@ -3435,7 +3451,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           Math.sin(
             (elapsedTotal * Math.PI * 2) / GUI_WORLD_MOTION_TOKENS.periodsSec.rimBreath
           );
-      const breathScale = s.reducedMotion ? 1.0 : 1.0 + 0.006 * breathPhase + liveRms * 0.012;
+      // Intro: gentle breath only — large RMS-driven scale fights the inner video meshes.
+      const breathScale = s.reducedMotion
+        ? 1.0
+        : introBridge.enabled
+          ? 1.0 + 0.0025 * breathPhase
+          : 1.0 + 0.006 * breathPhase + liveRms * 0.012;
       hqAssembly.shellGroup.scale.setScalar(breathScale);
       cdeAssembly.shellGroup.scale.setScalar(breathScale);
 
