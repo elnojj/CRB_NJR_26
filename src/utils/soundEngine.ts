@@ -19,7 +19,7 @@ export class CerebroSoundEngine {
   private droneFilter: BiquadFilterNode | null = null;
   private reverbConvolver: ConvolverNode | null = null;
   private droneStarted = false;
-  private soundMuted = true;
+  private soundMuted = false;
   private voiceOrMediaActive = false;
   private unlocked = false;
   private lastHoverAt = 0;
@@ -32,6 +32,7 @@ export class CerebroSoundEngine {
       };
       window.addEventListener('pointerdown', unlockHandler, { passive: true });
       window.addEventListener('keydown', unlockHandler, { passive: true });
+      window.addEventListener('touchstart', unlockHandler, { passive: true });
     }
   }
 
@@ -88,6 +89,11 @@ export class CerebroSoundEngine {
       ctx.resume().catch(() => {});
     }
     this.unlocked = true;
+    if (this.masterGain) {
+      const now = ctx.currentTime;
+      this.masterGain.gain.cancelScheduledValues(now);
+      this.masterGain.gain.setTargetAtTime(this.soundMuted ? 0 : 1, now, 0.05);
+    }
     if (!this.droneStarted && !this.soundMuted) {
       this.startAmbientDrone();
     }
@@ -106,10 +112,13 @@ export class CerebroSoundEngine {
     this.soundMuted = muted;
     const ctx = this.ensureContext();
     if (!ctx || !this.masterGain) return;
+    if (ctx.state === 'suspended' && !muted) {
+      ctx.resume().catch(() => {});
+    }
     const now = ctx.currentTime;
     this.masterGain.gain.cancelScheduledValues(now);
     this.masterGain.gain.setTargetAtTime(muted ? 0 : 1, now, 0.08);
-    if (!muted && this.unlocked && !this.droneStarted) {
+    if (!muted && !this.droneStarted) {
       this.startAmbientDrone();
     }
   }
@@ -206,6 +215,10 @@ export class CerebroSoundEngine {
    * Technocrane Flight Whoosh:
    * Stereo-panned bandpass filter sweep (180Hz -> 920Hz -> 220Hz) synchronized with camera spline velocity.
    */
+  public playFlightWhoosh(durationMs = 950, panDirection = 0): void {
+    this.triggerFlightWhoosh(durationMs, panDirection);
+  }
+
   public triggerFlightWhoosh(durationMs = 950, panDirection = 0): void {
     if (this.soundMuted) return;
     const nowPerf = typeof performance !== 'undefined' ? performance.now() : Date.now();

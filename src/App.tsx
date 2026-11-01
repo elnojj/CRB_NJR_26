@@ -265,7 +265,7 @@ export default function App() {
     GONDWANA: 'overview',
   });
   const [dashboardCollapsed, setDashboardCollapsed] = useState<boolean>(false);
-  const [activeShowreelIndex, setActiveShowreelIndex] = useState<number>(1);
+  const [activeShowreelIndex, setActiveShowreelIndex] = useState<number>(0);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('SEVEN');
   const [peopleSubTab, setPeopleSubTab] = useState<'HQ' | 'Team and Contracts' | 'RACI'>('RACI');
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
@@ -278,9 +278,10 @@ export default function App() {
   const [mediaPlayback, setMediaPlayback] = useState<MediaPlaybackState>({
     playing: false,
     muted: false,
-    currentTimeSec: 14,
-    durationSec: 102,
+    currentTimeSec: 0,
+    durationSec: 141.68,
   });
+  const activeVideoRef = useRef<HTMLVideoElement | null>(null);
   const [showDownloadModal, setShowDownloadModal] = useState<boolean>(false);
   const [showMoreMenu, setShowMoreMenu] = useState<boolean>(false);
   const [showCameraTray, setShowCameraTray] = useState<boolean>(false);
@@ -417,6 +418,7 @@ export default function App() {
     const next = !soundEngine.isMuted();
     soundEngine.setMuted(next);
     setAmbienceMuted(next);
+    setSoundMuted(next);
   }, []);
   const [pendingTaskProposal, setPendingTaskProposal] = useState<PendingComposeTask | null>(null);
   const [customTasks, setCustomTasks] = useState<CustomTaskItem[]>([]);
@@ -434,21 +436,40 @@ export default function App() {
   const [selfTestRunning, setSelfTestRunning] = useState<boolean>(false);
   const [selfTestResults, setSelfTestResults] = useState<SelfTestCheckResult[]>([]);
 
-  // Media playback timer when playing === true
-  useEffect(() => {
-    if (!mediaPlayback.playing) return;
-    const timer = window.setInterval(() => {
-      setMediaPlayback((prev) => {
-        if (!prev.playing) return prev;
-        const nextSec = prev.currentTimeSec + 1;
-        if (nextSec >= prev.durationSec) {
-          return { ...prev, playing: false, currentTimeSec: 0 };
-        }
-        return { ...prev, currentTimeSec: nextSec };
-      });
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [mediaPlayback.playing]);
+  // Real HTML5 Video element event synchronizers
+  const handleVideoRefReady = useCallback((video: HTMLVideoElement | null) => {
+    activeVideoRef.current = video;
+  }, []);
+
+  const handleVideoTimeUpdate = useCallback((currentTime: number, duration: number) => {
+    setMediaPlayback((prev) => ({
+      ...prev,
+      currentTimeSec: currentTime,
+      durationSec: duration > 0 ? duration : prev.durationSec,
+    }));
+  }, []);
+
+  const handleVideoPlayChange = useCallback((playing: boolean) => {
+    setMediaPlayback((prev) => ({ ...prev, playing }));
+  }, []);
+
+  const handleVideoMuteChange = useCallback((muted: boolean) => {
+    setMediaPlayback((prev) => ({ ...prev, muted }));
+  }, []);
+
+  const handleChangeShowreelIndex = useCallback((idx: number) => {
+    if (activeVideoRef.current && !activeVideoRef.current.paused) {
+      activeVideoRef.current.pause();
+    }
+    setActiveShowreelIndex(idx);
+    const targetReel = SHOWREEL_ITEMS[idx];
+    setMediaPlayback({
+      playing: false,
+      muted: false,
+      currentTimeSec: 0,
+      durationSec: targetReel?.durationSec || 140,
+    });
+  }, []);
 
   // Load persisted custom tasks from server on mount
   useEffect(() => {
@@ -754,21 +775,52 @@ export default function App() {
         | 'fullscreen_exit',
       seekSeconds?: number
     ) => {
-      setMediaPlayback((prev) => {
-        if (action === 'play') return { ...prev, playing: true };
-        if (action === 'pause') return { ...prev, playing: false };
-        if (action === 'toggle_play') return { ...prev, playing: !prev.playing };
-        if (action === 'mute') return { ...prev, muted: true };
-        if (action === 'unmute') return { ...prev, muted: false };
-        if (action === 'toggle_mute') return { ...prev, muted: !prev.muted };
-        if (action === 'seek' && typeof seekSeconds === 'number') {
-          return {
-            ...prev,
-            currentTimeSec: Math.max(0, Math.min(prev.durationSec, seekSeconds)),
-          };
+      const vid = activeVideoRef.current;
+      if (action === 'play') {
+        if (vid && vid.paused) {
+          vid.play().catch(() => {});
         }
-        return prev;
-      });
+        setMediaPlayback((prev) => ({ ...prev, playing: true }));
+      } else if (action === 'pause') {
+        if (vid && !vid.paused) {
+          vid.pause();
+        }
+        setMediaPlayback((prev) => ({ ...prev, playing: false }));
+      } else if (action === 'toggle_play') {
+        if (vid) {
+          if (vid.paused) {
+            vid.play().catch(() => {});
+            setMediaPlayback((prev) => ({ ...prev, playing: true }));
+          } else {
+            vid.pause();
+            setMediaPlayback((prev) => ({ ...prev, playing: false }));
+          }
+        } else {
+          setMediaPlayback((prev) => ({ ...prev, playing: !prev.playing }));
+        }
+      } else if (action === 'mute') {
+        if (vid) vid.muted = true;
+        setMediaPlayback((prev) => ({ ...prev, muted: true }));
+      } else if (action === 'unmute') {
+        if (vid) vid.muted = false;
+        setMediaPlayback((prev) => ({ ...prev, muted: false }));
+      } else if (action === 'toggle_mute') {
+        if (vid) {
+          vid.muted = !vid.muted;
+          setMediaPlayback((prev) => ({ ...prev, muted: vid.muted }));
+        } else {
+          setMediaPlayback((prev) => ({ ...prev, muted: !prev.muted }));
+        }
+      } else if (action === 'seek' && typeof seekSeconds === 'number') {
+        const targetTime = Math.max(0, Math.min(mediaPlayback.durationSec || 9999, seekSeconds));
+        if (vid && Number.isFinite(targetTime)) {
+          vid.currentTime = targetTime;
+        }
+        setMediaPlayback((prev) => ({
+          ...prev,
+          currentTimeSec: targetTime,
+        }));
+      }
 
       if (action === 'fullscreen_enter') {
         const reel = SHOWREEL_ITEMS[activeShowreelIndex] || SHOWREEL_ITEMS[0];
@@ -777,18 +829,18 @@ export default function App() {
             id: reel.id,
             title: reel.title,
             subtitle: reel.subtitle,
-            type: reel.posterUrl ? 'Render JPG' : 'Showreel Video [SAMPLE]',
-            url: reel.posterUrl,
+            type: (reel.type as MediaAssetItem['type']) || 'Direct Public MP4 Video',
+            url: reel.videoUrl || reel.posterUrl,
             aspect: '16:9',
             companionSticker: reel.companionSticker,
-            isSample: !reel.posterUrl,
+            isSample: false,
           }
         );
       } else if (action === 'fullscreen_exit') {
         setFullscreenMedia(null);
       }
     },
-    [activeShowreelIndex]
+    [activeShowreelIndex, mediaPlayback.durationSec]
   );
 
   // 18-Screen Wireframe v1.1 + CTA Choreographer Contract: Arrive -> Open Screen Panel(s) -> Schedule Sub-Step CTA Pulses -> Narrate
@@ -876,7 +928,7 @@ export default function App() {
         const isVisible = Boolean(rect && rect.width > 0 && rect.height > 0);
         const cameraReady = attempts >= 3 && (!telemetryRef.current.isMoving || reducedMotion);
 
-        if (isVisible && cameraReady) {
+        if ((isVisible && cameraReady) || attempts >= 20) {
           setTourControllerPhase('presenting');
           setTourHighlightId(stop.targetNodeId || stop.screenId);
           setCaptionBubble(stop.captionBubbleText);
@@ -895,13 +947,9 @@ export default function App() {
             if (generation === tourGenerationRef.current) setVoiceState('Ready');
           }, 1200);
           tourSubStepTimersRef.current.push(hold);
-        } else if (attempts < 100) {
+        } else {
           const retry = window.setTimeout(verifyBoundsAndNarrate, 60);
           tourSubStepTimersRef.current.push(retry);
-        } else {
-          setTourControllerPhase('paused');
-          setTourState((previous) => ({ ...previous, paused: true }));
-          setCaptionBubble(`Tour paused: ${stop.screenId} target or camera did not settle`);
         }
       };
 
@@ -1022,12 +1070,8 @@ export default function App() {
   }, [activeSphere, openPanels, selectedProjectId, tourState.active, tourState.currentScreenId]);
 
   const handleUserTouchPauseTour = useCallback(() => {
-    if (!tourState.active || tourState.paused) return;
-    clearTourSubStepTimers();
-    setTourControllerPhase('paused');
-    setCaptionBubble('Tour paused — press Resume to continue');
-    setTourState((previous) => ({ ...previous, paused: true }));
-  }, [clearTourSubStepTimers, tourState.active, tourState.paused]);
+    // Pure hands-free auto tour: touches or user navigation do not pause the tour
+  }, []);
 
   // UNIFIED TYPED ACTION EXECUTOR — Single dispatcher for Voice Tools, Natural Language, Touch, Keyboard, Tour & Self-Tests
   const executeTypedAction = useCallback(
@@ -1037,6 +1081,12 @@ export default function App() {
       switch (action.type) {
         case 'switch_sphere': {
           pushNavSnapshot();
+          if (action.sphere === 'cde') {
+            if (activeVideoRef.current && !activeVideoRef.current.paused) {
+              activeVideoRef.current.pause();
+            }
+            setMediaPlayback((prev) => ({ ...prev, playing: false }));
+          }
           setActiveSphere(action.sphere);
           setFocusedNodeId(null);
           setOpenPanels([]);
@@ -1337,14 +1387,14 @@ export default function App() {
           if (action.action === 'select' && action.reelId) {
             const idx = SHOWREEL_ITEMS.findIndex((r) => r.id === action.reelId);
             if (idx >= 0) nextIdx = idx;
-            setActiveShowreelIndex(nextIdx);
+            handleChangeShowreelIndex(nextIdx);
           } else if (action.action === 'next') {
             nextIdx = (activeShowreelIndex + 1) % SHOWREEL_ITEMS.length;
-            setActiveShowreelIndex(nextIdx);
+            handleChangeShowreelIndex(nextIdx);
           } else if (action.action === 'prev') {
             nextIdx =
               (activeShowreelIndex - 1 + SHOWREEL_ITEMS.length) % SHOWREEL_ITEMS.length;
-            setActiveShowreelIndex(nextIdx);
+            handleChangeShowreelIndex(nextIdx);
           } else if (action.action === 'play') {
             handleMediaControl('play');
           } else if (action.action === 'pause') {
@@ -2619,7 +2669,7 @@ export default function App() {
       { id: '07', title: 'Panel Minimise & Restore (Preserves Project, Tab, Scroll & Draft)', status: 'PENDING', detail: 'Waiting...' },
       { id: '08', title: 'People Inspection -> Linked Work & Review Checkpoints', status: 'PENDING', detail: 'Waiting...' },
       { id: '09', title: 'Interactive Media Player (Play, Seek, Mute, Fullscreen Enter/Exit)', status: 'PENDING', detail: 'Waiting...' },
-      { id: '10', title: 'Grounded Tour DOM Bounds & Pause/Resume/Prev/Stop Controls', status: 'PENDING', detail: 'Waiting...' },
+      { id: '10', title: 'Grounded Tour DOM Bounds & Hands-Free Automatic Advance', status: 'PENDING', detail: 'Waiting...' },
       { id: '11', title: 'Persistent Note, Task & Message Storage (Isolated isTest=true)', status: 'PENDING', detail: 'Waiting...' },
       { id: '12', title: 'Real Binary File Upload with Byte Size & SHA-256 Verification', status: 'PENDING', detail: 'Waiting...' },
       { id: '13', title: 'Failed Send Error Handling & Unsent Draft Preservation', status: 'PENDING', detail: 'Waiting...' },
@@ -3170,6 +3220,10 @@ export default function App() {
           reducedMotion={reducedMotion}
           initialPhase={bootInitialMode}
           onTakeOff={() => {
+            soundEngine.unlock();
+            soundEngine.setMuted(false);
+            setSoundMuted(false);
+            setAmbienceMuted(false);
             setBootDone(true);
             setOpenPanels([]);
             setFocusedNodeId(null);
@@ -3599,31 +3653,18 @@ export default function App() {
             </button>
           ) : (
             <div
-              className="cj-glass-card min-h-[44px] px-2.5 py-1 rounded-xl flex items-center gap-1.5 font-mono text-[11px]"
+              className="cj-glass-card min-h-[44px] px-3 py-1 rounded-xl flex items-center gap-2 font-mono text-[11px]"
               style={{ borderColor: COLOUR_TOKENS.focusRing }}
             >
+              <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse shrink-0" />
               <span className="text-[#FFF4D0]">
-                {tourState.step}/{tourState.total} ·{' '}
-                {tourState.paused ? 'Paused' : `${tourState.secondsLeft}s`}
+                Tour {tourState.step}/{tourState.total} · {tourState.secondsLeft}s
               </span>
               <button
                 type="button"
-                onClick={handlePrevTourStop}
-                className="px-2 py-1 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#F2F6F8] cursor-pointer"
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                onClick={handleNextTourStop}
-                className="px-2 py-1 rounded bg-[#D4AF37] text-[#101622] font-semibold cursor-pointer"
-              >
-                ›
-              </button>
-              <button
-                type="button"
+                data-testid="stop-tour-btn"
                 onClick={() => executeTypedAction({ type: 'tour_control', action: 'stop' }, 'header')}
-                className="px-2 py-1 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#D4AF37] cursor-pointer"
+                className="px-2 py-0.5 rounded-lg bg-[#101622] border border-[#FF5666]/60 text-[#FF5666] hover:bg-[#FF5666]/20 cursor-pointer text-[10px]"
               >
                 Stop
               </button>
@@ -3782,8 +3823,12 @@ export default function App() {
             'overview'
           );
         }}
-        onChangeShowreelIndex={(idx) => setActiveShowreelIndex(idx)}
+        onChangeShowreelIndex={handleChangeShowreelIndex}
         onMediaControl={handleMediaControl}
+        onVideoRefReady={handleVideoRefReady}
+        onVideoTimeUpdate={handleVideoTimeUpdate}
+        onVideoPlayChange={handleVideoPlayChange}
+        onVideoMuteChange={handleVideoMuteChange}
         onSelectProject={(pid) => {
           executeTypedAction({ type: 'focus_project', projectId: pid }, 'panel');
         }}
@@ -3815,133 +3860,7 @@ export default function App() {
         isCameraInFlight={telemetry.isMoving}
       />
 
-      {/* 6B. Persistent Floating 18-Screen Wireframe v1.1 Tour Scrubber Pill (Synced with VoiceCard & Stop Interrupt) */}
-      {tourState.active && (() => {
-        const modeSteps = getTourStepsForMode(tourState.mode);
-        const currentStop =
-          modeSteps[Math.max(0, Math.min(modeSteps.length - 1, tourState.step - 1))] ||
-          CEREBRO_18_TOUR_CHOREOGRAPHY[0];
-        return (
-          <div
-            data-testid="tour-scrubber-pill"
-            onPointerDown={(e) => e.stopPropagation()}
-            onWheel={(e) => e.stopPropagation()}
-            className="cj-glass-card fixed top-16 left-1/2 -translate-x-1/2 z-40 pointer-events-auto flex flex-wrap items-center gap-2 px-3.5 py-2 rounded-2xl max-w-[95vw]"
-          >
-            {/* Stage Badge S01..S18 + Screen Title */}
-            <div className="flex items-center gap-2 pr-2 border-r border-[rgba(197,204,214,0.22)]">
-              <span
-                data-testid="tour-stage-badge"
-                className="px-2 py-0.5 rounded-md font-mono text-[11px] font-bold bg-[#D4AF37] text-[#101622]"
-              >
-                {currentStop.screenId} · {tourState.step}/{tourState.total}
-              </span>
-              <div className="min-w-0 max-w-[220px] sm:max-w-[280px]">
-                <div className="font-display text-xs font-semibold text-[#F2F6F8] truncate">
-                  {currentStop.title}
-                </div>
-                <div className="font-mono text-[10px] text-[#C5CCD6] truncate">
-                  {currentStop.panelNumber} ·{' '}
-                  {tourState.paused ? 'PAUSED' : `Next in ${tourState.secondsLeft}s`}
-                  {screenStore.activePulsedCta?.ctaId
-                    ? ` · CTA: ${screenStore.activePulsedCta.ctaId}`
-                    : ''}
-                </div>
-              </div>
-            </div>
 
-            {/* Tour Mode Selector */}
-            <select
-              aria-label="Tour Choreography Mode"
-              data-testid="tour-mode-select"
-              value={tourState.mode}
-              onChange={(e) =>
-                executeTypedAction(
-                  {
-                    type: 'tour_control',
-                    action: 'start',
-                    mode: e.target.value as TourMode,
-                  },
-                  'tour_hud'
-                )
-              }
-              className="min-h-[34px] px-2 py-1 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] font-mono text-[10px] text-[#F2F6F8] cursor-pointer"
-            >
-              <option value="full-18-screen">Full 18-Screen (S01–S18)</option>
-              <option value="hq-ops">HQ Ops (S02–S16)</option>
-              <option value="cde-bio">CDE & Bio (S17–S18)</option>
-              <option value="executive-fast">Executive Fast (7 Stops)</option>
-            </select>
-
-            {/* Quick Screen Jump S01..S18 */}
-            <select
-              aria-label="Jump to Canonical Screen"
-              data-testid="tour-screen-jump-select"
-              value={currentStop.screenId}
-              onChange={(e) =>
-                executeTypedAction(
-                  {
-                    type: 'step_tour',
-                    directionOrScreen: e.target.value,
-                  },
-                  'tour_hud'
-                )
-              }
-              className="min-h-[34px] px-2 py-1 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] font-mono text-[10px] text-[#FFF4D0] cursor-pointer"
-            >
-              {CEREBRO_18_TOUR_CHOREOGRAPHY.map((s) => (
-                <option key={s.screenId} value={s.screenId}>
-                  {s.screenId} · {s.title}
-                </option>
-              ))}
-            </select>
-
-            {/* Transport Controls: Prev ‹, Pause/Resume, Next ›, Exit Tour */}
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                data-cta-id="tour-hud-prev"
-                onClick={handlePrevTourStop}
-                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
-              >
-                Prev ‹
-              </button>
-              <button
-                type="button"
-                data-cta-id="tour-hud-pause-resume"
-                onClick={() =>
-                  executeTypedAction(
-                    {
-                      type: 'tour_control',
-                      action: tourState.paused ? 'resume' : 'pause',
-                    },
-                    'tour_hud'
-                  )
-                }
-                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#101622] border border-[#D4AF37] text-[#FFF4D0] hover:bg-[#D4AF37] hover:text-[#101622] cursor-pointer"
-              >
-                {tourState.paused ? 'Resume' : 'Pause'}
-              </button>
-              <button
-                type="button"
-                data-cta-id="tour-hud-next"
-                onClick={handleNextTourStop}
-                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#D4AF37] text-[#101622] font-semibold cursor-pointer"
-              >
-                Next ›
-              </button>
-              <button
-                type="button"
-                data-cta-id="tour-hud-exit"
-                onClick={handleStopTourImmediately}
-                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#101622] border border-[#FF5666] text-[#FF5666] hover:bg-[#FF5666]/15 cursor-pointer"
-              >
-                Exit Tour
-              </button>
-            </div>
-          </div>
-        );
-      })()}
 
       {/* 7. Draggable, Collision-Managed, Resizable Voice Card */}
       <VoiceCard
