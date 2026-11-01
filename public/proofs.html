@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CEREBRO intro — proof frames</title>
+  <style>
+    body{margin:0;background:#05090E;color:#F2F6F8;font:14px/1.45 Sora,system-ui,sans-serif}
+    main{max-width:960px;margin:0 auto;padding:24px}
+    a{color:#B4DDFF}
+    .shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px}
+    .shot{border:1px solid rgba(197,204,214,.25);border-radius:12px;padding:12px;background:#101D27}
+    .shot a{display:block;margin-top:8px}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>CEREBRO intro — proof frames</h1>
+    <p>Open each beat on the live intro timeline. Use <kbd>Save frame</kbd> in the transport to export a PNG.</p>
+    <p><a href="/?intro=1">Open continuous journey</a> · <a href="/?intro=0&view=hq">Skip to workspace</a></p>
+    <div class="shots" id="shots"></div>
+  </main>
+  <script type="module">
+    const cfg = await fetch('/cerebro.intro.json').then(r => r.json());
+    const root = document.getElementById('shots');
+    for (const ch of cfg.chapters || []) {
+      const t = (ch.startFrame / 60).toFixed(2);
+      const el = document.createElement('article');
+      el.className = 'shot';
+      el.innerHTML = `<strong>${ch.id}</strong><div>${ch.kicker || ''}</div><div>${(ch.headline||'').slice(0,72)}</div><a href="/?intro=1&frame=${ch.startFrame}">Seek frame ${ch.startFrame} (~${t}s)</a>`;
+      root.appendChild(el);
+    }
+  </script>
+</body>
+</html>

@@ -9,7 +9,10 @@
     "start": "node server.ts",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "typecheck:intro": "tsc --noEmit -p tsconfig.intro.json",
+    "qa:intro": "node --experimental-strip-types qa.mjs",
+    "intro": "echo \"Open /?intro=1 (default on movie branch)\""
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

@@ -40,6 +40,9 @@ import {
 } from '../three/spatialNavigation';
 import { mountSphereVideoTexture, type SphereVideoHandle } from '../lib/sphereVideoTexture';
 import { getSphereTextureAsset } from '../data/driveMediaCatalog';
+import { introBridge } from '../intro/bridge';
+
+const sceneRandom = () => (introBridge.enabled ? introBridge.random() : Math.random());
 
 // ---------------------------------------------------------------------------
 // CEREBRO-NOJARA D0 v1.24 — SECTION 2: THREE.JS RENDERER, MATERIALS, LIGHTS
@@ -723,7 +726,10 @@ function buildLiquidGlassGalaxySphere(
     colors[i * 3 + 2] = _scratchColor.b;
 
     sizes[i] = (layer === 0 ? 7.5 : layer === 1 ? 5.5 : 4.0) * (0.55 + 0.45 * Math.abs(rand2));
-    phases[i] = (i * 0.73) % (Math.PI * 2);
+    // Seeded when introBridge is active so proof frames stay coherent across seeks.
+    phases[i] = introBridge.enabled
+      ? sceneRandom() * Math.PI * 2
+      : (i * 0.73) % (Math.PI * 2);
   }
 
   const geo = new THREE.BufferGeometry();
@@ -1500,6 +1506,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       return;
     }
 
+    // Intro journey needs the full optical pipeline; do not force software path.
+    if (introBridge.enabled) isSoftwareGl = false;
+
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({
@@ -1521,7 +1530,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     renderer.toneMapping = THREE.AgXToneMapping;
     renderer.toneMappingExposure = 1.04;
     renderer.setClearColor(0x101D27, 1);
-    renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(
+      introBridge.enabled
+        ? Math.min(window.devicePixelRatio || 1, 2)
+        : isSoftwareGl
+          ? 1
+          : Math.min(window.devicePixelRatio, 2)
+    );
     renderer.setSize(initW, initH);
     renderer.shadowMap.enabled = !isSoftwareGl;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -3330,7 +3345,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const w = container.clientWidth || window.innerWidth;
       const h = container.clientHeight || window.innerHeight;
       const comp = readHomeComposition(container);
-      executeAtomicReframe(camera, w, h, comp.occludedBottomPx);
+      if (!introBridge.enabled) {
+        executeAtomicReframe(camera, w, h, comp.occludedBottomPx);
+      } else {
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      }
       renderer.setSize(w, h);
       if (composer) {
         composer.setSize(w, h);
@@ -3347,6 +3367,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     window.addEventListener('resize', onResize);
     // Initial atomic frame composition
     onResize();
+    introBridge.attach({ scene, camera, renderer });
 
     const clock = new THREE.Clock();
     let frameId = 0;
@@ -3389,10 +3410,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       // Clamp dt to 33ms (GUI_WORLD_MOTION_TOKENS.dtClampMs)
       const dt = Math.min(clock.getDelta(), GUI_WORLD_MOTION_TOKENS.dtClampMs / 1000);
-      const elapsedTotal = clock.getElapsedTime();
+      const elapsedTotal = introBridge.enabled ? introBridge.time() : clock.getElapsedTime();
       const now = performance.now();
       const s = stateRef.current;
 
+      if (introBridge.enabled) s.audioRms = introBridge.audioRms(elapsedTotal);
       glassUniforms.uTime.value = s.reducedMotion ? 0 : elapsedTotal;
       glassUniforms.uAudioRms.value = THREE.MathUtils.damp(
         glassUniforms.uAudioRms.value,
@@ -3505,6 +3527,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         childDomainShells[cs].scale.setScalar(breathScale);
       }
 
+      if (!introBridge.enabled) {
       // Damped CatmullRomCurve3 spline camera interpolation (damp = 1 - Math.exp(-4.2 * dt))
       const dampFactor = s.reducedMotion ? 25 : 4.2;
       const damp = 1 - Math.exp(-dampFactor * dt);
@@ -3611,6 +3634,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           s.currentCenter.z + s.panOffset.z + s.radius * Math.sin(s.polar) * Math.cos(s.azimuth)
         );
         camera.lookAt(_scratchVec.copy(s.currentCenter).add(s.panOffset));
+      }
+
+      } else {
+        introBridge.applyCamera(camera, s, elapsedTotal);
       }
 
       // Interior Planetary Dome Mode Transition when camera.radius < 8.2u
@@ -3838,6 +3865,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         );
       }
 
+      introBridge.update?.(elapsedTotal);
+
       // Align camera optical center to unobstructed centerSafeRect when panels are open.
       // EffectComposer + UnrealBloomPass mishandles PerspectiveCamera.setViewOffset and
       // paints a solid clear-color slab over the right/bottom of the canvas (visible
@@ -4059,9 +4088,22 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       sharedPlanetBeadGeo.dispose();
       sharedSatBeadGeo.dispose();
       extraDisposables.forEach((d) => d.dispose());
+      introBridge.detach();
       renderer.dispose();
     };
   }, [customDomains.length, sphereMaterials.hq, sphereMaterials.cde]);
+
+  if (introBridge.enabled) {
+    return (
+      <div
+        ref={mountRef}
+        className="source-world"
+        data-webgl-status={webglStatus}
+        data-webgl-reason={webglReason}
+        aria-label="Cerebro WebGL spatial scene"
+      />
+    );
+  }
 
   const showReducedGraphicsFallback =
     forceWebglFallback || webglStatus === 'FALLBACK' || webglStatus === 'CONTEXT_LOST';

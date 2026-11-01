@@ -1,0 +1,1 @@
+{"extends": "./tsconfig.json", "include": ["src/intro/main.tsx", "src/intro/bridge.ts", "src/intro/export-proof.ts"], "exclude": ["node_modules", "dist"]}
