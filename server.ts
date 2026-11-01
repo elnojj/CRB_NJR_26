@@ -368,6 +368,111 @@ async function startServer() {
     });
   });
 
+  // 1A. Google Drive Hotspot_26_media catalog + About Us bios (sphere VideoTexture source)
+  app.get('/api/drive/catalog', async (_req, res) => {
+    try {
+      const { DRIVE_MEDIA_ASSETS, HOTSPOT_26_MEDIA_FOLDER_ID, resolveDriveStreamPath } =
+        await import('./src/data/driveMediaCatalog.ts');
+      res.json({
+        ok: true,
+        folderId: HOTSPOT_26_MEDIA_FOLDER_ID,
+        folderUrl: `https://drive.google.com/drive/folders/${HOTSPOT_26_MEDIA_FOLDER_ID}`,
+        assets: DRIVE_MEDIA_ASSETS.map((asset) => ({
+          ...asset,
+          streamUrl: resolveDriveStreamPath(asset.driveFileId),
+          playbackUrl: asset.localFallback || resolveDriveStreamPath(asset.driveFileId),
+        })),
+      });
+    } catch (err) {
+      res.status(500).json({ ok: false, error: String(err) });
+    }
+  });
+
+  app.get('/api/drive/about', async (_req, res) => {
+    try {
+      const {
+        ABOUT_US_BIOS,
+        DRIVE_MEDIA_ASSETS,
+        HOTSPOT_26_MEDIA_FOLDER_ID,
+        resolveAssetPlaybackUrl,
+      } = await import('./src/data/driveMediaCatalog.ts');
+      res.json({
+        ok: true,
+        folderId: HOTSPOT_26_MEDIA_FOLDER_ID,
+        bios: ABOUT_US_BIOS.map((bio) => {
+          const portrait = DRIVE_MEDIA_ASSETS.find((a) => a.id === bio.portraitAssetId);
+          const media = DRIVE_MEDIA_ASSETS.filter((a) => bio.mediaAssetIds.includes(a.id));
+          return {
+            ...bio,
+            portraitUrl: portrait ? resolveAssetPlaybackUrl(portrait) : null,
+            media: media.map((m) => ({
+              id: m.id,
+              title: m.title,
+              kind: m.kind,
+              role: m.role,
+              playbackUrl: resolveAssetPlaybackUrl(m),
+              driveFileId: m.driveFileId,
+            })),
+          };
+        }),
+      });
+    } catch (err) {
+      res.status(500).json({ ok: false, error: String(err) });
+    }
+  });
+
+  app.get('/api/drive/stream/:fileId', async (req, res) => {
+    try {
+      const fileId = path.basename(req.params.fileId).replace(/[^a-zA-Z0-9_-]/g, '');
+      if (!fileId) {
+        res.status(400).json({ ok: false, error: 'Missing Drive file id' });
+        return;
+      }
+
+      const { DRIVE_MEDIA_ASSETS } = await import('./src/data/driveMediaCatalog.ts');
+      const asset = DRIVE_MEDIA_ASSETS.find((a) => a.driveFileId === fileId);
+
+      // Prefer local fallback for reliable WebGL VideoTexture (AI Studio / sandbox egress).
+      if (asset?.localFallback) {
+        const localPath = path.join(process.cwd(), 'public', asset.localFallback.replace(/^\//, ''));
+        if (fs.existsSync(localPath)) {
+          res.setHeader('Cache-Control', 'public, max-age=3600');
+          res.sendFile(localPath);
+          return;
+        }
+      }
+
+      const apiKey = process.env.GOOGLE_API_KEY || process.env.GOOGLE_DRIVE_API_KEY;
+      if (apiKey) {
+        const upstream = await fetch(
+          `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media&key=${encodeURIComponent(apiKey)}`
+        );
+        if (!upstream.ok) {
+          res.status(upstream.status).json({
+            ok: false,
+            error: `Drive media fetch failed (${upstream.status})`,
+          });
+          return;
+        }
+        res.setHeader(
+          'Content-Type',
+          upstream.headers.get('content-type') || asset?.mimeType || 'application/octet-stream'
+        );
+        const buf = Buffer.from(await upstream.arrayBuffer());
+        res.send(buf);
+        return;
+      }
+
+      // Last resort: public Drive download redirect (works when file sharing allows it).
+      res.redirect(
+        302,
+        `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`
+      );
+    } catch (err) {
+      res.status(500).json({ ok: false, error: String(err) });
+    }
+  });
+
   // 1B. Master 39 / Sehly Design System JSON Registries
   app.get('/api/design-system', (_req, res) => {
     try {

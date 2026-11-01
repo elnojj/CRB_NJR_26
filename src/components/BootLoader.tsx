@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { BrandLockup } from './BrandLockup';
 import { COLOUR_TOKENS } from '../tokens/colours';
 
@@ -25,6 +25,16 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
   const [phase, setPhase] = useState<'keypad' | 'loader'>(initialPhase);
   const [pinCode, setPinCode] = useState<string>('');
   const [pinError, setPinError] = useState<string | null>(null);
+  const onTakeOffRef = useRef(onTakeOff);
+  const lockOnCompleteRef = useRef(lockOnComplete);
+
+  useEffect(() => {
+    onTakeOffRef.current = onTakeOff;
+  }, [onTakeOff]);
+
+  useEffect(() => {
+    lockOnCompleteRef.current = lockOnComplete;
+  }, [lockOnComplete]);
 
   useEffect(() => {
     setPhase(initialPhase);
@@ -40,11 +50,11 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
 
     // 12-second watchdog timeout: entry never stalls on desktop or phone
     const watchdog = window.setTimeout(() => {
-      if (!completed && !lockOnComplete) {
+      if (!completed && !lockOnCompleteRef.current) {
         completed = true;
         window.clearInterval(interval);
         console.warn('[BootLoader] 12s watchdog timeout reached — invoking onTakeOff immediately');
-        onTakeOff();
+        onTakeOffRef.current();
       }
     }, 12000);
 
@@ -56,8 +66,8 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
         completed = true;
         window.clearInterval(interval);
         window.clearTimeout(watchdog);
-        if (!lockOnComplete) {
-          onTakeOff();
+        if (!lockOnCompleteRef.current) {
+          onTakeOffRef.current();
         }
       }
     }, 50);
@@ -66,7 +76,9 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
       window.clearInterval(interval);
       window.clearTimeout(watchdog);
     };
-  }, [phase, totalDurationMs, lockOnComplete, onTakeOff]);
+    // Intentionally omit onTakeOff/lockOnComplete: parent re-renders (telemetry,
+    // layout) would otherwise restart the loader and pin progress near 1%.
+  }, [phase, totalDurationMs]);
 
   const handleDigitPress = (digit: string) => {
     setPinError(null);

@@ -1,0 +1,113 @@
+{
+  "voicePresent": false,
+  "measured": {
+    "input_i": "-18.01",
+    "input_tp": "-5.02",
+    "input_lra": "5.80",
+    "input_thresh": "-28.21",
+    "output_i": "-17.91",
+    "output_tp": "-5.12",
+    "output_lra": "5.90",
+    "output_thresh": "-27.98",
+    "normalization_type": "dynamic",
+    "target_offset": "-0.09"
+  },
+  "events": [
+    {
+      "frame": 54,
+      "type": "headline-glass-detail"
+    },
+    {
+      "frame": 75,
+      "type": "media-open"
+    },
+    {
+      "frame": 630,
+      "type": "media-return"
+    },
+    {
+      "frame": 774,
+      "type": "headline-glass-detail"
+    },
+    {
+      "frame": 795,
+      "type": "media-open"
+    },
+    {
+      "frame": 1710,
+      "type": "media-return"
+    },
+    {
+      "frame": 1854,
+      "type": "headline-glass-detail"
+    },
+    {
+      "frame": 1875,
+      "type": "media-open"
+    },
+    {
+      "frame": 2790,
+      "type": "media-return"
+    },
+    {
+      "frame": 2934,
+      "type": "headline-glass-detail"
+    },
+    {
+      "frame": 3774,
+      "type": "headline-glass-detail"
+    },
+    {
+      "frame": 4614,
+      "type": "headline-glass-detail"
+    },
+    {
+      "frame": 4635,
+      "type": "media-open"
+    },
+    {
+      "frame": 5550,
+      "type": "media-return"
+    },
+    {
+      "frame": 5694,
+      "type": "headline-glass-detail"
+    },
+    {
+      "frame": 5715,
+      "type": "media-open"
+    },
+    {
+      "frame": 6630,
+      "type": "media-return"
+    },
+    {
+      "frame": 6774,
+      "type": "headline-glass-detail"
+    },
+    {
+      "frame": 7734,
+      "type": "headline-glass-detail"
+    },
+    {
+      "frame": 8814,
+      "type": "headline-glass-detail"
+    },
+    {
+      "frame": 8820,
+      "type": "media-open"
+    },
+    {
+      "frame": 9660,
+      "type": "media-return"
+    },
+    {
+      "frame": 9954,
+      "type": "headline-glass-detail"
+    },
+    {
+      "frame": 10494,
+      "type": "headline-glass-detail"
+    }
+  ]
+}
