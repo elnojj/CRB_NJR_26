@@ -11,8 +11,32 @@ export type SphereVideoHandle = {
   texture: THREE.VideoTexture;
   portalMesh: THREE.Mesh;
   shellBandMesh: THREE.Mesh;
+  wrapMesh?: THREE.Mesh;
   dispose: () => void;
   setSourceUrl: (url: string) => void;
+};
+
+/** Map project ids → local intro/workspace media plates (under /assets/media). */
+export const PROJECT_MEDIA_SRC: Record<string, string> = {
+  SEVEN: '/assets/media/production.mp4',
+  YAH: '/assets/media/young-human.mp4',
+  MHE: '/assets/media/tarek.mp4',
+  BSOCIAL: '/assets/media/young-human.mp4',
+  'AL-AHRAM': '/assets/media/production.mp4',
+  'MUSEUM-OF-ALMOST': '/assets/media/showreel.mp4',
+  'EL-BATRON': '/assets/media/el-batron.mp4',
+  GONDWANA: '/assets/media/laliga.mp4',
+};
+
+export function resolveProjectMediaSrc(projectId: string): string {
+  return PROJECT_MEDIA_SRC[projectId] || '/assets/media/showreel.mp4';
+}
+
+export type NodeVideoHandle = {
+  video: HTMLVideoElement;
+  texture: THREE.VideoTexture;
+  mesh: THREE.Mesh;
+  dispose: () => void;
 };
 
 /**
@@ -134,15 +158,36 @@ function createVideoElement(src: string): HTMLVideoElement {
   return video;
 }
 
+function attachVideoKeepAlive(video: HTMLVideoElement, tryPlay: () => void) {
+  video.addEventListener('loadeddata', tryPlay);
+  video.addEventListener('canplay', tryPlay);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && video.paused) tryPlay();
+  });
+  tryPlay();
+  const keepAlive = window.setInterval(() => {
+    if (video.paused && !document.hidden) tryPlay();
+  }, 1500);
+  (video as HTMLVideoElement & { __sphereKeepAlive?: number }).__sphereKeepAlive = keepAlive;
+}
+
+/**
+ * World-shell video: curved spherical wrap + equatorial band.
+ * Flat CircleGeometry portal disks are intentionally not mounted.
+ */
 export function mountSphereVideoTexture(options: {
   parent: THREE.Object3D;
   asset?: DriveMediaAsset;
+  sourceUrl?: string;
   portalRadius?: number;
   shellBandRadius?: number;
+  wrapRadius?: number;
+  namePrefix?: string;
 }): SphereVideoHandle {
   const asset = options.asset ?? getSphereTextureAsset();
-  const initialUrl = resolveAssetPlaybackUrl(asset);
+  const initialUrl = options.sourceUrl || resolveAssetPlaybackUrl(asset);
   const video = createVideoElement(initialUrl);
+  const prefix = options.namePrefix || 'sphere';
 
   const texture = new THREE.VideoTexture(video);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -152,22 +197,33 @@ export function mountSphereVideoTexture(options: {
   texture.wrapS = THREE.ClampToEdgeWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;
 
-  const portalGeo = createPortalDiskGeometry(options.portalRadius ?? 5.05, 16 / 9, 72);
-  const portalMat = new THREE.MeshBasicMaterial({
+  // Curved hero wrap — replaces the old flat portal disk.
+  const wrapGeo = createSphericalVideoShellGeometry(
+    options.wrapRadius ?? options.shellBandRadius ?? 5.9,
+    16 / 9,
+    96,
+    64
+  );
+  const wrapMat = new THREE.MeshBasicMaterial({
     map: texture,
-    side: THREE.DoubleSide,
+    side: THREE.BackSide,
     transparent: true,
-    opacity: 0.92,
+    opacity: 0.88,
     depthWrite: false,
     toneMapped: false,
   });
+  const wrapMesh = new THREE.Mesh(wrapGeo, wrapMat);
+  wrapMesh.name = `${prefix}-spherical-video-wrap`;
+  wrapMesh.renderOrder = 3;
+  wrapMesh.scale.setScalar(0.998);
+  options.parent.add(wrapMesh);
+
+  // Keep a tiny invisible portal mesh reference for API compatibility (not added to scene).
+  const portalGeo = createPortalDiskGeometry(options.portalRadius ?? 5.05, 16 / 9, 8);
+  const portalMat = new THREE.MeshBasicMaterial({ visible: false });
   const portalMesh = new THREE.Mesh(portalGeo, portalMat);
-  portalMesh.name = 'hq-media-portal-video';
-  portalMesh.renderOrder = 3;
-  // Match recessed media portal aperture orientation in buildSphereAssembly
-  portalMesh.rotation.set(0.18, -0.24, 0.08);
-  portalMesh.position.set(0, 0, 0.12);
-  options.parent.add(portalMesh);
+  portalMesh.name = `${prefix}-media-portal-video-unused`;
+  portalMesh.visible = false;
 
   const bandGeo = createEquatorialVideoBandGeometry(
     options.shellBandRadius ?? 5.88,
@@ -179,12 +235,12 @@ export function mountSphereVideoTexture(options: {
     map: texture,
     side: THREE.BackSide,
     transparent: true,
-    opacity: 0.22,
+    opacity: 0.28,
     depthWrite: false,
     toneMapped: false,
   });
   const shellBandMesh = new THREE.Mesh(bandGeo, bandMat);
-  shellBandMesh.name = 'hq-equator-video-band';
+  shellBandMesh.name = `${prefix}-equator-video-band`;
   shellBandMesh.renderOrder = 2;
   options.parent.add(shellBandMesh);
 
@@ -192,33 +248,17 @@ export function mountSphereVideoTexture(options: {
     video.muted = true;
     const playPromise = video.play();
     if (playPromise && typeof playPromise.catch === 'function') {
-      playPromise.catch(() => {
-        // Retry on next interaction / visibility — muted autoplay usually succeeds.
-      });
+      playPromise.catch(() => {});
     }
   };
-  video.addEventListener('loadeddata', tryPlay);
-  video.addEventListener('canplay', tryPlay);
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && video.paused) tryPlay();
-  });
-  tryPlay();
-  // Keep the sphere surface alive even if the browser pauses background media.
-  const keepAlive = window.setInterval(() => {
-    if (video.paused && !document.hidden) tryPlay();
-  }, 1500);
-  const previousDispose = () => {
-    window.clearInterval(keepAlive);
-  };
-  // Stash for dispose hook below.
-  (video as HTMLVideoElement & { __sphereKeepAlive?: number }).__sphereKeepAlive = keepAlive;
-  void previousDispose;
+  attachVideoKeepAlive(video, tryPlay);
 
   return {
     video,
     texture,
     portalMesh,
     shellBandMesh,
+    wrapMesh,
     setSourceUrl: (url: string) => {
       if (video.src.endsWith(url) || video.getAttribute('src') === url) return;
       video.src = url;
@@ -233,12 +273,75 @@ export function mountSphereVideoTexture(options: {
       video.removeAttribute('src');
       video.load();
       texture.dispose();
+      wrapGeo.dispose();
+      wrapMat.dispose();
       portalGeo.dispose();
       bandGeo.dispose();
       portalMat.dispose();
       bandMat.dispose();
-      options.parent.remove(portalMesh);
+      options.parent.remove(wrapMesh);
       options.parent.remove(shellBandMesh);
+    },
+  };
+}
+
+/** Curved video shell for a project / station node (no flat CircleGeometry). */
+export function mountProjectNodeVideoShell(options: {
+  parent: THREE.Object3D;
+  projectId: string;
+  radius?: number;
+  name?: string;
+}): NodeVideoHandle {
+  const url = resolveProjectMediaSrc(options.projectId);
+  const video = createVideoElement(url);
+  const texture = new THREE.VideoTexture(video);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = false;
+
+  const radius = options.radius ?? 0.62;
+  const geo = createSphericalVideoShellGeometry(radius, 16 / 9, 48, 32);
+  const mat = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.FrontSide,
+    transparent: true,
+    opacity: 0.92,
+    depthWrite: false,
+    toneMapped: false,
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.name = options.name || `project-video-${options.projectId}`;
+  mesh.renderOrder = 4;
+  mesh.userData = {
+    ...(options.parent.userData || {}),
+    projectMediaId: options.projectId,
+    introInteractive: true,
+  };
+  options.parent.add(mesh);
+
+  const tryPlay = () => {
+    video.muted = true;
+    video.loop = true;
+    video.play().catch(() => {});
+  };
+  attachVideoKeepAlive(video, tryPlay);
+
+  return {
+    video,
+    texture,
+    mesh,
+    dispose: () => {
+      const keepAlive = (video as HTMLVideoElement & { __sphereKeepAlive?: number })
+        .__sphereKeepAlive;
+      if (keepAlive) window.clearInterval(keepAlive);
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+      texture.dispose();
+      geo.dispose();
+      mat.dispose();
+      options.parent.remove(mesh);
     },
   };
 }

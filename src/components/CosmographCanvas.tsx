@@ -908,7 +908,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     currentAngularVel: 0.026,
     flightActive: true,
     flightStartTime: performance.now(),
-    flightDurationMs: 2200,
+    flightDurationMs: 3600,
     flightCurve: null as THREE.CatmullRomCurve3 | null,
     flightLookAtCurve: null as THREE.CatmullRomCurve3 | null,
     flightIsInterSphere: false,
@@ -1132,7 +1132,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       s.targetRollDeg = 0;
       s.activeLensId = '35mm';
       s.targetPanOffset.set(0, 0, 0);
-      triggerCometFlight(center, 0.18, 1.38, 19.0, 1650, true, 35);
+      triggerCometFlight(center, 0.18, 1.38, 19.0, 3800, true, 35);
     } else if (verb === 'focus_node' && targetNodeId) {
       const sphereHint = targetSphere || s.activeSphere;
       const node = resolveNodeEntry(targetNodeId, sphereHint);
@@ -1144,7 +1144,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         const az = Math.atan2(localVec.x, localVec.z);
         s.targetPanOffset.copy(localVec).multiplyScalar(0.22);
         const isCrossingSpheres = sphereCenter.distanceTo(s.currentCenter) > 10;
-        triggerCometFlight(sphereCenter, az, pol, 12.8, isCrossingSpheres ? 1450 : 950, isCrossingSpheres);
+        triggerCometFlight(sphereCenter, az, pol, 12.8, isCrossingSpheres ? 3200 : 2200, isCrossingSpheres);
       }
     } else if (verb === 'center' || verb === 'arrival') {
       const center = (targetSphere || s.activeSphere) === 'cde' ? CDE_CENTER : HQ_CENTER;
@@ -1154,7 +1154,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       s.activeLensId = '35mm';
       s.targetFocalLengthMm = 35;
       s.targetPanOffset.set(0, 0, 0);
-      triggerCometFlight(center, 0.12, 1.42, 19.0, 1100);
+      triggerCometFlight(center, 0.12, 1.42, 19.0, 2600);
     } else if (verb === 'set_lens') {
       s.stoppedExplicitly = false;
       s.flightActive = false;
@@ -3605,8 +3605,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       }
 
       if (!introBridge.enabled) {
-      // Damped CatmullRomCurve3 spline camera interpolation (damp = 1 - Math.exp(-4.2 * dt))
-      const dampFactor = s.reducedMotion ? 25 : 4.2;
+      // Cinematic damping — slower settle so moves feel like a crane, not a snap.
+      // Was 4.2 (snappy); ~2.05 keeps continuity across place-to-place transitions.
+      const dampFactor = s.reducedMotion ? 25 : 2.05;
       const damp = 1 - Math.exp(-dampFactor * dt);
       s.currentCenter.lerp(s.targetCenter, damp);
       s.panOffset.lerp(s.targetPanOffset, damp);
