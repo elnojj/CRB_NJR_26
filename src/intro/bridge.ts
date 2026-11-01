@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {
   createEquatorialVideoBandGeometry,
   createPortalDiskGeometry,
+  createSphericalVideoShellGeometry,
 } from '../lib/sphereVideoTexture';
 
 export const FPS = 60;
@@ -52,6 +53,10 @@ type SceneContext = {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
+  hqShell?: THREE.Object3D;
+  cdeShell?: THREE.Object3D;
+  hqCore?: THREE.Object3D;
+  cdeCore?: THREE.Object3D;
 };
 
 type IntroMediaEntry = {
@@ -61,21 +66,87 @@ type IntroMediaEntry = {
   aspect: number;
 };
 
+type InnerSphereMedia = {
+  nodeId: string;
+  mediaId: string;
+  mesh: THREE.Mesh;
+  mat: THREE.ShaderMaterial;
+  parent: THREE.Object3D;
+};
+
 const HQ_CENTER = new THREE.Vector3(0, 0, 0);
 const CDE_CENTER = new THREE.Vector3(38, 4, -22);
 const SHELL_RADIUS = 5.92;
+const WRAP_RADIUS = 5.9;
 const PORTAL_RADIUS = 5.05;
+
+/** Default video plate for interactive inner cores / beads. */
+const INNER_MEDIA_BY_NODE: Record<string, string> = {
+  'core-hq': 'production',
+  'core-cde': 'showreel',
+  people: 'tarek',
+  media: 'el-batron',
+  projects: 'production',
+  production: 'laliga',
+  YAH: 'young-human',
+  'EL-BATRON': 'el-batron',
+};
+
+const WRAP_MEDIA_IDS = new Set(['showreel', 'production', 'laliga', 'tarek', 'young-human', 'el-batron']);
+
+const videoFrag = `
+  uniform sampler2D map;
+  uniform float alpha;
+  uniform float circularMask;
+  varying vec2 vUv;
+  void main() {
+    vec4 c = texture2D(map, vUv);
+    float radial = 1.0 - smoothstep(0.46, 0.5, length(vUv - 0.5));
+    float edge = 1.0 - smoothstep(0.94, 1.0, abs(vUv.y - 0.5) * 2.0);
+    float mask = mix(edge, radial, circularMask);
+    float a = c.a * alpha * mask;
+    if (a < 0.004) discard;
+    gl_FragColor = vec4(c.rgb, a);
+    #include <colorspace_fragment>
+  }
+`;
+const videoVert = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+function makeVideoMat(circularMask: number, side: THREE.Side) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      map: { value: null },
+      alpha: { value: 0 },
+      circularMask: { value: circularMask },
+    },
+    vertexShader: videoVert,
+    fragmentShader: videoFrag,
+    transparent: true,
+    depthWrite: false,
+    depthTest: true,
+    side,
+    toneMapped: false,
+  });
+}
 
 /**
  * Spherical intro media surface:
- * - equatorial shell band (curved SphereGeometry band — no polar pinch)
- * - circular portal disk (CircleGeometry — soft circular mask, never a square plate)
- * Parent group sits at HQ/CDE centre so media stays contained inside the glass sphere.
+ * - full curved wrap shell (SphereGeometry) — primary, fixes flattened showreel
+ * - equatorial band accent
+ * - optional portal disk (de-emphasized; hidden for wrap-first plates like showreel)
  */
 function createSphereContainedMediaGroup(): {
   root: THREE.Group;
+  wrap: THREE.Mesh;
   band: THREE.Mesh;
   portal: THREE.Mesh;
+  wrapMat: THREE.ShaderMaterial;
   bandMat: THREE.ShaderMaterial;
   portalMat: THREE.ShaderMaterial;
   dispose: () => void;
@@ -83,92 +154,48 @@ function createSphereContainedMediaGroup(): {
   const root = new THREE.Group();
   root.name = 'intro-sphere-media';
 
-  // Soft circular / band alpha so rectangular video bounds never show.
-  const fragmentShader = `
-    uniform sampler2D map;
-    uniform float alpha;
-    uniform float aspect;
-    uniform float circularMask;
-    varying vec2 vUv;
-    void main() {
-      vec2 uv = vUv;
-      // Aspect-correct contain: letterbox/pillarbox inside the sphere UVs.
-      float frameAspect = max(0.01, aspect);
-      vec2 mapped = uv - 0.5;
-      if (frameAspect > 1.0) {
-        mapped.y *= frameAspect;
-      } else {
-        mapped.x /= frameAspect;
-      }
-      mapped += 0.5;
-      float inside = step(0.0, mapped.x) * step(mapped.x, 1.0) * step(0.0, mapped.y) * step(mapped.y, 1.0);
-      vec4 c = texture2D(map, clamp(mapped, 0.0, 1.0));
+  const wrapMat = makeVideoMat(0, THREE.BackSide);
+  const bandMat = makeVideoMat(0, THREE.BackSide);
+  const portalMat = makeVideoMat(1, THREE.DoubleSide);
 
-      // Soft circular aperture when circularMask=1 (portal disk); band uses edge feather only.
-      float radial = 1.0 - smoothstep(0.46, 0.5, length(uv - 0.5));
-      float mask = mix(1.0, radial, circularMask);
-      float a = c.a * alpha * inside * mask;
-      if (a < 0.004) discard;
-      gl_FragColor = vec4(c.rgb, a);
-      #include <colorspace_fragment>
-    }
-  `;
-  const vertexShader = `
-    varying vec2 vUv;
-    void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `;
-
-  const makeMat = (circularMask: number) =>
-    new THREE.ShaderMaterial({
-      uniforms: {
-        map: { value: null },
-        alpha: { value: 0 },
-        aspect: { value: 16 / 9 },
-        circularMask: { value: circularMask },
-      },
-      vertexShader,
-      fragmentShader,
-      transparent: true,
-      depthWrite: false,
-      depthTest: true,
-      side: THREE.DoubleSide,
-      toneMapped: false,
-    });
-
-  const bandMat = makeMat(0);
-  const portalMat = makeMat(1);
+  const wrapGeo = createSphericalVideoShellGeometry(WRAP_RADIUS, 16 / 9, 96, 64);
+  const wrap = new THREE.Mesh(wrapGeo, wrapMat);
+  wrap.name = 'intro-spherical-video-wrap';
+  wrap.renderOrder = 3;
+  wrap.visible = false;
+  wrap.scale.setScalar(0.998);
+  root.add(wrap);
 
   const bandGeo = createEquatorialVideoBandGeometry(SHELL_RADIUS, 16 / 9, 96, 36);
   const band = new THREE.Mesh(bandGeo, bandMat);
   band.name = 'intro-equator-video-band';
-  band.renderOrder = 4;
+  band.renderOrder = 3;
   band.visible = false;
-  // BackSide reads from inside the glass shell; DoubleSide already set — keep slight inset.
   band.scale.setScalar(0.995);
   root.add(band);
 
   const portalGeo = createPortalDiskGeometry(PORTAL_RADIUS, 16 / 9, 72);
   const portal = new THREE.Mesh(portalGeo, portalMat);
   portal.name = 'intro-media-portal-disk';
-  portal.renderOrder = 5;
+  portal.renderOrder = 3;
   portal.visible = false;
-  // Match recessed media portal aperture orientation in CosmographCanvas buildSphereAssembly.
   portal.rotation.set(0.18, -0.24, 0.08);
   portal.position.set(0, 0, 0.12);
   root.add(portal);
 
   return {
     root,
+    wrap,
     band,
     portal,
+    wrapMat,
     bandMat,
     portalMat,
     dispose: () => {
+      wrapGeo.dispose();
       bandGeo.dispose();
       portalGeo.dispose();
+      wrapMat.dispose();
       bandMat.dispose();
       portalMat.dispose();
     },
@@ -193,9 +220,13 @@ class IntroBridge {
   private getPlaying = () => false;
   private media = new Map<string, IntroMediaEntry>();
   private mediaGroup: ReturnType<typeof createSphereContainedMediaGroup> | null = null;
+  private videoHost: HTMLDivElement | null = null;
   private currentId = '';
   private anchors = new Map<string, THREE.Object3D>();
   private autoSuppressed = false;
+  private hiddenLenses: THREE.Object3D[] = [];
+  private activeShell: THREE.Object3D | null = null;
+  private innerSpheres: InnerSphereMedia[] = [];
   manualId: string | null = null;
   manualSince = 0;
   manualClosing = false;
@@ -219,6 +250,115 @@ class IntroBridge {
     return clamp(this.getTime(), 0, 180);
   }
 
+  private ensureVideoHost() {
+    if (this.videoHost && document.body.contains(this.videoHost)) return this.videoHost;
+    const host = document.createElement('div');
+    host.id = 'intro-video-host';
+    host.setAttribute('aria-hidden', 'true');
+    Object.assign(host.style, {
+      position: 'fixed',
+      width: '1px',
+      height: '1px',
+      opacity: '0',
+      pointerEvents: 'none',
+      overflow: 'hidden',
+      left: '0',
+      top: '0',
+      zIndex: '-1',
+    });
+    document.body.appendChild(host);
+    this.videoHost = host;
+    return host;
+  }
+
+  private hideStaticMediaLenses(scene: THREE.Scene) {
+    this.hiddenLenses = [];
+    scene.traverse((o) => {
+      if (o.name === 'hq-media-lens' || o.name === 'cde-media-lens') {
+        o.visible = false;
+        this.hiddenLenses.push(o);
+      }
+    });
+  }
+
+  private mountMediaIntoShell(shell: THREE.Object3D | null | undefined, fallbackCenter: THREE.Vector3) {
+    if (!this.mediaGroup || !this.ctx) return;
+    const root = this.mediaGroup.root;
+    if (root.parent) root.parent.remove(root);
+    if (shell) {
+      root.position.set(0, 0, 0);
+      shell.add(root);
+      this.activeShell = shell;
+    } else {
+      root.position.copy(fallbackCenter);
+      this.ctx.scene.add(root);
+      this.activeShell = null;
+    }
+  }
+
+  /**
+   * Wrap interactive inner cores / node spheres with their own curved video plates.
+   * Click/tap uses existing Cosmograph raycasts (userData.nodeId) → CerebroIntro.selectNode.
+   */
+  private mountInnerSphereMedia(ctx: SceneContext) {
+    this.disposeInnerSpheres();
+    const candidates: { nodeId: string; parent: THREE.Object3D; radius: number }[] = [];
+
+    const consider = (obj: THREE.Object3D | undefined | null, fallbackId: string, radius: number) => {
+      if (!obj) return;
+      const nodeId = (obj.userData?.nodeId as string) || fallbackId;
+      const mediaId = INNER_MEDIA_BY_NODE[nodeId];
+      if (!mediaId) return;
+      candidates.push({ nodeId, parent: obj, radius });
+    };
+
+    consider(ctx.hqCore, 'core-hq', 0.72);
+    consider(ctx.cdeCore, 'core-cde', 0.72);
+
+    ctx.scene.traverse((o) => {
+      if (!(o instanceof THREE.Group)) return;
+      const nodeId = o.userData?.nodeId as string | undefined;
+      if (!nodeId || !INNER_MEDIA_BY_NODE[nodeId]) return;
+      if (nodeId === 'core-hq' || nodeId === 'core-cde') return;
+      // Station / project groups — wrap at a readable interactive size.
+      candidates.push({ nodeId, parent: o, radius: 0.55 });
+    });
+
+    const seen = new Set<string>();
+    for (const c of candidates) {
+      if (seen.has(c.nodeId)) continue;
+      seen.add(c.nodeId);
+      const mediaId = INNER_MEDIA_BY_NODE[c.nodeId];
+      if (!mediaId) continue;
+      const mat = makeVideoMat(0, THREE.FrontSide);
+      const geo = createSphericalVideoShellGeometry(c.radius, 16 / 9, 48, 32);
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.name = `intro-inner-media-${c.nodeId}`;
+      mesh.renderOrder = 3;
+      mesh.userData = {
+        nodeId: c.nodeId,
+        nodeType: c.nodeId.startsWith('core-') ? 'core' : 'station',
+        sphere: c.nodeId.includes('cde') ? 'cde' : 'hq',
+        introMediaId: mediaId,
+        introInteractive: true,
+      };
+      // Inherit pickability onto the wrap mesh.
+      c.parent.add(mesh);
+      this.innerSpheres.push({ nodeId: c.nodeId, mediaId, mesh, mat, parent: c.parent });
+      // Warm the assigned clip so taps play immediately.
+      this.getAsset(mediaId);
+    }
+  }
+
+  private disposeInnerSpheres() {
+    for (const inner of this.innerSpheres) {
+      inner.parent.remove(inner.mesh);
+      inner.mesh.geometry.dispose();
+      inner.mat.dispose();
+    }
+    this.innerSpheres = [];
+  }
+
   attach(ctx: SceneContext) {
     this.ctx = ctx;
     this.ready = true;
@@ -227,14 +367,14 @@ class IntroBridge {
       if (id && o instanceof THREE.Group && !this.anchors.has(id)) this.anchors.set(id, o);
     });
 
-    // Remove any previous rectangular portal leftovers if hot-reloaded.
     const stale = ctx.scene.getObjectByName('intro-sphere-media');
-    if (stale) ctx.scene.remove(stale);
+    if (stale?.parent) stale.parent.remove(stale);
 
     this.mediaGroup = createSphereContainedMediaGroup();
-    // Default at HQ; update() repositions to CDE after t>=126.
-    this.mediaGroup.root.position.copy(HQ_CENTER);
-    ctx.scene.add(this.mediaGroup.root);
+    this.hideStaticMediaLenses(ctx.scene);
+    this.mountMediaIntoShell(ctx.hqShell, HQ_CENTER);
+    this.mountInnerSphereMedia(ctx);
+    this.ensureVideoHost();
     this.onReady();
   }
 
@@ -290,7 +430,6 @@ class IntroBridge {
     if (this.media.has(id)) return this.media.get(id)!;
     const a = this.config.assets[id];
     if (!a?.src) return null;
-    // Sphere surface is video-only — never mount still images onto the shell.
     if (a.type !== 'video') return null;
     const el = document.createElement('video');
     el.muted = true;
@@ -298,7 +437,6 @@ class IntroBridge {
     el.autoplay = true;
     el.playsInline = true;
     el.preload = 'auto';
-    // One pass per beat — the timeline cuts to the next script-matched clip.
     el.loop = false;
     el.crossOrigin = 'anonymous';
     el.setAttribute('muted', '');
@@ -306,6 +444,7 @@ class IntroBridge {
     el.setAttribute('webkit-playsinline', 'true');
     el.setAttribute('autoplay', '');
     el.src = new URL(a.src, document.baseURI).href;
+    this.ensureVideoHost().appendChild(el);
     el.load();
     const texture = new THREE.VideoTexture(el);
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -318,12 +457,17 @@ class IntroBridge {
     el.addEventListener('loadedmetadata', () => {
       if (el.videoWidth > 0 && el.videoHeight > 0) m.aspect = el.videoWidth / el.videoHeight;
     });
+    const kick = () => {
+      el.muted = true;
+      el.play().catch(() => {});
+    };
+    el.addEventListener('loadeddata', kick);
+    el.addEventListener('canplay', kick);
     this.media.set(id, m);
     return m;
   }
 
   preload() {
-    // Preload every video asset so script cuts can start immediately.
     for (const [id, a] of Object.entries(this.config.assets || {})) {
       if ((a as { type?: string; src?: string }).type === 'video' && (a as { src?: string }).src) {
         this.getAsset(id);
@@ -331,7 +475,6 @@ class IntroBridge {
     }
   }
 
-  /** Force-play the active sphere video (muted) — does not wait for Begin. */
   ensureSpherePlayback(id: string | null) {
     if (!id) return;
     const media = this.getAsset(id);
@@ -376,11 +519,16 @@ class IntroBridge {
     };
   }
 
+  /** Resolve media id for a raycast hit (inner wrap or node). */
+  mediaIdForPick(nodeId: string | null | undefined): string | null {
+    if (!nodeId) return null;
+    return INNER_MEDIA_BY_NODE[nodeId] || null;
+  }
+
   update = (t: number) => {
     if (!this.ctx || !this.config || !this.mediaGroup) return;
     const ch = this.chapter(t);
     const frame = t * FPS;
-    // Script-driven cut list: chapter.mediaId / sphereVideo → one video per beat.
     let id: string | null =
       this.manualId ||
       (this.autoSuppressed ? null : ch.sphereVideo || ch.mediaId || null);
@@ -400,16 +548,16 @@ class IntroBridge {
       const openFrames = this.config.motion?.media?.openFrames || 90;
       const closeFrames = this.config.motion?.media?.closeFrames || 60;
       p = smoother((frame - open) / openFrames) * (1 - smoother((frame - close) / closeFrames));
-      // Keep a visible floor so the sphere stays live across the whole beat.
       p = Math.max(p, 0.35);
     }
 
     const media = id ? this.getAsset(id) : null;
     if (this.currentId !== (id || '')) {
-      // Hard cut: pause prior clip, rewind and start the next one-pass video.
       for (const [other, m] of this.media) {
         if (other !== id && m.el) {
-          m.el.pause();
+          // Keep inner-sphere loops alive; only pause non-active timeline clips that aren't bound to inners.
+          const boundInner = this.innerSpheres.some((s) => s.mediaId === other);
+          if (!boundInner) m.el.pause();
         }
       }
       if (media?.el) {
@@ -425,29 +573,63 @@ class IntroBridge {
       this.currentId = id || '';
     }
 
-    const centre = t >= 126 ? CDE_CENTER : HQ_CENTER;
-    this.mediaGroup.root.position.copy(centre);
+    const wantCde = t >= 126;
+    const targetShell = wantCde ? this.ctx.cdeShell : this.ctx.hqShell;
+    const fallback = wantCde ? CDE_CENTER : HQ_CENTER;
+    if (targetShell !== this.activeShell) {
+      this.mountMediaIntoShell(targetShell, fallback);
+    } else if (!this.activeShell) {
+      this.mediaGroup.root.position.copy(fallback);
+    }
 
     const show = !!media && p > 0.001;
+    // Showreel / primary plates: curved wrap is the hero. Flat portal stays off so it never flattens the read.
+    const useFullWrap = !!id && WRAP_MEDIA_IDS.has(id);
+    this.mediaGroup.wrap.visible = show && useFullWrap;
     this.mediaGroup.band.visible = show;
-    this.mediaGroup.portal.visible = show;
+    this.mediaGroup.portal.visible = show && !useFullWrap;
 
     if (media && show) {
       const alpha = smoother(Math.max(p, 0.5) * 2);
-      const pulse = 0.96 + 0.04 * p;
-      this.mediaGroup.band.scale.setScalar(0.995 * pulse);
-      this.mediaGroup.portal.scale.setScalar(pulse);
+      this.mediaGroup.wrap.scale.setScalar(0.998);
+      this.mediaGroup.band.scale.setScalar(0.995);
+      this.mediaGroup.portal.scale.setScalar(1);
 
-      for (const mat of [this.mediaGroup.bandMat, this.mediaGroup.portalMat]) {
-        mat.uniforms.map.value = media.texture;
-        mat.uniforms.alpha.value = alpha * (mat === this.mediaGroup.bandMat ? 0.55 : 0.92);
-        mat.uniforms.aspect.value = media.aspect || 16 / 9;
-      }
+      this.mediaGroup.wrapMat.uniforms.map.value = media.texture;
+      this.mediaGroup.wrapMat.uniforms.alpha.value = alpha * (id === 'showreel' ? 0.92 : 0.82);
+      this.mediaGroup.bandMat.uniforms.map.value = media.texture;
+      this.mediaGroup.bandMat.uniforms.alpha.value = alpha * (useFullWrap ? 0.35 : 0.72);
+      this.mediaGroup.portalMat.uniforms.map.value = media.texture;
+      this.mediaGroup.portalMat.uniforms.alpha.value = alpha * 0.55;
 
-      // Keep the active one-pass clip playing inside the sphere even before Begin (muted).
+      media.texture.needsUpdate = true;
       if (media.el && media.el.paused) {
         media.el.muted = true;
         media.el.play().catch(() => {});
+      }
+    } else {
+      this.mediaGroup.wrap.visible = false;
+      this.mediaGroup.band.visible = false;
+      this.mediaGroup.portal.visible = false;
+    }
+
+    // Drive each interactive inner sphere with its own video plate.
+    for (const inner of this.innerSpheres) {
+      const m = this.getAsset(inner.mediaId);
+      const active = this.manualId === inner.mediaId || id === inner.mediaId;
+      if (!m) {
+        inner.mesh.visible = false;
+        continue;
+      }
+      inner.mesh.visible = true;
+      inner.mat.uniforms.map.value = m.texture;
+      inner.mat.uniforms.alpha.value = active ? 0.95 : 0.55;
+      m.texture.needsUpdate = true;
+      if (m.el) {
+        m.el.muted = true;
+        // Inner plates loop quietly so taps always show motion.
+        m.el.loop = true;
+        if (m.el.paused) m.el.play().catch(() => {});
       }
     }
 
@@ -469,16 +651,23 @@ class IntroBridge {
   detach() {
     for (const m of this.media.values()) {
       m.el?.pause();
+      m.el?.remove();
       m.texture.dispose();
     }
     this.hostPoseSampler = null;
     this.media.clear();
     this.anchors.clear();
-    if (this.mediaGroup && this.ctx) {
-      this.ctx.scene.remove(this.mediaGroup.root);
+    for (const lens of this.hiddenLenses) lens.visible = true;
+    this.hiddenLenses = [];
+    this.disposeInnerSpheres();
+    if (this.mediaGroup) {
+      if (this.mediaGroup.root.parent) this.mediaGroup.root.parent.remove(this.mediaGroup.root);
       this.mediaGroup.dispose();
     }
     this.mediaGroup = null;
+    this.activeShell = null;
+    this.videoHost?.remove();
+    this.videoHost = null;
     this.ctx = null;
     this.ready = false;
   }

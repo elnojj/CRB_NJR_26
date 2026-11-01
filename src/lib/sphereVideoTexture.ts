@@ -52,6 +52,44 @@ export function createEquatorialVideoBandGeometry(
 }
 
 /**
+ * Near-full spherical shell for wrapping a 16:9 video plate onto curved glass.
+ * Uses full longitude and a tall latitude span so the frame reads as wrapped
+ * volume, not a flat portal disk. V is letterboxed to the plate aspect so poles
+ * feather out instead of pinching the image.
+ */
+export function createSphericalVideoShellGeometry(
+  radius: number,
+  aspect = 16 / 9,
+  widthSegments = 96,
+  heightSegments = 64
+): THREE.SphereGeometry {
+  // Cover most of the sphere; leave tiny polar caps so the plate doesn't singularity-stretch.
+  const phiLength = Math.PI * 0.92;
+  const phiStart = (Math.PI - phiLength) / 2;
+  const geo = new THREE.SphereGeometry(
+    radius,
+    widthSegments,
+    heightSegments,
+    0,
+    Math.PI * 2,
+    phiStart,
+    phiLength
+  );
+
+  const uv = geo.attributes.uv;
+  const vSpan = 1 / Math.max(aspect, 1);
+  for (let i = 0; i < uv.count; i++) {
+    const u = uv.getX(i);
+    const v = uv.getY(i);
+    // Keep U around the equator; compress V into a 16:9 band centered on the sphere.
+    const vMapped = 0.5 + (v - 0.5) * vSpan * 1.02;
+    uv.setXY(i, u, THREE.MathUtils.clamp(vMapped, 0, 1));
+  }
+  uv.needsUpdate = true;
+  return geo;
+}
+
+/**
  * Flat portal disk with aspect-correct UVs (letterboxed 16:9 inside a unit circle).
  * Prevents circular crop stretch of the video plate inside the media aperture rim.
  */
