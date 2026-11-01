@@ -102,7 +102,7 @@ export function DiskArHealthDashboard({
             <button
               key={card.id}
               type="button"
-              className={`disk-ar-card ${card.className}`}
+              className={`disk-ar-card ${card.className}${idx < 2 ? ' is-priority' : ' is-secondary'}`}
               style={{
                 top: layout.top,
                 left: layout.left,

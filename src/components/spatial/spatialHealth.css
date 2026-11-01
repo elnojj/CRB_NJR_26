@@ -505,28 +505,63 @@
   display: inline-block;
 }
 
-@media (max-width: 900px) {
+/* Tablet — keep sphere center clear; tuck cards top-left; calendar as slim agenda */
+@media (max-width: 1100px) {
   .disk-ar-stage {
-    inset: 4.5rem 2% 42%;
+    inset: 4.25rem 38% auto 2%;
+    height: auto;
+    max-height: 34vh;
     perspective: 900px;
   }
+
   .disk-ar-plane {
-    transform: rotateX(8deg) rotateY(-2deg);
+    transform: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+    align-content: start;
   }
+
+  .disk-ar-desk,
+  .disk-ar-dust,
+  .disk-ar-orb {
+    display: none;
+  }
+
+  .disk-ar-card {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    transform: none !important;
+    padding: 0.55rem 0.65rem;
+  }
+
+  .disk-ar-card.is-secondary {
+    display: none;
+  }
+
   .wall-cal-stage {
     top: auto;
-    bottom: 6.5rem;
+    bottom: max(6.75rem, calc(env(safe-area-inset-bottom, 0px) + 6rem));
     right: 0.75rem;
-    left: 0.75rem;
-    width: auto;
-    height: 38%;
-    perspective: 900px;
+    left: auto;
+    width: min(280px, 36vw);
+    height: auto;
+    max-height: 42vh;
+    perspective: 800px;
   }
+
   .wall-cal-recess {
     max-width: none;
     width: 100%;
-    transform: rotateY(-12deg) rotateX(4deg);
+    transform: rotateY(-10deg) rotateX(3deg);
   }
+
+  .wall-cal-grid {
+    display: none;
+  }
+
   .node-chips-stage {
     inset: 4.5rem 2% 6.5rem;
   }
@@ -571,8 +606,8 @@
     border-radius: 0.75rem;
   }
 
-  /* Keep only the first two health cards on phone — leave sphere readable */
-  .disk-ar-card + .disk-ar-card + .disk-ar-card {
+  /* Keep only priority health cards on phone — leave sphere readable */
+  .disk-ar-card.is-secondary {
     display: none;
   }
 

@@ -861,20 +861,21 @@ export default function App() {
       setFocusedNodeId(stop.targetNodeId);
       setTourControllerPhase('focusing');
 
+      // Tour owns the stage — collapse desk-AR / calendar so panels don't stack on the sphere.
+      setSpatialHealthMode('dashboard');
+      setDashboardCollapsed(true);
+
       // Screen-specific panel & domain choreography across S01–S18
       if (stop.screenId === 'S01') {
         setOpenPanels([]);
-        setDashboardCollapsed(false);
         setTourControllerPhase('travelling');
         dispatchCamera('arrival', { targetSphere: 'hq', lensId: '35mm' });
       } else if (stop.screenId === 'S02') {
         setOpenPanels([]);
-        setDashboardCollapsed(false);
         setTourControllerPhase('travelling');
         dispatchCamera('arrival', { targetSphere: 'hq' });
       } else if (stop.screenId === 'S15') {
         // Mount both Baghira (#14) and Kinzo (#15) side-by-side
-        setDashboardCollapsed(false);
         setTourControllerPhase('opening');
         setOpenPanels(['baghira', 'kinzo']);
         dispatchCamera('focus_node', { targetSphere: 'hq', targetNodeId: 'tasks' });
@@ -882,7 +883,6 @@ export default function App() {
         // 2400ms CatmullRomCurve3 flight to Sphere 02 CDE Universe + mount CDE Explorer & Story Journey
         setSelectedDimensionId('strategy');
         setActiveChapterIndex(1);
-        setDashboardCollapsed(false);
         setTourControllerPhase('travelling');
         setOpenPanels(['cde-explorer', 'story-journey']);
         dispatchCamera('switch_sphere', { targetSphere: 'cde', targetNodeId: 'strategy' });
@@ -990,6 +990,8 @@ export default function App() {
     }));
     setTourHighlightId(null);
     setVoiceState('Ready');
+    setDashboardCollapsed(false);
+    setSpatialHealthOpen(true);
     setCaptionBubble('Tour stopped · Live workspace ready');
   }, [clearTourSubStepTimers]);
 
@@ -1003,6 +1005,8 @@ export default function App() {
       setTourControllerPhase('idle');
       setCaptionBubble('Tour complete · Centred on HQ');
       setActiveSphere('hq');
+      setDashboardCollapsed(false);
+      setSpatialHealthOpen(true);
       dispatchCamera('center', { targetSphere: 'hq' });
       appendTranscript(
         'Cerebro',
@@ -3286,8 +3290,13 @@ export default function App() {
         onCloseHands={() => setHandsActive(false)}
       />
 
-      {/* 2B. Desk AR health + angled wall calendar + project node-chips */}
-      {bootDone && spatialHealthOpen && !dashboardCollapsed && (
+      {/* 2B. Desk AR health + angled wall calendar + project plan.
+          Hidden during guided tour, and dashboard overlays yield when a panel owns focus. */}
+      {bootDone &&
+        spatialHealthOpen &&
+        !dashboardCollapsed &&
+        !tourState.active &&
+        (spatialHealthMode === 'project' || openPanels.length === 0) && (
         <SpatialHealthLayout
           mode={spatialHealthMode}
           selectedProjectId={selectedProjectId}
