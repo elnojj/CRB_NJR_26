@@ -4025,8 +4025,23 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           const rx = sx - width * 0.5;
           const ry = sy - height * 0.5;
           const rLen = Math.hypot(rx, ry) || 1;
-          const offsetX = entry.nodeType === 'core' ? 24 : (rx / rLen) * 34 + (rx >= 0 ? 12 : -92);
-          const offsetY = entry.nodeType === 'core' ? -24 : (ry / rLen) * 26 - 14;
+          const isPhoneProj = width < 768;
+          const isTabletProj = width >= 768 && width < 1100;
+          const radial = isPhoneProj ? 22 : isTabletProj ? 28 : 34;
+          const sideBias = isPhoneProj ? 58 : isTabletProj ? 76 : 92;
+          const lift = isPhoneProj ? 18 : isTabletProj ? 22 : 26;
+          const offsetX =
+            entry.nodeType === 'core'
+              ? isPhoneProj
+                ? 10
+                : 24
+              : (rx / rLen) * radial + (rx >= 0 ? 8 : -sideBias);
+          const offsetY =
+            entry.nodeType === 'core'
+              ? isPhoneProj
+                ? -16
+                : -24
+              : (ry / rLen) * lift - (isPhoneProj ? 8 : 14);
 
           projected.push({
             id: entry.canonicalId,
@@ -4049,17 +4064,23 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         });
 
         projected.sort((a, b) => a.y - b.y);
-        const minLabelGapY = 46;
-        const minLabelGapX = 168;
+        // Responsive motion-graph packing — tighter on phone/tablet so chips don't collide
+        const isPhone = width < 768;
+        const isTablet = width >= 768 && width < 1100;
+        const minLabelGapY = isPhone ? 30 : isTablet ? 38 : 46;
+        const minLabelGapX = isPhone ? 98 : isTablet ? 128 : 168;
         const safe = unobstructedRectRef.current;
-        const minX = safe ? Math.max(16, safe.x + 12) : 20;
+        const dockClear = isPhone ? Math.max(128, height * 0.22) : isTablet ? 112 : 120;
+        const topClear = isPhone ? Math.max(56, height * 0.08) : 72;
+        const labelWidthReserve = isPhone ? Math.min(132, width * 0.42) : isTablet ? 160 : 195;
+        const minX = safe ? Math.max(8, safe.x + 6) : isPhone ? 6 : 20;
         const maxX = safe
-          ? Math.max(minX + 120, safe.x + safe.w - 188)
-          : width - 195;
-        const minY = safe ? Math.max(64, safe.y + 10) : 72;
+          ? Math.max(minX + 88, safe.x + safe.w - labelWidthReserve)
+          : Math.max(minX + 88, width - labelWidthReserve);
+        const minY = safe ? Math.max(topClear, safe.y + 6) : topClear;
         const maxY = safe
-          ? Math.max(minY + 80, safe.y + safe.h - 36)
-          : height - 120;
+          ? Math.max(minY + 56, safe.y + safe.h - 24)
+          : Math.max(minY + 56, height - dockClear);
 
         for (let pass = 0; pass < 6; pass++) {
           for (let i = 0; i < projected.length; i++) {
@@ -4310,16 +4331,16 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         </div>
       )}
 
-      {/* Anchored 3D Labels & Independent SVG Leader Tethers Following the Camera (Sehly C11 Focus Marker & C08 Target) */}
+      {/* Motion-graph infographic labels — continuous tether + land-in copy, camera-driven */}
       {!showReducedGraphicsFallback && (
-        <div className="fixed inset-0 pointer-events-none z-10">
-          {/* Precision C11 Focus Marker & Target Reticle SVG Tethers (focus-label.svg / target.svg) */}
+        <div className="cerebro-infograph-layer fixed inset-0 pointer-events-none z-10">
           <svg className="fixed inset-0 w-full h-full pointer-events-none" aria-hidden="true">
-            {labels2D.map((item) => {
+            {labels2D.map((item, idx) => {
               const isPrimaryStation =
                 item.nodeType === 'station' ||
                 item.nodeType === 'dimension' ||
-                item.nodeType === 'core';
+                item.nodeType === 'core' ||
+                item.nodeType === 'project';
               if (
                 (!item.isFocused && !isPrimaryStation) ||
                 item.anchorX === undefined ||
@@ -4329,26 +4350,29 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               }
               const badgeAnchorX = item.x + 14;
               const badgeAnchorY = item.y + 19;
-              const strokeCol = item.isFocused ? '#D4AF37' : 'rgba(180, 221, 255, 0.36)';
+              const strokeCol = item.isFocused ? '#D4AF37' : 'rgba(180, 221, 255, 0.42)';
               const dotCol = item.isFocused ? '#D4AF37' : '#B4DDFF';
+              const midX = (item.anchorX + badgeAnchorX) * 0.5;
+              const midY = (item.anchorY + badgeAnchorY) * 0.5 - 10;
               return (
                 <g
                   key={`tether-${activeSphere}-${item.id}-${item.nodeType}`}
-                  opacity={item.isFocused ? 0.98 : 0.52}
+                  opacity={item.isFocused ? 0.98 : 0.58}
+                  style={{ animationDelay: `${(idx % 8) * 60}ms` }}
                 >
-                  <line
-                    x1={item.anchorX}
-                    y1={item.anchorY}
-                    x2={badgeAnchorX}
-                    y2={badgeAnchorY}
+                  <path
+                    className={`cerebro-infograph-tether${item.isFocused ? ' is-focused' : ''}`}
+                    d={`M ${item.anchorX} ${item.anchorY} Q ${midX} ${midY} ${badgeAnchorX} ${badgeAnchorY}`}
+                    fill="none"
                     stroke={strokeCol}
-                    strokeWidth={item.isFocused ? 1.5 : 1}
+                    strokeWidth={item.isFocused ? 1.6 : 1.15}
+                    strokeLinecap="round"
                   />
                   <circle
                     cx={item.anchorX}
                     cy={item.anchorY}
                     r={item.isFocused ? 7 : 4.5}
-                    fill="rgba(16, 29, 39, 0.72)"
+                    fill="rgba(12, 18, 28, 0.72)"
                     stroke={strokeCol}
                     strokeWidth={item.isFocused ? 1.5 : 1.2}
                   />
@@ -4363,11 +4387,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             })}
           </svg>
 
-          {labels2D.map((item) => {
+          {labels2D.map((item, idx) => {
             const isPrimaryStation =
               item.nodeType === 'station' ||
               item.nodeType === 'dimension' ||
-              item.nodeType === 'core';
+              item.nodeType === 'core' ||
+              item.nodeType === 'project';
+            const x = Math.round(item.x);
+            const y = Math.round(item.y);
             return (
               <button
                 key={`${activeSphere}-${item.id}-${item.nodeType}`}
@@ -4394,71 +4421,73 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                   onSelectNode(item.id, item.nodeType, activeSphere);
                 }}
                 style={{
-                  transform: `translate3d(${Math.round(item.x)}px, ${Math.round(item.y)}px, 0)`,
+                  transform: `translate3d(${x}px, ${y}px, 0)`,
                   borderColor: item.isFocused
                     ? '#D4AF37'
                     : 'rgba(180, 221, 255, 0.36)',
-                  backgroundColor: item.isFocused
-                    ? 'rgba(20, 38, 50, 0.78)'
-                    : 'rgba(20, 38, 50, 0.44)',
                 }}
-                className={`cerebro-focus-label fixed top-0 left-0 min-h-[38px] pointer-events-auto cursor-pointer px-3.5 py-1.5 rounded-full border transition-all duration-200 flex items-center gap-2.5 text-left group hover:border-[#D4AF37] hover:bg-[#142632]/80 ${
+                className={`cerebro-focus-label cerebro-infograph-label fixed top-0 left-0 min-h-[38px] pointer-events-auto cursor-pointer px-3.5 py-1.5 rounded-full border flex items-center gap-2.5 text-left group hover:border-[#D4AF37] ${
                   item.isFocused
-                    ? 'opacity-100 shadow-[0_0_24px_rgba(212,175,55,0.24)]'
+                    ? 'is-focused opacity-100 shadow-[0_0_24px_rgba(212,175,55,0.24)]'
                     : isPrimaryStation
-                    ? 'opacity-90 hover:opacity-100 focus:opacity-100'
+                    ? 'opacity-95 hover:opacity-100 focus:opacity-100'
                     : 'opacity-0 hover:opacity-100 focus:opacity-100'
                 }`}
               >
-                {/* C08 / C11 Precision Target Indicator (target.svg / focus-label.svg) */}
-                <span className="relative flex items-center justify-center w-3.5 h-3.5 shrink-0">
-                  <span
-                    className="absolute inset-0 rounded-full border transition-colors"
-                    style={{
-                      borderColor: item.isFocused
-                        ? '#D4AF37'
-                        : 'rgba(180, 221, 255, 0.55)',
-                    }}
-                  />
-                  <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{
-                      backgroundColor: item.isFocused ? '#D4AF37' : item.colour || '#B4DDFF',
-                    }}
-                  />
-                </span>
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-sans text-[13px] font-medium text-[#F2F6F8] tracking-[-0.01em] leading-tight whitespace-nowrap">
+                <span className="ig-pulse" aria-hidden="true" />
+                <span
+                  className="ig-shell"
+                  style={{
+                    animationDelay: `${(idx % 10) * 55}ms, ${(idx % 10) * 55 + 720}ms`,
+                  }}
+                >
+                  <span className="relative flex items-center justify-center w-3.5 h-3.5 shrink-0">
+                    <span
+                      className="absolute inset-0 rounded-full border transition-colors"
+                      style={{
+                        borderColor: item.isFocused
+                          ? '#D4AF37'
+                          : 'rgba(180, 221, 255, 0.55)',
+                      }}
+                    />
+                    <span
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{
+                        backgroundColor: item.isFocused ? '#D4AF37' : item.colour || '#B4DDFF',
+                      }}
+                    />
+                  </span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="ig-title font-sans font-medium text-[#F2F6F8]">
                       {item.label}
                     </span>
+                    {item.sublabel && (
+                      <span className="ig-sub font-sans text-[#D0DCE3]">
+                        {item.sublabel}
+                      </span>
+                    )}
                   </div>
-                  {item.sublabel && (
-                    <span className="font-sans text-[11px] text-[#D0DCE3]/85 leading-tight whitespace-nowrap">
-                      {item.sublabel}
-                    </span>
-                  )}
-                </div>
+                </span>
               </button>
             );
           })}
 
           {captionBubble && (
-            <div
-              className="cerebro-panel fixed left-1/2 top-[16%] -translate-x-1/2 z-20 max-w-md px-4 py-2.5 rounded-2xl border neural-reveal pointer-events-none"
-            >
-              <div className="flex items-center gap-2 mb-0.5">
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: '#D4AF37' }}
-                />
-                <span className="font-mono text-[10px] uppercase tracking-wider text-[#B4DDFF]">
-                  Cerebro
-                </span>
+            <div className="cerebro-infograph-caption fixed left-1/2 top-[16%] -translate-x-1/2 z-20 px-4 py-2.5 rounded-2xl pointer-events-none">
+              <div className="ig-shell">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: '#D4AF37' }}
+                  />
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#B4DDFF]">
+                    Cerebro
+                  </span>
+                </div>
+                <p className="font-sans text-xs md:text-sm text-[#F2F6F8] leading-snug">
+                  {captionBubble}
+                </p>
               </div>
-              <p className="font-sans text-xs md:text-sm text-[#F2F6F8] leading-snug">
-                {captionBubble}
-              </p>
             </div>
           )}
 

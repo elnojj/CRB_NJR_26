@@ -229,6 +229,183 @@
   color: var(--token-text-primary);
 }
 
+/* —— Sphere motion-graph infographic labels (continuous land-in, camera-tracked) —— */
+.cerebro-infograph-layer {
+  --ig-safe-bottom: max(7.5rem, calc(env(safe-area-inset-bottom, 0px) + 6.75rem));
+  --ig-safe-top: max(4.25rem, calc(env(safe-area-inset-top, 0px) + 3.5rem));
+}
+
+.cerebro-infograph-tether {
+  stroke-dasharray: 6 8;
+  animation: cerebro-infograph-dash 1.65s linear infinite;
+}
+
+.cerebro-infograph-tether.is-focused {
+  stroke-dasharray: 2 0;
+  animation: none;
+}
+
+@keyframes cerebro-infograph-dash {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+/* Outer shell tracks the camera via inline translate3d — never animate its transform. */
+.cerebro-infograph-label {
+  max-width: min(42vw, 220px);
+  will-change: transform;
+  backdrop-filter: blur(14px) saturate(1.12);
+  -webkit-backdrop-filter: blur(14px) saturate(1.12);
+  background: linear-gradient(
+    145deg,
+    rgba(16, 24, 36, 0.62) 0%,
+    rgba(12, 18, 28, 0.48) 100%
+  ) !important;
+}
+
+/* Inner shell owns land-in + continuous float so camera motion stays continuous. */
+.cerebro-infograph-label .ig-shell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: inherit;
+  width: 100%;
+  min-width: 0;
+  animation:
+    cerebro-infograph-land 720ms cubic-bezier(0.22, 1, 0.36, 1) both,
+    cerebro-infograph-float 4.8s ease-in-out 720ms infinite;
+}
+
+.cerebro-infograph-label .ig-title {
+  display: block;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
+  font-size: clamp(0.68rem, 1.55vw, 0.82rem);
+  letter-spacing: 0.01em;
+}
+
+.cerebro-infograph-label .ig-sub {
+  display: block;
+  white-space: normal;
+  font-size: clamp(0.58rem, 1.25vw, 0.7rem);
+  opacity: 0.88;
+  margin-top: 0.1rem;
+}
+
+.cerebro-infograph-label .ig-pulse {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  border: 1px solid rgba(180, 221, 255, 0.18);
+  animation: cerebro-infograph-breathe 3.6s ease-in-out infinite;
+}
+
+.cerebro-infograph-label.is-focused .ig-pulse {
+  border-color: rgba(212, 175, 55, 0.45);
+  box-shadow: 0 0 18px rgba(212, 175, 55, 0.22);
+}
+
+@keyframes cerebro-infograph-land {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translate3d(0, 16px, 0) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes cerebro-infograph-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -3px, 0);
+  }
+}
+
+@keyframes cerebro-infograph-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.cerebro-infograph-caption {
+  background: rgba(12, 18, 28, 0.55);
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  border: 1px solid rgba(180, 221, 255, 0.28);
+  max-width: min(92vw, 28rem);
+}
+
+.cerebro-infograph-caption .ig-shell {
+  animation:
+    cerebro-infograph-land 860ms cubic-bezier(0.22, 1, 0.36, 1) both,
+    cerebro-infograph-float 5.2s ease-in-out 860ms infinite;
+}
+
+@media (max-width: 1100px) {
+  .cerebro-infograph-label {
+    max-width: min(44vw, 180px);
+    min-height: 34px;
+    padding: 0.4rem 0.7rem !important;
+    gap: 0.45rem !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .cerebro-infograph-label {
+    max-width: min(46vw, 142px);
+    min-height: 30px;
+    padding: 0.32rem 0.52rem !important;
+    border-radius: 999px;
+  }
+
+  .cerebro-infograph-label .ig-title {
+    font-size: clamp(0.62rem, 3.2vw, 0.74rem);
+  }
+
+  .cerebro-infograph-label .ig-sub {
+    font-size: clamp(0.52rem, 2.6vw, 0.62rem);
+  }
+
+  .cerebro-infograph-caption {
+    top: max(10%, calc(env(safe-area-inset-top, 0px) + 3.25rem)) !important;
+    left: 50% !important;
+    right: auto !important;
+    width: min(94vw, 22rem);
+    max-width: min(94vw, 22rem);
+    padding: 0.55rem 0.85rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .cerebro-infograph-label {
+    max-width: min(44vw, 128px);
+    padding: 0.28rem 0.45rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cerebro-infograph-tether,
+  .cerebro-infograph-label .ig-shell,
+  .cerebro-infograph-label .ig-pulse,
+  .cerebro-infograph-caption .ig-shell {
+    animation: none !important;
+  }
+}
+
 /* ==========================================================================
    ALIASES (kept for backward compatibility; map to semantic tokens)
    ========================================================================== */

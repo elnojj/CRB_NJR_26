@@ -1031,10 +1031,12 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                   <button
                     type="button"
                     data-testid="connect-elevenlabs-btn"
+                    aria-label="Connect"
+                    title="Connect"
                     onClick={() => handleConnectLiveAgent()}
-                    className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#D4AF37]/20 border border-[#D4AF37] text-[#FFF4D0] hover:bg-[#D4AF37] hover:text-[#101622] transition-colors cursor-pointer shrink-0"
+                    className="inline-flex items-center justify-center min-w-[28px] min-h-[28px] px-1.5 rounded bg-[#D4AF37]/20 border border-[#D4AF37] text-[#FFF4D0] hover:bg-[#D4AF37] hover:text-[#101622] transition-colors cursor-pointer shrink-0"
                   >
-                    Connect
+                    <PhoneCallIcon title="Connect" />
                   </button>
                 ) : (
                   <button
