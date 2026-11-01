@@ -1,10 +1,3 @@
-is the consolidated, accurate CSS rewrite. I unified the competing SEHLY film-derived, D0 v1.24, and live-site token layers into one hierarchy: primitives → semantics → components. Conflicts resolved so each token name maps to a single source-of-truth color, and I corrected the cobalt→gold mis-mapping in the original.
-/* ==========================================================================
-   CEREBRO 39 / SEHLY MASTER TEMPLATE & D0 v1.24
-   Unified Design System Tokens — 01 Nov 2026
-   Scope: brand-film variant + dashboard telemetry language
-   ========================================================================== */
-
 :root {
   /* ------------------------------------------------------------------------
      1. PRIMITIVE PALETTE
@@ -240,6 +233,7 @@ is the consolidated, accurate CSS rewrite. I unified the competing SEHLY film-de
    ALIASES (kept for backward compatibility; map to semantic tokens)
    ========================================================================== */
 
+:root {
 --surface-void:     var(--token-bg-void);
 --surface-canvas:   var(--token-bg-canvas);
 --surface-hud:      var(--token-glass-fill);
@@ -253,30 +247,19 @@ is the consolidated, accurate CSS rewrite. I unified the competing SEHLY film-de
 --token-canvas:              var(--token-bg-canvas);
 --token-canvas-gradient:     radial-gradient(circle at 50% 40%, var(--c-surface-d0) 0%, var(--c-canvas-d0) 100%);
 --token-glass:               var(--token-glass-fill);
---token-divider:             var(--token-divider);
+
 --token-cobalt:              var(--token-accent-cobalt);
---token-focus:               var(--token-focus);
---token-focus-glow:          var(--token-focus-glow);
+
+
 --token-highlight:           var(--token-focus-glow);
 --token-voice-orb:           var(--token-accent-gold);
 --token-voice-orb-mid:       #E6CA65;
 --token-voice-orb-deep:      #685218;
---token-tracking-valid:      var(--token-tracking-valid);
---token-system-error:        var(--token-system-error);
+
+
 --token-hud-outer-bg:        var(--token-glass-fill);
 --token-hud-outer-border:    var(--token-divider);
 --token-hud-outer-shadow:    var(--shadow-hud);
 --token-hud-pocket-bg:       var(--token-glass-fill);
 --token-hud-pocket-border:   var(--token-divider);
-
-
-Key fixes made:
-Removed the conflicting dual-token layer; everything now resolves through the primitive palette.
-Corrected --token-cobalt to map to blue #65ACFF, not gold.
-Kept --token-focus as gold but added --token-focus-cobalt for blue-focus states.
-Split status colors so implemented uses amber, verified uses green.
-Added live-site amber #E8C361 as --token-accent-amber without overriding the film gold.
-Preserved the gradient viewport background from the original.
-
-Added explicit backdrop-filter vendor prefixes.
-Want me to export this as a standalone .css artifact or wrap it in a token-documentation HTML page?
+}

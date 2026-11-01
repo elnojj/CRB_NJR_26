@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { GuiBreakpoint, GUI_BREAKPOINTS_CSS_PX, GUI_SAFE_INSETS } from './guiTokens';
+import { GuiBreakpoint, GUI_SAFE_INSETS } from './guiTokens';
+import { resolveGuiBreakpoint } from './layoutEngine';
 
 export interface SafeAreaInsetsPx {
   top: number;
@@ -17,11 +18,8 @@ export interface ViewportState {
   overridePreset: string | null;
 }
 
-export function resolveBreakpoint(width: number): GuiBreakpoint {
-  if (width <= GUI_BREAKPOINTS_CSS_PX.phone[1]) return 'phone';
-  if (width <= GUI_BREAKPOINTS_CSS_PX.tablet[1]) return 'tablet';
-  if (width <= GUI_BREAKPOINTS_CSS_PX.desktop[1]) return 'desktop';
-  return 'wide';
+export function resolveBreakpoint(width: number, height = 900): GuiBreakpoint {
+  return resolveGuiBreakpoint(width, height);
 }
 
 export const VIEWPORT_PRESET_DIMENSIONS: Record<string, { width: number; height: number }> = {
@@ -38,7 +36,7 @@ function readViewportDimensions(overridePreset: string | null): ViewportState {
     return {
       width,
       height,
-      breakpoint: resolveBreakpoint(width),
+      breakpoint: resolveBreakpoint(width, height),
       keyboardInsetBottom: 0,
       safeInsets: {
         top: GUI_SAFE_INSETS.minPx,
@@ -71,7 +69,7 @@ function readViewportDimensions(overridePreset: string | null): ViewportState {
   return {
     width,
     height,
-    breakpoint: resolveBreakpoint(width),
+    breakpoint: resolveBreakpoint(width, height),
     keyboardInsetBottom,
     safeInsets: {
       top: GUI_SAFE_INSETS.minPx,

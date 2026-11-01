@@ -133,6 +133,7 @@ export const GUI_GLASS_TOKENS = {
   controlRadiusPx: 8,
   pillRadiusPx: 999,
 
+  shadow: 'var(--shadow-elevated)',
   cardShadow: 'var(--shadow-card)',
   panelShadow: 'var(--shadow-elevated)',
   hudShadow: 'var(--shadow-hud)',
@@ -336,6 +337,8 @@ export const GUI_WORLD_MOTION_TOKENS = {
   sphereBreathingCycleSec: 8,
   sphereBreathingScaleAmplitude: 0.008,
 
+  periodsSec: { rimBreath: GUI_MOTION_TOKENS.sphereBreathingCycleSec },
+  rates: { sphereRadPerSec: (Math.PI * 2) / GUI_MOTION_TOKENS.cameraIdleRevolutionSec },
   freezeIfHidden: true,
   dtClampMs: 33,
 } as const;
