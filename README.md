@@ -2,6 +2,17 @@
 
 Spatial dual-sphere project orchestration for NOJARA Studios, plus the **180s JSON-driven introduction** (`CerebroIntro`).
 
+## AI Studio Git sync
+
+Google AI Studio pulls from **GitHub** `main` (`elnojj/CRB_NJR_26`), not Cursor Origin.
+
+```bash
+export GH_TOKEN=…   # fine-grained PAT, Contents: Read and write
+./scripts/sync-aistudio-main.sh
+```
+
+Agents: always run this (or equivalent) after shipping work meant for Studio. See `AGENTS.md`.
+
 ## Production (canonical)
 
 **Firebase Hosting is the production link** for this AI Studio project. All production publishes go through Firebase — not GitHub Pages / Netlify / Vercel.
