@@ -319,11 +319,28 @@
       "ease": "quintic smootherstep; no arbitrary looping type motion"
     },
     "media": {
-      "openFrames": 90,
-      "closeFrames": 60,
-      "expand": "world node to camera-relative inspection plane; continuous world-space transform",
-      "aspectFit": "contain; no image stretch",
-      "collapse": "reverse to node anchor; camera stays continuous"
+      "playback": "one-pass per beat; cut to the next script-matched video (no same-clip loop)",
+      "loop": false,
+      "autoplay": "muted sequence starts on intro load inside the sphere",
+      "containment": "equatorial band + circular portal disk; no floating rectangle",
+      "sourceFolder": [
+        "public/assets/media",
+        "public/media"
+      ],
+      "mapping": {
+        "opening": "production",
+        "tarek": "tarek",
+        "work": "laliga",
+        "shweekar": "showreel",
+        "khaled": "laliga",
+        "young-human": "young-human",
+        "el-batron": "el-batron",
+        "ecosystem": "production",
+        "cerebro": "showreel",
+        "media-demo": "el-batron",
+        "learning": "laliga",
+        "return": "showreel"
+      }
     },
     "reading": "reduced travel during reading holds; no camera teleport, scene remount or hard cut"
   },
@@ -11264,7 +11281,9 @@
       "sourceIn": 4,
       "sourceOut": 16,
       "creditStatus": "archive identity verified; publication clearance not independently established",
-      "posterSrc": "assets/media/production.jpg"
+      "posterSrc": "assets/media/production.jpg",
+      "loop": false,
+      "scriptRole": "opening / studio work"
     },
     "tarek": {
       "type": "video",
@@ -11275,7 +11294,9 @@
       "sourceOut": 61,
       "person": "Tarek Nojara",
       "portraitSrc": "assets/media/tarek-portrait.jpg",
-      "posterSrc": "assets/media/tarek.jpg"
+      "posterSrc": "assets/media/tarek.jpg",
+      "loop": false,
+      "scriptRole": "founder beat"
     },
     "laliga": {
       "type": "video",
@@ -11285,7 +11306,9 @@
       "sourceIn": 19,
       "sourceOut": 37,
       "claim": "Production-scale illustration, not evidence of a specific private dilemma",
-      "posterSrc": "assets/media/laliga.jpg"
+      "posterSrc": "assets/media/laliga.jpg",
+      "loop": false,
+      "scriptRole": "production reality / practice"
     },
     "shweekar": {
       "type": "image",
@@ -11294,7 +11317,8 @@
       "status": "NEEDS_CONFIRMED_PORTRAIT",
       "role": "PMO collaborator",
       "roleEvidence": "Supplied src/data/sourceData.ts p-shweekar; owner inclusion instruction",
-      "headlineStatus": "proposed editorial copy"
+      "headlineStatus": "proposed editorial copy",
+      "loop": false
     },
     "khaled": {
       "type": "image",
@@ -11303,18 +11327,20 @@
       "status": "NEEDS_CONFIRMED_PORTRAIT",
       "role": "Collaborator",
       "roleEvidence": "Supplied source p-khalid and owner inclusion instruction; no executive title inferred",
-      "headlineStatus": "proposed editorial copy"
+      "headlineStatus": "proposed editorial copy",
+      "loop": false
     },
     "young-human": {
       "type": "video",
       "src": "assets/media/young-human.mp4",
       "label": "Young & Human / 2024 animated archive",
       "source": "Drive 14jE1NJ0fdey3-KHRc323z_0dAEIflZAD",
-      "loop": true,
-      "brandLogo": "assets/brand/cerebro-wordmark.svg",
+      "loop": false,
+      "brandLogo": null,
       "status": "REAL_ARCHIVE_BRAND_ASSET; current mark subject to owner proof review; brand mark using local wordmark fallback",
       "evidenceScope": "Archived brand animation; not evidence of an actual co-creation mechanism or current campaign result.",
-      "posterSrc": "assets/media/young-human.jpg"
+      "posterSrc": "assets/media/young-human.jpg",
+      "scriptRole": "people shape it"
     },
     "el-batron": {
       "type": "video",
@@ -11323,9 +11349,19 @@
       "source": "Supplied NOJARA public archive",
       "sourceIn": 32,
       "sourceOut": 53,
-      "brandLogo": "assets/brand/cerebro-wordmark.svg",
+      "brandLogo": null,
       "logoSource": "Drive 1pK739vVtO9zoDTPbVyOXesP6o-9MRnch",
-      "posterSrc": "assets/media/el-batron.jpg"
+      "posterSrc": "assets/media/el-batron.jpg",
+      "loop": false,
+      "scriptRole": "talent world / media demo"
+    },
+    "showreel": {
+      "type": "video",
+      "src": "assets/media/showreel.mp4",
+      "loop": false,
+      "label": "NOJARA Hotspot showreel plate",
+      "posterSrc": "assets/media/production.jpg",
+      "scriptRole": "ops / cerebro / closing spatial plate"
     }
   },
   "chapters": [
@@ -11337,12 +11373,13 @@
       "kicker": "NOJARA PRESENTS",
       "body": "They picked difficult projects. Apparently, an easier brief wasn\u2019t available.",
       "mediaId": "production",
-      "mediaOpenFrame": 75,
-      "mediaCloseFrame": 630,
+      "mediaOpenFrame": 12,
+      "mediaCloseFrame": 702,
       "textStartFrame": 30,
       "showTell": "Show attributable material first; explain only the supported relationship.",
       "credit": "Actual archive source; no invented metrics.",
-      "editorialIntent": "At Nojara, they started with difficult projects. Apparently, choosing something easier was not on the brief. The system came later."
+      "editorialIntent": "At Nojara, they started with difficult projects. Apparently, choosing something easier was not on the brief. The system came later.",
+      "sphereVideo": "production"
     },
     {
       "id": "tarek",
@@ -11352,12 +11389,13 @@
       "kicker": "TAREK NOJARA",
       "body": "Founder / Culture and Design Engineer.",
       "mediaId": "tarek",
-      "mediaOpenFrame": 795,
-      "mediaCloseFrame": 1710,
+      "mediaOpenFrame": 732,
+      "mediaCloseFrame": 1782,
       "textStartFrame": 750,
       "showTell": "Show attributable material first; explain only the supported relationship.",
       "credit": "Actual archive source; no invented metrics.",
-      "editorialIntent": "Tarek Nojara founded Nojara Studios. His work moves between creative thinking and production. The interesting part is what happens in between: people, time, logistics, decisions, and the small matter of actually making the thing."
+      "editorialIntent": "Tarek Nojara founded Nojara Studios. His work moves between creative thinking and production. The interesting part is what happens in between: people, time, logistics, decisions, and the small matter of actually making the thing.",
+      "sphereVideo": "tarek"
     },
     {
       "id": "work",
@@ -11367,12 +11405,13 @@
       "kicker": "PRODUCTION / DECISIONS / LEARNING",
       "body": "The spreadsheet didn\u2019t build the stage.",
       "mediaId": "laliga",
-      "mediaOpenFrame": 1875,
-      "mediaCloseFrame": 2790,
+      "mediaOpenFrame": 1812,
+      "mediaCloseFrame": 2862,
       "textStartFrame": 1830,
       "showTell": "Show attributable material first; explain only the supported relationship.",
       "credit": "Actual archive source; no invented metrics.",
-      "editorialIntent": "A finished film makes the process look inevitable. Production is usually less polite. The work taught him to look beyond the final image, at the relationships that let an idea become an experience."
+      "editorialIntent": "A finished film makes the process look inevitable. Production is usually less polite. The work taught him to look beyond the final image, at the relationships that let an idea become an experience.",
+      "sphereVideo": "laliga"
     },
     {
       "id": "shweekar",
@@ -11381,13 +11420,14 @@
       "headline": "MAKE THE MOVING PARTS MOVE.",
       "kicker": "SHWEEKAR AHMED",
       "body": "PMO collaboration. Human judgement stays in the loop.",
-      "mediaId": "shweekar",
-      "mediaOpenFrame": 2955,
-      "mediaCloseFrame": 3630,
+      "mediaId": "showreel",
+      "mediaOpenFrame": 2892,
+      "mediaCloseFrame": 3702,
       "textStartFrame": 2910,
       "showTell": "Show attributable material first; explain only the supported relationship.",
       "credit": "Actual archive source; no invented metrics.",
-      "editorialIntent": "That work also depends on collaborators. Shweekar Ahmed brings the planning conversation into view. Because a compelling idea still needs someone to ask what happens next."
+      "editorialIntent": "That work also depends on collaborators. Shweekar Ahmed brings the planning conversation into view. Because a compelling idea still needs someone to ask what happens next.",
+      "sphereVideo": "showreel"
     },
     {
       "id": "khaled",
@@ -11396,13 +11436,14 @@
       "headline": "START WITH A CONVERSATION.",
       "kicker": "KHALED EL SHAALAN",
       "body": "Collaboration connects the next possibility.",
-      "mediaId": "khaled",
-      "mediaOpenFrame": 3795,
-      "mediaCloseFrame": 4470,
+      "mediaId": "laliga",
+      "mediaOpenFrame": 3732,
+      "mediaCloseFrame": 4542,
       "textStartFrame": 3750,
       "showTell": "Show attributable material first; explain only the supported relationship.",
       "credit": "Actual archive source; no invented metrics.",
-      "editorialIntent": "The creative ecosystem extends through collaborators such as Khaled El Shaalan. Good conversations connect different perspectives, and can open the next possibility."
+      "editorialIntent": "The creative ecosystem extends through collaborators such as Khaled El Shaalan. Good conversations connect different perspectives, and can open the next possibility.",
+      "sphereVideo": "laliga"
     },
     {
       "id": "young-human",
@@ -11412,12 +11453,13 @@
       "kicker": "YOUNG & HUMAN",
       "body": "Co-Creation Stations / Studios / ACT Awards",
       "mediaId": "young-human",
-      "mediaOpenFrame": 4635,
-      "mediaCloseFrame": 5550,
+      "mediaOpenFrame": 4572,
+      "mediaCloseFrame": 5622,
       "textStartFrame": 4590,
       "showTell": "Show attributable material first; explain only the supported relationship.",
       "credit": "Actual archive source; no invented metrics.",
-      "editorialIntent": "That experience shaped a wider creative ecosystem. Young and Human makes room for participation: Co-Creation Stations, Studios, and the ACT Awards. People become contributors, rather than merely being described as an audience."
+      "editorialIntent": "That experience shaped a wider creative ecosystem. Young and Human makes room for participation: Co-Creation Stations, Studios, and the ACT Awards. People become contributors, rather than merely being described as an audience.",
+      "sphereVideo": "young-human"
     },
     {
       "id": "el-batron",
@@ -11427,12 +11469,13 @@
       "kicker": "EL BATRON",
       "body": "Music. Artists. Development.",
       "mediaId": "el-batron",
-      "mediaOpenFrame": 5715,
-      "mediaCloseFrame": 6630,
+      "mediaOpenFrame": 5652,
+      "mediaCloseFrame": 6702,
       "textStartFrame": 5670,
       "showTell": "Show attributable material first; explain only the supported relationship.",
       "credit": "Actual archive source; no invented metrics.",
-      "editorialIntent": "El Batron brings music, artists, and development into the picture. A release is a moment. Supporting the people making it asks for something that can continue after the last frame."
+      "editorialIntent": "El Batron brings music, artists, and development into the picture. A release is a moment. Supporting the people making it asks for something that can continue after the last frame.",
+      "sphereVideo": "el-batron"
     },
     {
       "id": "ecosystem",
@@ -11441,13 +11484,14 @@
       "headline": "THE CONNECTIONS ARE THE POINT.",
       "kicker": "CULTURE \u00d7 DESIGN \u00d7 ENGINEERING",
       "body": "Understand people. Shape the experience. Make it work.",
-      "mediaId": null,
-      "mediaOpenFrame": 6795,
-      "mediaCloseFrame": 7590,
+      "mediaId": "production",
+      "mediaOpenFrame": 6732,
+      "mediaCloseFrame": 7662,
       "textStartFrame": 6750,
       "showTell": "Show attributable material first; explain only the supported relationship.",
       "credit": "Actual archive source; no invented metrics.",
-      "editorialIntent": "Culture gives the work context. Design makes the intention clear. Engineering asks how it can operate. Together, they describe a creative ecosystem, with human direction at its centre."
+      "editorialIntent": "Culture gives the work context. Design makes the intention clear. Engineering asks how it can operate. Together, they describe a creative ecosystem, with human direction at its centre.",
+      "sphereVideo": "production"
     },
     {
       "id": "cerebro",
@@ -11456,13 +11500,14 @@
       "headline": "THE WORK. CONNECTED.",
       "kicker": "CEREBRO",
       "body": "A spatial expression of the studio\u2019s method.",
-      "mediaId": null,
-      "mediaOpenFrame": 7755,
-      "mediaCloseFrame": 8670,
+      "mediaId": "showreel",
+      "mediaOpenFrame": 7692,
+      "mediaCloseFrame": 8742,
       "textStartFrame": 7710,
       "showTell": "Show attributable material first; explain only the supported relationship.",
       "credit": "Actual archive source; no invented metrics.",
-      "editorialIntent": "Cerebro gives those relationships a spatial form. Projects, people, media, and decisions stay connected to their context. The sphere holds the wider picture while a particular piece of work comes forward."
+      "editorialIntent": "Cerebro gives those relationships a spatial form. Projects, people, media, and decisions stay connected to their context. The sphere holds the wider picture while a particular piece of work comes forward.",
+      "sphereVideo": "showreel"
     },
     {
       "id": "media-demo",
@@ -11472,8 +11517,8 @@
       "kicker": "MEDIA, IN CONTEXT",
       "body": "The work comes forward. The wider picture stays.",
       "mediaId": "el-batron",
-      "mediaOpenFrame": 8820,
-      "mediaCloseFrame": 9660,
+      "mediaOpenFrame": 8772,
+      "mediaCloseFrame": 9882,
       "textStartFrame": 8790,
       "showTell": "Show attributable material first; explain only the supported relationship.",
       "credit": "Actual archive source; no invented metrics.",
@@ -11484,7 +11529,8 @@
         "collapse",
         "preserve camera context"
       ],
-      "editorialIntent": "A media node opens. The footage expands into view. It plays, then returns to its place. The camera continues through the same scene. The action should explain the system, without needing a second presentation to explain the action."
+      "editorialIntent": "A media node opens. The footage expands into view. It plays, then returns to its place. The camera continues through the same scene. The action should explain the system, without needing a second presentation to explain the action.",
+      "sphereVideo": "el-batron"
     },
     {
       "id": "learning",
@@ -11493,13 +11539,14 @@
       "headline": "MAKE. REFLECT. IMPROVE.",
       "kicker": "THE PRACTICE CONTINUES",
       "body": "The system follows the work.",
-      "mediaId": null,
-      "mediaOpenFrame": 9975,
-      "mediaCloseFrame": 10350,
+      "mediaId": "laliga",
+      "mediaOpenFrame": 9912,
+      "mediaCloseFrame": 10422,
       "textStartFrame": 9930,
       "showTell": "Show attributable material first; explain only the supported relationship.",
       "credit": "Actual archive source; no invented metrics.",
-      "editorialIntent": "Work teaches. The point is to carry that learning into the next decision."
+      "editorialIntent": "Work teaches. The point is to carry that learning into the next decision.",
+      "sphereVideo": "laliga"
     },
     {
       "id": "return",
@@ -11508,13 +11555,14 @@
       "headline": "WHAT ARE YOU TRYING TO BUILD?",
       "kicker": "NOJARA STUDIOS / CEREBRO",
       "body": "Let\u2019s build what\u2019s next.",
-      "mediaId": null,
-      "mediaOpenFrame": 10515,
-      "mediaCloseFrame": 10710,
+      "mediaId": "showreel",
+      "mediaOpenFrame": 10452,
+      "mediaCloseFrame": 10782,
       "textStartFrame": 10470,
       "showTell": "Show attributable material first; explain only the supported relationship.",
       "credit": "Actual archive source; no invented metrics.",
-      "editorialIntent": "People direct. AI assists. What are you trying to build?"
+      "editorialIntent": "People direct. AI assists. What are you trying to build?",
+      "sphereVideo": "showreel"
     }
   ],
   "interaction": {
@@ -11615,5 +11663,19 @@
     "standaloneHtmlAttribute": "data-cerebro-standalone=true",
     "hostOverlay": "renderWorkspace receives existing scene/renderer and pose; keep component mounted",
     "cameraHandoff": "claimCamera accepts a pose sampler; introBridge remains the sole camera writer"
-  }
+  },
+  "spherePlaylist": [
+    "production",
+    "tarek",
+    "laliga",
+    "showreel",
+    "laliga",
+    "young-human",
+    "el-batron",
+    "production",
+    "showreel",
+    "el-batron",
+    "laliga",
+    "showreel"
+  ]
 }

@@ -79,14 +79,20 @@ export function createPortalDiskGeometry(
 
 function createVideoElement(src: string): HTMLVideoElement {
   const video = document.createElement('video');
-  video.src = src;
-  video.crossOrigin = 'anonymous';
-  video.loop = true;
+  // Muted + playsInline + loop is required for autoplay without a user gesture.
   video.muted = true;
+  video.defaultMuted = true;
+  video.autoplay = true;
+  // Workspace ambient plate may loop; intro sequence uses introBridge (one-pass cuts).
+  video.loop = true;
   video.playsInline = true;
   video.preload = 'auto';
+  video.crossOrigin = 'anonymous';
+  video.setAttribute('muted', '');
   video.setAttribute('playsinline', 'true');
   video.setAttribute('webkit-playsinline', 'true');
+  video.setAttribute('autoplay', '');
+  video.src = src;
   return video;
 }
 
@@ -145,15 +151,30 @@ export function mountSphereVideoTexture(options: {
   options.parent.add(shellBandMesh);
 
   const tryPlay = () => {
+    video.muted = true;
     const playPromise = video.play();
     if (playPromise && typeof playPromise.catch === 'function') {
       playPromise.catch(() => {
-        // Autoplay can be blocked until a user gesture; texture still mounts.
+        // Retry on next interaction / visibility — muted autoplay usually succeeds.
       });
     }
   };
-  video.addEventListener('canplay', tryPlay, { once: true });
+  video.addEventListener('loadeddata', tryPlay);
+  video.addEventListener('canplay', tryPlay);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && video.paused) tryPlay();
+  });
   tryPlay();
+  // Keep the sphere surface alive even if the browser pauses background media.
+  const keepAlive = window.setInterval(() => {
+    if (video.paused && !document.hidden) tryPlay();
+  }, 1500);
+  const previousDispose = () => {
+    window.clearInterval(keepAlive);
+  };
+  // Stash for dispose hook below.
+  (video as HTMLVideoElement & { __sphereKeepAlive?: number }).__sphereKeepAlive = keepAlive;
+  void previousDispose;
 
   return {
     video,
@@ -167,6 +188,9 @@ export function mountSphereVideoTexture(options: {
       tryPlay();
     },
     dispose: () => {
+      const keepAlive = (video as HTMLVideoElement & { __sphereKeepAlive?: number })
+        .__sphereKeepAlive;
+      if (keepAlive) window.clearInterval(keepAlive);
       video.pause();
       video.removeAttribute('src');
       video.load();
