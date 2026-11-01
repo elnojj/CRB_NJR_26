@@ -1,0 +1,306 @@
+CEREBRO × NOJARA — Google AI Studio implementation block
+
+Paste this entire document into the Google AI Studio project that contains the current Cerebro source. Treat it as a scoped implementation brief. Implement the changes in code, show changed files and a before/after audit, and run the build, TypeScript check, and viewport tests. Work on the actual project branch supplied to you. The source map below was inspected in the earlier deployment archive, package version 1.28.0; first compare it with the current AI Studio project and reconcile any drift. Do not claim a deployment or a passing test without observing it.
+
+1. Objective and source authority
+
+Place the real NOJARA identity in the loader and top-left header, place genuine NOJARA videos and posters in the HQ Media station and the relevant project media tubes, and let the same items open in a real HTML video player. Carry the brand into the CDE sphere through the existing project and media journey, without scattering duplicate logos over the glass geometry. Preserve camera navigation, node selection, accessibility, reduced-motion fallback, voice, and panel behavior.
+
+Authority order for this task:
+
+1. The actual current project code and public asset responses.
+2. The official NOJARA Master Brand Kit V31 and supplied original logo artwork. The original Arabic mark reads نُچارة; preserve the diacritic and the letter چ. Do not recreate it with type, vectors, CSS, shaders, or generative tools.
+3. The Cerebro design system, detailed screen atlas, and brand applications atlas already supplied with the project.
+4. This implementation block for precise wiring and test expectations.
+
+Use the actual V31 source art if attached to the AI Studio project. Two known original raster masters are named “2. NJR LOGO AR BLK.png” and “3. NJR LOGO AR WHT.png”, each 2885 × 946 RGBA. The publicly addressable white logo below is an existing site asset at 2584 × 644, not a verified byte-for-byte publication of that 2885 × 946 master. Until the original is deliberately hosted at a public stable URL, use the existing white URL on dark surfaces and record its asset status accurately. Do not silently equate the two files. Do not upload private original art or change public Wix media settings as part of this code task.
+
+2. Exact external URLs to use
+
+These are direct Wix static media URLs recorded as public/non-private site assets, so the UI should consume them without a Drive sign-in flow. A logged-out playback test still needs to be performed in the target browser. Use the complete strings, including the host and path; do not substitute a Google Drive share page, relative path, signed URL, or iframe page.
+
+|Key                   |Direct full URL                                                                             |Kind and use                                                                                                                                                                                 |
+|----------------------|--------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|NOJARA_WHITE_LOGO     |https://static.wixstatic.com/media/227dff_accb38bbc37b492f9b64ca3e12fbf63e~mv2.png          |Existing white NOJARA logo, 2584 × 644. Header and loader on dark V31 surfaces.                                                                                                              |
+|NOJARA_SHOWREEL_2023  |https://video.wixstatic.com/video/227dff_5eb47ff9d6fc4753802d517fa87f3a43/720p/mp4/file.mp4 |NOJARA 2023 showreel, 720p rendition; source record duration approximately 141.68 seconds.                                                                                                   |
+|NOJARA_SHOWREEL_POSTER|https://static.wixstatic.com/media/227dff_5eb47ff9d6fc4753802d517fa87f3a43f000.jpg          |Poster for the showreel.                                                                                                                                                                     |
+|NOJARA_LALIGA_720     |https://video.wixstatic.com/video/227dff_8649ac6a450c471683cc3e72a2655a02/720p/mp4/file.mp4 |NOJARA × LaLiga film, 720p rendition; source record duration approximately 205.84 seconds.                                                                                                   |
+|NOJARA_LALIGA_1080    |https://video.wixstatic.com/video/227dff_8649ac6a450c471683cc3e72a2655a02/1080p/mp4/file.mp4|Available 1080p rendition of the same source. Prefer on desktop only after a real playback check; use 720p as the reliable initial source.                                                   |
+|NOJARA_LALIGA_POSTER  |https://static.wixstatic.com/media/227dff_8649ac6a450c471683cc3e72a2655a02f000.jpg          |Poster for the LaLiga film.                                                                                                                                                                  |
+|EL_BATRON_SHOWREEL    |https://video.wixstatic.com/video/227dff_620a67c30ded4fcfbd798648a3dacc6a/720p/mp4/file.mp4 |El Batron showreel, 720p rendition; source record duration approximately 138.44 seconds.                                                                                                     |
+|EL_BATRON_POSTER      |https://static.wixstatic.com/media/227dff_620a67c30ded4fcfbd798648a3dacc6af000.jpg          |Poster for the El Batron showreel.                                                                                                                                                           |
+|LALIGA_DMC_INTERVIEW  |https://video.wixstatic.com/video/227dff_ba2ca7485f044830aaf99d3bfb4a73c7/720p/mp4/file.mp4 |Optional separate LaLiga DMC interview, approximately 183.03 seconds. Keep it distinct from the LaLiga film; only surface it if the project metadata and permission to show it are confirmed.|
+
+The NOJARA site is https://www.nojara.com/ . This homepage is context, not an image or video <code>src</code>. Public Google Drive listing links and media index links are not direct playable assets and should not be used as embeds. The existing drive media index is a candidate inventory with rights pending for some entries; do not infer that all indexed files are publicly cleared.
+
+3. Code locations in the inspected archive
+
+|Concern              |Existing location and observed behavior                                                                                                                                                                                                                                                                                    |Required change                                                                                                                                                                                          |
+|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|App orchestration    |<code>src/App.tsx</code>, ExperienceCanvas around line 3194; BrandLockup header around 3470; media state around 278, timer around 439, media actions around 1329, project tube action around 1782, fullscreen state around 277.                                                                                            |Wire real media state to the actual video element; preserve navigation/history and sphere switching.                                                                                                     |
+|Boot identity        |<code>src/components/BootLoader.tsx</code> uses BrandLockup in two render paths around lines 122 and 305.                                                                                                                                                                                                                  |Both loader paths get the same real logo component.                                                                                                                                                      |
+|Header identity      |<code>src/components/BrandLockup.tsx</code> currently types “NOJARA”, shows a separate Bismillah SVG and Arabic subtitle, and includes a Cerebro wordmark image.                                                                                                                                                           |Replace synthetic NOJARA text with the actual public logo image. Keep a separate Cerebro label only if the source asset is valid and approved; do not imply the combined raster is a new official lockup.|
+|Logo CSS             |<code>src/index.css</code>, <code>.nojara-brand-container</code> and <code>.nojara-logo-title</code> around 278–311.                                                                                                                                                                                                       |Remove old typed-logo styling; size the actual image with intrinsic aspect ratio and responsive bounds.                                                                                                  |
+|Fonts and tokens     |<code>src/index.css</code> has a local-only Jaapokki <code>@font-face</code>; <code>src/styles/cerebro.tokens.css</code> has Sora/Inter/Cairo fallbacks and legacy gold/blue tokens; <code>src/tokens/colours.ts</code> still has D0 and film-derived groups.                                                              |Load actual supplied font files where present; resolve brand application tokens in a scoped layer, preserving semantic status colors. No global find/replace of every gold/blue literal.                 |
+|Sphere assembly      |<code>src/three/ExperienceCanvas.tsx</code> passes props through <code>DualSphereCanvas.tsx</code> to <code>CosmographCanvas.tsx</code>. The latter constructs the sphere and glass scene imperatively.                                                                                                                    |Keep center, camera, raycasting, renderer and cleanup intact. No page-level logo texture on every sphere shell.                                                                                          |
+|Tube inventory       |<code>src/components/CosmographCanvas.tsx</code> around 400–448 generates 24 synthetic items for any project; around 2660–2744 creates eight columns by three rows of generic canvas cards; around 3394 scales focused tile.                                                                                               |Use real asset records for matching projects and an honest placeholder for unknown media. Poster thumbnails only after successful image loading; never claim synthetic cards are actual videos.          |
+|HQ media             |<code>src/data/sourceData.ts</code> around 1130 has mixed media/spec objects; around 1230–1300, <code>SHOWREEL_ITEMS</code> is a five-entry treatment/timeline/render list with no direct video URLs. <code>src/components/PanelsOverlay.tsx</code> around 1820–2025 renders an iframe, still poster, or sample simulation.|Add a typed playable catalog and display the three genuine video records separately from design/treatment documents. Use <code><video></code> for direct MP4, not <code><iframe></code>.                 |
+|Full view            |<code>src/components/PanelsOverlay.tsx</code> around 534–666 renders any <code>fullscreenMedia.url</code> as an <code><img></code>.                                                                                                                                                                                        |Render video URLs as video; images remain images; spec documents stay explicitly labeled as specs.                                                                                                       |
+|Playback             |<code>src/App.tsx</code> increments a simulated second counter while “playing.”                                                                                                                                                                                                                                            |Replace the simulated clock for real media with video events: metadata, timeupdate, play, pause, ended, error, and loaded data. Seek/mute/fullscreen controls must control the same media element.       |
+|Geometry and viewport|<code>src/gui/layoutEngine.ts</code> computes current slots; <code>src/gui/useViewport.ts</code> provides preset sizes.                                                                                                                                                                                                    |Validate actual computed rectangles, not stale numeric values in the header comment.                                                                                                                     |
+
+The archive contains seven GLBs under <code>public/assets/06_3D_Assets/</code>, but the current visual is procedural; their mere presence does not prove a GLTFLoader import. Do not add a parallel renderer or rebuild the scene to accomplish this asset wiring.
+
+4. Add a typed, auditable asset catalog
+
+Create <code>src/data/publicBrandMedia.ts</code>. The following is a complete starting catalog; keep the URLs exact. The approximate durations are labels only. Browser metadata must be the playback authority.
+
+export const PUBLIC_BRAND_MEDIA = {
+  logoWhite: {
+    url: 'https://static.wixstatic.com/media/227dff_accb38bbc37b492f9b64ca3e12fbf63e~mv2.png',
+    width: 2584,
+    height: 644,
+    provenance: 'existing NOJARA Wix site image; master-file identity unverified',
+  },
+  showreel2023: {
+    id: 'med-nojara-showreel-2023',
+    title: 'NOJARA Studios — 2023 Showreel',
+    projectCode: 'NOJARA',
+    kind: 'video' as const,
+    url: 'https://video.wixstatic.com/video/227dff_5eb47ff9d6fc4753802d517fa87f3a43/720p/mp4/file.mp4',
+    posterUrl: 'https://static.wixstatic.com/media/227dff_5eb47ff9d6fc4753802d517fa87f3a43f000.jpg',
+    expectedDurationSec: 141.68,
+  },
+  laligaFilm: {
+    id: 'med-nojara-laliga',
+    title: 'NOJARA × LaLiga — Film',
+    projectCode: 'NOJARA',
+    kind: 'video' as const,
+    url: 'https://video.wixstatic.com/video/227dff_8649ac6a450c471683cc3e72a2655a02/720p/mp4/file.mp4',
+    desktop1080Url: 'https://video.wixstatic.com/video/227dff_8649ac6a450c471683cc3e72a2655a02/1080p/mp4/file.mp4',
+    posterUrl: 'https://static.wixstatic.com/media/227dff_8649ac6a450c471683cc3e72a2655a02f000.jpg',
+    expectedDurationSec: 205.84,
+  },
+  elBatron: {
+    id: 'med-el-batron', // retain existing action-dispatch ID
+    title: 'El Batron — Showreel',
+    projectCode: 'EL-BATRON',
+    kind: 'video' as const,
+    url: 'https://video.wixstatic.com/video/227dff_620a67c30ded4fcfbd798648a3dacc6a/720p/mp4/file.mp4',
+    posterUrl: 'https://static.wixstatic.com/media/227dff_620a67c30ded4fcfbd798648a3dacc6af000.jpg',
+    expectedDurationSec: 138.44,
+  },
+} as const;
+
+export const PUBLIC_SHOWREELS = [
+  PUBLIC_BRAND_MEDIA.showreel2023,
+  PUBLIC_BRAND_MEDIA.laligaFilm,
+  PUBLIC_BRAND_MEDIA.elBatron,
+] as const;
+export type PublicShowreel = (typeof PUBLIC_SHOWREELS)[number];
+export const publicShowreelById = new Map(
+  PUBLIC_SHOWREELS.map((item) => [item.id, item])
+);
+
+Do not splice the URLs into unrelated sample SEVEN assets. Keep existing five CDE treatments, timelines, shader specs and the Tabuk stills available in a separately labeled “Studies and source documents” section. Replace only misleading showreel classifications. The existing <code>med-el-batron</code> ID currently points to a simulated CDE timeline; after migration, the ID must resolve to the real El Batron video in every caller, including typed actions and voice commands. If the current branch has a different media schema, adapt types at one data boundary and document the mapping.
+
+5. Use the real brand art in the two UI locations
+
+Replace <code>src/components/BrandLockup.tsx</code>’s typed “NOJARA” span with an image driven by <code>PUBLIC_BRAND_MEDIA.logoWhite.url</code>. Do not use a text fallback that can masquerade as the approved mark. A failed logo should show accessible text as plain UI, with a visible asset error in development. Remove the independent Bismillah asset and the Arabic “digital studio” subtitle from this brand lockup unless the brand manual explicitly approves that exact composite. Keep the official Cerebro SVG separate as a project identifier if it is genuinely the approved project artwork.
+
+import React from 'react';
+import { PUBLIC_BRAND_MEDIA } from '../data/publicBrandMedia';
+
+type Props = {
+  mode: 'loader' | 'header';
+  activeSphere?: 'hq' | 'cde';
+  onSwitchSphere?: (sphere: 'hq' | 'cde') => void;
+};
+
+export const BrandLockup: React.FC<Props> = ({ mode }) => {
+  const isLoader = mode === 'loader';
+  return (
+    <div
+      data-testid={isLoader ? 'brand-lockup-loader' : 'brand-lockup-region'}
+      data-layout-id="cerebro-brand-lockup"
+      className={'nojara-brand-container ' + (isLoader ? 'nojara-brand-loader' : 'nojara-brand-header')}
+      aria-label="NOJARA Studios"
+    >
+      <img
+        data-testid="nojara-public-logo"
+        className="nojara-logo-image"
+        src={PUBLIC_BRAND_MEDIA.logoWhite.url}
+        width={PUBLIC_BRAND_MEDIA.logoWhite.width}
+        height={PUBLIC_BRAND_MEDIA.logoWhite.height}
+        alt="NOJARA Studios"
+        decoding="async"
+        fetchPriority={isLoader ? 'high' : 'auto'}
+      />
+      {!isLoader && (
+        <img
+          className="cerebro-wordmark-image"
+          src="/assets/cerebro-wordmark.svg"
+          width="84"
+          height="16"
+          alt="Cerebro"
+        />
+      )}
+    </div>
+  );
+};
+
+The image is rendered inside the existing <code>BootLoader</code> paths and the existing <code>App</code> header. Maintain their layout IDs and test IDs. If the local Cerebro SVG proves invalid or unapproved, use a clearly secondary text label “Cerebro” in the project UI rather than an invented logo. Do not duplicate the NOJARA logo in the right-side controls.
+
+Add scoped CSS in <code>src/index.css</code>; remove the old <code>.nojara-logo-title</code> styles. The numbers below are CSS pixels at 100% browser zoom, not raster export sizes. Actual safe-area/panel geometry remains owned by <code>layoutEngine.ts</code>.
+
+.nojara-brand-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  max-width: 100%;
+  background: #1D1D1B;
+  color: #F2F2F1;
+  border: 1px solid rgba(242, 242, 241, .22);
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+.nojara-brand-header { height: 48px; min-width: 0; }
+.nojara-logo-image {
+  display: block;
+  width: 148px;
+  height: auto;
+  aspect-ratio: 2584 / 644;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+.cerebro-wordmark-image {
+  display: block;
+  width: 84px;
+  height: 16px;
+  object-fit: contain;
+  flex: 0 1 auto;
+}
+.nojara-brand-loader {
+  min-width: 0;
+  padding: 20px 24px;
+}
+.nojara-brand-loader .nojara-logo-image { width: 280px; }
+@media (max-width: 767px) {
+  .nojara-brand-container { gap: 8px; padding: 6px 8px; }
+  .nojara-brand-header { height: 44px; }
+  .nojara-brand-header .nojara-logo-image { width: 108px; }
+  .nojara-brand-header .cerebro-wordmark-image { width: 58px; height: 12px; }
+  .nojara-brand-loader .nojara-logo-image { width: min(240px, 70vw); }
+}
+
+At 148px CSS width, the 4.012:1 public logo displays about 36.9px tall; at 108px it displays about 26.9px tall. Do not set both image width and image height to values that distort the mark. Check its transparent art bounds visually and adjust the wrapper or image width only if the intrinsic PNG has extra padding. Keep the top-left header from overlapping Back or sphere controls at 320px width and zoom.
+
+6. Brand colors, type, and sphere material boundaries
+
+Brand V31 application families available in the source: A black <code>#1D1D1B</code> / paper <code>#F2F2F1</code> / red <code>#D12128</code>; B paper reverse; C petroleum <code>#01344F</code> / paper / warm <code>#FAE3AC</code>; D soft <code>#CFCDC7</code> / black / petroleum; E charcoal <code>#33322F</code> / paper / warm; F red / black / paper; G warm / black / petroleum; H white / black / red; I grey <code>#7D7B76</code> / paper / black. Use one surface, one text color and at most one accent in a given brand frame. Red is sparing; do not turn every sphere or action red. For this application, use A for loader/header identity, C for the deep media environment, and one restrained warm accent for active media controls. Keep success, warning, error, focus, voice-listening, and interaction signals distinguishable.
+
+The runtime currently has older <code>#D4AF37</code> gold and <code>#65ACFF</code> blue spread across <code>colours.ts</code>, CSS, and Three materials. Identify each use as (a) branding, (b) semantic state, or (c) physically plausible material reflection. Apply V31 on brand surfaces and editorial overlays first. Preserve purposeful state feedback until equivalent accessible tokens are mapped. Avoid a blanket replace that makes the 3D glass opaque or erases focus states. Ensure actual Jaapokki English and supplied Helvetica Neue LT Arabic font binaries are served with <code>url(’/assets/fonts/…’)</code> if the fonts are in the project; the current local-only <code>@font-face</code> is not reliable across devices. Render the supplied Arabic logo as image art. Do not type Arabic to approximate the mark.
+
+The HQ sphere remains centered at <code>[0,0,0]</code>; the CDE sphere at <code>[38,4,-22]</code>. Reference outer radius 6.2 scene units, inner silver shell about 5.084 units. Keep these three-dimensional world measurements distinct from CSS pixels. Glass baseline is <code>#142632</code>, transmission 0.96, IOR 1.52, roughness 0.04, thickness 2.8 in the film-derived source; runtime software fallback deliberately uses lower/zero transmission. Inspect <code>src/components/CosmographCanvas.tsx</code> material consumers around 1533–1675 and the sphere builder around 2024 before changing a material. HQ and CDE must not accidentally share a mutable material whose opacity update changes both spheres. Retain back/front shell distinction, normal, depth and hit-test behavior. No excessive glow, fake bloom, spinning logo particles, or a logo stretched as a full sphere texture.
+
+7. Sphere-by-sphere content wiring
+
+|Surface and entry                          |Actual data path                                                                                              |Exact intended display/action                                                                                                                                                                                                                                                                                                                      |
+|-------------------------------------------|--------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|Boot and arrival                           |BootLoader → BrandLockup; App header → BrandLockup                                                            |Original-looking white NOJARA mark on V31 A surface; a separate smaller Cerebro project identifier. The logo is a UI lockup, never a click target for a fabricated brand page.                                                                                                                                                                     |
+|Sphere 01 HQ, Media station                |App action <code>media_control</code> → PanelsOverlay media panel                                             |Three real video cards, ordered NOJARA 2023, NOJARA × LaLiga, El Batron. Use matching posters and full title. Each opens real MP4 playback. No synthetic “LIVE” or “verified attached render” label for these.                                                                                                                                     |
+|Sphere 01 HQ, Projects station             |Existing <code>PROJECTS_DATA</code> and project IDs                                                           |Keep existing projects and coordinates. Add genuine showreel cross-links only where project attribution is known. The generic NOJARA reel belongs to studio media; the El Batron reel can link to EL-BATRON. Do not label a SEVEN still as LaLiga or El Batron.                                                                                    |
+|Sphere 02 CDE, project/dimension navigation|Same App activeSphere and <code>ExperienceCanvas</code> propagation                                           |Preserve the CDE taxonomy and camera. Project media entry reaches the same typed catalog; add a genuine media portal/thumb only for a matched project. NOJARA and El Batron remain credited as their actual sources, not as fabricated CDE subdomains.                                                                                             |
+|3D cylindrical project tube                |<code>buildProjectMediaTubeItems(projectId)</code> → 24 tile meshes → <code>project_media_tube</code> fullview|For EL-BATRON, place the real El Batron poster/video on the first available video tile; for a verified NOJARA project record, use NOJARA reel/LaLiga in distinct slots. For unknown projects show “No cleared video linked” and existing truthful documents. Keep grid 8 × 3, radius 5.4 units, slot nominal 3.2 × 1.8 units, row pitch 2.25 units.|
+|Full view and return                       |PanelsOverlay fullscreen + App <code>fullscreenMedia</code>                                                   |Real <code><video></code> with native browser fallback, precise aspect ratio and accessible controls; Esc/close returns to same sphere, selected tile, panel state, and camera pose.                                                                                                                                                               |
+
+Change <code>ProjectMediaTubeItem</code> to carry <code>url?</code>, <code>posterUrl?</code>, and <code>kind: ‘video’ | ‘image’ | ‘pdf’</code> if the current type differs. Build project-specific records from the typed catalog. Do not populate 24 tiles by cloning the same three videos. For real video tiles, use the poster as a 3D thumbnail when cross-origin texture loading succeeds. If the remote server denies WebGL texture access, show a named neutral tile in the sphere and a same-origin DOM <code><img></code> in the focused media UI; do not use a proxy, disable browser security, or hide the failure. Only create VideoTexture if there is a demonstrated need; autoplaying 24 videos inside WebGL is outside scope. Dispose geometry, texture and listeners on unmount, and do not recreate the entire scene on ordinary caption/media-state updates.
+
+The raycast tile currently stores <code>tileIndex</code> on <code>mesh.userData</code>. Preserve that index and the <code>onSelectMediaTubeTile</code>/<code>onOpenMediaTubeFullView</code> callbacks in <code>ExperienceCanvas</code>. The original system uses a 650ms focus, 1100ms fullview and 850ms return rhythm; respect reduced motion. Images in 3D may crop to the 16:9 tile but must keep the source poster aspect ratio in panel/full view.
+
+8. Real playback implementation
+
+Add a video branch to both media panel and full view. The existing <code>customEmbeds</code> localStorage field is a user-supplied iframe option; it must not supersede the known direct MP4 for the three catalog entries. For external arbitrary links, validate scheme/origin and keep the separate optional workflow. In all other cases, use the catalog <code>url</code> directly as a video source.
+
+// Illustrative shared player: mount the same component in panel or full view.
+// Adapt props/state to the current branch without creating two independent clocks.
+type PlayerProps = {
+  id: string;
+  title: string;
+  src: string;
+  poster: string;
+  onVideoReady?: (video: HTMLVideoElement | null) => void;
+};
+export function PublicShowreelPlayer(props: PlayerProps) {
+  return (
+    <video
+      data-testid={'public-video-' + props.id}
+      ref={props.onVideoReady}
+      className="public-showreel-video"
+      controls
+      playsInline
+      preload="metadata"
+      poster={props.poster}
+      aria-label={props.title}
+      onError={(event) => {
+        // Propagate visible, per-asset load failure to the panel.
+        console.error('Public media failed', props.id, event.currentTarget.error?.code);
+      }}
+    >
+      <source src={props.src} type="video/mp4" />
+      Your browser cannot play this MP4.
+    </video>
+  );
+}
+
+.public-showreel-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: #1D1D1B;
+}
+.public-showreel-panel-viewport {
+  width: 100%;
+  min-height: 180px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid rgba(242,242,241,.22);
+  border-radius: 8px;
+}
+
+At 320px content width the video frame is 180px high; at 304px inspector width it is 171px high. If the actual media panel has less inner space after padding, allow the frame to shrink while retaining 16:9 and keep the controls touch accessible. The existing 144px <code>h-36</code> iframe/poster is a sample preview, not a measured target for genuine playback.
+
+Replace the synthetic one-second interval in <code>App.tsx</code> for real videos. Own a single active <code>HTMLVideoElement</code> reference and sync <code>currentTime</code>, <code>duration</code>, <code>paused</code>, <code>muted</code> from media events. Play must handle the promise rejection; seek clamp to <code>[0, duration]</code> after metadata; mute updates the actual element; ended clears playing. On reel switch pause the prior player and reset to 0 unless continuity is explicitly requested. On fullscreen transition, either move the same player node or capture time/play/mute before remount and restore after <code>loadedmetadata</code>; do not let two videos play simultaneously. The exported <code>MediaAssetItem</code> currently types only images/specs and fullscreen renders any URL as <code><img></code>; extend the union with a genuine video kind and branch on kind before rendering. A poster URL must never be passed as a playable video URL. The source list duration must not drive the slider when <code>video.duration</code> is available.
+
+Always offer a visible loading state and a visible actionable error with the asset name when the browser cannot fetch or decode a video. Respect user gesture requirements: <code>preload=“metadata”</code>, <code>playsInline</code>, no unmuted automatic playback; pause offscreen media when switching spheres or closing full view. Expose an optional open-in-new-tab link to the same public MP4 for a device that cannot play inline.
+
+9. Pixel-level validation matrix and acceptance
+
+Treat the rectangles as reference computed CSS pixels at 100% zoom with panels open, from the active <code>layoutEngine.ts</code>, not as absolute placements to hardcode in the DOM. The layout engine’s older header comment has different sample coordinates; execute the function to get the current values. Coordinates are [x, y, width, height] from the top-left viewport origin.
+
+|Viewport                 |Header               |Panel(s)                                    |Voice                     |Safe scene                |Brand/media checks                                                                                                    |
+|-------------------------|---------------------|--------------------------------------------|--------------------------|--------------------------|----------------------------------------------------------------------------------------------------------------------|
+|Phone 390 × 844          |[12,12,366,48]       |bottom sheet [12,444,366,264]               |[12,724,366,52]           |[12,72,366,360]           |Logo image width 108px, actual height ≈26.9px; 44px wrapper. Video panel scrolls within sheet, never underneath voice.|
+|iPad portrait 820 × 1180 |[20,16,780,52]       |left inspector [20,80,304,648]              |[340,1048,460,64]         |[340,80,460,952]          |148px logo width. A 304px media player may use 171px 16:9 height before panel padding.                                |
+|iPad portrait 768 × 1024 |[20,16,728,52]       |left inspector [20,80,304,648]              |[340,892,408,64]          |[340,80,408,796]          |No logo/back/control collision at width 768; media controls wrap.                                                     |
+|iPad landscape 1180 × 820|[20,16,1140,52]      |left [20,80,288,592], right [872,80,288,592]|[360,688,460,64]          |[324,80,532,592]          |Media panel and 3D tube do not occupy safe scene simultaneously; logo remains in header.                              |
+|Desktop 1440 × 900       |Compute current slots|Up to four quadrant slots                   |Compute current voice slot|Compute current safe scene|Both sphere centers and selected media node remain visible behind UI; no poster stretching.                           |
+|Wide 1920 × 1080         |Compute current slots|Up to four quadrant slots                   |Compute current voice slot|Compute current safe scene|720p video remains contained and sharp enough for source quality; 1080p LaLiga only if playback proves available.     |
+
+Test 320 × 568, 360 × 800, 390 × 844, 768 × 1024, 820 × 1180, 1180 × 820, 1440 × 900, 1920 × 1080; browser zoom 80%, 100%, 125%, 150%, and 200% where the platform supports it. Also test iOS/Android style touch emulation, desktop pointer and keyboard, and <code>prefers-reduced-motion</code>. Zoom changes effective CSS viewport width and can cross breakpoints; let the layout engine respond instead of pinning a device name. Check device pixel ratio 1, 2, and available high-DPR hardware. Every button and scrub control needs at least a 44 × 44px touch target where space permits, 8px separation between adjacent targets, a visible focus ring, and no clipped Arabic or logo art.
+
+Required sequence on both spheres: loader → HQ arrival → Media → select each public reel → play/pause → seek 50% → mute/unmute → fullscreen → close/Esc → project tube → focus tile → open full view → return → switch CDE → return HQ → resize/rotate → repeat. Capture screenshots at arrival, media panel, playing, fullscreen, 3D tile, fallback, and logo-load failure for every canonical viewport. Compare logo proportions to 2584:644 exactly; no synthetic “NOJARA” typeset beside it. Compare direct asset request URLs byte for byte with the catalog and check no 401/403/404, login redirect, mixed content, video decode error, or CORS texture exception. Test a signed-out private browser window; the public/non-private metadata alone is not proof of logged-out playback.
+
+In the final AI Studio report, list changed files and line references, a screenshot/contact sheet per breakpoint, asset request results, observed media metadata durations, accessibility and keyboard results, TypeScript/build output, and any outstanding failures. Mark unavailable checks NOT RUN. Do not claim the historic archive’s camera, zoom, or voice tests passed in this new project. Do not deploy, publish media, or overwrite the public site merely to satisfy this implementation brief.
+
+10. Done criteria
+
+• Exact public logo URL in loader and header, with correct aspect ratio, accessible alt, proper contrast, no typed imitation and no false master-asset claim.
+• Three genuine videos have exact matching MP4/poster pairs and honest credit/title; user sees video, not a poster pretending to play or a fake ticking clock.
+• HQ Media, matched projects and the relevant CDE/tube journey resolve from one typed catalog; 24-tile tube behavior and callbacks remain stable.
+• Media panel, full view, return path, camera, sphere switching, focus, voice ducking, touch, keyboard and reduced-motion fallback work.
+• Pixel layout and visual comparison verified at all listed viewports/zoom states, with failures reported accurately.

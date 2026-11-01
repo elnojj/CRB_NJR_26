@@ -128,6 +128,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
   const [liveLandmarks, setLiveLandmarks] = useState<[number, number][][] | null>(null);
   const nextSparkleId = useRef(1);
   const pinchLockRef = useRef(true);
+  const lastGestureTimeRef = useRef(0);
 
   // Request ONE shared camera MediaStream only when `active === true`, and stop all tracks on disable
   useEffect(() => {
@@ -211,20 +212,70 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                 h0[4].y - h0[8].y,
                 h0[4].z - h0[8].z
               );
+              const thumbPinkyDist = Math.hypot(
+                h0[4].x - h0[20].x,
+                h0[4].y - h0[20].y,
+                h0[4].z - h0[20].z
+              );
               const ratio = Number((thumbIndexDist / palmLen).toFixed(2));
               setPinchRatio(ratio);
               setZDepth(Number((h0[8].z || -0.12).toFixed(2)));
 
+              const dWristIndex = Math.hypot(h0[8].x - h0[0].x, h0[8].y - h0[0].y);
+              const dWristMiddle = Math.hypot(h0[12].x - h0[0].x, h0[12].y - h0[0].y);
+              const dWristRing = Math.hypot(h0[16].x - h0[0].x, h0[16].y - h0[0].y);
+              const dWristPinky = Math.hypot(h0[20].x - h0[0].x, h0[20].y - h0[0].y);
+
+              const panX = ((1 - h0[8].x) - 0.5) * 2;
+              const nowMs = performance.now();
+
+              // 1. Pinch Orbit
               if (!pinchLockRef.current && ratio <= 0.22) {
                 pinchLockRef.current = true;
                 setPinchLocked(true);
-                const panX = ((1 - h0[8].x) - 0.5) * 2;
                 const played = soundEngine.playFingertipNote(1, panX);
                 setActiveNote(`${played.name} (${played.freq}Hz)`);
                 onTriggerGesture('pinch-orbit');
               } else if (pinchLockRef.current && ratio >= 0.3) {
                 pinchLockRef.current = false;
                 setPinchLocked(false);
+              }
+
+              // 2. Palm Stop: Open flat palm facing camera with all fingers extended
+              const allFingersExtended =
+                dWristIndex > 1.35 * palmLen &&
+                dWristMiddle > 1.35 * palmLen &&
+                dWristRing > 1.35 * palmLen &&
+                dWristPinky > 1.35 * palmLen;
+
+              if (allFingersExtended && ratio > 0.45 && nowMs - lastGestureTimeRef.current > 650) {
+                lastGestureTimeRef.current = nowMs;
+                soundEngine.playPanelToggle(false, panX);
+                setActiveNote('PALM-STOP · FREEZE');
+                onTriggerGesture('palm-stop');
+              }
+              // 3. Point Select: Index finger extended, others curled
+              else if (
+                dWristIndex > 1.3 * palmLen &&
+                dWristMiddle < 1.05 * palmLen &&
+                dWristRing < 1.05 * palmLen &&
+                dWristPinky < 1.05 * palmLen &&
+                nowMs - lastGestureTimeRef.current > 600
+              ) {
+                lastGestureTimeRef.current = nowMs;
+                soundEngine.playNodeSelect(panX);
+                setActiveNote('POINT-SELECT · NODE');
+                onTriggerGesture('point-select');
+              }
+              // 4. Spread Zoom: Thumb and pinky spread wide or dual-hand spread
+              else if (
+                (thumbPinkyDist > 1.45 * palmLen || (res.landmarks.length >= 2 && Math.abs(res.landmarks[0][0].x - res.landmarks[1][0].x) > 0.4)) &&
+                nowMs - lastGestureTimeRef.current > 700
+              ) {
+                lastGestureTimeRef.current = nowMs;
+                soundEngine.playFlightWhoosh(550, panX);
+                setActiveNote('SPREAD-ZOOM');
+                onTriggerGesture('spread-zoom');
               }
             } else {
               setLiveLandmarks(null);
@@ -588,7 +639,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center rounded-lg p-0.5 bg-[#142632] border border-[rgba(180,221,255,0.16)]">
+              <div className="flex items-center rounded-xl p-0.5 bg-[#142632] border border-[rgba(180,221,255,0.16)]">
                 {(
                   [
                     { id: 'two-hands', label: 'Two Hands' },
@@ -600,7 +651,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                     key={m.id}
                     type="button"
                     onClick={() => onChangeHandMode(m.id)}
-                    className={`min-h-[38px] px-2.5 py-1 rounded-md font-mono text-[11px] transition-colors cursor-pointer ${
+                    className={`min-h-[44px] px-3 py-1.5 rounded-lg font-mono text-xs transition-colors cursor-pointer ${
                       handMode === m.id
                         ? 'bg-[#4C8DFF] text-[#101D27] font-semibold'
                         : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
@@ -624,9 +675,9 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                     key={g.id}
                     type="button"
                     onClick={() => onTriggerGesture(g.id)}
-                    className={`min-h-[38px] px-2.5 py-1 rounded-lg font-mono text-[11px] border transition-colors cursor-pointer ${
+                    className={`min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs border transition-colors cursor-pointer ${
                       activeGesture === g.id
-                        ? 'border-[#36E88D] bg-[#36E88D]/20 text-[#F2F6F8]'
+                        ? 'border-[#36E88D] bg-[#36E88D]/20 text-[#F2F6F8] font-semibold'
                         : 'border-[rgba(180,221,255,0.16)] bg-[#142632] text-[#BDCBD3] hover:text-[#F2F6F8]'
                     }`}
                   >
@@ -638,7 +689,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
               <button
                 type="button"
                 onClick={onCloseHands}
-                className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-[11px] border border-[rgba(180,221,255,0.16)] bg-[#142632] text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
+                className="min-h-[44px] px-4 py-1.5 rounded-xl font-mono text-xs border border-[rgba(180,221,255,0.16)] bg-[#142632] text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer font-medium"
               >
                 Exit Hands
               </button>
