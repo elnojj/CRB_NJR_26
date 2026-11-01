@@ -427,14 +427,14 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
       const files = await loadDrive(fileSearchQuery);
       setLiveDriveFiles(files);
       setDriveLiveUnlocked(true);
-      setWsStatusMsg(`loadDrive() succeeded: ${files.length} live files`);
+      setWsStatusMsg(`Refresh files succeeded: ${files.length} live files`);
     } catch (err) {
-      // Even in preview fallback when clicked, report status clearly; only unlock LIVE if loadDrive was explicitly invoked
+      // Preview fallback still unlocks LIVE after an explicit Refresh files click.
       setDriveLiveUnlocked(true);
       setWsStatusMsg(
         err instanceof Error
-          ? `loadDrive() invoked (${err.message})`
-          : 'loadDrive() completed'
+          ? `Refresh files invoked (${err.message})`
+          : 'Refresh files completed'
       );
     }
   };
@@ -1903,7 +1903,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
               onClick={handleLoadDriveClick}
               className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#36E88D] text-[#101D27] font-semibold cursor-pointer"
             >
-              Run loadDrive() (NOJARA_HQ_26 / CEREBRO / refs)
+              Refresh files (NOJARA_HQ_26 / CEREBRO / refs)
             </button>
             <button
               type="button"

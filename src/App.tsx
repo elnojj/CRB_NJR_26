@@ -1158,7 +1158,15 @@ export default function App() {
           setFocusedNodeId(proj.id);
           const nextTab = action.tab || projectTabsById[proj.id] || 'overview';
           setProjectTabsById((prev) => ({ ...prev, [proj.id]: nextTab }));
-          ensurePanelOpen('project-detail', true);
+          // Spatial interactive plan is the primary project workspace; detail sheet opens on demand.
+          setSpatialHealthOpen(true);
+          setSpatialHealthMode('project');
+          setDashboardCollapsed(false);
+          if (action.tab) {
+            ensurePanelOpen('project-detail', true);
+          } else {
+            setOpenPanels((prev) => prev.filter((p) => p !== 'project-detail'));
+          }
           dispatchCamera('focus_node', { targetSphere: activeSphere, targetNodeId: proj.id });
           setCaptionBubble(`${proj.name} · ${proj.health}`);
           return {
@@ -1168,7 +1176,8 @@ export default function App() {
             resultingState: {
               selectedProjectId: proj.id,
               activeTab: nextTab,
-              openPanels: ['project-detail'],
+              spatialHealthMode: 'project',
+              openPanels: action.tab ? ['project-detail'] : [],
             },
             operationId: opId,
           };
@@ -3283,12 +3292,45 @@ export default function App() {
           mode={spatialHealthMode}
           selectedProjectId={selectedProjectId}
           onSelectProject={(pid) => {
-            setSelectedProjectId(pid);
-            setSpatialHealthMode('project');
             executeTypedAction({ type: 'focus_project', projectId: pid }, 'spatial');
           }}
-          onCloseProject={() => setSpatialHealthMode('dashboard')}
+          onCloseProject={() => {
+            setSpatialHealthMode('dashboard');
+            setOpenPanels((prev) => prev.filter((p) => p !== 'project-detail'));
+            setFocusedNodeId(null);
+            setCaptionBubble(null);
+          }}
           onCloseCalendar={() => setSpatialHealthOpen(false)}
+          onOpenFilteredProjects={(filter, projectId) => {
+            if (projectId) {
+              executeTypedAction({ type: 'focus_project', projectId }, 'spatial');
+              return;
+            }
+            setSpatialHealthMode('dashboard');
+            setOpenPanels(['projects']);
+            setCaptionBubble(
+              filter === 'onTrack'
+                ? 'Portfolio health · on-track programmes'
+                : filter === 'attention'
+                  ? 'Blocked / at risk · Owner 39 attention'
+                  : `Open register work · ${PROJECTS_DATA.reduce((n, p) => n + p.openTaskCount, 0)} (sum of openTaskCount; distinct from 52-record CSV index)`
+            );
+          }}
+          onOpenPerson={(personId) => {
+            setOpenPanels(['people']);
+            setCaptionBubble(`People · ${personId}`);
+          }}
+          onOpenRegisterRecord={(recordId) => {
+            setProjectTabsById((prev) => ({
+              ...prev,
+              [selectedProjectId]: 'tasks',
+            }));
+            executeTypedAction(
+              { type: 'focus_project', projectId: selectedProjectId, tab: 'tasks' },
+              'plan'
+            );
+            setCaptionBubble(`Register record · ${recordId}`);
+          }}
         />
       )}
 

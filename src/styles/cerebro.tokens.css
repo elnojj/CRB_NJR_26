@@ -36,7 +36,7 @@
   --token-bg-surface:     var(--c-surface);
   --token-bg-elevated:    var(--c-surface-d0);
 
-  --token-glass-fill:     rgba(20, 38, 50, 0.72);
+  --token-glass-fill:     rgba(20, 38, 50, 0.86);
   --token-glass-solid:    var(--c-surface);
   --token-glass-subtle:   rgba(16, 22, 34, 0.88);
   --token-glass-border:   rgba(180, 221, 255, 0.36);
@@ -89,10 +89,11 @@
      5. TYPOGRAPHY
         Locked font stack from app token system; film display reserve kept.
      ------------------------------------------------------------------------ */
-  --font-display: 'Sora', 'JaapokkiSubtract', 'Inter', system-ui, sans-serif;
-  --font-sans:    'Inter', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif;
+  /* Jaapokki Subtract is the approved English display face when the licensed file is present. */
+  --font-display: 'JaapokkiSubtract', 'Jaapokki', 'Sora', system-ui, sans-serif;
+  --font-sans:    'Sora', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif;
   --font-mono:    'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
-  --font-arabic:  'Cairo', 'Tajawal', 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif;
+  --font-arabic:  'Cairo', 'Tajawal', 'IBM Plex Sans Arabic', 'Sora', system-ui, sans-serif;
 
   /* ------------------------------------------------------------------------
      6. GEOMETRY & MOTION
@@ -100,8 +101,26 @@
   --page-margin:   24px;
   --panel-radius:  20px;
   --card-radius:   16px;
+  --control-radius: 10px;
   --pocket-radius: 8px;
   --pill-radius:   999px;
+  --touch-min:     44px;
+
+  /* Type scale (CSS px targets) */
+  --type-display: clamp(1.75rem, 3vw, 3rem); /* 28–48 */
+  --type-display-lh: 1.14;
+  --type-workspace: clamp(1.25rem, 2vw, 1.5rem); /* 20–24 */
+  --type-workspace-lh: 1.25;
+  --type-card: 1.0625rem; /* 17 */
+  --type-card-lh: 1.3;
+  --type-body: 1rem; /* 16 */
+  --type-body-lh: 1.5;
+  --type-support: 0.875rem; /* 14 */
+  --type-support-lh: 1.5;
+  --type-meta: 0.75rem; /* 12 */
+  --type-meta-lh: 1.45;
+  --type-graph: 0.8125rem; /* 13 */
+  --type-graph-lh: 1.35;
 
   --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-fast: 180ms;

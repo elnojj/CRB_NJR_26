@@ -936,7 +936,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
           boxShadow: GUI_GLASS_TOKENS.shadow,
           zIndex: GUI_Z_LAYERS.voiceDock,
         }}
-        className={`fixed pointer-events-auto cj-glass-card cerebro-stellar-glass flex flex-col overflow-hidden transition-all duration-200 ${
+        className={`fixed pointer-events-auto cj-glass-card cerebro-stellar-glass flex flex-col overflow-x-hidden overflow-y-auto transition-all duration-200 ${
           guiLayout
             ? ''
             : `${snapClasses[snapEdge]} ${
@@ -1159,7 +1159,18 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
           !guiLayout?.voiceCompactedForSheet &&
           (isSessionLive || voiceState !== 'Idle' || tourState.active) &&
           transcripts.length > 0 && (
-            <div className="px-3.5 pt-1.5 pb-2 shrink-0 border-t border-[rgba(197,204,214,0.22)] text-[13px] text-[#F2F6F8] line-clamp-2 font-sans leading-snug">
+            <div
+              data-testid="voice-transcript-preview"
+              className="px-3.5 pt-1.5 pb-2 shrink-0 border-t border-[rgba(197,204,214,0.22)] text-[13px] text-[#F2F6F8] font-sans leading-snug"
+              style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                maxHeight: '2.7em',
+              }}
+              title={transcripts[transcripts.length - 1].text}
+            >
               <span className="font-mono text-[11px] text-[#D4AF37] mr-1.5">
                 {transcripts[transcripts.length - 1].speaker === '39' ? '39:' : 'CEREBRO:'}
               </span>

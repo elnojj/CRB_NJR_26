@@ -87,12 +87,16 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
 
     const isSheetOpen = openPanels.length > 0;
     const isSheetExpanded = isSheetOpen && phoneSheetState === 'expanded';
+    // Reserve utility row (~52) + safe area; compact dock includes 2-line transcript preview.
     const voiceH = isSheetOpen
       ? 52
       : params.voiceExpanded
       ? Math.min(300, Math.round(height * 0.42))
-      : 110;
-    const voiceY = Math.max(headerRect.y + headerRect.h + 16, height - voiceH - 68 - kbInset);
+      : 132;
+    const voiceY = Math.max(
+      headerRect.y + headerRect.h + 16,
+      height - voiceH - 72 - kbInset
+    );
     const voiceRect: GuiRect = {
       x: padX,
       y: voiceY,

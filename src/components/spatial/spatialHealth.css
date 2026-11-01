@@ -22,6 +22,11 @@
   box-sizing: border-box;
 }
 
+/* Project plan must sit above the workspace header hit-layer (z-30) so Close/Back receive clicks. */
+.spatial-health-shell[data-mode='project'] {
+  z-index: 36;
+}
+
 /* —— Desk AR health field —— */
 .disk-ar-stage {
   position: absolute;
@@ -270,6 +275,93 @@
   color: var(--sh-gold);
 }
 
+.wall-cal-day.is-selected {
+  outline: 1px solid var(--sh-gold);
+}
+
+.wall-cal-day {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.wall-cal-mode {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.wall-cal-mode-btn {
+  min-height: 36px;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(180, 221, 255, 0.28);
+  background: rgba(12, 18, 28, 0.55);
+  color: #f2f6f8;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.62rem;
+  cursor: pointer;
+}
+
+.wall-cal-mode-btn.is-active {
+  background: var(--sh-gold);
+  color: #101d27;
+  border-color: #fff4d0;
+}
+
+.wall-cal-agenda {
+  margin-top: 0.65rem;
+  max-height: 42%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.wall-cal-agenda-head {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  color: #bdcbd3;
+}
+
+.wall-cal-empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #d0dce3;
+  line-height: 1.45;
+}
+
+.wall-cal-event {
+  text-align: left;
+  border-radius: 12px;
+  border: 1px solid rgba(180, 221, 255, 0.24);
+  background: rgba(12, 18, 28, 0.62);
+  color: #f2f6f8;
+  padding: 0.55rem 0.65rem;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.wall-cal-event:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.wall-cal-event-title {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+.wall-cal-event-meta,
+.wall-cal-event-source {
+  margin-top: 0.2rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.62rem;
+  color: #bdcbd3;
+}
+
 .wall-cal-footnote {
   margin-top: 0.85rem;
   font-size: 0.68rem;
@@ -501,9 +593,39 @@
     font-size: 0.78rem;
   }
 
-  /* Calendar collapses on phone so the motion-graph sphere owns the viewport */
+  /* Phone defaults to agenda strip above dock — month grid on demand */
   .wall-cal-stage {
+    display: block;
+    top: auto;
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: var(--sh-dock-clear);
+    height: auto;
+    max-height: 28vh;
+    perspective: none;
+    z-index: 3;
+  }
+
+  .wall-cal-recess {
+    transform: none;
+    max-height: 100%;
+    overflow: auto;
+  }
+
+  .wall-cal-face {
+    min-height: 0;
+    padding: 0.65rem;
+  }
+
+  .wall-cal-grid {
     display: none;
+  }
+
+  .wall-cal-done {
+    left: auto;
+    right: 0.5rem;
+    top: -0.45rem;
+    transform: none;
   }
 
   .node-chips-stage {

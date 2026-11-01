@@ -1,6 +1,11 @@
 import './spatialHealth.css';
 import { PROJECTS_DATA, type ProjectHealth } from '../../data/sourceData';
 import { COLOUR_TOKENS } from '../../tokens/colours';
+import {
+  selectIndexedRegisterRecordCount,
+  selectOpenRegisterWorkCount,
+  selectProjectsByHealth,
+} from '../../data/projectPlanModel';
 
 function healthColour(health: ProjectHealth): string {
   if (health === 'On track') return COLOUR_TOKENS.healthOnTrack;
@@ -24,14 +29,18 @@ const CARD_LAYOUT: Array<{
 
 export function DiskArHealthDashboard({
   onSelectProject,
+  onOpenFilteredProjects,
 }: {
   onSelectProject?: (projectId: string) => void;
+  onOpenFilteredProjects?: (filter: 'all' | 'onTrack' | 'attention', projectId?: string) => void;
 }) {
-  const onTrack = PROJECTS_DATA.filter((p) => p.health === 'On track').length;
-  const atRisk = PROJECTS_DATA.filter((p) => p.health === 'At risk').length;
+  const onTrack = selectProjectsByHealth('onTrack').length;
+  const attention = selectProjectsByHealth('attention');
   const blocked = PROJECTS_DATA.filter((p) => p.health === 'Blocked').length;
-  const openTasks = PROJECTS_DATA.reduce((n, p) => n + p.openTaskCount, 0);
-  const spotlight = PROJECTS_DATA.find((p) => p.health !== 'On track') || PROJECTS_DATA[0];
+  const atRisk = PROJECTS_DATA.filter((p) => p.health === 'At risk').length;
+  const openWork = selectOpenRegisterWorkCount();
+  const indexed = selectIndexedRegisterRecordCount();
+  const spotlight = attention[0] || PROJECTS_DATA[0];
 
   const cards = [
     {
@@ -42,7 +51,7 @@ export function DiskArHealthDashboard({
       sub: `${onTrack} on track · ${PROJECTS_DATA.length} live programmes`,
       colour: COLOUR_TOKENS.healthOnTrack,
       className: 'is-gold',
-      projectId: undefined as string | undefined,
+      onActivate: () => onOpenFilteredProjects?.('onTrack'),
     },
     {
       id: 'risk',
@@ -52,7 +61,10 @@ export function DiskArHealthDashboard({
       sub: spotlight.healthNote.slice(0, 92),
       colour: healthColour(spotlight.health),
       className: spotlight.health === 'Blocked' ? 'is-urgent' : 'is-gold',
-      projectId: spotlight.id,
+      onActivate: () => {
+        onOpenFilteredProjects?.('attention', spotlight.id);
+        onSelectProject?.(spotlight.id);
+      },
     },
     {
       id: 'blocked',
@@ -62,17 +74,17 @@ export function DiskArHealthDashboard({
       sub: `${blocked} blocked · ${atRisk} at risk needing Owner 39`,
       colour: blocked > 0 ? COLOUR_TOKENS.healthBlocked : COLOUR_TOKENS.healthAtRisk,
       className: blocked > 0 ? 'is-urgent' : '',
-      projectId: PROJECTS_DATA.find((p) => p.health === 'Blocked')?.id,
+      onActivate: () => onOpenFilteredProjects?.('attention'),
     },
     {
       id: 'load',
       kicker: 'Throughput',
       title: 'Open register work',
-      metric: `${openTasks}`,
-      sub: 'Tasks across HQ stations · tap a card to open node map',
+      metric: `${openWork.count}`,
+      sub: `Sum of openTaskCount (as of ${openWork.asOf}) · indexed rows ${indexed.count}`,
       colour: '#B4DDFF',
       className: '',
-      projectId: 'SEVEN',
+      onActivate: () => onOpenFilteredProjects?.('all'),
     },
   ];
 
@@ -99,7 +111,7 @@ export function DiskArHealthDashboard({
                 transform: layout.tilt,
                 animationDelay: `${40 + idx * 70}ms`,
               }}
-              onClick={() => card.projectId && onSelectProject?.(card.projectId)}
+              onClick={() => card.onActivate()}
             >
               <div className="disk-ar-sheen" aria-hidden="true" />
               <div className="disk-ar-kicker">

@@ -1308,10 +1308,49 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           return renderPanelFrame(
             'project-detail',
             `${activeProject.name} — Workspace`,
-            `PANEL #3 · 9 TABS & 3 KPI CARDS · ${activeProject.code}`,
+            `PANEL #3 · WORKSPACE · ${activeProject.code}`,
             COLOUR_TOKENS.stationProjectDetail,
             posClass,
             <>
+              <label className="block space-y-1.5">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-[#BDCBD3]">
+                  Project switcher
+                </span>
+                <input
+                  type="search"
+                  list="cerebro-project-switcher"
+                  defaultValue={activeProject.name}
+                  placeholder="Search projects…"
+                  aria-label="Search and switch project"
+                  className="w-full min-h-[44px] px-3 py-1.5 rounded-xl bg-[#05090E] border border-white/30 font-sans text-sm text-[#F2F6F8] placeholder-[#BDCBD3]/60 focus:outline-none focus:border-[#D4AF37]"
+                  onChange={(e) => {
+                    const q = e.target.value.trim().toLowerCase();
+                    const match = PROJECTS_DATA.find(
+                      (p) =>
+                        p.id.toLowerCase() === q ||
+                        p.code.toLowerCase() === q ||
+                        p.name.toLowerCase() === q
+                    );
+                    if (match) onSelectProject(match.id);
+                  }}
+                  onBlur={(e) => {
+                    const q = e.target.value.trim().toLowerCase();
+                    const match = PROJECTS_DATA.find(
+                      (p) =>
+                        p.name.toLowerCase().includes(q) ||
+                        p.code.toLowerCase().includes(q)
+                    );
+                    if (match) onSelectProject(match.id);
+                  }}
+                />
+                <datalist id="cerebro-project-switcher">
+                  {PROJECTS_DATA.map((p) => (
+                    <option key={p.id} value={p.name}>
+                      {p.code}
+                    </option>
+                  ))}
+                </datalist>
+              </label>
               <WireframesV11PanelContent {...sharedV11Props} panelId="project-detail" />
               <div
                 className="rounded-xl p-3 border space-y-2"
@@ -1812,7 +1851,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           return renderPanelFrame(
             'files',
             'Drive Files · Docs & Sheets',
-            'PANEL #9 · LIVE BADGE AFTER loadDrive() · BREADCRUMB SEARCH',
+            'PANEL #9 · REFRESH FILES · BREADCRUMB SEARCH',
             COLOUR_TOKENS.stationFiles,
             posClass,
             <>
