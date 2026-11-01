@@ -397,9 +397,11 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
 
   const renderGlove = (pts: [number, number][], side: 'left' | 'right') => {
     const isPinchActive = pinchLocked || activeGesture === 'pinch-orbit';
-    const gloveAccent = isPinchActive ? COLOUR_TOKENS.stationMedia : '#36E88D';
-    const gloveFill = isPinchActive ? 'rgba(242, 182, 109, 0.72)' : 'rgba(54, 232, 141, 0.62)';
-    const gloveShell = isPinchActive ? 'rgba(242, 182, 109, 0.22)' : 'rgba(54, 232, 141, 0.18)';
+    // Desk-AR glass palette: soft gold focus / ice idle (matches spatialHealth.css)
+    const gloveAccent = isPinchActive ? COLOUR_TOKENS.stationMedia : COLOUR_TOKENS.trackingValid;
+    const iceEdge = '#B4DDFF';
+    const sheen = '#FFF4D0';
+    const uid = `${side}-glove`;
     const fingertipLabels = ['THUMB', 'INDEX', 'MIDDLE', 'RING', 'PINKY'];
 
     // Expanded palm shell (wrist + MCPs) so the hand reads as a solid glove body.
@@ -416,7 +418,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
         })
         .join(' ');
 
-    // Finger chains → thick rounded fills (no skeleton dots/bones).
+    // Finger chains → thick rounded glass tubes (no skeleton dots/bones).
     const fingerChains: { id: string; indices: number[]; width: number }[] = [
       { id: 'thumb', indices: [1, 2, 3, 4], width: 26 },
       { id: 'index', indices: [5, 6, 7, 8], width: 22 },
@@ -465,7 +467,51 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
 
     return (
       <g key={side} className="cursor-pointer">
-        <g stroke={gloveAccent} strokeWidth="2" fill="none" opacity="0.7">
+        <defs>
+          <linearGradient id={`${uid}-shell`} x1="18%" y1="8%" x2="82%" y2="92%">
+            <stop offset="0%" stopColor={isPinchActive ? sheen : iceEdge} stopOpacity="0.28" />
+            <stop offset="42%" stopColor={isPinchActive ? '#D4AF37' : '#36E88D'} stopOpacity="0.12" />
+            <stop offset="100%" stopColor="#03060c" stopOpacity="0.42" />
+          </linearGradient>
+          <radialGradient id={`${uid}-palm`} cx="38%" cy="28%" r="78%">
+            <stop offset="0%" stopColor={isPinchActive ? sheen : iceEdge} stopOpacity="0.55" />
+            <stop
+              offset="45%"
+              stopColor={isPinchActive ? 'rgba(212, 175, 55, 0.48)' : 'rgba(54, 232, 141, 0.38)'}
+            />
+            <stop offset="100%" stopColor="rgba(12, 18, 28, 0.55)" stopOpacity="0.72" />
+          </radialGradient>
+          <linearGradient id={`${uid}-finger`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={isPinchActive ? sheen : iceEdge} stopOpacity="0.62" />
+            <stop
+              offset="55%"
+              stopColor={isPinchActive ? 'rgba(212, 175, 55, 0.55)' : 'rgba(54, 232, 141, 0.48)'}
+            />
+            <stop offset="100%" stopColor="rgba(8, 14, 22, 0.35)" stopOpacity="0.5" />
+          </linearGradient>
+          <filter id={`${uid}-soft`} x="-35%" y="-35%" width="170%" height="170%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="blur" />
+            <feColorMatrix
+              in="blur"
+              type="matrix"
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.85 0"
+              result="soft"
+            />
+            <feMerge>
+              <feMergeNode in="soft" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id={`${uid}-glow`} x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="3.5" result="g" />
+            <feMerge>
+              <feMergeNode in="g" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        <g stroke={gloveAccent} strokeWidth="1.5" fill="none" opacity="0.45">
           <path d={`M ${minX} ${minY + bracketLen} V ${minY} H ${minX + bracketLen}`} />
           <path d={`M ${maxX - bracketLen} ${minY} H ${maxX} V ${minY + bracketLen}`} />
           <path d={`M ${minX} ${maxY - bracketLen} V ${maxY} H ${minX + bracketLen}`} />
@@ -475,54 +521,67 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
         <text
           x={minX}
           y={minY - 10}
-          fill={gloveAccent}
+          fill={isPinchActive ? sheen : iceEdge}
+          fillOpacity="0.88"
           fontSize="11"
           fontFamily="JetBrains Mono, monospace"
         >
           {side === 'left' ? 'Left Hand' : 'Right Hand'} · Pinch {pinchRatio.toFixed(2)} · Depth {zDepth}
         </text>
 
-        {/* Soft glove shell */}
+        {/* Soft glass shell — frosted depth behind the palm */}
         <path
           d={silhouetteD}
-          fill={gloveShell}
-          stroke={gloveAccent}
-          strokeOpacity="0.35"
-          strokeWidth="1.2"
+          fill={`url(#${uid}-shell)`}
+          stroke={isPinchActive ? gloveAccent : iceEdge}
+          strokeOpacity="0.28"
+          strokeWidth="1.1"
           strokeLinejoin="round"
+          filter={`url(#${uid}-soft)`}
         />
 
-        {/* Palm body */}
+        {/* Palm glass body + specular sheen */}
         <polygon
           points={expandPalm(1.28)}
-          fill={gloveFill}
-          stroke={gloveAccent}
-          strokeOpacity="0.55"
-          strokeWidth="1.4"
+          fill={`url(#${uid}-palm)`}
+          stroke={isPinchActive ? gloveAccent : iceEdge}
+          strokeOpacity="0.42"
+          strokeWidth="1.35"
           strokeLinejoin="round"
+          filter={`url(#${uid}-glow)`}
         />
-        <polygon points={expandPalm(1.05)} fill="rgba(10, 22, 32, 0.16)" />
+        <ellipse
+          cx={palmCx - 8}
+          cy={palmCy - 14}
+          rx={28}
+          ry={16}
+          fill={isPinchActive ? sheen : iceEdge}
+          fillOpacity="0.22"
+          style={{ mixBlendMode: 'screen' }}
+        />
+        <polygon points={expandPalm(1.05)} fill="rgba(3, 6, 12, 0.18)" />
 
-        {/* Filled finger tubes */}
+        {/* Glass finger tubes */}
         {fingerChains.map((finger) => (
           <g key={`${side}-${finger.id}`}>
             <path
               d={chainPath(finger.indices)}
               fill="none"
-              stroke={gloveFill}
+              stroke={`url(#${uid}-finger)`}
               strokeWidth={finger.width}
               strokeLinecap="round"
               strokeLinejoin="round"
-              opacity="0.95"
+              opacity="0.92"
+              filter={`url(#${uid}-soft)`}
             />
             <path
               d={chainPath(finger.indices)}
               fill="none"
-              stroke={gloveAccent}
-              strokeWidth={finger.width * 0.22}
+              stroke={isPinchActive ? sheen : iceEdge}
+              strokeWidth={finger.width * 0.16}
               strokeLinecap="round"
               strokeLinejoin="round"
-              opacity="0.55"
+              opacity="0.42"
             />
           </g>
         ))}
@@ -534,19 +593,20 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           x2={indexPt[0]}
           y2={indexPt[1]}
           stroke={gloveAccent}
-          strokeWidth={isPinchActive ? 2.4 : 1.4}
-          strokeOpacity={isPinchActive ? 0.9 : 0.45}
+          strokeWidth={isPinchActive ? 2.2 : 1.3}
+          strokeOpacity={isPinchActive ? 0.85 : 0.4}
           strokeDasharray={isPinchActive ? undefined : '5 5'}
+          filter={isPinchActive ? `url(#${uid}-glow)` : undefined}
         />
         <circle
           cx={midX}
           cy={midY}
-          r={isPinchActive ? 7 : 4.5}
-          fill={isPinchActive ? gloveAccent : 'none'}
-          fillOpacity={isPinchActive ? 0.4 : 0}
+          r={isPinchActive ? 8 : 4.5}
+          fill={isPinchActive ? `url(#${uid}-palm)` : 'none'}
+          fillOpacity={isPinchActive ? 0.85 : 0}
           stroke={gloveAccent}
-          strokeWidth="1.5"
-          strokeOpacity="0.7"
+          strokeWidth="1.4"
+          strokeOpacity="0.65"
         />
 
         {/* Invisible fingertip hit targets — keep interaction, hide skeleton dots */}
@@ -624,9 +684,9 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           <path
             d="M 410 560 A 295 295 0 0 1 956 560"
             fill="none"
-            stroke={pinchLocked ? COLOUR_TOKENS.stationMedia : '#36E88D'}
-            strokeOpacity="0.65"
-            strokeWidth="2.5"
+            stroke={pinchLocked ? COLOUR_TOKENS.stationMedia : '#B4DDFF'}
+            strokeOpacity="0.42"
+            strokeWidth="2"
             strokeDasharray="8 6"
           />
 
@@ -642,14 +702,17 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
 
         <div className="mt-auto mx-auto w-full max-w-4xl pointer-events-auto z-20">
           <div
-            className="rounded-xl px-5 py-3.5 border flex flex-wrap items-center justify-between gap-4"
+            className="rounded-[1.1rem] px-5 py-3.5 border flex flex-wrap items-center justify-between gap-4"
             style={{
-              backgroundColor: 'rgba(16, 29, 39, 0.84)',
-              backdropFilter: 'blur(12px) saturate(1.2)',
-              WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-              borderColor: pinchLocked ? COLOUR_TOKENS.stationMedia : 'rgba(255, 255, 255, 0.14)',
+              // Spatial-health desk AR glass chrome (not flat navy HUD)
+              backgroundColor: 'rgba(16, 24, 36, 0.55)',
+              backdropFilter: 'blur(18px) saturate(1.15)',
+              WebkitBackdropFilter: 'blur(18px) saturate(1.15)',
+              borderColor: pinchLocked
+                ? 'rgba(212, 175, 55, 0.45)'
+                : 'rgba(180, 221, 255, 0.28)',
               boxShadow:
-                'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
+                '0 18px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(180, 221, 255, 0.14)',
             }}
           >
             <div className="flex flex-col gap-0.5">
@@ -660,16 +723,31 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                     backgroundColor: pinchLocked
                       ? COLOUR_TOKENS.stationMedia
                       : COLOUR_TOKENS.trackingValid,
+                    boxShadow: pinchLocked
+                      ? '0 0 10px rgba(212, 175, 55, 0.55)'
+                      : '0 0 10px rgba(54, 232, 141, 0.45)',
                   }}
                 />
                 <span className="font-display font-semibold text-xs tracking-[0.08em] uppercase text-[#F2F6F8]">
                   #11 · {gestureMeta[activeGesture].title}
                 </span>
-                <span className="font-mono tabular-nums text-[10px] px-2 py-0.5 rounded bg-[#142632] text-[#36E88D] border border-white/15">
+                <span
+                  className="font-mono tabular-nums text-[10px] px-2 py-0.5 rounded-lg text-[#36E88D] border"
+                  style={{
+                    backgroundColor: 'rgba(12, 18, 28, 0.72)',
+                    borderColor: 'rgba(180, 221, 255, 0.22)',
+                  }}
+                >
                   LIVE
                 </span>
                 {activeNote && (
-                  <span className="font-mono tabular-nums text-[11px] px-2 py-0.5 rounded bg-[#142632] text-[#B4DDFF] border border-white/15">
+                  <span
+                    className="font-mono tabular-nums text-[11px] px-2 py-0.5 rounded-lg text-[#B4DDFF] border"
+                    style={{
+                      backgroundColor: 'rgba(12, 18, 28, 0.72)',
+                      borderColor: 'rgba(180, 221, 255, 0.22)',
+                    }}
+                  >
                     {activeNote}
                   </span>
                 )}
@@ -680,7 +758,13 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center rounded-xl p-0.5 bg-[#142632] border border-[rgba(180,221,255,0.16)]">
+              <div
+                className="flex items-center rounded-xl p-0.5 border"
+                style={{
+                  backgroundColor: 'rgba(12, 18, 28, 0.72)',
+                  borderColor: 'rgba(180, 221, 255, 0.22)',
+                }}
+              >
                 {(
                   [
                     { id: 'two-hands', label: 'Two Hands' },
@@ -694,9 +778,17 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                     onClick={() => onChangeHandMode(m.id)}
                     className={`min-h-[44px] px-3 py-1.5 rounded-lg font-mono text-xs transition-colors cursor-pointer ${
                       handMode === m.id
-                        ? 'bg-[#4C8DFF] text-[#101D27] font-semibold'
+                        ? 'font-semibold text-[#03060c]'
                         : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
                     }`}
+                    style={
+                      handMode === m.id
+                        ? {
+                            background:
+                              'linear-gradient(135deg, #FFF4D0 0%, #D4AF37 72%)',
+                          }
+                        : undefined
+                    }
                   >
                     {m.label}
                   </button>
@@ -711,26 +803,41 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                     { id: 'palm-stop', label: 'Palm Stop' },
                     { id: 'point-select', label: 'Point Select' },
                   ] as const
-                ).map((g) => (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => onTriggerGesture(g.id)}
-                    className={`min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs border transition-colors cursor-pointer ${
-                      activeGesture === g.id
-                        ? 'border-[#36E88D] bg-[#36E88D]/20 text-[#F2F6F8] font-semibold'
-                        : 'border-[rgba(180,221,255,0.16)] bg-[#142632] text-[#BDCBD3] hover:text-[#F2F6F8]'
-                    }`}
-                  >
-                    {g.label}
-                  </button>
-                ))}
+                ).map((g) => {
+                  const active = activeGesture === g.id;
+                  return (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => onTriggerGesture(g.id)}
+                      className={`min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs border transition-colors cursor-pointer ${
+                        active
+                          ? 'text-[#F2F6F8] font-semibold'
+                          : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
+                      }`}
+                      style={{
+                        borderColor: active
+                          ? 'rgba(54, 232, 141, 0.55)'
+                          : 'rgba(180, 221, 255, 0.22)',
+                        backgroundColor: active
+                          ? 'rgba(54, 232, 141, 0.16)'
+                          : 'rgba(12, 18, 28, 0.72)',
+                      }}
+                    >
+                      {g.label}
+                    </button>
+                  );
+                })}
               </div>
 
               <button
                 type="button"
                 onClick={onCloseHands}
-                className="min-h-[44px] px-4 py-1.5 rounded-xl font-mono text-xs border border-[rgba(180,221,255,0.16)] bg-[#142632] text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer font-medium"
+                className="min-h-[44px] px-4 py-1.5 rounded-xl font-mono text-xs border text-[#F2F6F8] cursor-pointer font-medium hover:border-[rgba(212,175,55,0.55)]"
+                style={{
+                  borderColor: 'rgba(180, 221, 255, 0.22)',
+                  backgroundColor: 'rgba(12, 18, 28, 0.72)',
+                }}
               >
                 Exit Hands
               </button>
