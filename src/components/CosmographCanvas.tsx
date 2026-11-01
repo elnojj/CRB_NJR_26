@@ -1886,13 +1886,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           shader.fragmentShader = shader.fragmentShader.replace(
             '#include <dithering_fragment>',
             `#include <dithering_fragment>
-            float fresnel = pow(1.0 - abs(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0))), ${
+            vec3 causticN = normalize(vNormal);
+            vec3 causticV = normalize(vViewPosition);
+            float fresnel = pow(1.0 - clamp(abs(dot(causticN, causticV)), 0.0, 1.0), ${
               isBack ? '2.1' : '2.7'
             });
             vec3 causticRim = vec3(${rimColVec.r.toFixed(3)}, ${rimColVec.g.toFixed(3)}, ${rimColVec.b.toFixed(3)});
             vec3 causticBody = vec3(${bodyColVec.r.toFixed(3)}, ${bodyColVec.g.toFixed(3)}, ${bodyColVec.b.toFixed(3)});
-            float causticWave = 0.5 + 0.5 * sin(uTime * 1.4 + gl_FragCoord.x * 0.01 + gl_FragCoord.y * 0.01);
-            vec3 rimTint = mix(causticBody, causticRim, causticWave) * fresnel * (0.32 + uAudioRms * 0.35);
+            float causticWave = 0.5 + 0.5 * sin(uTime * 0.55);
+            vec3 rimTint = mix(causticBody, causticRim, causticWave) * fresnel * (0.2 + uAudioRms * 0.1);
             gl_FragColor.rgb += rimTint;`
           );
         }
@@ -3515,12 +3517,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       hqAssembly.shellGroup.scale.setScalar(breathScale);
       cdeAssembly.shellGroup.scale.setScalar(breathScale);
 
-      // Audio-Reactive Core Crystal Pulse
-      const corePulseScale = 1.0 + liveRms * 0.34;
+      // Audio-Reactive Core Crystal Pulse — damp hard during camera flight to stop lighting flicker
+      const motionQuiet = s.flightActive ? 0.18 : 1.0;
+      const corePulseScale = 1.0 + liveRms * 0.34 * motionQuiet;
       hqAssembly.coreGroup.scale.setScalar(corePulseScale);
       cdeAssembly.coreGroup.scale.setScalar(corePulseScale);
-      hqAssembly.coreCrystalMat.emissiveIntensity = 1.35 + liveRms * 1.65;
-      cdeAssembly.coreCrystalMat.emissiveIntensity = 1.35 + liveRms * 1.65;
+      const coreEmissive = 1.2 + liveRms * 0.55 * motionQuiet;
+      hqAssembly.coreCrystalMat.emissiveIntensity = coreEmissive;
+      cdeAssembly.coreCrystalMat.emissiveIntensity = coreEmissive;
 
       // If explicitly stopped, velocity stays strictly 0 with zero drift
       if (s.stoppedExplicitly) {
@@ -3893,8 +3897,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         const b = entry.currentBrightness;
         for (let m = 0; m < entry.emissiveMats.length; m++) {
           const mat = entry.emissiveMats[m];
-          const baseEmissive = entry.nodeType === 'project' ? 1.35 : 0.95;
-          mat.emissiveIntensity = baseEmissive * b + (b > 0.85 ? liveRms * 0.55 : 0);
+          const baseEmissive = entry.nodeType === 'project' ? 1.2 : 0.85;
+          const rmsBoost = s.flightActive ? 0.08 : 0.28;
+          mat.emissiveIntensity = baseEmissive * b + (b > 0.85 ? liveRms * rmsBoost : 0);
         }
         if (entry.wireMat) {
           const baseWireOp = entry.nodeType === 'project' ? 0.34 : 0.44;

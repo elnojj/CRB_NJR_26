@@ -331,21 +331,23 @@ export function patchFresnelRimOnOpaqueFragment(
     return false;
   }
 
+  // Stable rim: view-space fresnel (not fixed +Z) + time-only wave (not gl_FragCoord).
+  // Screen-space caustics + fixed-axis fresnel strobe when the camera moves around the sphere.
   shader.fragmentShader = shader.fragmentShader.replace(
     targetChunk,
     `${targetChunk}
     {
-      float v2Fresnel = pow(1.0 - clamp(abs(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0))), 0.0, 1.0), ${fresnelPower.toFixed(
-        2
-      )});
+      vec3 v2N = normalize(vNormal);
+      vec3 v2V = normalize(vViewPosition);
+      float v2Fresnel = pow(1.0 - clamp(abs(dot(v2N, v2V)), 0.0, 1.0), ${fresnelPower.toFixed(2)});
       vec3 v2RimCol = vec3(${rimColor.r.toFixed(3)}, ${rimColor.g.toFixed(3)}, ${rimColor.b.toFixed(
       3
     )});
       vec3 v2BodyCol = vec3(${bodyColor.r.toFixed(3)}, ${bodyColor.g.toFixed(
       3
     )}, ${bodyColor.b.toFixed(3)});
-      float v2Wave = 0.5 + 0.5 * sin(uTime * 1.6 + gl_FragCoord.x * 0.012 + gl_FragCoord.y * 0.012);
-      vec3 v2Tint = mix(v2BodyCol, v2RimCol, v2Wave) * v2Fresnel * (0.34 + uAudioRms * 0.45);
+      float v2Wave = 0.5 + 0.5 * sin(uTime * 0.55);
+      vec3 v2Tint = mix(v2BodyCol, v2RimCol, v2Wave) * v2Fresnel * (0.22 + uAudioRms * 0.1);
       gl_FragColor.rgb += v2Tint;
     }`
   );

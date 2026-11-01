@@ -700,11 +700,17 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           {(handMode === 'two-hands' || handMode === 'right-only') && renderGlove(rightPts, 'right')}
         </svg>
 
-        <div className="mt-auto mx-auto w-full max-w-4xl pointer-events-auto z-20">
+        <div
+          className="mt-auto mx-auto w-full max-w-4xl pointer-events-auto z-20 px-1"
+          style={{
+            // Keep clear of voice dock + home indicator
+            paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0px))',
+            marginBottom: 'max(4.75rem, calc(env(safe-area-inset-bottom, 0px) + 4.25rem))',
+          }}
+        >
           <div
-            className="rounded-[1.1rem] px-5 py-3.5 border flex flex-wrap items-center justify-between gap-4"
+            className="rounded-[1.1rem] px-3 py-2.5 sm:px-5 sm:py-3.5 border flex flex-wrap items-center justify-between gap-2 sm:gap-4"
             style={{
-              // Spatial-health desk AR glass chrome (not flat navy HUD)
               backgroundColor: 'rgba(16, 24, 36, 0.55)',
               backdropFilter: 'blur(18px) saturate(1.15)',
               WebkitBackdropFilter: 'blur(18px) saturate(1.15)',
@@ -715,10 +721,10 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                 '0 18px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(180, 221, 255, 0.14)',
             }}
           >
-            <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+              <div className="flex items-center gap-2 min-w-0">
                 <span
-                  className="w-2 h-2 rounded-full"
+                  className="w-2 h-2 rounded-full shrink-0"
                   style={{
                     backgroundColor: pinchLocked
                       ? COLOUR_TOKENS.stationMedia
@@ -728,11 +734,11 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                       : '0 0 10px rgba(54, 232, 141, 0.45)',
                   }}
                 />
-                <span className="font-display font-semibold text-xs tracking-[0.08em] uppercase text-[#F2F6F8]">
+                <span className="font-display font-semibold text-[10px] sm:text-xs tracking-[0.08em] uppercase text-[#F2F6F8] truncate">
                   #11 · {gestureMeta[activeGesture].title}
                 </span>
                 <span
-                  className="font-mono tabular-nums text-[10px] px-2 py-0.5 rounded-lg text-[#36E88D] border"
+                  className="font-mono tabular-nums text-[10px] px-2 py-0.5 rounded-lg text-[#36E88D] border shrink-0"
                   style={{
                     backgroundColor: 'rgba(12, 18, 28, 0.72)',
                     borderColor: 'rgba(180, 221, 255, 0.22)',
@@ -740,24 +746,13 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                 >
                   LIVE
                 </span>
-                {activeNote && (
-                  <span
-                    className="font-mono tabular-nums text-[11px] px-2 py-0.5 rounded-lg text-[#B4DDFF] border"
-                    style={{
-                      backgroundColor: 'rgba(12, 18, 28, 0.72)',
-                      borderColor: 'rgba(180, 221, 255, 0.22)',
-                    }}
-                  >
-                    {activeNote}
-                  </span>
-                )}
               </div>
-              <span className="font-mono text-xs text-[#BDCBD3]">
+              <span className="hidden sm:block font-mono text-xs text-[#BDCBD3] truncate">
                 {gestureMeta[activeGesture].subtitle} · {cvStatusLabel}
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <div
                 className="flex items-center rounded-xl p-0.5 border"
                 style={{
@@ -767,16 +762,18 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
               >
                 {(
                   [
-                    { id: 'two-hands', label: 'Two Hands' },
-                    { id: 'left-only', label: 'Left Hand' },
-                    { id: 'right-only', label: 'Right Hand' },
+                    { id: 'two-hands', label: '2×', full: 'Two Hands' },
+                    { id: 'left-only', label: 'L', full: 'Left Hand' },
+                    { id: 'right-only', label: 'R', full: 'Right Hand' },
                   ] as const
                 ).map((m) => (
                   <button
                     key={m.id}
                     type="button"
+                    title={m.full}
+                    aria-label={m.full}
                     onClick={() => onChangeHandMode(m.id)}
-                    className={`min-h-[44px] px-3 py-1.5 rounded-lg font-mono text-xs transition-colors cursor-pointer ${
+                    className={`min-h-[40px] sm:min-h-[44px] min-w-[40px] px-2 sm:px-3 py-1.5 rounded-lg font-mono text-xs transition-colors cursor-pointer ${
                       handMode === m.id
                         ? 'font-semibold text-[#03060c]'
                         : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
@@ -790,18 +787,19 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                         : undefined
                     }
                   >
-                    {m.label}
+                    <span className="sm:hidden">{m.label}</span>
+                    <span className="hidden sm:inline">{m.full}</span>
                   </button>
                 ))}
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 sm:gap-1.5">
                 {(
                   [
-                    { id: 'pinch-orbit', label: 'Pinch Orbit' },
-                    { id: 'spread-zoom', label: 'Spread Zoom' },
-                    { id: 'palm-stop', label: 'Palm Stop' },
-                    { id: 'point-select', label: 'Point Select' },
+                    { id: 'pinch-orbit', label: 'Pinch', full: 'Pinch Orbit' },
+                    { id: 'spread-zoom', label: 'Zoom', full: 'Spread Zoom' },
+                    { id: 'palm-stop', label: 'Stop', full: 'Palm Stop' },
+                    { id: 'point-select', label: 'Point', full: 'Point Select' },
                   ] as const
                 ).map((g) => {
                   const active = activeGesture === g.id;
@@ -809,8 +807,10 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                     <button
                       key={g.id}
                       type="button"
+                      title={g.full}
+                      aria-label={g.full}
                       onClick={() => onTriggerGesture(g.id)}
-                      className={`min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs border transition-colors cursor-pointer ${
+                      className={`min-h-[40px] sm:min-h-[44px] px-2 sm:px-3 py-1.5 rounded-xl font-mono text-[10px] sm:text-xs border transition-colors cursor-pointer ${
                         active
                           ? 'text-[#F2F6F8] font-semibold'
                           : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
@@ -824,7 +824,8 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                           : 'rgba(12, 18, 28, 0.72)',
                       }}
                     >
-                      {g.label}
+                      <span className="sm:hidden">{g.label}</span>
+                      <span className="hidden sm:inline">{g.full}</span>
                     </button>
                   );
                 })}
@@ -833,13 +834,13 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
               <button
                 type="button"
                 onClick={onCloseHands}
-                className="min-h-[44px] px-4 py-1.5 rounded-xl font-mono text-xs border text-[#F2F6F8] cursor-pointer font-medium hover:border-[rgba(212,175,55,0.55)]"
+                className="min-h-[40px] sm:min-h-[44px] px-3 sm:px-4 py-1.5 rounded-xl font-mono text-xs border text-[#F2F6F8] cursor-pointer font-medium hover:border-[rgba(212,175,55,0.55)]"
                 style={{
                   borderColor: 'rgba(180, 221, 255, 0.22)',
                   backgroundColor: 'rgba(12, 18, 28, 0.72)',
                 }}
               >
-                Exit Hands
+                Exit
               </button>
             </div>
           </div>

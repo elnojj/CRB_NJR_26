@@ -58,6 +58,7 @@ import {
   HandDetectionMode,
   HandGestureType,
 } from './components/HandsOverlay';
+import { SpatialHealthLayout } from './components/spatial/SpatialHealthLayout';
 import {
   PanelsOverlay,
   AudienceLevel,
@@ -406,6 +407,9 @@ export default function App() {
   const [handsActive, setHandsActive] = useState<boolean>(false);
   const [handMode, setHandMode] = useState<HandDetectionMode>('two-hands');
   const [activeGesture, setActiveGesture] = useState<HandGestureType>('pinch-orbit');
+  // Spatial Health desk AR / wall calendar / node-chips (mounted in workspace chrome)
+  const [spatialHealthOpen, setSpatialHealthOpen] = useState<boolean>(true);
+  const [spatialHealthMode, setSpatialHealthMode] = useState<'dashboard' | 'project'>('dashboard');
 
   // 6. Voice State, Audience & Compose Task State
   const [voiceState, setVoiceState] = useState<VoiceState>('Ready');
@@ -2640,17 +2644,46 @@ export default function App() {
     (gesture: HandGestureType) => {
       setActiveGesture(gesture);
       handleUserTouchPauseTour();
-      if (gesture === 'pinch-orbit') {
-        dispatchCamera('orbit', { deltaAzimuth: 0.55, deltaPolar: -0.08 });
-      } else if (gesture === 'spread-zoom') {
-        dispatchCamera('zoom_in');
-      } else if (gesture === 'palm-stop') {
-        dispatchCamera('stop');
-      } else if (gesture === 'point-select') {
-        ensurePanelOpen(activeSphere === 'hq' ? 'projects' : 'cde-explorer', true);
+      switch (gesture) {
+        case 'pinch-orbit':
+          dispatchCamera('orbit', { deltaAzimuth: 0.55, deltaPolar: -0.08 });
+          break;
+        case 'spread-zoom':
+          setSpatialHealthOpen(true);
+          setSpatialHealthMode('dashboard');
+          dispatchCamera('zoom_in');
+          break;
+        case 'palm-stop':
+          dispatchCamera('stop');
+          if (spatialHealthMode === 'project') {
+            setSpatialHealthMode('dashboard');
+          }
+          break;
+        case 'point-select': {
+          const targetId = focusedNodeId || hoveredNodeId || selectedProjectId || 'SEVEN';
+          setSelectedProjectId(targetId);
+          setSpatialHealthOpen(true);
+          setSpatialHealthMode('project');
+          ensurePanelOpen(activeSphere === 'hq' ? 'projects' : 'cde-explorer', true);
+          break;
+        }
+        default: {
+          const _exhaustive: never = gesture;
+          void _exhaustive;
+          break;
+        }
       }
     },
-    [activeSphere, dispatchCamera, ensurePanelOpen, handleUserTouchPauseTour]
+    [
+      activeSphere,
+      dispatchCamera,
+      ensurePanelOpen,
+      focusedNodeId,
+      handleUserTouchPauseTour,
+      hoveredNodeId,
+      selectedProjectId,
+      spatialHealthMode,
+    ]
   );
 
   // 21-Point Assertion-Based Self-Test Suite (Runs inside Developer View using isolated isTest: true data + cleanup)
@@ -3243,6 +3276,21 @@ export default function App() {
         onTriggerGesture={handleTriggerHandGesture}
         onCloseHands={() => setHandsActive(false)}
       />
+
+      {/* 2B. Desk AR health + angled wall calendar + project node-chips */}
+      {bootDone && spatialHealthOpen && !dashboardCollapsed && (
+        <SpatialHealthLayout
+          mode={spatialHealthMode}
+          selectedProjectId={selectedProjectId}
+          onSelectProject={(pid) => {
+            setSelectedProjectId(pid);
+            setSpatialHealthMode('project');
+            executeTypedAction({ type: 'focus_project', projectId: pid }, 'spatial');
+          }}
+          onCloseProject={() => setSpatialHealthMode('dashboard')}
+          onCloseCalendar={() => setSpatialHealthOpen(false)}
+        />
+      )}
 
       {/* 3. Main 3D WebGL ExperienceCanvas / DualSphereCanvas (Sphere 01 HQ [0,0,0] & Sphere 02 CDE [38,4,-22]) */}
       <ExperienceCanvas

@@ -2,6 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { COLOUR_TOKENS } from '../tokens/colours';
 import { AudienceLevel } from './PanelsOverlay';
 import {
+  HandsGloveIcon,
+  MuteMicIcon,
+  PhoneCallIcon,
+} from './icons/ChromeControlIcons';
+import {
   CRO_CDE_GOOGLE_AGENT_NAME,
   CRO_CDE_GOOGLE_SYSTEM_PROMPT,
   CRO_CDE_GOOGLE_TOOLS_SCHEMA,
@@ -966,7 +971,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                 }
               }}
               title={isSessionLive ? 'Toggle microphone mute' : 'Start live voice session'}
-              className="relative min-w-[40px] min-h-[40px] w-[40px] h-[40px] rounded-full border flex items-center justify-center shrink-0 cursor-pointer overflow-hidden transition-transform duration-150"
+              aria-label={isSessionLive ? (bridgeStatus === 'Muted' ? 'Unmute' : 'Mute') : 'Start call'}
+              className="relative min-w-[40px] min-h-[40px] w-[40px] h-[40px] rounded-full border flex items-center justify-center shrink-0 cursor-pointer overflow-hidden transition-transform duration-150 text-[#101622]"
               style={{
                 transform: `scale(${(1 + audioRms * 0.14).toFixed(3)})`,
                 background:
@@ -987,7 +993,6 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                       ).toFixed(2)}), inset 0 1px 4px rgba(242, 246, 248, 0.55)`,
               }}
             >
-              {/* Concept A "Living Lens": Internal Elliptical Caustic Specular Arc */}
               <span
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-[3px] rounded-full"
@@ -997,53 +1002,13 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                   transform: `rotate(${Math.round(audioRms * 28 - 12)}deg)`,
                 }}
               />
-              {/* 16-Bar Radial & Waveform Audio-Reactive Shimmer */}
-              <svg
-                width="32"
-                height="32"
-                viewBox="0 0 36 36"
-                fill="none"
-                className="relative z-10 pointer-events-none"
-              >
-                {Array.from({ length: 16 }).map((_, idx) => {
-                  const angle = (idx / 16) * Math.PI * 2;
-                  const harmonic = Math.abs(Math.sin(idx * 1.35 + audioRms * 14));
-                  const innerR = 9.2;
-                  const barLen = 2.2 + audioRms * 6.4 * (0.45 + 0.55 * harmonic);
-                  const x1 = 18 + Math.cos(angle) * innerR;
-                  const y1 = 18 + Math.sin(angle) * innerR;
-                  const x2 = 18 + Math.cos(angle) * (innerR + barLen);
-                  const y2 = 18 + Math.sin(angle) * (innerR + barLen);
-                  return (
-                    <line
-                      key={idx}
-                      x1={x1.toFixed(2)}
-                      y1={y1.toFixed(2)}
-                      x2={x2.toFixed(2)}
-                      y2={y2.toFixed(2)}
-                      stroke={idx % 2 === 0 ? '#FFF4D0' : '#F2F6F8'}
-                      strokeWidth="1.35"
-                      strokeLinecap="round"
-                      strokeOpacity={(0.52 + Math.min(0.48, audioRms * 0.9)).toFixed(2)}
-                    />
-                  );
-                })}
-                <circle
-                  cx="18"
-                  cy="18"
-                  r={(4.2 + audioRms * 2.4).toFixed(2)}
-                  fill="#101622"
-                  fillOpacity={(0.38 + audioRms * 0.45).toFixed(2)}
-                  stroke="#FFF4D0"
-                  strokeWidth="1.2"
-                />
-                <path
-                  d={`M12 18 Q15 ${(18 - 2.5 - audioRms * 5.5).toFixed(1)} 18 18 T24 18`}
-                  stroke="#F2F6F8"
-                  strokeWidth="1.35"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <span className="relative z-10 text-[#FFF4D0] drop-shadow-[0_1px_2px_rgba(0,0,0,0.55)]">
+                {isSessionLive ? (
+                  <MuteMicIcon muted={bridgeStatus === 'Muted'} title="Mute" />
+                ) : (
+                  <PhoneCallIcon title="Call" />
+                )}
+              </span>
             </button>
 
             <div className="min-w-0 flex-1">
@@ -1075,9 +1040,11 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                   <button
                     type="button"
                     onClick={() => bridgeRef.current?.disconnect()}
-                    className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#D4AF37] cursor-pointer shrink-0"
+                    aria-label="End call"
+                    title="End call"
+                    className="inline-flex items-center justify-center min-w-[28px] min-h-[28px] px-1.5 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#D4AF37] cursor-pointer shrink-0"
                   >
-                    End
+                    <PhoneCallIcon title="End call" />
                   </button>
                 )}
                 {isExpanded && (
@@ -1138,6 +1105,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                 <button
                   key={p.id}
                   type="button"
+                  aria-label={p.label}
+                  title={p.label}
                   onClick={() => {
                     onChangePocket(p.id);
                     if (p.id === 'hands') {
@@ -1146,15 +1115,27 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                       setIsExpanded(true);
                     }
                   }}
-                  className={`${
-                    p.id === 'hands' ? 'hidden sm:inline-flex' : 'inline-flex'
-                  } items-center justify-center min-h-[38px] px-2 py-1 rounded-xl font-mono text-[10px] transition-colors cursor-pointer whitespace-nowrap border ${
+                  className={`inline-flex items-center justify-center min-w-[38px] min-h-[38px] px-2 py-1 rounded-xl font-mono text-[10px] transition-colors cursor-pointer whitespace-nowrap border ${
                     isAct
                       ? 'bg-[#D4AF37] text-[#101622] border-[#FFF4D0] font-semibold'
                       : 'bg-[#101622] text-[#F2F6F8] border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37]'
                   }`}
                 >
-                  {p.label}
+                  {p.id === 'hands' ? (
+                    <HandsGloveIcon active={isAct} title="Hands" />
+                  ) : p.id === 'tap-to-talk' ? (
+                    <>
+                      <MuteMicIcon muted={false} title="Voice" />
+                      <span className="hidden md:inline ml-1">{p.label}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="sm:hidden font-semibold tracking-wide" aria-hidden>
+                        ✎
+                      </span>
+                      <span className="hidden sm:inline">{p.label}</span>
+                    </>
+                  )}
                 </button>
               );
             })}
