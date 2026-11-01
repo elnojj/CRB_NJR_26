@@ -4,19 +4,19 @@
 :root{font-family:Jaapokki,Sora,"IBM Plex Sans Arabic",Cairo,sans-serif;font-synthesis:none;color:#F2F6F8;background:#03060C;color-scheme:dark;--paper:#F2F6F8;--ice:#B4DDFF;--canvas:#0B1520;--ink:#03060C;--deep:#071018;--secondary:#D0DCE3}
 *{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{color:inherit;cursor:pointer;min-height:44px}button:focus-visible,input:focus-visible{outline:2px solid #65ACFF;outline-offset:5px}button:disabled{cursor:wait;opacity:.55}
 .intro-shell{height:100svh;display:grid;place-items:center;overflow:hidden;background:
-  radial-gradient(120% 80% at 50% 42%, rgba(101,172,255,.10) 0%, transparent 42%),
-  radial-gradient(90% 70% at 18% 88%, rgba(212,175,55,.06) 0%, transparent 45%),
-  radial-gradient(70% 55% at 86% 18%, rgba(180,221,255,.07) 0%, transparent 50%),
-  linear-gradient(165deg, #02050A 0%, #071018 46%, #0A1622 72%, #050B12 100%)}
+  radial-gradient(120% 80% at 50% 38%, rgba(101,172,255,.22) 0%, transparent 46%),
+  radial-gradient(90% 70% at 14% 90%, rgba(212,175,55,.12) 0%, transparent 48%),
+  radial-gradient(70% 55% at 88% 14%, rgba(180,221,255,.14) 0%, transparent 52%),
+  linear-gradient(165deg, #010308 0%, #06101c 44%, #0c1c2e 70%, #040910 100%)}
 .stage{position:relative;width:min(100vw,177.777778svh);aspect-ratio:16/9;overflow:hidden;isolation:isolate;container-type:inline-size;background:
-  radial-gradient(65% 55% at 50% 45%, #142433 0%, #0B1520 48%, #060D16 100%)}
-.stage::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.55;background-image:
-  radial-gradient(1px 1px at 12% 18%, rgba(242,246,248,.35) 0%, transparent 100%),
-  radial-gradient(1px 1px at 28% 72%, rgba(180,221,255,.28) 0%, transparent 100%),
-  radial-gradient(1.2px 1.2px at 63% 34%, rgba(242,246,248,.22) 0%, transparent 100%),
-  radial-gradient(1px 1px at 81% 61%, rgba(180,221,255,.2) 0%, transparent 100%),
-  radial-gradient(1px 1px at 47% 88%, rgba(212,175,55,.18) 0%, transparent 100%),
-  radial-gradient(1px 1px at 91% 12%, rgba(242,246,248,.18) 0%, transparent 100%);mix-blend-mode:screen}
+  radial-gradient(58% 52% at 48% 42%, #1c2d40 0%, #0e1a28 42%, #050b14 100%)}
+.stage::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.6;background-image:
+  radial-gradient(1px 1px at 12% 18%, rgba(242,246,248,.4) 0%, transparent 100%),
+  radial-gradient(1px 1px at 28% 72%, rgba(180,221,255,.32) 0%, transparent 100%),
+  radial-gradient(1.2px 1.2px at 63% 34%, rgba(242,246,248,.26) 0%, transparent 100%),
+  radial-gradient(1px 1px at 81% 61%, rgba(180,221,255,.24) 0%, transparent 100%),
+  radial-gradient(1px 1px at 47% 88%, rgba(212,175,55,.2) 0%, transparent 100%),
+  radial-gradient(1px 1px at 91% 12%, rgba(242,246,248,.2) 0%, transparent 100%);mix-blend-mode:screen}
 .stage:fullscreen{width:100vw;height:100vh;aspect-ratio:16/9}.source-world{position:absolute;inset:0;z-index:0}.source-world canvas{display:block;width:100%;height:100%}
 .identity{position:absolute;z-index:3;top:3.5%;left:4%;width:13%;display:flex;flex-direction:column;align-items:flex-start;gap:.7cqw;pointer-events:none}.identity img{width:100%;height:auto;object-fit:contain}.identity span{font-size:.65cqw;letter-spacing:.06em;padding-left:.62cqw;color:var(--secondary)}
 .editorial{position:absolute;z-index:3;left:4%;top:29%;width:32%;pointer-events:none}.eyebrow{font-size:.78cqw;line-height:1.5;color:var(--ice);letter-spacing:.025em}.editorial h1{font-weight:400;font-size:3.55cqw;line-height:1.06;letter-spacing:-.018em;margin:1.2cqw 0 1.6cqw;max-width:100%;text-wrap:balance}.editorial h1 span{display:inline-block;will-change:opacity,transform;white-space:pre}.subline{font-size:1.04cqw;line-height:1.5;max-width:24cqw;color:var(--secondary);margin:0;text-wrap:balance}.subbrand{object-fit:contain;object-position:left center;max-width:13cqw;max-height:6cqw;margin-top:1.6cqw}.subbrand[hidden]{display:none}.media-credit{position:absolute;z-index:3;left:44%;bottom:13%;font-size:.65cqw;color:var(--secondary);max-width:49%;pointer-events:none}.captions{position:absolute;left:4%;bottom:12%;width:31%;font-size:1.1cqw;line-height:1.45;min-height:2.9em;margin:0;pointer-events:none;z-index:3}

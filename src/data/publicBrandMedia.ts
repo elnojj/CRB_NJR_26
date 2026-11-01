@@ -9,10 +9,15 @@
 
 export const PUBLIC_BRAND_MEDIA = {
   logoWhite: {
-    url: 'https://static.wixstatic.com/media/227dff_accb38bbc37b492f9b64ca3e12fbf63e~mv2.png',
+    // Local copy of the Wix white mark — already RGBA with transparent field (no baked black plate).
+    // CSS previously painted #1D1D1B behind it via .nojara-brand-container; that plate is removed.
+    url: '/assets/brand/nojara-logo-white.png',
     width: 2584,
     height: 644,
-    provenance: 'existing NOJARA Wix site image; master-file identity unverified',
+    provenance:
+      'NOJARA Wix public white PNG mirrored locally; transparent alpha preserved; no black plate',
+    sourceUrl:
+      'https://static.wixstatic.com/media/227dff_accb38bbc37b492f9b64ca3e12fbf63e~mv2.png',
   },
   showreel2023: {
     id: 'med-nojara-showreel-2023',

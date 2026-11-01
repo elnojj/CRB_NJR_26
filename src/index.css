@@ -37,8 +37,12 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    background: radial-gradient(circle at 50% 40%, #1B2230 0%, #101622 100%);
-    background-color: var(--cj-bg-viewport);
+    /* Match intro void — old #1B2230→#101622 read as the flat navy slab. */
+    background:
+      radial-gradient(120% 80% at 50% 42%, rgba(101, 172, 255, 0.12) 0%, transparent 42%),
+      radial-gradient(90% 70% at 18% 88%, rgba(212, 175, 55, 0.07) 0%, transparent 45%),
+      linear-gradient(165deg, #02050a 0%, #071018 46%, #0a1622 72%, #050b12 100%);
+    background-color: #03060c;
     color: #F2F6F8;
     font-family: var(--font-sans);
     font-size: 13.5px;
@@ -276,11 +280,12 @@ canvas {
   gap: 12px;
   box-sizing: border-box;
   max-width: 100%;
-  background: #1D1D1B;
+  /* Logo sits on transparency — no black plate / card behind the mark. */
+  background: transparent;
   color: #F2F2F1;
-  border: 1px solid rgba(242, 242, 241, 0.22);
-  border-radius: 8px;
-  padding: 6px 12px;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
 }
 .nojara-brand-header {
   height: 48px;
@@ -293,6 +298,7 @@ canvas {
   aspect-ratio: 2584 / 644;
   object-fit: contain;
   flex: 0 0 auto;
+  background: transparent;
 }
 .cerebro-wordmark-image {
   display: block;
