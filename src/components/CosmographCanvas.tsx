@@ -605,7 +605,7 @@ const _scratchColor = new THREE.Color();
  * Post-Processing Custom Cinema ShaderPass (v4.0):
  * - 2.5% monochromatic grain updated at 24Hz (paused when stopped or reduced-motion)
  * - 0% radial chromatic aberration (keeps UI & 3D text razor sharp)
- * - Controlled dark navy vignette (#05090E, strength 0.14)
+ * - Soft ink vignette (#03060c) — light enough to preserve atmospheric blooms
  */
 const CinemaFilmGrainVignetteShader = {
   uniforms: {
@@ -613,7 +613,7 @@ const CinemaFilmGrainVignetteShader = {
     uTime: { value: 0.0 },
     uGrainIntensity: { value: 0.025 },
     uChromaticAmount: { value: 0.0 },
-    uVignetteStrength: { value: 0.14 },
+    uVignetteStrength: { value: 0.07 },
   },
   vertexShader: `
     varying vec2 vUv;
@@ -641,10 +641,10 @@ const CinemaFilmGrainVignetteShader = {
       float dist = length(dir);
       vec4 baseCol = texture2D(tDiffuse, vUv);
 
-      // Controlled dark navy vignette (#05090E, strength 0.14)
-      float vig = smoothstep(0.34, 0.88, dist);
-      vec3 navyVignette = vec3(0.0196, 0.0353, 0.0549);
-      vec3 graded = mix(baseCol.rgb, navyVignette, vig * uVignetteStrength);
+      // Soft deep-ink vignette (#03060c) — avoids flattening back to old #101D27 navy
+      float vig = smoothstep(0.42, 0.96, dist);
+      vec3 inkVignette = vec3(0.0118, 0.0235, 0.0471);
+      vec3 graded = mix(baseCol.rgb, inkVignette, vig * uVignetteStrength);
 
       // 2.5% monochromatic film grain quantized at 24Hz
       float quantizedTime = floor(uTime * 24.0) / 24.0;
@@ -1529,8 +1529,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.AgXToneMapping;
     renderer.toneMappingExposure = 1.04;
-    // Deep ink void with cool rim — not a flat navy slab.
-    const voidColor = introBridge.enabled ? 0x060d16 : 0x101d27;
+    // Deep ink void for intro AND workspace — never the old flat #101D27 navy slab.
+    const voidColor = 0x03060c;
     renderer.setClearColor(voidColor, 1);
     renderer.setPixelRatio(
       introBridge.enabled
@@ -1567,44 +1567,58 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     const scene = new THREE.Scene();
     // Atmospheric radial field behind the dual spheres (intro + workspace).
+    // Must read clearly against the old flat #101D27 navy — deeper ink, brighter blooms.
     const bgCanvas = document.createElement('canvas');
     bgCanvas.width = 1024;
     bgCanvas.height = 1024;
     {
       const bgCtx = bgCanvas.getContext('2d')!;
-      const g = bgCtx.createRadialGradient(512, 480, 40, 512, 520, 620);
-      g.addColorStop(0, '#1a2a3c');
-      g.addColorStop(0.28, '#101d2b');
-      g.addColorStop(0.58, '#0a1520');
-      g.addColorStop(1, '#03060c');
+      // Base ink void — cooler and deeper than #101D27.
+      const g = bgCtx.createRadialGradient(512, 460, 30, 512, 540, 720);
+      g.addColorStop(0, '#243848');
+      g.addColorStop(0.22, '#142433');
+      g.addColorStop(0.48, '#0a1520');
+      g.addColorStop(0.78, '#050b14');
+      g.addColorStop(1, '#02050a');
       bgCtx.fillStyle = g;
       bgCtx.fillRect(0, 0, 1024, 1024);
-      // Soft ice bloom upper-left, warm gold dust lower-right — brand, not purple.
-      const ice = bgCtx.createRadialGradient(280, 260, 20, 280, 260, 340);
-      ice.addColorStop(0, 'rgba(180,221,255,0.16)');
+      // Cool ice bloom upper-left — brand, not purple.
+      const ice = bgCtx.createRadialGradient(260, 220, 16, 260, 220, 420);
+      ice.addColorStop(0, 'rgba(180,221,255,0.34)');
+      ice.addColorStop(0.45, 'rgba(101,172,255,0.14)');
       ice.addColorStop(1, 'rgba(180,221,255,0)');
       bgCtx.fillStyle = ice;
       bgCtx.fillRect(0, 0, 1024, 1024);
-      const gold = bgCtx.createRadialGradient(760, 780, 10, 760, 780, 300);
-      gold.addColorStop(0, 'rgba(212,175,55,0.08)');
+      // Secondary cool rim along the horizon.
+      const iceRim = bgCtx.createRadialGradient(540, 620, 40, 540, 620, 380);
+      iceRim.addColorStop(0, 'rgba(101,172,255,0.10)');
+      iceRim.addColorStop(1, 'rgba(101,172,255,0)');
+      bgCtx.fillStyle = iceRim;
+      bgCtx.fillRect(0, 0, 1024, 1024);
+      // Soft gold dust lower-right.
+      const gold = bgCtx.createRadialGradient(780, 800, 12, 780, 800, 360);
+      gold.addColorStop(0, 'rgba(212,175,55,0.20)');
+      gold.addColorStop(0.5, 'rgba(212,175,55,0.07)');
       gold.addColorStop(1, 'rgba(212,175,55,0)');
       bgCtx.fillStyle = gold;
       bgCtx.fillRect(0, 0, 1024, 1024);
-      // Sparse star dust
-      for (let i = 0; i < 160; i++) {
+      // Sparse star dust — brighter so it survives fog + Hands wash.
+      for (let i = 0; i < 220; i++) {
         const x = (Math.sin(i * 12.9898) * 43758.5453) % 1;
         const y = (Math.sin(i * 78.233) * 12345.6789) % 1;
         const px = Math.abs(x) * 1024;
         const py = Math.abs(y) * 1024;
-        const a = 0.12 + (Math.abs((Math.sin(i * 3.1) * 10000) % 1)) * 0.35;
+        const a = 0.22 + (Math.abs((Math.sin(i * 3.1) * 10000) % 1)) * 0.55;
+        const size = i % 19 === 0 ? 2.2 : i % 7 === 0 ? 1.5 : 1;
         bgCtx.fillStyle = `rgba(242,246,248,${a.toFixed(3)})`;
-        bgCtx.fillRect(px, py, i % 17 === 0 ? 1.6 : 1, i % 17 === 0 ? 1.6 : 1);
+        bgCtx.fillRect(px, py, size, size);
       }
     }
     const bgTexture = new THREE.CanvasTexture(bgCanvas);
     bgTexture.colorSpace = THREE.SRGBColorSpace;
     scene.background = bgTexture;
-    scene.fog = new THREE.FogExp2(voidColor, introBridge.enabled ? 0.009 : 0.014);
+    // Soft fog so blooms and star dust remain readable in workspace (was 0.014 → navy wash).
+    scene.fog = new THREE.FogExp2(voidColor, introBridge.enabled ? 0.006 : 0.007);
 
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
     scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;

@@ -405,20 +405,66 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
   };
 
   const renderGlove = (pts: [number, number][], side: 'left' | 'right') => {
-    const palmIndices = [0, 1, 5, 9, 13, 17];
-    const palmPolygon = palmIndices.map((i) => `${pts[i][0]},${pts[i][1]}`).join(' ');
     const isPinchActive = pinchLocked || activeGesture === 'pinch-orbit';
-    const gloveStroke = isPinchActive
-      ? COLOUR_TOKENS.stationMedia
-      : '#36E88D';
+    const gloveAccent = isPinchActive ? COLOUR_TOKENS.stationMedia : '#36E88D';
+    const gloveFill = isPinchActive ? 'rgba(242, 182, 109, 0.72)' : 'rgba(54, 232, 141, 0.62)';
+    const gloveShell = isPinchActive ? 'rgba(242, 182, 109, 0.22)' : 'rgba(54, 232, 141, 0.18)';
     const fingertipLabels = ['THUMB', 'INDEX', 'MIDDLE', 'RING', 'PINKY'];
+
+    // Expanded palm shell (wrist + MCPs) so the hand reads as a solid glove body.
+    const palmIdx = [0, 1, 5, 9, 13, 17];
+    const palmPts = palmIdx.map((i) => pts[i]);
+    const palmCx = palmPts.reduce((s, p) => s + p[0], 0) / palmPts.length;
+    const palmCy = palmPts.reduce((s, p) => s + p[1], 0) / palmPts.length;
+    const expandPalm = (scale: number) =>
+      palmPts
+        .map(([x, y]) => {
+          const dx = x - palmCx;
+          const dy = y - palmCy;
+          return `${palmCx + dx * scale},${palmCy + dy * scale}`;
+        })
+        .join(' ');
+
+    // Finger chains → thick rounded fills (no skeleton dots/bones).
+    const fingerChains: { id: string; indices: number[]; width: number }[] = [
+      { id: 'thumb', indices: [1, 2, 3, 4], width: 26 },
+      { id: 'index', indices: [5, 6, 7, 8], width: 22 },
+      { id: 'middle', indices: [9, 10, 11, 12], width: 24 },
+      { id: 'ring', indices: [13, 14, 15, 16], width: 21 },
+      { id: 'pinky', indices: [17, 18, 19, 20], width: 18 },
+    ];
+
+    const chainPath = (indices: number[]) =>
+      indices
+        .map((i, n) => `${n === 0 ? 'M' : 'L'} ${pts[i][0].toFixed(1)} ${pts[i][1].toFixed(1)}`)
+        .join(' ');
+
+    // Soft outer silhouette path: thumb → index tip → pinky tip → wrist heel.
+    const silhouette = [
+      pts[0],
+      pts[1],
+      pts[2],
+      pts[3],
+      pts[4],
+      pts[8],
+      pts[12],
+      pts[16],
+      pts[20],
+      pts[19],
+      pts[18],
+      pts[17],
+      pts[0],
+    ];
+    const silhouetteD = silhouette
+      .map((p, n) => `${n === 0 ? 'M' : 'L'} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`)
+      .join(' ');
 
     const xs = pts.map((p) => p[0]);
     const ys = pts.map((p) => p[1]);
-    const minX = Math.min(...xs) - 24;
-    const maxX = Math.max(...xs) + 24;
-    const minY = Math.min(...ys) - 28;
-    const maxY = Math.max(...ys) + 24;
+    const minX = Math.min(...xs) - 28;
+    const maxX = Math.max(...xs) + 28;
+    const minY = Math.min(...ys) - 32;
+    const maxY = Math.max(...ys) + 28;
     const bracketLen = 14;
 
     const thumbPt = pts[4];
@@ -428,7 +474,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
 
     return (
       <g key={side} className="cursor-pointer">
-        <g stroke={gloveStroke} strokeWidth="2" fill="none" opacity="0.88">
+        <g stroke={gloveAccent} strokeWidth="2" fill="none" opacity="0.7">
           <path d={`M ${minX} ${minY + bracketLen} V ${minY} H ${minX + bracketLen}`} />
           <path d={`M ${maxX - bracketLen} ${minY} H ${maxX} V ${minY + bracketLen}`} />
           <path d={`M ${minX} ${maxY - bracketLen} V ${maxY} H ${minX + bracketLen}`} />
@@ -438,99 +484,102 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
         <text
           x={minX}
           y={minY - 10}
-          fill={gloveStroke}
+          fill={gloveAccent}
           fontSize="11"
           fontFamily="JetBrains Mono, monospace"
         >
           {side === 'left' ? 'Left Hand' : 'Right Hand'} · Pinch {pinchRatio.toFixed(2)} · Depth {zDepth}
         </text>
 
+        {/* Soft glove shell */}
+        <path
+          d={silhouetteD}
+          fill={gloveShell}
+          stroke={gloveAccent}
+          strokeOpacity="0.35"
+          strokeWidth="1.2"
+          strokeLinejoin="round"
+        />
+
+        {/* Palm body */}
+        <polygon
+          points={expandPalm(1.28)}
+          fill={gloveFill}
+          stroke={gloveAccent}
+          strokeOpacity="0.55"
+          strokeWidth="1.4"
+          strokeLinejoin="round"
+        />
+        <polygon points={expandPalm(1.05)} fill="rgba(10, 22, 32, 0.16)" />
+
+        {/* Filled finger tubes */}
+        {fingerChains.map((finger) => (
+          <g key={`${side}-${finger.id}`}>
+            <path
+              d={chainPath(finger.indices)}
+              fill="none"
+              stroke={gloveFill}
+              strokeWidth={finger.width}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity="0.95"
+            />
+            <path
+              d={chainPath(finger.indices)}
+              fill="none"
+              stroke={gloveAccent}
+              strokeWidth={finger.width * 0.22}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity="0.55"
+            />
+          </g>
+        ))}
+
+        {/* Pinch cue between thumb and index pads */}
         <line
           x1={thumbPt[0]}
           y1={thumbPt[1]}
           x2={indexPt[0]}
           y2={indexPt[1]}
-          stroke={isPinchActive ? COLOUR_TOKENS.stationMedia : '#36E88D'}
-          strokeWidth={isPinchActive ? 2.5 : 1.5}
-          strokeDasharray={isPinchActive ? undefined : '4 4'}
+          stroke={gloveAccent}
+          strokeWidth={isPinchActive ? 2.4 : 1.4}
+          strokeOpacity={isPinchActive ? 0.9 : 0.45}
+          strokeDasharray={isPinchActive ? undefined : '5 5'}
         />
         <circle
           cx={midX}
           cy={midY}
-          r={isPinchActive ? 8 : 5}
-          fill={isPinchActive ? COLOUR_TOKENS.stationMedia : 'none'}
-          fillOpacity={isPinchActive ? 0.35 : 0}
-          stroke={isPinchActive ? COLOUR_TOKENS.stationMedia : '#36E88D'}
-          strokeWidth="1.8"
-        />
-
-        <polygon
-          points={palmPolygon}
-          fill="#142632"
-          fillOpacity="0.32"
-          stroke={gloveStroke}
-          strokeOpacity="0.45"
+          r={isPinchActive ? 7 : 4.5}
+          fill={isPinchActive ? gloveAccent : 'none'}
+          fillOpacity={isPinchActive ? 0.4 : 0}
+          stroke={gloveAccent}
           strokeWidth="1.5"
+          strokeOpacity="0.7"
         />
 
-        {BONE_CONNECTIONS.map(([a, b], idx) => (
-          <line
-            key={`${side}-bone-${idx}`}
-            x1={pts[a][0]}
-            y1={pts[a][1]}
-            x2={pts[b][0]}
-            y2={pts[b][1]}
-            stroke={gloveStroke}
-            strokeOpacity="0.82"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-          />
-        ))}
-
-        {pts.map(([px, py], idx) => {
-          const isFingertip = FINGERTIP_INDICES.has(idx);
-          const tipOrder = [4, 8, 12, 16, 20].indexOf(idx);
+        {/* Invisible fingertip hit targets — keep interaction, hide skeleton dots */}
+        {[4, 8, 12, 16, 20].map((idx, tipOrder) => {
+          const [px, py] = pts[idx];
           return (
-            <g
-              key={`${side}-lm-${idx}`}
+            <circle
+              key={`${side}-tip-${idx}`}
+              cx={px}
+              cy={py}
+              r={16}
+              fill="transparent"
+              className="cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();
-                if (isFingertip) {
-                  const panX = ((px / 1366) - 0.5) * 2;
-                  const played = soundEngine.playFingertipNote(tipOrder >= 0 ? tipOrder : 0, panX);
-                  const noteName = `${side.toUpperCase()} ${fingertipLabels[tipOrder]} · ${played.name} (${played.freq}Hz)`;
-                  setActiveNote(noteName);
-                  spawnSparklesAt(px, py, COLOUR_TOKENS.stationMedia);
-                  onTriggerGesture(idx === 4 || idx === 8 ? 'pinch-orbit' : 'point-select');
-                }
+                const panX = px / 1366 - 0.5;
+                const played = soundEngine.playFingertipNote(tipOrder, panX * 2);
+                setActiveNote(
+                  `${side.toUpperCase()} ${fingertipLabels[tipOrder]} · ${played.name} (${played.freq}Hz)`
+                );
+                spawnSparklesAt(px, py, COLOUR_TOKENS.stationMedia);
+                onTriggerGesture(idx === 4 || idx === 8 ? 'pinch-orbit' : 'point-select');
               }}
-            >
-              {isFingertip && (
-                <circle
-                  cx={px}
-                  cy={py}
-                  r={13}
-                  fill="#142632"
-                  fillOpacity="0.7"
-                  stroke={isPinchActive && (idx === 4 || idx === 8) ? COLOUR_TOKENS.stationMedia : '#36E88D'}
-                  strokeWidth="2.2"
-                />
-              )}
-              <circle
-                cx={px}
-                cy={py}
-                r={isFingertip ? 6.5 : idx === 0 ? 6 : 4.2}
-                fill={
-                  isFingertip
-                    ? isPinchActive && (idx === 4 || idx === 8)
-                      ? COLOUR_TOKENS.stationMedia
-                      : '#36E88D'
-                    : '#4C8DFF'
-                }
-                stroke="#F2F6F8"
-                strokeWidth="1.4"
-              />
-            </g>
+            />
           );
         })}
       </g>
@@ -549,22 +598,23 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           playsInline
           muted
           className={`absolute inset-0 w-full h-full object-cover scale-x-[-1] transition-opacity duration-300 ${
-            hasLiveCam ? 'opacity-40' : 'opacity-0'
+            hasLiveCam ? 'opacity-14' : 'opacity-0'
           }`}
         />
+        {/* Light veil only — must not wash the workspace atmospheric field back to flat navy. */}
         <svg
-          className="w-full h-full object-cover opacity-60 scale-x-[-1]"
+          className="w-full h-full object-cover opacity-28 scale-x-[-1]"
           viewBox="0 0 1366 1024"
           preserveAspectRatio="xMidYMid slice"
         >
           <defs>
             <radialGradient id="camFeedField" cx="50%" cy="40%">
-              <stop offset="0%" stopColor="#1B3444" stopOpacity="0.65" />
-              <stop offset="65%" stopColor="#0B1720" stopOpacity="0.82" />
-              <stop offset="100%" stopColor="#05090E" stopOpacity="0.94" />
+              <stop offset="0%" stopColor="#243848" stopOpacity="0.22" />
+              <stop offset="55%" stopColor="#0a1520" stopOpacity="0.18" />
+              <stop offset="100%" stopColor="#03060c" stopOpacity="0.28" />
             </radialGradient>
             <pattern id="camSensorGrid" width="48" height="48" patternUnits="userSpaceOnUse">
-              <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#B4DDFF" strokeWidth="0.4" strokeOpacity="0.12" />
+              <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#B4DDFF" strokeWidth="0.4" strokeOpacity="0.10" />
             </pattern>
           </defs>
           <rect width="1366" height="1024" fill="url(#camFeedField)" />
