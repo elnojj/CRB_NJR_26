@@ -1,0 +1,265 @@
+:root {
+  /* ------------------------------------------------------------------------
+     1. PRIMITIVE PALETTE
+        Source-locked hex values from film master, D0 v1.24, app token system
+        and live NOJARA | CEREBRO telemetry dashboard.
+     ------------------------------------------------------------------------ */
+  --c-void:        #05090E;   /* deepest background */
+  --c-canvas:      #101D27;   /* primary spatial ground */
+  --c-canvas-d0:   #101622;   /* D0 viewport surface */
+  --c-surface:     #142632;   /* glass panel fill */
+  --c-surface-d0:  #1B2230;   /* D0 elevated surface / live-site deep navy */
+  --c-surface-live:#1C222E;   /* live dashboard panel ground */
+
+  --c-primary:     #F2F6F8;   /* primary text / ice white */
+  --c-secondary:   #D0DCE3;   /* secondary text */
+  --c-muted:       #BDCBD3;   /* tertiary / metadata text */
+  --c-silver:      #C5CCD6;   /* D0 silver metal / hardware */
+
+  --c-ice:         #B4DDFF;   /* rim light / glass highlight */
+  --c-cobalt:      #65ACFF;   /* active blue / interactive accent */
+  --c-teal:        #9AFFE0;   /* voice / listening state */
+  --c-green:       #36E88D;   /* active route / verified state */
+  --c-red:         #FF5666;   /* system error / blocked state */
+
+  --c-bronze:      #8C6A45;   /* hardware bronze */
+  --c-gold:        #D4AF37;   /* primary gold accent */
+  --c-gold-sheen:  #FFF4D0;   /* gold specular / highlight */
+  --c-amber:       #E8C361;   /* live-site telemetry accent */
+
+  /* ------------------------------------------------------------------------
+     2. SEMANTIC TOKENS
+        One unambiguous mapping per concept.
+     ------------------------------------------------------------------------ */
+  --token-bg-void:        var(--c-void);
+  --token-bg-canvas:      var(--c-canvas);
+  --token-bg-surface:     var(--c-surface);
+  --token-bg-elevated:    var(--c-surface-d0);
+
+  --token-glass-fill:     rgba(20, 38, 50, 0.72);
+  --token-glass-solid:    var(--c-surface);
+  --token-glass-subtle:   rgba(16, 22, 34, 0.88);
+  --token-glass-border:   rgba(180, 221, 255, 0.36);
+  --token-glass-border-subtle: rgba(180, 221, 255, 0.24);
+  --token-divider:        rgba(197, 204, 214, 0.22);
+
+  --token-text-primary:   var(--c-primary);
+  --token-text-secondary: var(--c-secondary);
+  --token-text-muted:     var(--c-muted);
+
+  --token-accent-gold:    var(--c-gold);
+  --token-accent-amber:   var(--c-amber);
+  --token-accent-ice:     var(--c-ice);
+  --token-accent-cobalt:  var(--c-cobalt);
+  --token-accent-teal:    var(--c-teal);
+  --token-accent-green:   var(--c-green);
+
+  --token-focus:          var(--c-gold);
+  --token-focus-glow:     var(--c-gold-sheen);
+  --token-focus-cobalt:   var(--c-cobalt);
+
+  --token-voice-orb:      var(--c-gold);
+  --token-voice-orb-mid:  #E6CA65;
+  --token-voice-orb-deep: #685218;
+  --token-listening-ring: var(--c-teal);
+
+  --token-tracking-valid: var(--c-green);
+  --token-system-error:   var(--c-red);
+
+  /* ------------------------------------------------------------------------
+     3. STATUS COLORS — 4-tier truthful state system
+     ------------------------------------------------------------------------ */
+  --status-planned:      var(--c-muted);
+  --status-running:      var(--c-gold);
+  --status-implemented:  var(--c-amber);
+  --status-verified:     var(--c-green);
+  --status-awaiting:     var(--c-gold-sheen);
+  --status-blocked:      var(--c-red);
+  --status-held:         #3A516E;
+
+  /* ------------------------------------------------------------------------
+     4. STATION COLORS
+     ------------------------------------------------------------------------ */
+  --token-station-tasks:  var(--c-silver);
+  --token-station-people: var(--c-gold-sheen);
+  --token-station-files:  var(--c-silver);
+  --token-station-media:  var(--c-gold);
+
+  /* ------------------------------------------------------------------------
+     5. TYPOGRAPHY
+        Locked font stack from app token system; film display reserve kept.
+     ------------------------------------------------------------------------ */
+  --font-display: 'Sora', 'JaapokkiSubtract', 'Inter', system-ui, sans-serif;
+  --font-sans:    'Inter', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-arabic:  'Cairo', 'Tajawal', 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif;
+
+  /* ------------------------------------------------------------------------
+     6. GEOMETRY & MOTION
+     ------------------------------------------------------------------------ */
+  --page-margin:   24px;
+  --panel-radius:  20px;
+  --card-radius:   16px;
+  --pocket-radius: 8px;
+  --pill-radius:   999px;
+
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-fast: 180ms;
+  --motion-base: 320ms;
+  --motion-slow: 640ms;
+
+  /* ------------------------------------------------------------------------
+     7. ELEVATION / SHADOWS
+     ------------------------------------------------------------------------ */
+  --shadow-hud:
+    0 16px 32px rgba(0, 0, 0, 0.40),
+    inset 0 1px 0 rgba(255, 255, 255, 0.10);
+
+  --shadow-card:
+    0 12px 48px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(242, 246, 248, 0.12);
+
+  --shadow-elevated:
+    0 12px 48px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(242, 246, 248, 0.12);
+
+  --shadow-focus-label:
+    inset 0 1px 0 rgba(242, 246, 248, 0.12),
+    0 8px 24px rgba(5, 9, 14, 0.32);
+
+  /* ------------------------------------------------------------------------
+     8. BACKDROP BLUR
+     ------------------------------------------------------------------------ */
+  --blur-glass: 18px;
+}
+
+/* ==========================================================================
+   VIEWPORT & SURFACE
+   ========================================================================== */
+
+.cj-viewport-container {
+  background:
+    radial-gradient(
+      circle at 50% 48%,
+      var(--c-surface) 0%,
+      var(--c-canvas) 52%,
+      var(--c-void) 100%
+    );
+  color: var(--token-text-primary);
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* ==========================================================================
+   GLASS CARDS / PANELS / HUD
+   ========================================================================== */
+
+.cj-glass-card,
+.cerebro-hud-panel,
+.optical-hud-panel {
+  background: var(--token-glass-fill);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+  border: 1px solid var(--token-glass-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
+  color: var(--token-text-primary);
+}
+
+.cerebro-panel {
+  background: rgba(20, 38, 50, 0.44);
+  border: 1px solid var(--token-glass-border);
+  border-radius: var(--panel-radius);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+  box-shadow: var(--shadow-elevated);
+}
+
+.optical-sub-pocket {
+  background: rgba(16, 29, 39, 0.68);
+  border: 1px solid var(--token-glass-border-subtle);
+  border-radius: var(--pocket-radius);
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+
+.optical-sub-pocket[data-active='true'],
+.optical-sub-pocket:focus-within {
+  border-color: var(--token-accent-gold);
+}
+
+/* ==========================================================================
+   HUD ANATOMY SURFACES
+   ========================================================================== */
+
+.optical-hud-outer {
+  background: var(--token-glass-fill);
+  border: 1px solid var(--token-divider);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-hud);
+}
+
+.optical-hud-pocket {
+  background: var(--token-glass-fill);
+  border: 1px solid var(--token-divider);
+  border-radius: var(--pocket-radius);
+}
+
+/* ==========================================================================
+   CONTROLS
+   ========================================================================== */
+
+.cerebro-pill {
+  min-height: 48px;
+  border-radius: var(--pill-radius);
+  padding: 12px 20px;
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.cerebro-focus-label {
+  background: rgba(20, 38, 50, 0.44);
+  border: 1px solid var(--token-glass-border);
+  border-radius: var(--pill-radius);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+  box-shadow: var(--shadow-focus-label);
+  color: var(--token-text-primary);
+}
+
+/* ==========================================================================
+   ALIASES (kept for backward compatibility; map to semantic tokens)
+   ========================================================================== */
+
+:root {
+--surface-void:     var(--token-bg-void);
+--surface-canvas:   var(--token-bg-canvas);
+--surface-hud:      var(--token-glass-fill);
+--surface-elevated: var(--token-bg-elevated);
+--surface-glass-border: var(--token-glass-border);
+
+--text-primary:     var(--token-text-primary);
+--text-secondary:   var(--token-text-secondary);
+--text-muted:       var(--token-text-muted);
+
+--token-canvas:              var(--token-bg-canvas);
+--token-canvas-gradient:     radial-gradient(circle at 50% 40%, var(--c-surface-d0) 0%, var(--c-canvas-d0) 100%);
+--token-glass:               var(--token-glass-fill);
+
+--token-cobalt:              var(--token-accent-cobalt);
+
+
+--token-highlight:           var(--token-focus-glow);
+--token-voice-orb:           var(--token-accent-gold);
+--token-voice-orb-mid:       #E6CA65;
+--token-voice-orb-deep:      #685218;
+
+
+--token-hud-outer-bg:        var(--token-glass-fill);
+--token-hud-outer-border:    var(--token-divider);
+--token-hud-outer-shadow:    var(--shadow-hud);
+--token-hud-pocket-bg:       var(--token-glass-fill);
+--token-hud-pocket-border:   var(--token-divider);
+}

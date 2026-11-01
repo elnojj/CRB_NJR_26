@@ -1,0 +1,5196 @@
+{
+  "$schema": "https://nojara.studios/schemas/cerebro-39-master-package-v2.json",
+  "packageVersion": "2.0.0-cerebro39-master",
+  "generatedAt": "2026-11-01T00:35:00Z",
+  "designTokens": {
+    "$schema": "https://nojara.studios/schemas/cerebro-39-design-tokens-v2.json",
+    "version": "2.0.0-cerebro39-master",
+    "filmBaselineVersion": "1.0-proposed-film-derived",
+    "d0BaselineVersion": "1.24.0-f24f394",
+    "date": "2026-11-01",
+    "authority": "Uploaded approved Sehly / Cerebro Master Design System (01 Nov 2026) + Documented Source Baseline D0 v1.24 (f24f394)",
+    "reference": {
+      "filename": "9DEE5D03-CBD4-4A67-8F51-3A63D9721984.mp4",
+      "duration": 180,
+      "width": 512,
+      "height": 910,
+      "fps": 30,
+      "frames": 5400,
+      "secondary_24fps_frames": 4320,
+      "library_file_id": "libfile_864d9d15ebd081919c5f96f83683d49d",
+      "source_tokens_sha256": "998287f66f320bcf09eaf6dc0f8b92c716b8d35a891440aa9316a96ca477a60c",
+      "source_css_sha256": "c9fb9fb3c1b557fc31c731cdfc1e924526aaae6973fb54b194db24274b043251",
+      "source_pdf_sha256": "11f9ec1ea0840102a13be1b30df510c1def8ad280f019c76e6701ab3242cfaff"
+    },
+    "status": "The film is the selected visual reference. Reconstruction specs are proposed; no source code or exact fonts recovered from film.",
+    "colors": {
+      "deep": "#05090E",
+      "canvas": "#101D27",
+      "glass": "#142632",
+      "primary": "#F2F6F8",
+      "secondary": "#D0DCE3",
+      "muted": "#BDCBD3",
+      "ice": "#B4DDFF",
+      "cobalt": "#65ACFF",
+      "bronze": "#8C6A45",
+      "gold": "#D4AF37",
+      "voice": "#9AFFE0"
+    },
+    "d0_v124_tokens": {
+      "viewportBackground": {
+        "base": "#1B2230",
+        "gradientEnd": "#101622",
+        "ambientTint": "#0E141E"
+      },
+      "metallicGold": {
+        "primary": "#D4AF37",
+        "specularHighlight": "#FFF4D0",
+        "shadowTone": "#685218",
+        "sheen": "#E6CA65"
+      },
+      "brushedSilver": {
+        "primary": "#C5CCD6",
+        "specularHighlight": "#FFFFFF",
+        "shadowTone": "#404854"
+      },
+      "deepSlateBlue": {
+        "base": "#3A516E",
+        "deep": "#1E2B3D",
+        "light": "#5A779C"
+      },
+      "glassTransmission": {
+        "refractionTint": "#EAF2FF",
+        "edgeRim": "#A4CBFF"
+      },
+      "stateTeal": "#78D3B2",
+      "bodyText": "#F2F6F8",
+      "trackingValid": "#36E88D",
+      "systemErrorRed": "#FF5666"
+    },
+    "css_custom_properties": {
+      "--c-deep": "#05090E",
+      "--c-canvas": "#101D27",
+      "--c-glass": "#142632",
+      "--c-primary": "#F2F6F8",
+      "--c-secondary": "#D0DCE3",
+      "--c-muted": "#BDCBD3",
+      "--c-ice": "#B4DDFF",
+      "--c-cobalt": "#65ACFF",
+      "--c-bronze": "#8C6A45",
+      "--c-gold": "#D4AF37",
+      "--c-voice": "#9AFFE0",
+      "--cj-bg-viewport": "#1B2230",
+      "--cj-bg-surface": "#101622",
+      "--cj-glass-panel": "rgba(27, 34, 48, 0.88)",
+      "--cj-sehly-panel": "rgba(20, 38, 50, 0.44)",
+      "--cj-sehly-border": "rgba(180, 221, 255, 0.36)",
+      "--cj-gold-primary": "#D4AF37",
+      "--cj-gold-sheen": "#FFF4D0",
+      "--cj-silver-metal": "#C5CCD6",
+      "--cj-slate-blue": "#3A516E",
+      "--cj-border-hairline": "rgba(197, 204, 214, 0.22)",
+      "--cj-state-teal": "#78D3B2",
+      "--font-display": "\"Jaapokki Subtract\", \"Sora\", sans-serif",
+      "--font-body": "\"Inter\", sans-serif",
+      "--font-mono": "\"JetBrains Mono\", monospace",
+      "--font-arabic": "\"Cairo\", \"Tajawal\", \"IBM Plex Sans Arabic\", sans-serif",
+      "--page-margin": "24px",
+      "--panel-radius": "20px",
+      "--pill-radius": "999px",
+      "--card-radius": "16px",
+      "--motion-ease": "cubic-bezier(0.22, 1, 0.36, 1)"
+    },
+    "color_provenance": "Baseline hex inputs from 02_Cerebro_Design_Tokens_Materials_and_Code_2026-10-31.pdf at f24f394; visually related to film but not reverse-measured film shader values.",
+    "mobile": {
+      "artboard": [
+        390,
+        844
+      ],
+      "comparison_artboards": [
+        [
+          393,
+          852
+        ],
+        [
+          430,
+          932
+        ],
+        [
+          360,
+          800
+        ]
+      ],
+      "grid_columns": 4,
+      "gutter": 12,
+      "margin": 24,
+      "spacing": [
+        4,
+        8,
+        12,
+        16,
+        24,
+        32,
+        48,
+        64
+      ],
+      "tap_target_min": 44,
+      "film_frame": [
+        1080,
+        1920
+      ],
+      "high_res_portrait_frame": [
+        2160,
+        3840
+      ],
+      "layout_status": "proposed scalable reconstruction",
+      "composition_coordinates": {
+        "header": {
+          "x_ratio": 0.5,
+          "y_ratio": 0.064,
+          "font_size_px": 10,
+          "tracking_px": 4.5
+        },
+        "chapter_eyebrow": {
+          "x_ratio": 0.5,
+          "y_ratio": 0.115,
+          "font_size_px": 9,
+          "tracking_px": 1.8
+        },
+        "headline": {
+          "x_px": 24,
+          "width_px": 342,
+          "top_ratio": 0.15,
+          "font_size_px": 28,
+          "line_height_px": 31.4,
+          "max_lines": 3
+        },
+        "supporting_line": {
+          "font_size_px": 14,
+          "line_height_px": 20,
+          "gap_below_headline_px": 8,
+          "max_width_px": 310
+        },
+        "sphere_stage": {
+          "idle_center_x_ratio": 0.5,
+          "idle_center_y_ratio": 0.52,
+          "projected_diameter_w_ratio": 0.78,
+          "diameter_at_390_px": 304.2
+        },
+        "voice_capsule": {
+          "center_y_ratio": 0.88,
+          "width_range_px": [
+            220,
+            256
+          ],
+          "height_range_px": [
+            48,
+            56
+          ],
+          "mic_icon_px": 24,
+          "hit_target_min_px": 44,
+          "safe_area_bottom_plus_px": 16
+        },
+        "listening_rings": {
+          "radii_css_px": [
+            24,
+            30,
+            38
+          ],
+          "scale_range": [
+            1.0,
+            1.04
+          ],
+          "color": "#9AFFE0",
+          "d0_state_teal": "#78D3B2"
+        },
+        "selected_target_panel": {
+          "x_px": 24,
+          "width_formula": "W-48",
+          "width_at_390_px": 342,
+          "y_ratio": 0.74,
+          "radius_px": 20,
+          "padding_px": 16,
+          "voice_capsule_gap_min_px": 16
+        },
+        "detail_panel": {
+          "row_min_height_px": 44,
+          "rows": [
+            "Overview",
+            "Explore"
+          ],
+          "rule": "May overlay empty sphere area but must not obscure face, title, or selected content"
+        }
+      }
+    },
+    "editorial_9x16_modes": {
+      "visual_to_text_target_ratio": {
+        "visual_pct": 75,
+        "text_pct": 25
+      },
+      "modes": [
+        {
+          "id": "MODE_A",
+          "name": "Interactive Web Experience",
+          "aspect": "variable",
+          "description": "Responsive functional application layout for mobile (390x844), iPad (820x1180 / 1024x768), and desktop (1440x900+)."
+        },
+        {
+          "id": "MODE_B",
+          "name": "Editorial Portrait",
+          "aspect": "9:16",
+          "resolutions": [
+            [
+              1080,
+              1920
+            ],
+            [
+              2160,
+              3840
+            ]
+          ],
+          "description": "Art-directed static 9:16 composition suitable for screenshot capture or social-media cover."
+        },
+        {
+          "id": "MODE_C",
+          "name": "Cinematic Vertical Playback",
+          "aspect": "9:16",
+          "resolutions": [
+            [
+              1080,
+              1920
+            ],
+            [
+              2160,
+              3840
+            ]
+          ],
+          "description": "Time-controlled 9:16 animated sequence suitable for recording as a vertical social video."
+        }
+      ],
+      "social_safe_templates": {
+        "clean_master_frame": {
+          "top_inset_px": 48,
+          "bottom_inset_px": 64,
+          "left_inset_px": 24,
+          "right_inset_px": 24
+        },
+        "tiktok_preview_safe": {
+          "top_inset_px": 108,
+          "bottom_inset_px": 320,
+          "left_inset_px": 24,
+          "right_inset_px": 88
+        },
+        "instagram_reels_safe": {
+          "top_inset_px": 108,
+          "bottom_inset_px": 310,
+          "left_inset_px": 24,
+          "right_inset_px": 84
+        },
+        "story_safe": {
+          "top_inset_px": 120,
+          "bottom_inset_px": 200,
+          "left_inset_px": 24,
+          "right_inset_px": 24
+        }
+      }
+    },
+    "typography": {
+      "display": {
+        "family": "Jaapokki Subtract",
+        "fallbackStack": [
+          "Jaapokki Subtract",
+          "JaapokkiSubtract",
+          "Sora",
+          "Inter",
+          "sans-serif"
+        ],
+        "weight": 400,
+        "size": 28,
+        "lineHeight": 1.12,
+        "lineHeightPxAt390": 31.4,
+        "tracking": -0.3
+      },
+      "body": {
+        "family": "Inter",
+        "fallbackStack": [
+          "Inter",
+          "IBM Plex Sans Arabic",
+          "system-ui",
+          "sans-serif"
+        ],
+        "weight": 400,
+        "size": 14,
+        "lineHeight": 1.45,
+        "lineHeightPx": 20
+      },
+      "eyebrow": {
+        "size": 9,
+        "tracking": 1.8
+      },
+      "wordmark": {
+        "size": 10,
+        "tracking": 4.5
+      },
+      "arabic_rtl": {
+        "family": "Cairo",
+        "fallbackStack": [
+          "Cairo",
+          "Tajawal",
+          "IBM Plex Sans Arabic",
+          "Inter",
+          "sans-serif"
+        ],
+        "direction": "rtl",
+        "lang": "ar",
+        "letterSpacing": 0,
+        "shapingRule": "Preserve connected Arabic script; never apply positive letter-spacing or per-letter split animation; use word-level or container-level reveals and logical CSS properties (margin-inline-start, padding-inline-start)."
+      },
+      "font_status": "Jaapokki family identified in related source baseline; actual licensed font files not included; exact film font identity not proven."
+    },
+    "radii": {
+      "pill": 999,
+      "panel": 20,
+      "card": 16,
+      "subPocket": 8
+    },
+    "materials": {
+      "liquidGlass": {
+        "color": "#0A1218",
+        "baseColorFactor": [
+          0.75,
+          0.88,
+          1.0,
+          1.0
+        ],
+        "transmission": 0.96,
+        "roughness": 0.04,
+        "metalness": 0,
+        "ior": 1.52,
+        "thickness": 2.8,
+        "normalizedGlbThickness": 0.03,
+        "clearcoat": 0.9,
+        "clearcoatRoughness": 0.06,
+        "attenuationColor": "#101D27",
+        "attenuationColorLinear": [
+          0.063,
+          0.114,
+          0.153
+        ],
+        "attenuationDistance": 3.4
+      },
+      "bronze": {
+        "color": "#8C6A45",
+        "baseColorFactor": [
+          0.549,
+          0.416,
+          0.271,
+          1.0
+        ],
+        "roughness": 0.18,
+        "metalness": 0.85
+      },
+      "core_proposed": {
+        "color": "#BCC9D4",
+        "baseColorFactor": [
+          0.72,
+          0.78,
+          0.84,
+          1.0
+        ],
+        "metalness": 0.94,
+        "roughness": 0.28
+      },
+      "geometry_ratios": {
+        "hero_shell_radius": 1.0,
+        "silver_core_radius": 0.82,
+        "orbital_ring_radius": 1.015,
+        "orbital_ring_tube": 0.008,
+        "gold_node_radius": 0.055,
+        "media_portal_rim_radius": 0.85,
+        "media_portal_rim_tube": 0.025,
+        "portrait_medallion_radius": 0.6,
+        "portrait_medallion_tube": 0.012
+      },
+      "provenance": "Glass/bronze source baseline from documented revision; core values proposed. GLB normalizes geometry radius to 1, thickness 0.03 as a reconstruction; source scene thickness does not transfer unchanged."
+    },
+    "motion": {
+      "micro_ms": 180,
+      "panel_ms": 420,
+      "title_in_ms": 500,
+      "title_hold_min_ms": 2200,
+      "title_out_ms": 350,
+      "easing": [
+        0.22,
+        1,
+        0.36,
+        1
+      ],
+      "sphere_idle_yaw_deg_per_second": 2,
+      "status": "proposed timing tokens; film has been sampled, not a full optical-flow motion solve"
+    },
+    "verbatim_film_copy_register": [
+      {
+        "id": "copy-00",
+        "chapter": "00 / INTRO / 3s",
+        "time_s": 3,
+        "frame_30fps": 90,
+        "headline": "A world. Within reach.",
+        "subline": "A spatial operating system."
+      },
+      {
+        "id": "copy-01",
+        "chapter": "01 / AWAKEN / 18s",
+        "time_s": 18,
+        "frame_30fps": 540,
+        "headline": "Begin with a voice.",
+        "subline": "Thought becomes a visible response."
+      },
+      {
+        "id": "copy-02",
+        "chapter": "02 / FOCUS / 39s",
+        "time_s": 39,
+        "frame_30fps": 1170,
+        "headline": "Attention becomes direction.",
+        "subline": "One intention. One clear path."
+      },
+      {
+        "id": "copy-03",
+        "chapter": "03 / DISCOVER / 51s",
+        "time_s": 51,
+        "frame_30fps": 1530,
+        "headline": "Every detail has a purpose.",
+        "subline": "Move closer. Keep the context."
+      },
+      {
+        "id": "copy-04",
+        "chapter": "04 / ENTER / 63s",
+        "time_s": 63,
+        "frame_30fps": 1890,
+        "headline": "Follow the thought.",
+        "subline": "The route unfolds as you move."
+      },
+      {
+        "id": "copy-05",
+        "chapter": "05 / CONNECT / 87s",
+        "time_s": 87,
+        "frame_30fps": 2610,
+        "headline": "One space. Connected.",
+        "subline": "Projects. People. Decisions."
+      },
+      {
+        "id": "copy-06",
+        "chapter": "06 / OPEN / 111s",
+        "time_s": 111,
+        "frame_30fps": 3330,
+        "headline": "A project opens a world.",
+        "subline": "The whole stays within reach."
+      },
+      {
+        "id": "copy-07",
+        "chapter": "07 / EXPLORE / 135s",
+        "time_s": 135,
+        "frame_30fps": 4050,
+        "headline": "Go deeper. Stay connected.",
+        "subline": "Context travels with you."
+      },
+      {
+        "id": "copy-08",
+        "chapter": "08 / REVEAL / 147s",
+        "time_s": 147,
+        "frame_30fps": 4410,
+        "headline": "Bring the work into focus.",
+        "subline": "A lens onto what matters."
+      },
+      {
+        "id": "copy-09",
+        "chapter": "09 / RETURN / 159s",
+        "time_s": 159,
+        "frame_30fps": 4770,
+        "headline": "Everything returns to clarity.",
+        "subline": "A continuous way to think and work."
+      },
+      {
+        "id": "copy-10",
+        "chapter": "10 / FINALE / 175s",
+        "time_s": 175,
+        "frame_30fps": 5250,
+        "headline": "CEREBRO",
+        "subline": "One continuous intelligence."
+      }
+    ]
+  },
+  "motionContract": {
+    "$schema": "https://nojara.studios/schemas/cerebro-39-motion-registry-v2.json",
+    "version": "2.0.0-cerebro39-master",
+    "status": "proposed reproducible motion logic, anchored to observed film states; not recovered original animation",
+    "fps_reference": 30,
+    "frames_reference": 5400,
+    "secondary_24fps_reference": {
+      "fps": 24,
+      "duration_seconds": 180,
+      "frames": 4320
+    },
+    "single_motion_authority": {
+      "masterClockOwner": "CosmographCanvas.AnimationLoop (requestAnimationFrame delta clock)",
+      "cameraOrchestratorOwner": "CosmographCanvas.CameraRig + spatialNavigation.executeAtomicReframe",
+      "tourSequenceOwner": "cerebroTourAndCtaStore (CEREBRO_18_TOUR_CHOREOGRAPHY)",
+      "domUiChoreographyOwner": "motionTokens.ts + CSS cubic-bezier(0.22, 1, 0.36, 1)",
+      "conflictPreventionRule": "No two animation systems may write to the same mesh transform or camera pose simultaneously; user pointer/touch immediately pauses tour auto-stepping and transfers camera ownership cleanly."
+    },
+    "rules": {
+      "master_clock": "absolute seconds; frame/fps; one camera authority",
+      "camera": "C2-continuous position spline, quaternion orientation, smooth FOV; world-anchored portals; no DOM resize teleport",
+      "text": "glyph stagger 2 frames; 12-frame opacity/lift entry; 66-frame min readable hold; 10-frame exit; clamp glyph progress to [0,1]",
+      "glyph_formula": "p=clamp((frame-inFrame-glyphIndex*2)/12,0,1); opacity=p*p*(3-2*p); offsetY=(1-opacity)*8 CSS px; retain final layout metrics",
+      "panel": "420ms translateY 12px -> 0 and opacity 0 -> 1; focus remains inside visible panel",
+      "idle": "2 degrees/second yaw, .008R sin(2*pi*t/6) vertical drift",
+      "voice": "audio level smoothed attack 80ms, release 240ms; rings scale 1+0.04*level; do not randomize speaking state",
+      "media": "sourceTime=inPoint+(t-componentIn); deterministic decode for exports; no hard crop changes",
+      "reduced_motion": "hold camera and replace travel with short opacity handoffs; keep all controls operable"
+    },
+    "observed_states": [
+      {
+        "id": "intro",
+        "sequenceId": "SEQ-FILM-00-INTRO",
+        "representative_time": 3,
+        "frame_30fps": 90,
+        "duration_s": 15,
+        "copyId": "copy-00",
+        "headline": "A world. Within reach.",
+        "subline": "A spatial operating system.",
+        "cameraShotId": "SHOT-00-INTRO-WIDE",
+        "targetComponentId": "C05_SPHERE_STAGE",
+        "easing": [
+          0.22,
+          1,
+          0.36,
+          1
+        ],
+        "interruptionPolicy": "transfer_to_interactive_exploration"
+      },
+      {
+        "id": "awaken",
+        "sequenceId": "SEQ-FILM-01-AWAKEN",
+        "representative_time": 18,
+        "frame_30fps": 540,
+        "duration_s": 21,
+        "copyId": "copy-01",
+        "headline": "Begin with a voice.",
+        "subline": "Thought becomes a visible response.",
+        "cameraShotId": "SHOT-01-AWAKEN-VOICE",
+        "targetComponentId": "C06_VOICE_CAPSULE",
+        "easing": [
+          0.22,
+          1,
+          0.36,
+          1
+        ],
+        "interruptionPolicy": "transfer_to_interactive_exploration"
+      },
+      {
+        "id": "focus",
+        "sequenceId": "SEQ-FILM-02-FOCUS",
+        "representative_time": 39,
+        "frame_30fps": 1170,
+        "duration_s": 12,
+        "copyId": "copy-02",
+        "headline": "Attention becomes direction.",
+        "subline": "One intention. One clear path.",
+        "cameraShotId": "SHOT-02-FOCUS-TARGET",
+        "targetComponentId": "C08_SELECTED_TARGET",
+        "easing": [
+          0.22,
+          1,
+          0.36,
+          1
+        ],
+        "interruptionPolicy": "transfer_to_interactive_exploration"
+      },
+      {
+        "id": "discover",
+        "sequenceId": "SEQ-FILM-03-DISCOVER",
+        "representative_time": 51,
+        "frame_30fps": 1530,
+        "duration_s": 12,
+        "copyId": "copy-03",
+        "headline": "Every detail has a purpose.",
+        "subline": "Move closer. Keep the context.",
+        "cameraShotId": "SHOT-03-DISCOVER-DOLLY",
+        "targetComponentId": "C11_FOCUS_MARKER",
+        "easing": [
+          0.22,
+          1,
+          0.36,
+          1
+        ],
+        "interruptionPolicy": "transfer_to_interactive_exploration"
+      },
+      {
+        "id": "enter",
+        "sequenceId": "SEQ-FILM-04-ENTER",
+        "representative_time": 63,
+        "frame_30fps": 1890,
+        "duration_s": 24,
+        "copyId": "copy-04",
+        "headline": "Follow the thought.",
+        "subline": "The route unfolds as you move.",
+        "cameraShotId": "SHOT-04-ENTER-SPLINE",
+        "targetComponentId": "C05_SPHERE_STAGE",
+        "easing": [
+          0.22,
+          1,
+          0.36,
+          1
+        ],
+        "interruptionPolicy": "transfer_to_interactive_exploration"
+      },
+      {
+        "id": "connect",
+        "sequenceId": "SEQ-FILM-05-CONNECT",
+        "representative_time": 87,
+        "frame_30fps": 2610,
+        "duration_s": 24,
+        "copyId": "copy-05",
+        "headline": "One space. Connected.",
+        "subline": "Projects. People. Decisions.",
+        "cameraShotId": "SHOT-05-CONNECT-NETWORK",
+        "targetComponentId": "C05_SPHERE_STAGE",
+        "easing": [
+          0.22,
+          1,
+          0.36,
+          1
+        ],
+        "interruptionPolicy": "transfer_to_interactive_exploration"
+      },
+      {
+        "id": "open",
+        "sequenceId": "SEQ-FILM-06-OPEN",
+        "representative_time": 111,
+        "frame_30fps": 3330,
+        "duration_s": 24,
+        "copyId": "copy-06",
+        "headline": "A project opens a world.",
+        "subline": "The whole stays within reach.",
+        "cameraShotId": "SHOT-06-OPEN-PROJECT",
+        "targetComponentId": "C09_DETAIL_PANEL",
+        "easing": [
+          0.22,
+          1,
+          0.36,
+          1
+        ],
+        "interruptionPolicy": "transfer_to_interactive_exploration"
+      },
+      {
+        "id": "explore",
+        "sequenceId": "SEQ-FILM-07-EXPLORE",
+        "representative_time": 135,
+        "frame_30fps": 4050,
+        "duration_s": 12,
+        "copyId": "copy-07",
+        "headline": "Go deeper. Stay connected.",
+        "subline": "Context travels with you.",
+        "cameraShotId": "SHOT-07-EXPLORE-CDE",
+        "targetComponentId": "C09_DETAIL_PANEL",
+        "easing": [
+          0.22,
+          1,
+          0.36,
+          1
+        ],
+        "interruptionPolicy": "transfer_to_interactive_exploration"
+      },
+      {
+        "id": "reveal",
+        "sequenceId": "SEQ-FILM-08-REVEAL",
+        "representative_time": 147,
+        "frame_30fps": 4410,
+        "duration_s": 12,
+        "copyId": "copy-08",
+        "headline": "Bring the work into focus.",
+        "subline": "A lens onto what matters.",
+        "cameraShotId": "SHOT-08-REVEAL-PORTAL",
+        "targetComponentId": "C10_MEDIA_PORTAL",
+        "easing": [
+          0.22,
+          1,
+          0.36,
+          1
+        ],
+        "interruptionPolicy": "transfer_to_interactive_exploration"
+      },
+      {
+        "id": "return",
+        "sequenceId": "SEQ-FILM-09-RETURN",
+        "representative_time": 159,
+        "frame_30fps": 4770,
+        "duration_s": 16,
+        "copyId": "copy-09",
+        "headline": "Everything returns to clarity.",
+        "subline": "A continuous way to think and work.",
+        "cameraShotId": "SHOT-09-RETURN-CLARITY",
+        "targetComponentId": "C05_SPHERE_STAGE",
+        "easing": [
+          0.22,
+          1,
+          0.36,
+          1
+        ],
+        "interruptionPolicy": "transfer_to_interactive_exploration"
+      },
+      {
+        "id": "finale",
+        "sequenceId": "SEQ-FILM-10-FINALE",
+        "representative_time": 175,
+        "frame_30fps": 5250,
+        "duration_s": 5,
+        "copyId": "copy-10",
+        "headline": "CEREBRO",
+        "subline": "One continuous intelligence.",
+        "cameraShotId": "SHOT-10-FINALE-MASTER",
+        "targetComponentId": "C12_FINAL_COMPOSITION",
+        "easing": [
+          0.22,
+          1,
+          0.36,
+          1
+        ],
+        "interruptionPolicy": "hold_final_composition"
+      }
+    ],
+    "component_motion_contracts": [
+      {
+        "componentId": "C05_SPHERE_STAGE",
+        "timelineId": "TL-SPHERE-IDLE-ORBIT",
+        "owner": "CosmographCanvas.AnimationLoop",
+        "start": "onSceneReady",
+        "duration": 180,
+        "delay": 0,
+        "easing": "linear_continuous",
+        "position": {
+          "x": 0,
+          "y": "0.008 * R * sin(2 * PI * t / 6)",
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": "2 deg/s",
+          "z": 0
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        },
+        "opacity": 1.0,
+        "material": "MAT-LIQUID-GLASS-SHELL + MAT-SILVER-CORE + MAT-BRONZE-GOLD-RAILS",
+        "camera": "passive_subject",
+        "completion": "continuous_until_disposed"
+      },
+      {
+        "componentId": "C06_VOICE_CAPSULE",
+        "timelineId": "TL-VOICE-LEVEL-PULSE",
+        "owner": "VoiceCard.AudioRmsEnvelope",
+        "start": "onVoiceSessionActive",
+        "duration": 0.08,
+        "delay": 0,
+        "easing": [
+          0.22,
+          1,
+          0.36,
+          1
+        ],
+        "position": {
+          "x": "centered_.50W",
+          "y": ".88H"
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "scale": {
+          "x": "1 + 0.04 * level",
+          "y": "1 + 0.04 * level",
+          "z": 1
+        },
+        "opacity": 1.0,
+        "material": "CSS_GLASS_CAPSULE + TEAL_RINGS_9AFFE0",
+        "camera": "none",
+        "completion": "release_240ms_to_1.0"
+      },
+      {
+        "componentId": "C09_DETAIL_PANEL",
+        "timelineId": "TL-PANEL-REVEAL-420MS",
+        "owner": "PanelsOverlay.SlotTransition",
+        "start": "onPanelOpen",
+        "duration": 0.42,
+        "delay": 0,
+        "easing": [
+          0.22,
+          1,
+          0.36,
+          1
+        ],
+        "position": {
+          "x": "slotRect.x",
+          "y": "slotRect.y (translateY 12px -> 0)"
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        },
+        "opacity": "0 -> 1",
+        "material": "CSS_CEREBRO_PANEL_BLUR_18PX",
+        "camera": "requests_computeSubFrustumOffset",
+        "completion": "settled_in_slot"
+      }
+    ]
+  },
+  "componentRegistry": {
+    "$schema": "https://nojara.studios/schemas/cerebro-39-component-registry-v2.json",
+    "version": "2.0.0-cerebro39-master",
+    "isolationDirective": "MASTER IMPLEMENTATION DIRECTIVE SECTION 02 & V2.0 SECTION 03: Strict Modular Component Isolation \u2014 One authoritative owner per component, material, motion timeline, camera command, and state domain.",
+    "single_ownership_authorities": {
+      "rendererLifecycle": "src/components/CosmographCanvas.tsx (setupRenderer, WebGLRenderer singleton per viewport)",
+      "sceneGraphAuthority": "src/components/CosmographCanvas.tsx (HQ Sphere 01 at [0,0,0] & CDE Sphere 02 at [38,4,-22])",
+      "cameraRigAuthority": "src/components/CosmographCanvas.tsx + src/three/spatialNavigation.tsx (executeAtomicReframe & CameraRig)",
+      "materialRegistryAuthority": "src/components/CosmographCanvas.tsx (getD0Materials + GLB PBR material definitions)",
+      "layoutAndCollisionAuthority": "src/gui/layoutEngine.ts + src/gui/CollisionManager.ts (computeGuiLayout deterministic slots)",
+      "voiceAndBridgeAuthority": "src/components/VoiceCard.tsx + src/utils/elevenLabsBridge.ts",
+      "actionAndToolAuthority": "src/utils/actionDispatcher.ts + src/gui/runtimeRegistry.ts (70 canonical actions, 27 agent tools)",
+      "cssTokenAuthority": "src/styles/cerebro.tokens.css (imported by src/index.css)"
+    },
+    "sehly_master_phone_components": [
+      {
+        "id": "C01",
+        "name": "Brand header",
+        "sourceFile": "src/components/BrandLockup.tsx",
+        "componentType": "DOM_HEADER_LOCKUP",
+        "parentContainer": "App.HeaderRegion",
+        "spec": "Center x=.50W, y=.064H; 10px tracked label (4.5px tracking) at 390 width. Exact supplied NOJARA mark in reserved top zone, clearspace 0.5x mark height.",
+        "materialRefs": [
+          "CSS_TOKEN_PRIMARY_F2F6F8",
+          "CSS_TOKEN_GOLD_D4AF37"
+        ],
+        "motionTimelineRefs": [
+          "TL-HEADER-IDLE"
+        ],
+        "inputEvents": [
+          "onClickHomeReset",
+          "onToggleSphere"
+        ],
+        "status": "VERIFIED"
+      },
+      {
+        "id": "C02",
+        "name": "Chapter eyebrow",
+        "sourceFile": "src/App.tsx",
+        "componentType": "DOM_TYPOGRAPHY_EYEBROW",
+        "parentContainer": "App.CenterEditorialStage",
+        "spec": "Center x=.50W, y=.115H; 9px / 1.8px tracking; muted gold (#D4AF37 / #8C6A45). One chapter label, no dense navigation.",
+        "materialRefs": [
+          "CSS_TOKEN_GOLD_D4AF37"
+        ],
+        "motionTimelineRefs": [
+          "TL-TEXT-GLYPH-STAGGER"
+        ],
+        "inputEvents": [],
+        "status": "VERIFIED"
+      },
+      {
+        "id": "C03",
+        "name": "Hero headline",
+        "sourceFile": "src/App.tsx",
+        "componentType": "DOM_TYPOGRAPHY_HEADLINE",
+        "parentContainer": "App.CenterEditorialStage",
+        "spec": "x=24, width=342 (W-48); top .15H; 28px / 31.4px line-height (Jaapokki Subtract); center aligned; 2 lines preferred, 3 maximum.",
+        "materialRefs": [
+          "CSS_TOKEN_PRIMARY_F2F6F8"
+        ],
+        "motionTimelineRefs": [
+          "TL-TEXT-GLYPH-STAGGER"
+        ],
+        "inputEvents": [],
+        "status": "VERIFIED"
+      },
+      {
+        "id": "C04",
+        "name": "Supporting line",
+        "sourceFile": "src/App.tsx",
+        "componentType": "DOM_TYPOGRAPHY_SUBLINE",
+        "parentContainer": "App.CenterEditorialStage",
+        "spec": "14px / 20px (Inter); secondary color (#D0DCE3); 8px beneath headline; max width 310px.",
+        "materialRefs": [
+          "CSS_TOKEN_SECONDARY_D0DCE3"
+        ],
+        "motionTimelineRefs": [
+          "TL-TEXT-GLYPH-STAGGER"
+        ],
+        "inputEvents": [],
+        "status": "VERIFIED"
+      },
+      {
+        "id": "C05",
+        "name": "Sphere stage",
+        "sourceFile": "src/three/ExperienceCanvas.tsx -> src/components/CosmographCanvas.tsx",
+        "componentType": "WEBGL_3D_HERO_ASSEMBLY",
+        "parentContainer": "Scene.HQ_SphereGroup",
+        "spec": "Idle center (.50W, .52H), projected diameter .78W (304.2px at 390W); allow camera-led overscan for discover/enter. Reframe using measured stage, never stretch mesh.",
+        "materialRefs": [
+          "MAT_LIQUID_GLASS_SHELL",
+          "MAT_SILVER_CORE",
+          "MAT_BRONZE_GOLD_RAILS"
+        ],
+        "assetRefs": [
+          "ASSET_GLB_SPHERE_ASSEMBLY",
+          "ASSET_GLB_GLASS_SHELL",
+          "ASSET_GLB_METAL_CORE",
+          "ASSET_GLB_ORBITAL_CAGE"
+        ],
+        "motionTimelineRefs": [
+          "TL-SPHERE-IDLE-ORBIT"
+        ],
+        "inputEvents": [
+          "onPointerDownOrbit",
+          "onWheelDolly",
+          "onRaycasterSelectNode"
+        ],
+        "status": "VERIFIED"
+      },
+      {
+        "id": "C06",
+        "name": "Voice capsule",
+        "sourceFile": "src/components/VoiceCard.tsx",
+        "componentType": "DOM_VOICE_DOCK_CAPSULE",
+        "parentContainer": "App.VoiceDockRegion",
+        "spec": "Idle centered at .88H; 220-256px wide, 48-56px high; microphone 24px visual, >=44px target. Reserve safe-area bottom plus 16px.",
+        "materialRefs": [
+          "CSS_CEREBRO_PILL",
+          "CSS_TOKEN_PRIMARY_F2F6F8"
+        ],
+        "assetRefs": [
+          "ASSET_SVG_VOICE_PILL",
+          "ASSET_SVG_MICROPHONE"
+        ],
+        "motionTimelineRefs": [
+          "TL-VOICE-LEVEL-PULSE"
+        ],
+        "inputEvents": [
+          "onConnectLiveVoice",
+          "onToggleMute",
+          "onInstantStop"
+        ],
+        "status": "VERIFIED"
+      },
+      {
+        "id": "C07",
+        "name": "Listening state rings",
+        "sourceFile": "src/components/VoiceCard.tsx",
+        "componentType": "DOM_SVG_AUDIO_REACTIVE_RINGS",
+        "parentContainer": "VoiceCard.OrbButton",
+        "spec": "Teal concentric rings (#9AFFE0 / #78D3B2), radii 24/30/38 CSS px; level-driven scale 1.00-1.04 (attack 80ms, release 240ms); show Listening and Stop/mute controls with explicit semantics.",
+        "materialRefs": [
+          "CSS_TOKEN_VOICE_9AFFE0",
+          "CSS_TOKEN_STATE_TEAL_78D3B2"
+        ],
+        "assetRefs": [
+          "ASSET_SVG_LISTENING_RING"
+        ],
+        "motionTimelineRefs": [
+          "TL-VOICE-LEVEL-PULSE"
+        ],
+        "inputEvents": [
+          "onToggleMute",
+          "onInstantStop"
+        ],
+        "status": "VERIFIED"
+      },
+      {
+        "id": "C08",
+        "name": "Selected target card",
+        "sourceFile": "src/gui/GuiFocusOverlay.tsx",
+        "componentType": "DOM_GLASS_FOCUS_CARD",
+        "parentContainer": "App.FocusOverlayRegion",
+        "spec": "Panel x=24, width=W-48 (342px), y=.74H proposed; 20px radius; 16px padding; target label and Open action. Move capsule below with >=16px gap.",
+        "materialRefs": [
+          "CSS_CEREBRO_PANEL"
+        ],
+        "assetRefs": [
+          "ASSET_SVG_PANEL",
+          "ASSET_SVG_CHEVRON"
+        ],
+        "motionTimelineRefs": [
+          "TL-PANEL-REVEAL-420MS"
+        ],
+        "inputEvents": [
+          "onOpenSelectedTarget",
+          "onDismissFocus"
+        ],
+        "status": "VERIFIED"
+      },
+      {
+        "id": "C09",
+        "name": "Detail panel",
+        "sourceFile": "src/components/PanelsOverlay.tsx",
+        "componentType": "DOM_SLOT_HUD_PANEL",
+        "parentContainer": "App.PanelSlotsRegion",
+        "spec": "Same glass family; heading + Overview / Explore rows, each >=44px. Panel may overlay empty sphere area but must not obscure face, title, or selected content.",
+        "materialRefs": [
+          "CSS_CEREBRO_PANEL"
+        ],
+        "assetRefs": [
+          "ASSET_SVG_PANEL",
+          "ASSET_SVG_DETAIL_ROW"
+        ],
+        "motionTimelineRefs": [
+          "TL-PANEL-REVEAL-420MS"
+        ],
+        "inputEvents": [
+          "onSelectTab",
+          "onMinimizePanel",
+          "onClosePanel"
+        ],
+        "status": "VERIFIED"
+      },
+      {
+        "id": "C10",
+        "name": "Media portal",
+        "sourceFile": "src/components/CosmographCanvas.tsx (MediaTube & Portal Rim)",
+        "componentType": "WEBGL_3D_MEDIA_APERTURE",
+        "parentContainer": "Scene.MediaPortalGroup",
+        "spec": "World-anchored circular/elliptical rim; fit source with aspect-ratio preserved (contain default; 1:1, 16:9, 9:16, portrait). Fixed aperture dimensions across content swaps.",
+        "materialRefs": [
+          "MAT_LIQUID_GLASS_SHELL",
+          "MAT_BRONZE_GOLD_RAILS"
+        ],
+        "assetRefs": [
+          "ASSET_GLB_MEDIA_PORTAL_RIM",
+          "ASSET_SVG_PORTAL_RIM"
+        ],
+        "motionTimelineRefs": [
+          "SEQ-FILM-08-REVEAL"
+        ],
+        "inputEvents": [
+          "onSelectMediaTile",
+          "onOpenMediaFullView"
+        ],
+        "status": "VERIFIED"
+      },
+      {
+        "id": "C11",
+        "name": "Focus marker",
+        "sourceFile": "src/gui/GuiFocusOverlay.tsx",
+        "componentType": "DOM_2D_PROJECTED_RETICLE",
+        "parentContainer": "App.FocusOverlayRegion",
+        "spec": "Gold point with 2px ring at 390 CSS px; 44px invisible hit target. Leader line and short label appear only when needed.",
+        "materialRefs": [
+          "CSS_TOKEN_GOLD_D4AF37"
+        ],
+        "assetRefs": [
+          "ASSET_GLB_GOLD_NODE",
+          "ASSET_SVG_TARGET",
+          "ASSET_SVG_FOCUS_LABEL"
+        ],
+        "motionTimelineRefs": [
+          "SEQ-FILM-03-DISCOVER"
+        ],
+        "inputEvents": [
+          "onSelectFocusMarker"
+        ],
+        "status": "VERIFIED"
+      },
+      {
+        "id": "C12",
+        "name": "Final composition",
+        "sourceFile": "src/App.tsx + src/components/BrandLockup.tsx",
+        "componentType": "COMPOSITE_EDITORIAL_FINALE",
+        "parentContainer": "App.RootViewport",
+        "spec": "Same sphere family; larger negative space; title CEREBRO and One continuous intelligence. Hold copy >=3s. Exact NOJARA lockup required for production.",
+        "materialRefs": [
+          "MAT_LIQUID_GLASS_SHELL",
+          "CSS_TOKEN_PRIMARY_F2F6F8"
+        ],
+        "motionTimelineRefs": [
+          "SEQ-FILM-10-FINALE"
+        ],
+        "inputEvents": [
+          "onReplayTour"
+        ],
+        "status": "VERIFIED"
+      }
+    ],
+    "runtime_application_modules": [
+      {
+        "id": "MOD_APP_ROOT",
+        "sourceFile": "src/App.tsx",
+        "exportName": "default (App)",
+        "status": "ACTIVE",
+        "singleOwnerDomain": "Top-level application state, navigation snapshots, tour state machine, and layout slot orchestration",
+        "dependencies": [
+          "src/three/ExperienceCanvas.tsx",
+          "src/components/PanelsOverlay.tsx",
+          "src/components/VoiceCard.tsx",
+          "src/gui/layoutEngine.ts",
+          "src/utils/actionDispatcher.ts"
+        ],
+        "lifecycleCleanup": "Cleans up tour timers, SSE stream subscriptions, and keyboard listeners on unmount"
+      },
+      {
+        "id": "MOD_EXPERIENCE_CANVAS",
+        "sourceFile": "src/three/ExperienceCanvas.tsx",
+        "exportName": "ExperienceCanvas",
+        "status": "ACTIVE",
+        "singleOwnerDomain": "Authoritative React wrapper for the 3D WebGL viewport, reduced-motion fallback, and 2D portal station pins",
+        "dependencies": [
+          "src/components/DualSphereCanvas.tsx",
+          "src/components/CosmographCanvas.tsx"
+        ],
+        "lifecycleCleanup": "Delegates WebGL context, geometry, material, texture, and EffectComposer disposal to CosmographCanvas"
+      },
+      {
+        "id": "MOD_COSMOGRAPH_CANVAS",
+        "sourceFile": "src/components/CosmographCanvas.tsx",
+        "exportName": "CosmographCanvas, setupRenderer, getD0Materials, setupLights",
+        "status": "ACTIVE",
+        "singleOwnerDomain": "Single WebGLRenderer instance, Three.js Scene Graph, PerspectiveCamera rig, PMREM RoomEnvironment, EffectComposer bloom/vignette, and rAF loop",
+        "dependencies": [
+          "three",
+          "src/tokens/colours.ts",
+          "src/gui/cameraPresets.ts",
+          "src/three/spatialNavigation.tsx"
+        ],
+        "lifecycleCleanup": "Cancels requestAnimationFrame, disposes renderer, composer, PMREMGenerator, geometries, materials, and ResizeObserver"
+      },
+      {
+        "id": "MOD_LAYOUT_ENGINE",
+        "sourceFile": "src/gui/layoutEngine.ts",
+        "exportName": "computeGuiLayout",
+        "status": "ACTIVE",
+        "singleOwnerDomain": "Deterministic viewport breakpoint classification (phone, ipad_portrait, ipad_landscape, desktop, wide) and zero-overlap slot geometry",
+        "dependencies": [
+          "src/gui/CollisionManager.ts",
+          "src/gui/guiTokens.ts"
+        ],
+        "lifecycleCleanup": "Pure deterministic function; zero side effects"
+      },
+      {
+        "id": "MOD_VOICE_CARD",
+        "sourceFile": "src/components/VoiceCard.tsx",
+        "exportName": "VoiceCard",
+        "status": "ACTIVE",
+        "singleOwnerDomain": "ElevenLabs live voice session lifecycle, microphone permission, RMS envelope smoothing, and natural-language command bar",
+        "dependencies": [
+          "src/utils/elevenLabsBridge.ts",
+          "src/data/croCdeGoogleAgentManifest.ts"
+        ],
+        "lifecycleCleanup": "Disconnects ElevenLabs WebSocket/WebRTC session and stops MediaStream tracks on unmount"
+      },
+      {
+        "id": "MOD_PANELS_OVERLAY",
+        "sourceFile": "src/components/PanelsOverlay.tsx",
+        "exportName": "PanelsOverlay",
+        "status": "ACTIVE",
+        "singleOwnerDomain": "All 17 Optical HUD panels rendered strictly inside layoutEngine-assigned non-overlapping slots",
+        "dependencies": [
+          "src/components/WireframesV11Panels.tsx",
+          "src/gui/guiTokens.ts"
+        ],
+        "lifecycleCleanup": "Releases media playback intervals and modal listeners on close"
+      },
+      {
+        "id": "MOD_CEREBRO_APP_ALIAS",
+        "sourceFile": "src/CerebroApp.tsx",
+        "exportName": "CerebroApp",
+        "status": "DORMANT_WRAPPER",
+        "singleOwnerDomain": "Compatibility named re-export of App.tsx; zero independent state or runtime conflict",
+        "dependencies": [
+          "src/App.tsx"
+        ],
+        "lifecycleCleanup": "None"
+      }
+    ]
+  },
+  "materialRegistry": {
+    "$schema": "https://nojara.studios/schemas/cerebro-39-material-registry-v2.json",
+    "version": "2.0.0-cerebro39-master",
+    "rendererConfig": {
+      "rendererClass": "THREE.WebGLRenderer",
+      "outputColorSpace": "THREE.SRGBColorSpace",
+      "toneMapping": "THREE.AgXToneMapping (fallback THREE.ACESFilmicToneMapping)",
+      "toneMappingExposure": 1.05,
+      "clearColorHex": "#1B2230",
+      "filmDeepCanvasHex": "#05090E",
+      "filmCanvasHex": "#101D27",
+      "adaptiveDpr": "Math.min(window.devicePixelRatio || 1, 2)",
+      "shadowMap": {
+        "enabled": true,
+        "type": "THREE.PCFSoftShadowMap"
+      },
+      "environmentLighting": "THREE.PMREMGenerator.fromScene(new RoomEnvironment(), 0.04)"
+    },
+    "lightingRig": {
+      "owner": "src/components/CosmographCanvas.tsx (setupLights)",
+      "lights": [
+        {
+          "id": "LIGHT_KEY_WARM",
+          "type": "THREE.DirectionalLight",
+          "colorHex": "#FFF4D0",
+          "intensity": 2.8,
+          "position": [
+            12,
+            18,
+            14
+          ],
+          "castShadow": true,
+          "role": "Primary directional key light"
+        },
+        {
+          "id": "LIGHT_RIM_COOL",
+          "type": "THREE.DirectionalLight",
+          "colorHex": "#A4CBFF",
+          "intensity": 1.9,
+          "position": [
+            -14,
+            -10,
+            -8
+          ],
+          "castShadow": false,
+          "role": "Cool optical rim & refraction backlight"
+        },
+        {
+          "id": "LIGHT_FILL_HEMI",
+          "type": "THREE.HemisphereLight",
+          "skyColorHex": "#3A516E",
+          "groundColorHex": "#101622",
+          "intensity": 0.9,
+          "role": "Deep slate ambient hemisphere fill"
+        }
+      ]
+    },
+    "postProcessingPipeline": {
+      "owner": "src/components/CosmographCanvas.tsx (EffectComposer)",
+      "passes": [
+        {
+          "id": "PASS_01_RENDER",
+          "type": "RenderPass",
+          "enabled": true
+        },
+        {
+          "id": "PASS_02_SELECTIVE_BLOOM",
+          "type": "UnrealBloomPass",
+          "enabled": true,
+          "parameters": {
+            "strength": 0.28,
+            "radius": 0.55,
+            "threshold": 0.82
+          },
+          "artDirectionNote": "Restrained low-intensity optical bloom restricted to specular gold and emissive highlights; never masks typography."
+        },
+        {
+          "id": "PASS_03_OPTICAL_VIGNETTE_GRAIN",
+          "type": "ShaderPass",
+          "enabled": true,
+          "parameters": {
+            "vignetteDarkness": 0.24,
+            "vignetteOffset": 1.05,
+            "filmGrainIntensity": 0.018
+          }
+        }
+      ]
+    },
+    "materials": [
+      {
+        "id": "MAT_LIQUID_GLASS_SHELL",
+        "gltfMaterialName": "Glass_proposed_normalized",
+        "threeClass": "THREE.MeshPhysicalMaterial",
+        "authority": "design_tokens_998287f6.json + regenerate_starter_meshes_90077fad.py",
+        "colorSpace": "SRGBColorSpace (albedo/attenuation) + Linear (roughness/metalness/ior/transmission)",
+        "parameters": {
+          "color": "#0A1218",
+          "gltfBaseColorFactor": [
+            0.75,
+            0.88,
+            1.0,
+            1.0
+          ],
+          "transmission": 0.96,
+          "roughness": 0.04,
+          "metalness": 0.0,
+          "ior": 1.52,
+          "sceneThickness": 2.8,
+          "normalizedGlbThickness": 0.03,
+          "clearcoat": 0.9,
+          "clearcoatRoughness": 0.06,
+          "attenuationColor": "#101D27",
+          "attenuationColorLinear": [
+            0.063,
+            0.114,
+            0.153
+          ],
+          "attenuationDistance": 3.4,
+          "transparent": true
+        },
+        "gltfExtensions": [
+          "KHR_materials_transmission",
+          "KHR_materials_ior",
+          "KHR_materials_volume",
+          "KHR_materials_clearcoat"
+        ],
+        "assignedComponents": [
+          "C05_SPHERE_STAGE",
+          "C10_MEDIA_PORTAL",
+          "glass-shell.glb",
+          "sphere-assembly.glb",
+          "media-portal-rim.glb"
+        ]
+      },
+      {
+        "id": "MAT_SILVER_CORE",
+        "gltfMaterialName": "Core_proposed",
+        "threeClass": "THREE.MeshPhysicalMaterial",
+        "authority": "design_tokens_998287f6.json + regenerate_starter_meshes_90077fad.py",
+        "colorSpace": "SRGBColorSpace",
+        "parameters": {
+          "color": "#BCC9D4",
+          "d0BrushedSilverHex": "#C5CCD6",
+          "gltfBaseColorFactor": [
+            0.72,
+            0.78,
+            0.84,
+            1.0
+          ],
+          "metalness": 0.94,
+          "roughness": 0.28,
+          "clearcoat": 0.2
+        },
+        "assignedComponents": [
+          "C05_SPHERE_STAGE",
+          "metal-core.glb",
+          "sphere-assembly.glb"
+        ]
+      },
+      {
+        "id": "MAT_BRONZE_GOLD_RAILS",
+        "gltfMaterialName": "Bronze_source_related",
+        "threeClass": "THREE.MeshPhysicalMaterial",
+        "authority": "design_tokens_998287f6.json + regenerate_starter_meshes_90077fad.py",
+        "colorSpace": "SRGBColorSpace",
+        "parameters": {
+          "color": "#8C6A45",
+          "accentGoldHex": "#D4AF37",
+          "specularSheenHex": "#FFF4D0",
+          "gltfBaseColorFactor": [
+            0.549,
+            0.416,
+            0.271,
+            1.0
+          ],
+          "metalness": 0.85,
+          "roughness": 0.18
+        },
+        "assignedComponents": [
+          "C05_SPHERE_STAGE",
+          "C11_FOCUS_MARKER",
+          "orbital-cage.glb",
+          "gold-node.glb",
+          "portrait-medallion.glb"
+        ]
+      },
+      {
+        "id": "MAT_D0_GOLD_RIBBED",
+        "gltfMaterialName": "D0_GoldRibbed",
+        "threeClass": "THREE.MeshPhysicalMaterial",
+        "authority": "src/components/CosmographCanvas.tsx (getD0Materials)",
+        "colorSpace": "SRGBColorSpace (color) + Linear (stripeBump procedural DataTexture)",
+        "parameters": {
+          "color": "#D4AF37",
+          "metalness": 0.92,
+          "roughness": 0.22,
+          "clearcoat": 0.4,
+          "clearcoatRoughness": 0.15,
+          "reflectivity": 1.0,
+          "sheen": 0.35,
+          "sheenColor": "#FFF4D0",
+          "bumpScale": 0.035
+        },
+        "assignedComponents": [
+          "HQ_OrbitalRings",
+          "CDE_MeridianRings"
+        ]
+      },
+      {
+        "id": "SHADER_FRESNEL_CAUSTIC_RIM",
+        "threeClass": "onBeforeCompile GLSL Fragment Patch (patchFresnelRimOnOpaqueFragment)",
+        "authority": "src/three/spatialNavigation.tsx",
+        "uniformSchema": {
+          "uFresnelColor": {
+            "type": "THREE.Color",
+            "default": "#B4DDFF"
+          },
+          "uFresnelPower": {
+            "type": "float",
+            "default": 3.2
+          },
+          "uFresnelIntensity": {
+            "type": "float",
+            "default": 0.45
+          },
+          "uTime": {
+            "type": "float",
+            "clockOwner": "CosmographCanvas.AnimationLoop"
+          }
+        },
+        "assignedComponents": [
+          "C05_SPHERE_STAGE",
+          "CDE_SphereShell"
+        ]
+      }
+    ]
+  },
+  "cameraRegistry": {
+    "$schema": "https://nojara.studios/schemas/cerebro-39-camera-registry-v2.json",
+    "version": "2.0.0-cerebro39-master",
+    "singleCameraAuthority": {
+      "controllerId": "CAM_RIG_PRIMARY_CEREBRO",
+      "ownerFile": "src/components/CosmographCanvas.tsx",
+      "presetsFile": "src/gui/cameraPresets.ts",
+      "splineHelperFile": "src/three/spatialNavigation.tsx",
+      "sensorFormatMm": [
+        36,
+        24
+      ],
+      "opticalFormula": "vFovDeg = 2 * atan(24 / (2 * focalLengthMm)) * (180 / PI)",
+      "arbitrationRule": "Exactly one camera command executes at a time; user pointer/wheel input immediately cancels active spline flight and transitions camera mode to interactive_exploration without sudden position jumps."
+    },
+    "cinema_lenses": [
+      {
+        "id": "28mm",
+        "focalLengthMm": 28,
+        "verticalFovDeg": 46.4,
+        "useCase": "Wide spatial environment & dual-sphere overview"
+      },
+      {
+        "id": "35mm",
+        "focalLengthMm": 35,
+        "verticalFovDeg": 37.8,
+        "useCase": "Default master phone & desktop hero framing"
+      },
+      {
+        "id": "50mm",
+        "focalLengthMm": 50,
+        "verticalFovDeg": 27.0,
+        "useCase": "Focused station / node inspection"
+      },
+      {
+        "id": "85mm",
+        "focalLengthMm": 85,
+        "verticalFovDeg": 16.1,
+        "useCase": "Editorial portrait close-up & media portal aperture"
+      }
+    ],
+    "user_control_handoff_modes": [
+      {
+        "mode": "cinematic_playback",
+        "description": "Authored tour or film-state spline controls camera pose and FOV."
+      },
+      {
+        "mode": "interactive_exploration",
+        "description": "User 1-finger orbit / 2-finger pinch / wheel dolly controls camera rig with damping."
+      },
+      {
+        "mode": "transitioning_to_interaction",
+        "description": "Immediate velocity-preserving handoff when user touches canvas during playback."
+      },
+      {
+        "mode": "returning_to_presentation",
+        "description": "Smooth quintic S-curve re-entry from current user pose to next sequence keyframe."
+      },
+      {
+        "mode": "paused",
+        "description": "Holds current world position, target, and FOV without drift."
+      },
+      {
+        "mode": "error_recovery",
+        "description": "Atomic reframe to unobstructed home composition via executeAtomicReframe."
+      }
+    ],
+    "camera_shots": [
+      {
+        "shotId": "SHOT-00-INTRO-WIDE",
+        "sequenceTimeRangeS": [
+          0,
+          18
+        ],
+        "durationS": 2.4,
+        "startPosition": [
+          0,
+          2.4,
+          24.5
+        ],
+        "endPosition": [
+          0,
+          1.2,
+          18.8
+        ],
+        "cameraTarget": [
+          0,
+          0,
+          0
+        ],
+        "fovDeg": 37.8,
+        "lensId": "35mm",
+        "trajectory": "CatmullRomCurve3 + Quaternion.slerp",
+        "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "subjectComponentId": "C05_SPHERE_STAGE",
+        "focusBehavior": "center_stage_idle_50W_52H",
+        "transition": {
+          "entry": "fade_from_deep_05090E",
+          "exit": "continuous_spline"
+        },
+        "ownership": "CAM_RIG_PRIMARY_CEREBRO"
+      },
+      {
+        "shotId": "SHOT-01-AWAKEN-VOICE",
+        "sequenceTimeRangeS": [
+          18,
+          39
+        ],
+        "durationS": 1.8,
+        "startPosition": [
+          0,
+          1.2,
+          18.8
+        ],
+        "endPosition": [
+          1.4,
+          0.8,
+          17.2
+        ],
+        "cameraTarget": [
+          0,
+          -0.4,
+          0
+        ],
+        "fovDeg": 37.8,
+        "lensId": "35mm",
+        "trajectory": "CatmullRomCurve3 + Quaternion.slerp",
+        "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "subjectComponentId": "C06_VOICE_CAPSULE",
+        "focusBehavior": "voice_active_equilibrium",
+        "transition": {
+          "entry": "continuous_spline",
+          "exit": "continuous_spline"
+        },
+        "ownership": "CAM_RIG_PRIMARY_CEREBRO"
+      },
+      {
+        "shotId": "SHOT-02-FOCUS-TARGET",
+        "sequenceTimeRangeS": [
+          39,
+          51
+        ],
+        "durationS": 1.6,
+        "startPosition": [
+          1.4,
+          0.8,
+          17.2
+        ],
+        "endPosition": [
+          4.2,
+          2.1,
+          14.6
+        ],
+        "cameraTarget": [
+          1.8,
+          0.6,
+          0.8
+        ],
+        "fovDeg": 27.0,
+        "lensId": "50mm",
+        "trajectory": "BezierArc + SubFrustumOffset",
+        "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "subjectComponentId": "C08_SELECTED_TARGET",
+        "focusBehavior": "sub_frustum_offset_above_selected_card",
+        "transition": {
+          "entry": "continuous_spline",
+          "exit": "continuous_spline"
+        },
+        "ownership": "CAM_RIG_PRIMARY_CEREBRO"
+      },
+      {
+        "shotId": "SHOT-03-DISCOVER-DOLLY",
+        "sequenceTimeRangeS": [
+          51,
+          63
+        ],
+        "durationS": 1.8,
+        "startPosition": [
+          4.2,
+          2.1,
+          14.6
+        ],
+        "endPosition": [
+          2.8,
+          1.4,
+          11.8
+        ],
+        "cameraTarget": [
+          1.2,
+          0.4,
+          0.4
+        ],
+        "fovDeg": 27.0,
+        "lensId": "50mm",
+        "trajectory": "DollyIn + Overscan",
+        "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "subjectComponentId": "C11_FOCUS_MARKER",
+        "focusBehavior": "camera_travel_overscan_readable_titles",
+        "transition": {
+          "entry": "continuous_spline",
+          "exit": "continuous_spline"
+        },
+        "ownership": "CAM_RIG_PRIMARY_CEREBRO"
+      },
+      {
+        "shotId": "SHOT-08-REVEAL-PORTAL",
+        "sequenceTimeRangeS": [
+          147,
+          159
+        ],
+        "durationS": 1.9,
+        "startPosition": [
+          0.0,
+          0.6,
+          13.4
+        ],
+        "endPosition": [
+          0.0,
+          0.2,
+          10.6
+        ],
+        "cameraTarget": [
+          0,
+          0,
+          0
+        ],
+        "fovDeg": 16.1,
+        "lensId": "85mm",
+        "trajectory": "OpticalAxisDolly",
+        "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "subjectComponentId": "C10_MEDIA_PORTAL",
+        "focusBehavior": "locked_round_optical_aperture",
+        "transition": {
+          "entry": "continuous_spline",
+          "exit": "continuous_spline"
+        },
+        "ownership": "CAM_RIG_PRIMARY_CEREBRO"
+      },
+      {
+        "shotId": "SHOT-10-FINALE-MASTER",
+        "sequenceTimeRangeS": [
+          175,
+          180
+        ],
+        "durationS": 2.4,
+        "startPosition": [
+          0.0,
+          0.8,
+          16.0
+        ],
+        "endPosition": [
+          0.0,
+          1.0,
+          21.5
+        ],
+        "cameraTarget": [
+          0,
+          0,
+          0
+        ],
+        "fovDeg": 37.8,
+        "lensId": "35mm",
+        "trajectory": "CatmullRomCurve3",
+        "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "subjectComponentId": "C12_FINAL_COMPOSITION",
+        "focusBehavior": "expanded_negative_space_hold_3s",
+        "transition": {
+          "entry": "continuous_spline",
+          "exit": "hold_master_pose"
+        },
+        "ownership": "CAM_RIG_PRIMARY_CEREBRO"
+      }
+    ]
+  },
+  "assetManifest": {
+    "$schema": "https://nojara.studios/schemas/cerebro-39-asset-manifest-v2.json",
+    "version": "2.0.0-cerebro39-master",
+    "generatedAt": "2026-11-01T00:30:00Z",
+    "provenanceSummary": "All SHA-256 hashes and byte sizes computed directly from the verified files in the workspace. Starter GLB models generated deterministically from regenerate_starter_meshes_90077fad.py.",
+    "glb_3d_starter_models": [
+      {
+        "assetId": "ASSET_GLB_SPHERE_ASSEMBLY",
+        "filename": "sphere-assembly.glb",
+        "sourceGenerator": "/public/assets/aistudio/regenerate_starter_meshes_90077fad.py",
+        "runtimePath": "/06_3D_Assets/sphere-assembly.glb",
+        "altRuntimePath": "/assets/06_3D_Assets/sphere-assembly.glb",
+        "mimeType": "model/gltf-binary",
+        "bytes": 647616,
+        "sha256": "007d62bcd2c372c67d0acfa75a3faf383af09623bc84b603b0d3692a8663f6f9",
+        "meshes": [
+          "shell",
+          "core",
+          "equator",
+          "meridian_a",
+          "meridian_b"
+        ],
+        "boundingDimensions": {
+          "shellRadius": 1.0,
+          "coreRadius": 0.82,
+          "ringRadius": 1.015,
+          "ringTube": 0.008
+        },
+        "materialIds": [
+          "MAT_LIQUID_GLASS_SHELL",
+          "MAT_SILVER_CORE",
+          "MAT_BRONZE_GOLD_RAILS"
+        ],
+        "associatedComponentIds": [
+          "C05",
+          "C12"
+        ],
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_GLB_GLASS_SHELL",
+        "filename": "glass-shell.glb",
+        "sourceGenerator": "/public/assets/aistudio/regenerate_starter_meshes_90077fad.py",
+        "runtimePath": "/06_3D_Assets/glass-shell.glb",
+        "altRuntimePath": "/assets/06_3D_Assets/glass-shell.glb",
+        "mimeType": "model/gltf-binary",
+        "bytes": 119636,
+        "sha256": "e94213a999469119196977a9c9009522e14dd52313fd2417dbc442d75900e546",
+        "meshes": [
+          "shell"
+        ],
+        "boundingDimensions": {
+          "radius": 1.0,
+          "nu": 64,
+          "nv": 32
+        },
+        "materialIds": [
+          "MAT_LIQUID_GLASS_SHELL"
+        ],
+        "associatedComponentIds": [
+          "C05"
+        ],
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_GLB_METAL_CORE",
+        "filename": "metal-core.glb",
+        "sourceGenerator": "/public/assets/aistudio/regenerate_starter_meshes_90077fad.py",
+        "runtimePath": "/06_3D_Assets/metal-core.glb",
+        "altRuntimePath": "/assets/06_3D_Assets/metal-core.glb",
+        "mimeType": "model/gltf-binary",
+        "bytes": 119724,
+        "sha256": "518cbaedb73e9f45835c8ad5d6cb2b94d6cf540656b3a705d60f79d8cfb9e38a",
+        "meshes": [
+          "core"
+        ],
+        "boundingDimensions": {
+          "radius": 0.82,
+          "nu": 64,
+          "nv": 32
+        },
+        "materialIds": [
+          "MAT_SILVER_CORE"
+        ],
+        "associatedComponentIds": [
+          "C05"
+        ],
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_GLB_ORBITAL_CAGE",
+        "filename": "orbital-cage.glb",
+        "sourceGenerator": "/public/assets/aistudio/regenerate_starter_meshes_90077fad.py",
+        "runtimePath": "/06_3D_Assets/orbital-cage.glb",
+        "altRuntimePath": "/assets/06_3D_Assets/orbital-cage.glb",
+        "mimeType": "model/gltf-binary",
+        "bytes": 410412,
+        "sha256": "33ce469f0159fce6532b3efc90a913df12ae21d7108915929db737106a9fcc95",
+        "meshes": [
+          "equator",
+          "meridian_a",
+          "meridian_b"
+        ],
+        "boundingDimensions": {
+          "ringRadius": 1.015,
+          "tubeRadius": 0.008,
+          "n": 192,
+          "m": 12
+        },
+        "materialIds": [
+          "MAT_BRONZE_GOLD_RAILS"
+        ],
+        "associatedComponentIds": [
+          "C05"
+        ],
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_GLB_GOLD_NODE",
+        "filename": "gold-node.glb",
+        "sourceGenerator": "/public/assets/aistudio/regenerate_starter_meshes_90077fad.py",
+        "runtimePath": "/06_3D_Assets/gold-node.glb",
+        "altRuntimePath": "/assets/06_3D_Assets/gold-node.glb",
+        "mimeType": "model/gltf-binary",
+        "bytes": 32176,
+        "sha256": "9b30a9ad5e8baefd2ea9b56325a5950765ab50e4cd60986a6e134482eee9b586",
+        "meshes": [
+          "node"
+        ],
+        "boundingDimensions": {
+          "radius": 0.055,
+          "nu": 32,
+          "nv": 16
+        },
+        "materialIds": [
+          "MAT_BRONZE_GOLD_RAILS"
+        ],
+        "associatedComponentIds": [
+          "C11"
+        ],
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_GLB_MEDIA_PORTAL_RIM",
+        "filename": "media-portal-rim.glb",
+        "sourceGenerator": "/public/assets/aistudio/regenerate_starter_meshes_90077fad.py",
+        "runtimePath": "/06_3D_Assets/media-portal-rim.glb",
+        "altRuntimePath": "/assets/06_3D_Assets/media-portal-rim.glb",
+        "mimeType": "model/gltf-binary",
+        "bytes": 121208,
+        "sha256": "cd505880a83ffdf95f3db47d9dc7e866da60ac4c5af55de17878aca30d194ddd",
+        "meshes": [
+          "rim"
+        ],
+        "boundingDimensions": {
+          "ringRadius": 0.85,
+          "tubeRadius": 0.025,
+          "n": 128,
+          "m": 16
+        },
+        "materialIds": [
+          "MAT_LIQUID_GLASS_SHELL"
+        ],
+        "associatedComponentIds": [
+          "C10"
+        ],
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_GLB_PORTRAIT_MEDALLION",
+        "filename": "portrait-medallion.glb",
+        "sourceGenerator": "/public/assets/aistudio/regenerate_starter_meshes_90077fad.py",
+        "runtimePath": "/06_3D_Assets/portrait-medallion.glb",
+        "altRuntimePath": "/assets/06_3D_Assets/portrait-medallion.glb",
+        "mimeType": "model/gltf-binary",
+        "bytes": 92460,
+        "sha256": "b33fec52e6f2f5cce41082765d5f0bca961d7b4bbeb8d7dfa6cac174dd44e20a",
+        "meshes": [
+          "rim"
+        ],
+        "boundingDimensions": {
+          "ringRadius": 0.6,
+          "tubeRadius": 0.012,
+          "n": 128,
+          "m": 12
+        },
+        "materialIds": [
+          "MAT_BRONZE_GOLD_RAILS"
+        ],
+        "associatedComponentIds": [
+          "C10",
+          "C11"
+        ],
+        "verificationStatus": "VERIFIED"
+      }
+    ],
+    "schematic_phone_artboards_svg": [
+      {
+        "assetId": "ASSET_SCHEMATIC_IDLE",
+        "sourcePath": "/public/assets/aistudio/idle_9c4b74dd.svg",
+        "runtimePath": "/assets/aistudio/idle_9c4b74dd.svg",
+        "mimeType": "image/svg+xml",
+        "dimensions": [
+          390,
+          844
+        ],
+        "bytes": 1716,
+        "sha256": "9c4b74dd946c395b2977dc083ed1a607ef6474fca0fbf328136e7d837c94dda2",
+        "associatedComponentIds": [
+          "C01",
+          "C03",
+          "C05",
+          "C06"
+        ],
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_SCHEMATIC_LISTENING",
+        "sourcePath": "/public/assets/aistudio/listening_67d8197e.svg",
+        "runtimePath": "/assets/aistudio/listening_67d8197e.svg",
+        "mimeType": "image/svg+xml",
+        "dimensions": [
+          390,
+          844
+        ],
+        "bytes": 1718,
+        "sha256": "67d8197e9166ca10e9e0cede3a5df3dbe6fefac7cd40a9da190ff26aeb47ac91",
+        "associatedComponentIds": [
+          "C01",
+          "C03",
+          "C05",
+          "C06",
+          "C07"
+        ],
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_SCHEMATIC_SELECTED",
+        "sourcePath": "/public/assets/aistudio/selected_fa7b28ff.svg",
+        "runtimePath": "/assets/aistudio/selected_fa7b28ff.svg",
+        "mimeType": "image/svg+xml",
+        "dimensions": [
+          390,
+          844
+        ],
+        "bytes": 1948,
+        "sha256": "fa7b28ff1d636bbed6b9fef9cdb6ff82f3820b81ded1b6a997e859e63f44a37b",
+        "associatedComponentIds": [
+          "C05",
+          "C06",
+          "C08"
+        ],
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_SCHEMATIC_DETAIL",
+        "sourcePath": "/public/assets/aistudio/detail_4ee68824.svg",
+        "runtimePath": "/assets/aistudio/detail_4ee68824.svg",
+        "mimeType": "image/svg+xml",
+        "dimensions": [
+          390,
+          844
+        ],
+        "bytes": 1965,
+        "sha256": "4ee68824b48766ab7bbf49eb0816d7a6886748f74b37ed8f2736852a4669cac7",
+        "associatedComponentIds": [
+          "C05",
+          "C06",
+          "C09"
+        ],
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_SCHEMATIC_MEDIA",
+        "sourcePath": "/public/assets/aistudio/media_3a2b184c.svg",
+        "runtimePath": "/assets/aistudio/media_3a2b184c.svg",
+        "mimeType": "image/svg+xml",
+        "dimensions": [
+          390,
+          844
+        ],
+        "bytes": 1889,
+        "sha256": "3a2b184c98afcda59ad4f079bcd31efc573387b3a905369c9c3eba7b630f2a97",
+        "associatedComponentIds": [
+          "C05",
+          "C06",
+          "C10"
+        ],
+        "verificationStatus": "VERIFIED"
+      }
+    ],
+    "editable_vector_components_svg": [
+      {
+        "assetId": "ASSET_SVG_MICROPHONE",
+        "runtimePath": "/04_Vector_Assets/microphone.svg",
+        "bytes": 291,
+        "sha256": "4146f2bd112ae1fc73c2b5354a47c46953a69bf66a9cc5f1f5b2ec8b6722e249",
+        "componentId": "C06",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_SVG_CHEVRON",
+        "runtimePath": "/04_Vector_Assets/chevron.svg",
+        "bytes": 208,
+        "sha256": "2976df488498f17dc5d23dfa6e921f258e5438cfa693463dd965f93f5d419c5c",
+        "componentId": "C08",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_SVG_CLOSE",
+        "runtimePath": "/04_Vector_Assets/close.svg",
+        "bytes": 192,
+        "sha256": "f5fbf76730ce64ad3a7b5abd8ddfb25243746e3362bb57044100e7fc779f47bf",
+        "componentId": "C09",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_SVG_BACK",
+        "runtimePath": "/04_Vector_Assets/back.svg",
+        "bytes": 211,
+        "sha256": "ada8ada3469f6b063c422ec426c00a0afc47a94e75550a4de8b31cbb7a59d3ca",
+        "componentId": "C09",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_SVG_VOICE_PILL",
+        "runtimePath": "/04_Vector_Assets/voice-pill.svg",
+        "bytes": 945,
+        "sha256": "a2c94e76e09117981042ece5c3daddade25421d465b0a71304bd4845758de275",
+        "componentId": "C06",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_SVG_LISTENING_RING",
+        "runtimePath": "/04_Vector_Assets/listening-ring.svg",
+        "bytes": 349,
+        "sha256": "5a1f984d06f762ceb6ada931944b692f035a70d0ce9044f55097fd9b20582038",
+        "componentId": "C07",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_SVG_TARGET",
+        "runtimePath": "/04_Vector_Assets/target.svg",
+        "bytes": 239,
+        "sha256": "909f75493691897658b85d4cbfd5120ee175095376e4ba5b966a2052d2bff081",
+        "componentId": "C11",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_SVG_PANEL",
+        "runtimePath": "/04_Vector_Assets/panel.svg",
+        "bytes": 635,
+        "sha256": "95dbf31406dbc29151b9796e182d4e8cc7843469d17f5bd70436caf12a38b6a9",
+        "componentId": "C08",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_SVG_DETAIL_ROW",
+        "runtimePath": "/04_Vector_Assets/detail-row.svg",
+        "bytes": 384,
+        "sha256": "1b50fc699a26a1f356ac245fceae4ff641bd8b16775259dbfff532964d83ba61",
+        "componentId": "C09",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_SVG_ORBITAL_LINE",
+        "runtimePath": "/04_Vector_Assets/orbital-line.svg",
+        "bytes": 267,
+        "sha256": "6d56817c486289fa3b205dbaca9bd563d72a6b114c3530fbfc6d20f6e0ff749b",
+        "componentId": "C05",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_SVG_PORTAL_RIM",
+        "runtimePath": "/04_Vector_Assets/portal-rim.svg",
+        "bytes": 393,
+        "sha256": "36ea202ce97bd4dcba5208d792fb372708bc65e1735ef419984260b891aa63ed",
+        "componentId": "C10",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "ASSET_SVG_FOCUS_LABEL",
+        "runtimePath": "/04_Vector_Assets/focus-label.svg",
+        "bytes": 377,
+        "sha256": "2a4052d1956e5992a9ef62a31685f97e5eac10914bcc4b6b1775649d324259e3",
+        "componentId": "C11",
+        "verificationStatus": "VERIFIED"
+      }
+    ],
+    "design_system_source_documents": [
+      {
+        "assetId": "DOC_SEHLY_MASTER_PDF",
+        "runtimePath": "/assets/aistudio/Sehly_Cerebro_Master_Guidelines_11f9ec1e.pdf",
+        "bytes": 1372400,
+        "sha256": "11f9ec1ea0840102a13be1b30df510c1def8ad280f019c76e6701ab3242cfaff",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "DOC_SEHLY_VISUAL_GUIDE_HTML",
+        "runtimePath": "/assets/aistudio/Sehly_Visual_Guide_be1410a7.html",
+        "bytes": 11891,
+        "sha256": "be1410a7adbd5cedfb5cbd76d61d3d8748db2c803f7c4a2dc4b2a263b50a78d2",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "DOC_DESIGN_TOKENS_JSON",
+        "runtimePath": "/assets/aistudio/design_tokens_998287f6.json",
+        "bytes": 3150,
+        "sha256": "998287f66f320bcf09eaf6dc0f8b92c716b8d35a891440aa9316a96ca477a60c",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "DOC_TOKENS_CSS",
+        "runtimePath": "/assets/aistudio/tokens_c9fb9fb3.css",
+        "bytes": 934,
+        "sha256": "c9fb9fb3c1b557fc31c731cdfc1e924526aaae6973fb54b194db24274b043251",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "DOC_MOTION_CONTRACT_JSON",
+        "runtimePath": "/assets/aistudio/motion_contract_57f3127a.json",
+        "bytes": 2258,
+        "sha256": "57f3127a8127f29c8d337d2fad53ebe9a88f179d9c9f615a318199992dbc0a8e",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "DOC_MESH_GENERATOR_PY",
+        "runtimePath": "/assets/aistudio/regenerate_starter_meshes_90077fad.py",
+        "bytes": 4236,
+        "sha256": "90077fadf8d10087d1eb1d28b5f79019b67a7fdd7f639a1c42f1fc203b7d7131",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "assetId": "DOC_D0_V124_PDF",
+        "runtimePath": "/assets/aistudio/Cerebro-Nojara_D0_v1.24-_code__materials__libraries__wireframes__tokens__PROPOSE_9c182eb9.pdf",
+        "bytes": 174607,
+        "sha256": "9c182eb9f40dafd3edb8e8b9b3074b0f0f7bd23cadff69d69a88f9470ed45299",
+        "verificationStatus": "VERIFIED"
+      }
+    ],
+    "missing_external_production_sources": [
+      {
+        "item": "Official NOJARA vector brand mark SVG/AI",
+        "status": "AWAITING_SOURCE_ASSET",
+        "policy": "Do not fabricate; reserve exact top mark slot with 0.5x clearspace."
+      },
+      {
+        "item": "Licensed Jaapokki Subtract font file (.woff2)",
+        "status": "AWAITING_SOURCE_ASSET",
+        "policy": "Use documented @font-face local('Jaapokki Subtract') with Sora/Inter fallback."
+      },
+      {
+        "item": "Original 180s film camera keyframe file & raw VO/music stems",
+        "status": "AWAITING_SOURCE_ASSET",
+        "policy": "Keep reconstruction status honest as 'proposed-film-derived'."
+      }
+    ]
+  },
+  "qaMatrix": {
+    "$schema": "https://nojara.studios/schemas/cerebro-39-qa-matrix-v2.json",
+    "version": "2.0.0-cerebro39-master",
+    "date": "2026-11-01",
+    "source_authority_matrix": [
+      {
+        "source": "Explicit approved design-system specification (Sehly_Cerebro_Master_Guidelines_11f9ec1e.pdf, design_tokens_998287f6.json, tokens_c9fb9fb3.css, motion_contract_57f3127a.json)",
+        "authority": "Visual and interaction requirements",
+        "rank": 1
+      },
+      {
+        "source": "Approved asset files (regenerate_starter_meshes_90077fad.py -> 7 GLBs, 5 schematic SVGs, 12 vector SVGs)",
+        "authority": "Exact media and material identity",
+        "rank": 2
+      },
+      {
+        "source": "Active existing source code (src/App.tsx, src/three/ExperienceCanvas.tsx, src/components/CosmographCanvas.tsx, src/gui/layoutEngine.ts)",
+        "authority": "Actual implementation behavior",
+        "rank": 3
+      },
+      {
+        "source": "Existing application contracts (runtimeRegistry.ts cerebro-ui/4 70 actions, actionDispatcher.ts 27 tools, server.ts API routes)",
+        "authority": "Compatibility requirements",
+        "rank": 4
+      },
+      {
+        "source": "Generated model suggestions",
+        "authority": "Proposals only, never automatic authority",
+        "rank": 5
+      }
+    ],
+    "conflict_audit_and_resolutions": [
+      {
+        "conflictId": "CONF-01-CSS-DUPLICATION",
+        "description": "src/index.css duplicated :root CSS custom properties (--cj-*) already declared in src/styles/cerebro.tokens.css, and lacked the film-derived --c-* tokens from tokens_c9fb9fb3.css.",
+        "affectedFiles": [
+          "src/styles/cerebro.tokens.css",
+          "src/index.css"
+        ],
+        "resolution": "Consolidated all --c-* (Sehly film-derived) and --cj-* (D0 v1.24) tokens into src/styles/cerebro.tokens.css as the single CSS token authority; removed duplicate :root block from src/index.css.",
+        "status": "VERIFIED"
+      },
+      {
+        "conflictId": "CONF-02-CANVAS-TYPE-IMPORTS",
+        "description": "src/App.tsx imported ExperienceCanvas from src/three/ExperienceCanvas.tsx while also importing CosmographCanvas and types directly from src/components/CosmographCanvas.tsx.",
+        "affectedFiles": [
+          "src/App.tsx",
+          "src/three/ExperienceCanvas.tsx"
+        ],
+        "resolution": "Re-exported all shared 3D types and helpers through src/three/ExperienceCanvas.tsx so App.tsx communicates exclusively with the single 3D viewport module boundary.",
+        "status": "VERIFIED"
+      },
+      {
+        "conflictId": "CONF-03-THICKNESS-NORMALIZATION",
+        "description": "Documented scene liquidGlass uses thickness 2.8, while normalized starter GLB (radius=1.0) uses thickness 0.03.",
+        "affectedFiles": [
+          "public/design-system/design_tokens.json",
+          "public/design-system/material-registry.json"
+        ],
+        "resolution": "Preserved both values explicitly with provenance ('sceneThickness: 2.8', 'normalizedGlbThickness: 0.03') per Sehly Master Guidelines Page 5.",
+        "status": "VERIFIED"
+      },
+      {
+        "conflictId": "CONF-04-PALETTE-DUAL-TOKENS",
+        "description": "Sehly film-derived tokens specify --c-deep (#05090E), --c-canvas (#101D27), --c-glass (#142632), --c-voice (#9AFFE0) while D0 v1.24 specifies --cj-bg-viewport (#1B2230), --cj-bg-surface (#101622), --cj-state-teal (#78D3B2).",
+        "affectedFiles": [
+          "src/tokens/colours.ts",
+          "src/styles/cerebro.tokens.css"
+        ],
+        "resolution": "Retained both token namespaces side-by-side without silent blending so components and themes reference exact authoritative tokens.",
+        "status": "VERIFIED"
+      }
+    ],
+    "phase_execution_status": [
+      {
+        "phase": "PHASE 01: CORE ENGINE, ARCHITECTURAL ISOLATION & JSON DESIGN SYSTEM REGENERATION",
+        "status": "VERIFIED",
+        "evidence": [
+          "Single WebGLRenderer lifecycle verified in src/components/CosmographCanvas.tsx",
+          "Single CSS token authority consolidated in src/styles/cerebro.tokens.css",
+          "Single 3D viewport boundary enforced via src/three/ExperienceCanvas.tsx",
+          "7 GLB starter models generated and SHA-256 verified in /public/06_3D_Assets/",
+          "12 SVG vector components generated and SHA-256 verified in /public/04_Vector_Assets/",
+          "7 machine-readable JSON registries generated in /public/design-system/",
+          "9/9 layout self-tests passing, 27/27 tools mapped, tsc --noEmit and vite build passing with 0 errors"
+        ]
+      },
+      {
+        "phase": "PHASE 02: 3D ASSETS, MATERIALS AND CINEMATIC MOTION",
+        "status": "PROPOSED",
+        "evidence": [
+          "Awaiting explicit Phase 02 execution prompt per Sequential Execution Protocol Section 09 & 17"
+        ]
+      },
+      {
+        "phase": "PHASE 03: DATA, INTERACTIONS AND VOICE",
+        "status": "PROPOSED",
+        "evidence": [
+          "Awaiting explicit Phase 03 execution prompt per Sequential Execution Protocol Section 09 & 17"
+        ]
+      },
+      {
+        "phase": "PHASE 04: EDITORIAL UI, SOCIAL CAPTURE AND FINAL QA",
+        "status": "PROPOSED",
+        "evidence": [
+          "Awaiting explicit Phase 04 execution prompt per Sequential Execution Protocol Section 09 & 17"
+        ]
+      }
+    ],
+    "verified_test_results": {
+      "typescript_lint": {
+        "command": "npm run lint (tsc --noEmit)",
+        "status": "VERIFIED",
+        "errors": 0
+      },
+      "production_build": {
+        "command": "npm run build (vite build)",
+        "status": "VERIFIED",
+        "errors": 0
+      },
+      "gui_layout_self_tests": {
+        "command": "runGuiLayoutSelfTests()",
+        "status": "VERIFIED",
+        "passed": 9,
+        "total": 9,
+        "failed": 0
+      },
+      "tool_registry_audit": {
+        "command": "auditToolRegistry()",
+        "status": "VERIFIED",
+        "mapped": 27,
+        "total": 27,
+        "unmapped": 0
+      },
+      "canonical_action_contract": {
+        "schema": "cerebro-ui/4",
+        "status": "VERIFIED",
+        "actions": 70
+      },
+      "viewport_collision_matrix": {
+        "status": "VERIFIED",
+        "viewports_tested": [
+          "390x844",
+          "820x1180",
+          "1024x768",
+          "1440x900"
+        ],
+        "states_tested": [
+          "default",
+          "camera_tray_open",
+          "panel_open"
+        ],
+        "overlaps_detected": 0
+      }
+    }
+  },
+  "cerebroConfigV2": {
+    "$schema": "https://nojara.studios/schemas/cerebro.config.v2.json",
+    "schemaVersion": "2.0.0",
+    "sourceLock": "1f78a1295d4dd36a11320995c1e14bf17788ac25",
+    "releaseCheckpointSha": "dd0db5043f8dafad8f1c47dce4d2ebd5d275cd95",
+    "tokenFile": "docs/design-system/config/cerebro.config.json",
+    "tokenCountSummary": {
+      "totalDeclaredLeaves": 453,
+      "statusBreakdown": {
+        "locked": 96,
+        "source": 177,
+        "reference-only": 19,
+        "extension": 149,
+        "deprecated": 12
+      }
+    },
+    "visualAuthority": {
+      "lockedDecisions": {
+        "fonts": {
+          "titles": "Sora",
+          "body": "Inter",
+          "data": "JetBrains Mono",
+          "arabic": "Noto Kufi Arabic",
+          "not": "IBM Plex",
+          "minimumPx": 13
+        },
+        "captions": {
+          "mode": "sentence-by-sentence",
+          "fadeInMs": 180,
+          "holdMs": 2400,
+          "maxLines": 2,
+          "noMidWordCut": true
+        },
+        "banned": [
+          "glow",
+          "bloom",
+          "animated or blurred halos",
+          "purple",
+          "gold treatments",
+          "glitch text"
+        ],
+        "stations": [
+          "core",
+          "projects",
+          "files",
+          "media",
+          "tasks",
+          "people"
+        ]
+      },
+      "filmReferenceVariant": {
+        "variantId": "sehly-180s-film-reference",
+        "status": "scoped-reference-pending-owner-decision",
+        "displayFont": "Jaapokki Subtract",
+        "orbitalRailsColor": "#D4AF37",
+        "bronzeRailColor": "#8C6A45",
+        "selectiveBloomAllowedInFilmVariant": true
+      }
+    },
+    "tokens": {
+      "color": {
+        "base.canvas": {
+          "value": "#101D27",
+          "status": "locked"
+        },
+        "base.deep": {
+          "value": "#05090E",
+          "status": "locked"
+        },
+        "base.glass": {
+          "value": "#142632",
+          "status": "locked"
+        },
+        "base.glassTint": {
+          "value": "#E8FBFF",
+          "status": "locked"
+        },
+        "base.ice": {
+          "value": "#B4DDFF",
+          "status": "locked"
+        },
+        "base.cobalt": {
+          "value": "#65ACFF",
+          "status": "locked"
+        },
+        "text.primary": {
+          "value": "#F2F6F8",
+          "status": "locked"
+        },
+        "text.secondary": {
+          "value": "#D0DCE3",
+          "status": "locked"
+        },
+        "text.muted": {
+          "value": "#BDCBD3",
+          "status": "locked"
+        },
+        "semantic.focus": {
+          "value": "{tokens.color.base.cobalt}",
+          "resolved": "#65ACFF",
+          "status": "locked"
+        },
+        "semantic.error": {
+          "value": "#FF5666",
+          "status": "locked"
+        },
+        "semantic.success": {
+          "value": "#36E88D",
+          "status": "locked"
+        },
+        "semantic.pending": {
+          "value": "#FFF1D4",
+          "status": "locked"
+        },
+        "semantic.spatialRim": {
+          "value": "{tokens.color.base.ice}",
+          "resolved": "#B4DDFF",
+          "status": "source"
+        },
+        "semantic.scrim": {
+          "value": "#05090E9E",
+          "status": "source"
+        },
+        "voice.v100": {
+          "value": "#9AFFE0",
+          "status": "locked"
+        },
+        "voice.v200": {
+          "value": "#78D3B2",
+          "status": "locked"
+        },
+        "voice.v300": {
+          "value": "#52A496",
+          "status": "locked"
+        },
+        "voice.v500": {
+          "value": "#1D5560",
+          "status": "locked"
+        },
+        "voice.v700": {
+          "value": "#133A44",
+          "status": "locked"
+        },
+        "station.core": {
+          "value": "#F2F6F8",
+          "status": "locked"
+        },
+        "station.projects": {
+          "value": "#65ACFF",
+          "status": "locked"
+        },
+        "station.drive": {
+          "value": "#B4DDFF",
+          "status": "locked"
+        },
+        "station.media": {
+          "value": "#F2B66D",
+          "status": "locked"
+        },
+        "station.tasks": {
+          "value": "#FFF1D4",
+          "status": "locked"
+        },
+        "station.people": {
+          "value": "#E6A2B4",
+          "status": "locked"
+        },
+        "station.teamRoom": {
+          "value": "#F29A72",
+          "status": "locked"
+        },
+        "historical.mediaAmber": {
+          "value": "#F2B66D",
+          "status": "reference-only"
+        },
+        "crewReference.crew39": {
+          "value": "#F2F6F8",
+          "status": "reference-only"
+        },
+        "crewReference.grandy": {
+          "value": "#F5E15A",
+          "status": "reference-only"
+        },
+        "crewReference.zebda": {
+          "value": "#4FD1E8",
+          "status": "reference-only"
+        },
+        "crewReference.fakir": {
+          "value": "#FF9F43",
+          "status": "reference-only"
+        },
+        "crewReference.rasma": {
+          "value": "#FF8FB1",
+          "status": "reference-only"
+        },
+        "crewReference.nasaq": {
+          "value": "#D4EF5C",
+          "status": "reference-only"
+        },
+        "crewReference.katib": {
+          "value": "#8EC5FF",
+          "status": "reference-only"
+        },
+        "crewReference.bilal": {
+          "value": "#E0B88A",
+          "status": "reference-only"
+        },
+        "crewReference.musa": {
+          "value": "#C9D3DB",
+          "status": "reference-only"
+        },
+        "crewReference.webDesigner": {
+          "value": "#5B8DEF",
+          "status": "reference-only"
+        },
+        "crewReference.kinzo": {
+          "value": "#A8C66C",
+          "status": "reference-only"
+        },
+        "crewReference.baghira": {
+          "value": "#FF9C7A",
+          "status": "reference-only"
+        },
+        "crew.crew39": {
+          "value": "#F2F6F8",
+          "status": "locked"
+        },
+        "crew.grandy": {
+          "value": "#F5E15A",
+          "status": "locked"
+        },
+        "crew.zebda": {
+          "value": "#4FD1E8",
+          "status": "locked"
+        },
+        "crew.fakir": {
+          "value": "#FF9F43",
+          "status": "locked"
+        },
+        "crew.rasma": {
+          "value": "#FF8FB1",
+          "status": "locked"
+        },
+        "crew.nasaq": {
+          "value": "#D4EF5C",
+          "status": "locked"
+        },
+        "crew.katib": {
+          "value": "#8EC5FF",
+          "status": "locked"
+        },
+        "crew.bilal": {
+          "value": "#E0B88A",
+          "status": "locked"
+        },
+        "crew.musa": {
+          "value": "#C9D3DB",
+          "status": "locked"
+        },
+        "crew.webDesigner": {
+          "value": "#5B8DEF",
+          "status": "locked"
+        },
+        "crew.kinzo": {
+          "value": "#A8C66C",
+          "status": "locked"
+        },
+        "crew.baghira": {
+          "value": "#FF9C7A",
+          "status": "locked"
+        },
+        "panel.portfolio": {
+          "value": "#3D8BFF",
+          "status": "locked"
+        },
+        "panel.project": {
+          "value": "#FF7A59",
+          "status": "locked"
+        },
+        "panel.tasks": {
+          "value": "#B8F04A",
+          "status": "locked"
+        },
+        "panel.insights": {
+          "value": "#FFD54A",
+          "status": "locked"
+        },
+        "panel.briefing": {
+          "value": "#FFB38A",
+          "status": "locked"
+        },
+        "panel.gmail": {
+          "value": "#FF6FA0",
+          "status": "locked"
+        },
+        "panel.calendar": {
+          "value": "#54D2FF",
+          "status": "locked"
+        },
+        "panel.drive": {
+          "value": "#3DDC97",
+          "status": "locked"
+        },
+        "panel.viewer": {
+          "value": "#E8D5A8",
+          "status": "locked"
+        },
+        "panel.crew": {
+          "value": "#3FD0E0",
+          "status": "locked"
+        },
+        "panel.baghira": {
+          "value": "#F4F4F0",
+          "status": "locked"
+        },
+        "panel.kinzo": {
+          "value": "#7FB34A",
+          "status": "locked"
+        },
+        "panel.settings": {
+          "value": "#9AA7B2",
+          "status": "locked"
+        },
+        "panel.gate": {
+          "value": "#C9D3DC",
+          "status": "locked"
+        },
+        "panel.voice": {
+          "value": "{tokens.color.voice.v500}",
+          "resolved": "#1D5560",
+          "status": "locked"
+        },
+        "panel.media": {
+          "value": "{tokens.color.station.media}",
+          "resolved": "#F2B66D",
+          "status": "locked"
+        },
+        "panel.people": {
+          "value": "{tokens.color.station.people}",
+          "resolved": "#E6A2B4",
+          "status": "locked"
+        },
+        "intro.background": {
+          "value": "#030304",
+          "status": "locked"
+        }
+      },
+      "typography": {
+        "families.interface": {
+          "value": "Inter",
+          "status": "locked"
+        },
+        "families.data": {
+          "value": "JetBrains Mono",
+          "status": "locked"
+        },
+        "families.arabic": {
+          "value": "Noto Kufi Arabic",
+          "status": "locked"
+        },
+        "families.display": {
+          "value": "Sora",
+          "status": "locked"
+        },
+        "minimumSize": {
+          "value": 13,
+          "status": "locked"
+        },
+        "arabicLetterSpacing": {
+          "value": 0,
+          "status": "locked"
+        },
+        "tabularNumbers": {
+          "value": true,
+          "status": "locked"
+        },
+        "style.wordmark.size": {
+          "value": 20,
+          "status": "source"
+        },
+        "style.wordmark.lineHeight": {
+          "value": 24,
+          "status": "source"
+        },
+        "style.wordmark.weight": {
+          "value": 600,
+          "status": "source"
+        },
+        "style.wordmark.tracking": {
+          "value": 0.32,
+          "status": "source"
+        },
+        "style.heroWordmark.sizeMin": {
+          "value": 40,
+          "status": "source"
+        },
+        "style.heroWordmark.sizeMax": {
+          "value": 72,
+          "status": "source"
+        },
+        "style.heroWordmark.weight": {
+          "value": 600,
+          "status": "source"
+        },
+        "style.heroWordmark.lineHeight": {
+          "value": 1,
+          "status": "source"
+        },
+        "style.heading1.size": {
+          "value": 28,
+          "status": "source"
+        },
+        "style.heading1.lineHeight": {
+          "value": 36,
+          "status": "source"
+        },
+        "style.heading1.weight": {
+          "value": 600,
+          "status": "source"
+        },
+        "style.heading2.size": {
+          "value": 20,
+          "status": "source"
+        },
+        "style.heading2.lineHeight": {
+          "value": 26,
+          "status": "source"
+        },
+        "style.heading2.weight": {
+          "value": 500,
+          "status": "source"
+        },
+        "style.body.size": {
+          "value": 15,
+          "status": "source"
+        },
+        "style.body.lineHeight": {
+          "value": 22,
+          "status": "source"
+        },
+        "style.body.weight": {
+          "value": 400,
+          "status": "source"
+        },
+        "style.label.size": {
+          "value": 13,
+          "status": "source"
+        },
+        "style.label.lineHeight": {
+          "value": 16,
+          "status": "source"
+        },
+        "style.label.weight": {
+          "value": 500,
+          "status": "source"
+        },
+        "style.button.size": {
+          "value": 15,
+          "status": "source"
+        },
+        "style.button.lineHeight": {
+          "value": 20,
+          "status": "source"
+        },
+        "style.button.weight": {
+          "value": 600,
+          "status": "source"
+        },
+        "style.eyebrow.size": {
+          "value": 13,
+          "status": "source"
+        },
+        "style.eyebrow.weight": {
+          "value": 500,
+          "status": "source"
+        },
+        "style.eyebrow.tracking": {
+          "value": 0.18,
+          "status": "source"
+        },
+        "style.eyebrow.lineHeight": {
+          "value": 16,
+          "status": "extension"
+        },
+        "style.data.size": {
+          "value": 13,
+          "status": "source"
+        },
+        "style.data.weight": {
+          "value": 400,
+          "status": "source"
+        },
+        "style.data.lineHeight": {
+          "value": 18,
+          "status": "extension"
+        },
+        "style.arabicBody.size": {
+          "value": 15,
+          "status": "source"
+        },
+        "style.arabicBody.lineHeight": {
+          "value": 24,
+          "status": "source"
+        },
+        "style.arabicBody.weight": {
+          "value": 400,
+          "status": "source"
+        },
+        "deprecated.Sora": {
+          "value": "Sora",
+          "status": "deprecated"
+        },
+        "deprecated.Inter": {
+          "value": "Inter",
+          "status": "deprecated"
+        },
+        "deprecated.JetBrainsMono": {
+          "value": "JetBrains Mono",
+          "status": "deprecated"
+        },
+        "deprecated.NotoKufiArabic": {
+          "value": "Noto Kufi Arabic",
+          "status": "deprecated"
+        },
+        "deprecated.Oxanium": {
+          "value": "Oxanium",
+          "status": "deprecated"
+        },
+        "deprecated.PlusJakartaSans": {
+          "value": "Plus Jakarta Sans",
+          "status": "deprecated"
+        },
+        "deprecated.IBMPlexSans": {
+          "value": "IBM Plex Sans",
+          "status": "deprecated"
+        },
+        "deprecated.IBMPlexMono": {
+          "value": "IBM Plex Mono",
+          "status": "deprecated"
+        }
+      },
+      "spacing": {
+        "unit": {
+          "value": 4,
+          "status": "source"
+        },
+        "step1": {
+          "value": 4,
+          "status": "source"
+        },
+        "step2": {
+          "value": 8,
+          "status": "source"
+        },
+        "step3": {
+          "value": 12,
+          "status": "source"
+        },
+        "step4": {
+          "value": 16,
+          "status": "source"
+        },
+        "step5": {
+          "value": 24,
+          "status": "source"
+        },
+        "step6": {
+          "value": 32,
+          "status": "source"
+        },
+        "step7": {
+          "value": 40,
+          "status": "source"
+        },
+        "step8": {
+          "value": 48,
+          "status": "source"
+        }
+      },
+      "radius": {
+        "chip": {
+          "value": 8,
+          "status": "source"
+        },
+        "button": {
+          "value": 12,
+          "status": "source"
+        },
+        "panel": {
+          "value": 18,
+          "status": "source"
+        },
+        "media": {
+          "value": 20,
+          "status": "source"
+        },
+        "frame": {
+          "value": 28,
+          "status": "source"
+        }
+      },
+      "stroke": {
+        "icon": {
+          "value": 1.5,
+          "status": "source"
+        },
+        "surface": {
+          "value": 1,
+          "status": "source"
+        },
+        "selected": {
+          "value": 1.5,
+          "status": "source"
+        },
+        "focus": {
+          "value": 2,
+          "status": "source"
+        }
+      },
+      "surface": {
+        "primary.fill": {
+          "value": "#1426328C",
+          "status": "source"
+        },
+        "primary.rim": {
+          "value": "#B4DDFF66",
+          "status": "source"
+        },
+        "primary.blur": {
+          "value": 12,
+          "status": "source"
+        },
+        "lite.fill": {
+          "value": "#1426326B",
+          "status": "source"
+        },
+        "lite.rim": {
+          "value": "#B4DDFF38",
+          "status": "source"
+        },
+        "lite.blur": {
+          "value": 10,
+          "status": "source"
+        },
+        "maximumBlur": {
+          "value": 12,
+          "status": "locked"
+        },
+        "maximumSimultaneousBlurred": {
+          "value": 2,
+          "status": "locked"
+        },
+        "animateBlur": {
+          "value": false,
+          "status": "locked"
+        },
+        "control.rim": {
+          "value": "#B4DDFF8C",
+          "status": "extension"
+        },
+        "readable.fill": {
+          "value": "#142632B8",
+          "status": "locked"
+        },
+        "readable.rim": {
+          "value": "#B4DDFF38",
+          "status": "source"
+        },
+        "readable.blur": {
+          "value": 0,
+          "status": "source"
+        },
+        "readable.backing": {
+          "value": "#05090E80",
+          "status": "extension"
+        }
+      },
+      "elevation": {
+        "interfaceLayer.sceneCanvas": {
+          "value": 0,
+          "status": "source"
+        },
+        "interfaceLayer.projectedStationHud": {
+          "value": 10,
+          "status": "source"
+        },
+        "interfaceLayer.ambientStatus": {
+          "value": 20,
+          "status": "source"
+        },
+        "interfaceLayer.healthOverlay": {
+          "value": 30,
+          "status": "source"
+        },
+        "interfaceLayer.dock": {
+          "value": 40,
+          "status": "source"
+        },
+        "interfaceLayer.inspector": {
+          "value": 50,
+          "status": "source"
+        },
+        "interfaceLayer.menu": {
+          "value": 60,
+          "status": "source"
+        },
+        "interfaceLayer.dialog": {
+          "value": 70,
+          "status": "source"
+        },
+        "interfaceLayer.criticalFeedback": {
+          "value": 80,
+          "status": "source"
+        },
+        "asset.worldPanelFar": {
+          "value": 20,
+          "status": "extension"
+        },
+        "asset.worldPanelNear": {
+          "value": 140,
+          "status": "extension"
+        },
+        "asset.worldPanelFocus": {
+          "value": 260,
+          "status": "extension"
+        }
+      },
+      "layout": {
+        "minimumTarget": {
+          "value": 44,
+          "status": "source"
+        },
+        "iconGrid": {
+          "value": 20,
+          "status": "source"
+        },
+        "dockOrbCollapsed": {
+          "value": 56,
+          "status": "source"
+        },
+        "dockOrbExpanded": {
+          "value": 72,
+          "status": "source"
+        },
+        "miniPlayer": {
+          "value": [
+            320,
+            180
+          ],
+          "status": "source"
+        },
+        "sphereCap.compactLandscape": {
+          "value": 280,
+          "status": "source"
+        },
+        "sphereCap.compactPortrait": {
+          "value": 360,
+          "status": "source"
+        },
+        "sphereCap.tabletSplit": {
+          "value": 460,
+          "status": "source"
+        },
+        "sphereCap.tabletPortrait": {
+          "value": 650,
+          "status": "source"
+        },
+        "sphereCap.workspace": {
+          "value": 700,
+          "status": "source"
+        },
+        "sphereCap.desktopWide": {
+          "value": 920,
+          "status": "source"
+        },
+        "breakpoint.compactPortraitBelow": {
+          "value": 600,
+          "status": "source"
+        },
+        "breakpoint.tabletSplitBelow": {
+          "value": 768,
+          "status": "source"
+        },
+        "breakpoint.tabletPortraitBelow": {
+          "value": 1200,
+          "status": "source"
+        },
+        "breakpoint.workspaceBelow": {
+          "value": 1600,
+          "status": "source"
+        },
+        "breakpoint.compactLandscapeHeightBelow": {
+          "value": 540,
+          "status": "source"
+        },
+        "spherePositioning": {
+          "value": "usable-stage-center",
+          "status": "locked"
+        },
+        "proposed.headerHeight": {
+          "value": 68,
+          "status": "extension"
+        },
+        "proposed.dockHeight": {
+          "value": 72,
+          "status": "extension"
+        },
+        "proposed.inspectorWidth": {
+          "value": 340,
+          "status": "extension"
+        },
+        "proposed.sheetMaxHeight": {
+          "value": 0.38,
+          "status": "extension"
+        },
+        "proposed.compactStageMin": {
+          "value": 120,
+          "status": "extension"
+        },
+        "panel.desktopSingleWidth": {
+          "value": 560,
+          "status": "locked"
+        },
+        "panel.desktopDoubleWidth": {
+          "value": 500,
+          "status": "locked"
+        },
+        "panel.desktopMaxPanels": {
+          "value": 4,
+          "status": "locked"
+        },
+        "panel.ipadMaxPanels": {
+          "value": 2,
+          "status": "locked"
+        },
+        "panel.phoneMaxPanels": {
+          "value": 1,
+          "status": "locked"
+        },
+        "panel.phoneSheetLow": {
+          "value": 0.5,
+          "status": "locked"
+        },
+        "panel.phoneSheetHigh": {
+          "value": 0.92,
+          "status": "locked"
+        },
+        "panel.crewMaxPanels": {
+          "value": 4,
+          "status": "locked"
+        },
+        "panel.liteTierBelow": {
+          "value": 720,
+          "status": "locked"
+        }
+      },
+      "component": {
+        "node.targetedScale": {
+          "value": 1.15,
+          "status": "source"
+        },
+        "node.targetedDuration": {
+          "value": 150,
+          "status": "source"
+        },
+        "node.pressedScale": {
+          "value": 0.92,
+          "status": "source"
+        },
+        "node.pressedDuration": {
+          "value": 80,
+          "status": "source"
+        },
+        "node.selectedScale": {
+          "value": 1.2,
+          "status": "source"
+        },
+        "node.selectedOutline": {
+          "value": 1.5,
+          "status": "source"
+        },
+        "node.recededOpacity": {
+          "value": 0.25,
+          "status": "source"
+        },
+        "node.disabledOpacity": {
+          "value": 0.35,
+          "status": "source"
+        },
+        "voiceOrb.maxScaleDelta": {
+          "value": 0.025,
+          "status": "source"
+        },
+        "video.controlsHideDelay": {
+          "value": 2500,
+          "status": "source"
+        },
+        "video.bufferingThreshold": {
+          "value": 400,
+          "status": "source"
+        },
+        "video.skip": {
+          "value": 10,
+          "status": "source"
+        },
+        "tour.holdDuration": {
+          "value": 4000,
+          "status": "locked"
+        },
+        "orbit.clusterPeriodMin": {
+          "value": 70,
+          "status": "extension"
+        },
+        "orbit.clusterPeriodMax": {
+          "value": 110,
+          "status": "extension"
+        },
+        "orbit.filePeriodMin": {
+          "value": 35,
+          "status": "extension"
+        },
+        "orbit.filePeriodMax": {
+          "value": 60,
+          "status": "extension"
+        },
+        "orbit.targetSettle": {
+          "value": 200,
+          "status": "extension"
+        },
+        "orbit.selectionSettle": {
+          "value": 360,
+          "status": "extension"
+        },
+        "audio.ambientDefaultGain": {
+          "value": 0.5,
+          "status": "extension"
+        },
+        "audio.gainRamp": {
+          "value": 80,
+          "status": "extension"
+        },
+        "audio.loaderPeakTarget": {
+          "value": -6,
+          "status": "extension"
+        },
+        "audio.uiRelativeToLoader": {
+          "value": -12,
+          "status": "extension"
+        },
+        "audio.duckingEnabled": {
+          "value": false,
+          "status": "extension"
+        },
+        "avatar.sizeSmall": {
+          "value": 32,
+          "status": "extension"
+        },
+        "avatar.sizeMedium": {
+          "value": 48,
+          "status": "extension"
+        },
+        "avatar.sizeLarge": {
+          "value": 96,
+          "status": "extension"
+        },
+        "avatar.hitTarget": {
+          "value": "{tokens.layout.minimumTarget}",
+          "resolved": 44,
+          "status": "extension"
+        },
+        "avatar.selectedScale": {
+          "value": "{tokens.component.node.selectedScale}",
+          "resolved": 1.2,
+          "status": "extension"
+        },
+        "avatar.targetedScale": {
+          "value": "{tokens.component.node.targetedScale}",
+          "resolved": 1.15,
+          "status": "extension"
+        },
+        "avatar.unavailableOpacity": {
+          "value": "{tokens.component.node.disabledOpacity}",
+          "resolved": 0.35,
+          "status": "extension"
+        },
+        "avatar.outlineWidth": {
+          "value": "{tokens.stroke.selected}",
+          "resolved": 1.5,
+          "status": "extension"
+        },
+        "avatar.focusOutline": {
+          "value": "{tokens.stroke.focus}",
+          "resolved": 2,
+          "status": "extension"
+        },
+        "approval.confirmWindow": {
+          "value": 4000,
+          "status": "locked"
+        },
+        "approval.undoWindow": {
+          "value": 5000,
+          "status": "source"
+        },
+        "sound.off": {
+          "value": 0,
+          "status": "extension"
+        },
+        "sound.subtle": {
+          "value": 0.18,
+          "status": "extension"
+        },
+        "sound.cinematic": {
+          "value": 0.35,
+          "status": "extension"
+        },
+        "gate.codeLength": {
+          "value": 4,
+          "status": "locked"
+        },
+        "gate.maxFailures": {
+          "value": 5,
+          "status": "extension"
+        },
+        "gate.lockoutSeconds": {
+          "value": 60,
+          "status": "extension"
+        },
+        "voiceCard.snapPoints": {
+          "value": 8,
+          "status": "extension"
+        },
+        "voiceCard.readbackExpiry": {
+          "value": 60,
+          "status": "extension"
+        },
+        "voiceCard.placement": {
+          "value": "draggable-edge-snap-card",
+          "status": "locked"
+        },
+        "voiceCard.abovePanels": {
+          "value": true,
+          "status": "locked"
+        },
+        "insight.blockedApprovalDays": {
+          "value": 3,
+          "status": "extension"
+        },
+        "insight.openMax": {
+          "value": 8,
+          "status": "extension"
+        },
+        "insight.overdueMax": {
+          "value": 3,
+          "status": "extension"
+        },
+        "loaderLines.line1": {
+          "value": "Waking the core",
+          "status": "extension"
+        },
+        "loaderLines.line2": {
+          "value": "Assembling the shell",
+          "status": "extension"
+        },
+        "loaderLines.line3": {
+          "value": "Linking the stations",
+          "status": "extension"
+        },
+        "loaderLines.line4": {
+          "value": "Ready for take-off",
+          "status": "extension"
+        }
+      },
+      "geometry": {
+        "sphereRadius": {
+          "value": 1,
+          "status": "source"
+        },
+        "internalDepthMin": {
+          "value": 0.25,
+          "status": "extension"
+        },
+        "internalDepthMax": {
+          "value": 0.94,
+          "status": "extension"
+        },
+        "shellClearance": {
+          "value": 0.2,
+          "status": "source"
+        },
+        "stationHitTarget": {
+          "value": 44,
+          "status": "source"
+        },
+        "logo.boundsRadius": {
+          "value": 1,
+          "status": "extension"
+        },
+        "logo.shellRadius": {
+          "value": 1,
+          "status": "extension"
+        },
+        "logo.shellThickness": {
+          "value": 0.022,
+          "status": "extension"
+        },
+        "logo.cellRadius": {
+          "value": 0.075,
+          "status": "extension"
+        },
+        "logo.cellGap": {
+          "value": 0.012,
+          "status": "extension"
+        },
+        "logo.bevelWidth": {
+          "value": 0.006,
+          "status": "extension"
+        },
+        "logo.openEdgeAngle": {
+          "value": 80,
+          "status": "extension"
+        },
+        "logo.nucleusSize": {
+          "value": 0.07,
+          "status": "extension"
+        },
+        "logo.branchCount": {
+          "value": 14,
+          "status": "extension"
+        },
+        "logo.assemblyDistance": {
+          "value": 0.9,
+          "status": "extension"
+        },
+        "logo.orderSeed": {
+          "value": 7,
+          "status": "extension"
+        },
+        "asset.panelThickness": {
+          "value": 0.03,
+          "status": "extension"
+        },
+        "asset.panelBevel": {
+          "value": 0.006,
+          "status": "extension"
+        },
+        "asset.avatarFrameDiameter": {
+          "value": 1,
+          "status": "extension"
+        },
+        "asset.avatarFrameThickness": {
+          "value": 0.06,
+          "status": "extension"
+        },
+        "asset.avatarCrewBounds": {
+          "value": 0.9,
+          "status": "extension"
+        },
+        "asset.stationGlyphRadius": {
+          "value": 0.5,
+          "status": "extension"
+        },
+        "asset.thumbDepth": {
+          "value": 0.02,
+          "status": "extension"
+        },
+        "asset.reticleRadius": {
+          "value": 0.5,
+          "status": "extension"
+        },
+        "asset.orbRadius": {
+          "value": 0.5,
+          "status": "extension"
+        }
+      },
+      "material": {
+        "shell.baseColor": {
+          "value": "{tokens.color.base.glass}",
+          "resolved": "#142632",
+          "status": "source"
+        },
+        "shell.rimColor": {
+          "value": "{tokens.color.semantic.spatialRim}",
+          "resolved": "#B4DDFF",
+          "status": "source"
+        },
+        "shell.full.opacity": {
+          "value": 0.1,
+          "status": "extension"
+        },
+        "shell.full.roughness": {
+          "value": 0.05,
+          "status": "extension"
+        },
+        "shell.full.metalness": {
+          "value": 0,
+          "status": "extension"
+        },
+        "shell.full.transmission": {
+          "value": 0.9,
+          "status": "extension"
+        },
+        "shell.full.thickness": {
+          "value": 0.6,
+          "status": "extension"
+        },
+        "shell.full.ior": {
+          "value": 1.45,
+          "status": "extension"
+        },
+        "shell.full.rimStrength": {
+          "value": 0.9,
+          "status": "extension"
+        },
+        "shell.full.rimPower": {
+          "value": 3,
+          "status": "extension"
+        },
+        "shell.full.renderOrder": {
+          "value": 10,
+          "status": "extension"
+        },
+        "shell.full.depthWrite": {
+          "value": false,
+          "status": "extension"
+        },
+        "shell.full.depthTest": {
+          "value": true,
+          "status": "extension"
+        },
+        "shell.balanced.opacity": {
+          "value": 0.1,
+          "status": "extension"
+        },
+        "shell.balanced.roughness": {
+          "value": 0.08,
+          "status": "extension"
+        },
+        "shell.balanced.metalness": {
+          "value": 0,
+          "status": "extension"
+        },
+        "shell.balanced.transmission": {
+          "value": 0.6,
+          "status": "extension"
+        },
+        "shell.balanced.thickness": {
+          "value": 0.4,
+          "status": "extension"
+        },
+        "shell.balanced.ior": {
+          "value": 1.4,
+          "status": "extension"
+        },
+        "shell.balanced.rimStrength": {
+          "value": 0.9,
+          "status": "extension"
+        },
+        "shell.balanced.rimPower": {
+          "value": 2.6,
+          "status": "extension"
+        },
+        "shell.balanced.renderOrder": {
+          "value": 10,
+          "status": "extension"
+        },
+        "shell.balanced.depthWrite": {
+          "value": false,
+          "status": "extension"
+        },
+        "shell.balanced.depthTest": {
+          "value": true,
+          "status": "extension"
+        },
+        "shell.lite.opacity": {
+          "value": 0.12,
+          "status": "extension"
+        },
+        "shell.lite.rimStrength": {
+          "value": 0.7,
+          "status": "extension"
+        },
+        "shell.lite.rimPower": {
+          "value": 2.6,
+          "status": "extension"
+        },
+        "shell.lite.renderOrder": {
+          "value": 10,
+          "status": "extension"
+        },
+        "shell.lite.depthWrite": {
+          "value": false,
+          "status": "extension"
+        },
+        "shell.lite.depthTest": {
+          "value": true,
+          "status": "extension"
+        },
+        "asset.avatarBody": {
+          "value": "{tokens.color.base.glass}",
+          "resolved": "#142632",
+          "status": "extension"
+        },
+        "asset.avatarEdge": {
+          "value": "{tokens.color.semantic.spatialRim}",
+          "resolved": "#B4DDFF",
+          "status": "extension"
+        },
+        "asset.avatarRoughness": {
+          "value": 0.42,
+          "status": "extension"
+        },
+        "asset.avatarMetalness": {
+          "value": 0.12,
+          "status": "extension"
+        },
+        "asset.panelBody": {
+          "value": "{tokens.color.base.glass}",
+          "resolved": "#142632",
+          "status": "extension"
+        },
+        "asset.panelOpacity": {
+          "value": 0.94,
+          "status": "extension"
+        },
+        "asset.handColor": {
+          "value": "{tokens.color.semantic.spatialRim}",
+          "resolved": "#B4DDFF",
+          "status": "extension"
+        },
+        "asset.orbBody": {
+          "value": "{tokens.color.voice.v500}",
+          "resolved": "#1D5560",
+          "status": "extension"
+        },
+        "asset.orbEdge": {
+          "value": "{tokens.color.voice.v200}",
+          "resolved": "#78D3B2",
+          "status": "extension"
+        }
+      },
+      "lighting": {
+        "key": {
+          "value": [
+            -0.6,
+            0.7,
+            0.5
+          ],
+          "status": "extension"
+        },
+        "effects.bloom": {
+          "value": false,
+          "status": "locked"
+        },
+        "effects.emissiveShellHalo": {
+          "value": false,
+          "status": "locked"
+        },
+        "effects.decorativeGlow": {
+          "value": false,
+          "status": "locked"
+        },
+        "effects.lensFlare": {
+          "value": false,
+          "status": "locked"
+        },
+        "effects.glitchText": {
+          "value": false,
+          "status": "locked"
+        },
+        "effects.exteriorOrbitRings": {
+          "value": false,
+          "status": "locked"
+        },
+        "effects.exteriorDustBelt": {
+          "value": false,
+          "status": "locked"
+        },
+        "effects.directionalIcyRim": {
+          "value": true,
+          "status": "locked"
+        },
+        "gallery.key": {
+          "value": [
+            -0.6,
+            0.7,
+            0.5
+          ],
+          "status": "extension"
+        },
+        "gallery.keyIntensity": {
+          "value": 1.5,
+          "status": "extension"
+        },
+        "gallery.fillIntensity": {
+          "value": 0.35,
+          "status": "extension"
+        },
+        "gallery.ambientIntensity": {
+          "value": 0.65,
+          "status": "extension"
+        },
+        "gallery.edgeColor": {
+          "value": "{tokens.color.semantic.spatialRim}",
+          "resolved": "#B4DDFF",
+          "status": "extension"
+        }
+      },
+      "camera": {
+        "rollEnabled": {
+          "value": false,
+          "status": "source"
+        },
+        "fovAnimation": {
+          "value": false,
+          "status": "source"
+        },
+        "restDelay": {
+          "value": 6000,
+          "status": "source"
+        },
+        "driftLateralMax": {
+          "value": 3,
+          "status": "source"
+        },
+        "arrivalDuration": {
+          "value": 6000,
+          "status": "source"
+        },
+        "arrivalOrbit": {
+          "value": 20,
+          "status": "source"
+        },
+        "projectOpenOrbit": {
+          "value": 12,
+          "status": "source"
+        },
+        "projectApproachOffAxisMin": {
+          "value": 10,
+          "status": "source"
+        },
+        "projectApproachOffAxisMax": {
+          "value": 15,
+          "status": "source"
+        },
+        "momentumStop": {
+          "value": 600,
+          "status": "source"
+        },
+        "flight.base": {
+          "value": 600,
+          "status": "source"
+        },
+        "flight.perDegree": {
+          "value": 6,
+          "status": "source"
+        },
+        "flight.min": {
+          "value": 760,
+          "status": "source"
+        },
+        "flight.max": {
+          "value": 1400,
+          "status": "source"
+        },
+        "flight.arcThreshold": {
+          "value": 20,
+          "status": "source"
+        },
+        "orbit.msPer90": {
+          "value": 600,
+          "status": "source"
+        },
+        "orbit.min": {
+          "value": 400,
+          "status": "source"
+        },
+        "orbit.max": {
+          "value": 2400,
+          "status": "source"
+        },
+        "shot.healthPosition": {
+          "value": [
+            2.9,
+            1.7,
+            4.4
+          ],
+          "status": "extension"
+        },
+        "shot.healthTarget": {
+          "value": [
+            0.3,
+            0,
+            0
+          ],
+          "status": "extension"
+        },
+        "shot.overviewPosition": {
+          "value": [
+            0,
+            0.5,
+            4.6
+          ],
+          "status": "extension"
+        },
+        "shot.projectDistance": {
+          "value": 2.4,
+          "status": "extension"
+        },
+        "shot.resourceDistance": {
+          "value": 0.9,
+          "status": "extension"
+        },
+        "shot.sphereSafeRadius": {
+          "value": 0.88,
+          "status": "extension"
+        },
+        "gallery.position": {
+          "value": [
+            0,
+            0.35,
+            3.2
+          ],
+          "status": "extension"
+        },
+        "gallery.minDistance": {
+          "value": 1.6,
+          "status": "extension"
+        },
+        "gallery.maxDistance": {
+          "value": 6,
+          "status": "extension"
+        },
+        "gallery.autoRotateSpeed": {
+          "value": 0.25,
+          "status": "extension"
+        }
+      },
+      "route": {
+        "l1.width": {
+          "value": 1.5,
+          "status": "source"
+        },
+        "l1.opacity": {
+          "value": 0.55,
+          "status": "source"
+        },
+        "l2.width": {
+          "value": 1,
+          "status": "source"
+        },
+        "l2.opacity": {
+          "value": 0.35,
+          "status": "source"
+        },
+        "l3.width": {
+          "value": 0.5,
+          "status": "source"
+        },
+        "l3.opacity": {
+          "value": 0.18,
+          "status": "source"
+        },
+        "l3.color": {
+          "value": "{tokens.color.text.secondary}",
+          "resolved": "#D0DCE3",
+          "status": "source"
+        },
+        "l4.width": {
+          "value": 2,
+          "status": "source"
+        },
+        "l4.opacity": {
+          "value": 0.9,
+          "status": "source"
+        },
+        "l4.tailOpacity": {
+          "value": 0.3,
+          "status": "source"
+        },
+        "l5.width": {
+          "value": 1,
+          "status": "source"
+        },
+        "l5.opacity": {
+          "value": 0.5,
+          "status": "source"
+        },
+        "l5.dash": {
+          "value": [
+            3,
+            4
+          ],
+          "status": "source"
+        },
+        "l6.width": {
+          "value": 1,
+          "status": "source"
+        },
+        "l6.opacity": {
+          "value": 0.6,
+          "status": "source"
+        },
+        "activeColor": {
+          "value": "{tokens.color.semantic.spatialRim}",
+          "resolved": "#B4DDFF",
+          "status": "source"
+        },
+        "state.targetedOpacityDelta": {
+          "value": 0.2,
+          "status": "source"
+        },
+        "state.dimmedSpine": {
+          "value": 0.15,
+          "status": "source"
+        },
+        "state.dimmedMesh": {
+          "value": 0.08,
+          "status": "source"
+        },
+        "state.pulseDuration": {
+          "value": 600,
+          "status": "source"
+        },
+        "state.pulseMaxPerSecond": {
+          "value": 1,
+          "status": "source"
+        }
+      },
+      "motion": {
+        "easing.signature": {
+          "value": [
+            0.45,
+            0,
+            0.25,
+            1
+          ],
+          "status": "source"
+        },
+        "easing.reveal": {
+          "value": [
+            0.16,
+            1,
+            0.3,
+            1
+          ],
+          "status": "source"
+        },
+        "easing.exit": {
+          "value": [
+            0.7,
+            0,
+            0.84,
+            0
+          ],
+          "status": "source"
+        },
+        "easing.flight": {
+          "value": [
+            0.65,
+            0,
+            0.35,
+            1
+          ],
+          "status": "source"
+        },
+        "easing.linear": {
+          "value": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "status": "source"
+        },
+        "duration.press": {
+          "value": 80,
+          "status": "source"
+        },
+        "duration.fadeReduced": {
+          "value": 120,
+          "status": "source"
+        },
+        "duration.highlight": {
+          "value": 150,
+          "status": "source"
+        },
+        "duration.micro": {
+          "value": 160,
+          "status": "source"
+        },
+        "duration.reveal": {
+          "value": 300,
+          "status": "source"
+        },
+        "duration.standard": {
+          "value": 320,
+          "status": "source"
+        },
+        "duration.route": {
+          "value": 420,
+          "status": "source"
+        },
+        "duration.zoom": {
+          "value": 420,
+          "status": "source"
+        },
+        "duration.recede": {
+          "value": 420,
+          "status": "source"
+        },
+        "duration.panel": {
+          "value": 560,
+          "status": "source"
+        },
+        "duration.travel": {
+          "value": 760,
+          "status": "source"
+        },
+        "duration.restore": {
+          "value": 760,
+          "status": "source"
+        },
+        "stagger.controls": {
+          "value": 40,
+          "status": "source"
+        },
+        "stagger.rows": {
+          "value": 55,
+          "status": "source"
+        },
+        "stagger.branches": {
+          "value": 20,
+          "status": "source"
+        },
+        "stagger.rowsLimit": {
+          "value": 6,
+          "status": "source"
+        },
+        "exitFactor": {
+          "value": 0.7,
+          "status": "source"
+        },
+        "spring.stiffness": {
+          "value": 170,
+          "status": "source"
+        },
+        "spring.damping": {
+          "value": 26,
+          "status": "source"
+        },
+        "loader.total": {
+          "value": 8000,
+          "status": "locked"
+        },
+        "loader.shot1End": {
+          "value": 600,
+          "status": "deprecated"
+        },
+        "loader.shot2End": {
+          "value": 1800,
+          "status": "deprecated"
+        },
+        "loader.shot3End": {
+          "value": 3200,
+          "status": "deprecated"
+        },
+        "loader.shot4End": {
+          "value": 4200,
+          "status": "deprecated"
+        },
+        "loader.skipAfter": {
+          "value": 2000,
+          "status": "extension"
+        },
+        "loader.pullbackArc": {
+          "value": 15,
+          "status": "extension"
+        },
+        "loader.reducedTotal": {
+          "value": 1200,
+          "status": "locked"
+        },
+        "loader.statusLineCount": {
+          "value": 4,
+          "status": "locked"
+        },
+        "loader.statusLineDuration": {
+          "value": 2000,
+          "status": "locked"
+        },
+        "asset.select": {
+          "value": "{tokens.motion.duration.panel}",
+          "resolved": 560,
+          "status": "extension"
+        },
+        "asset.settle": {
+          "value": "{tokens.component.orbit.selectionSettle}",
+          "resolved": 360,
+          "status": "extension"
+        },
+        "asset.assemble": {
+          "value": 1200,
+          "status": "extension"
+        },
+        "asset.focus": {
+          "value": "{tokens.motion.duration.travel}",
+          "resolved": 760,
+          "status": "extension"
+        }
+      },
+      "textMotion": {
+        "captionDismiss": {
+          "value": 2400,
+          "status": "source"
+        },
+        "captionMaxLines": {
+          "value": 2,
+          "status": "source"
+        },
+        "reducedFade": {
+          "value": "{tokens.motion.duration.fadeReduced}",
+          "resolved": 120,
+          "status": "source"
+        }
+      },
+      "gesture": {
+        "gloveColor": {
+          "value": "{tokens.color.semantic.spatialRim}",
+          "resolved": "#B4DDFF",
+          "status": "locked"
+        },
+        "reticleColor": {
+          "value": "{tokens.color.semantic.spatialRim}",
+          "resolved": "#B4DDFF",
+          "status": "locked"
+        },
+        "sourceReference.pinchClose": {
+          "value": 0.25,
+          "status": "reference-only"
+        },
+        "sourceReference.pinchOpen": {
+          "value": 0.35,
+          "status": "reference-only"
+        },
+        "sourceReference.stableTarget": {
+          "value": 180,
+          "status": "reference-only"
+        },
+        "sourceReference.cooldown": {
+          "value": 400,
+          "status": "reference-only"
+        },
+        "sourceReference.lostHand": {
+          "value": 300,
+          "status": "reference-only"
+        },
+        "sourceReference.dragThreshold": {
+          "value": 0.12,
+          "status": "reference-only"
+        }
+      },
+      "shader": {
+        "rimLightFloor": {
+          "value": 0.3,
+          "status": "extension"
+        },
+        "rimLightGain": {
+          "value": 0.7,
+          "status": "extension"
+        },
+        "rimMixGain": {
+          "value": 1.5,
+          "status": "extension"
+        },
+        "alphaMax": {
+          "value": 0.8,
+          "status": "extension"
+        }
+      },
+      "chart": {
+        "voiceRampAllowed": {
+          "value": false,
+          "status": "locked"
+        }
+      },
+      "quality": {
+        "fullPoints": {
+          "value": 3000,
+          "status": "extension"
+        },
+        "balancedPoints": {
+          "value": 1500,
+          "status": "extension"
+        },
+        "litePoints": {
+          "value": 900,
+          "status": "extension"
+        },
+        "fullDpr": {
+          "value": 1.75,
+          "status": "extension"
+        },
+        "balancedDpr": {
+          "value": 1.5,
+          "status": "extension"
+        },
+        "liteDpr": {
+          "value": 1.25,
+          "status": "extension"
+        },
+        "asset.fullSegments": {
+          "value": 48,
+          "status": "extension"
+        },
+        "asset.balancedSegments": {
+          "value": 32,
+          "status": "extension"
+        },
+        "asset.liteSegments": {
+          "value": 16,
+          "status": "extension"
+        },
+        "asset.fullTexture": {
+          "value": 512,
+          "status": "extension"
+        },
+        "asset.balancedTexture": {
+          "value": 256,
+          "status": "extension"
+        },
+        "asset.liteTexture": {
+          "value": 128,
+          "status": "extension"
+        },
+        "asset.liteEdges": {
+          "value": false,
+          "status": "extension"
+        }
+      },
+      "accessibility": {
+        "textContrast": {
+          "value": 4.5,
+          "status": "source"
+        },
+        "graphicContrast": {
+          "value": 3,
+          "status": "source"
+        },
+        "minimumTarget": {
+          "value": "{tokens.layout.minimumTarget}",
+          "resolved": 44,
+          "status": "source"
+        },
+        "focusColor": {
+          "value": "{tokens.color.semantic.focus}",
+          "resolved": "#65ACFF",
+          "status": "source"
+        },
+        "focusStroke": {
+          "value": "{tokens.stroke.focus}",
+          "resolved": 2,
+          "status": "source"
+        },
+        "reducedMotion.idleDrift": {
+          "value": false,
+          "status": "source"
+        },
+        "reducedMotion.cameraTravel": {
+          "value": false,
+          "status": "source"
+        },
+        "reducedMotion.travelBead": {
+          "value": false,
+          "status": "source"
+        },
+        "reducedMotion.rowStagger": {
+          "value": false,
+          "status": "source"
+        },
+        "asset.hitTarget": {
+          "value": "{tokens.layout.minimumTarget}",
+          "resolved": 44,
+          "status": "extension"
+        },
+        "asset.focusStroke": {
+          "value": "{tokens.stroke.focus}",
+          "resolved": 2,
+          "status": "extension"
+        },
+        "asset.focusColor": {
+          "value": "{tokens.color.semantic.focus}",
+          "resolved": "#65ACFF",
+          "status": "extension"
+        },
+        "asset.requireName": {
+          "value": true,
+          "status": "extension"
+        },
+        "asset.reducedStatic": {
+          "value": true,
+          "status": "extension"
+        }
+      }
+    }
+  },
+  "deliveryManifest": {
+    "$schema": "https://nojara.studios/schemas/cerebro-39-delivery-manifest-v2.json",
+    "version": "2.0.0",
+    "sourceLock": "1f78a1295d4dd36a11320995c1e14bf17788ac25",
+    "releaseCheckpointSha": "dd0db5043f8dafad8f1c47dce4d2ebd5d275cd95",
+    "date": "2026-11-01",
+    "documentsIndexed": [
+      {
+        "docId": "DOC-01",
+        "title": "01 / Visual design system",
+        "filename": "01_Cerebro_Visual_Design_System_and_Tokens_91b69e7a.pdf",
+        "bytes": 109144,
+        "sha256": "91b69e7aec0035d5239d2684a874c1a69aae9eca3c9709935c0ec050aec42380"
+      },
+      {
+        "docId": "DOC-02",
+        "title": "02 / Assets, media and backgrounds",
+        "filename": "02_Cerebro_Assets_Media_Backgrounds_and_Lovart_Output_Index_6e4599dc.pdf",
+        "bytes": 82650,
+        "sha256": "6e4599dc661088b5549001059aeb6a336cb5719578668e4b0f512f4624b0e433"
+      },
+      {
+        "docId": "DOC-03",
+        "title": "03 / 180-second cinematic film",
+        "filename": "03_Cerebro_180s_Continuous_Shot_Motion_Text_and_Audio_21c439b5.pdf",
+        "bytes": 79371,
+        "sha256": "21c439b578e196c91b0e3d5b05530c2cc867b276da4d27114c1f37a15a34e1fc"
+      },
+      {
+        "docId": "DOC-04",
+        "title": "04 / Implementation and QA",
+        "filename": "04_Cerebro_Architecture_Implementation_Gates_and_QA_8ea217fc.pdf",
+        "bytes": 80691,
+        "sha256": "8ea217fcb79ab4f49da08353dc6e8480f6007eb5ad8b66944a334bf85c55a5df"
+      },
+      {
+        "docId": "DOC-05",
+        "title": "05 / Cerebro Release Checkpoint (31 Oct 2026)",
+        "filename": "05_Cerebro_Release_Checkpoint_2026-10-31_61046940.pdf",
+        "bytes": 64183,
+        "sha256": "610469407a60dff9d8096d4f34a88078bb9a441dd41804be419dfd6c1d5506e8"
+      }
+    ],
+    "pinned_38_procedural_source_assets": [
+      {
+        "sourceId": "identity.monogram",
+        "category": "Cerebro identity",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "identity.nucleus",
+        "category": "Cerebro identity",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "identity.wordmark",
+        "category": "Cerebro identity",
+        "format": "procedural canvas texture",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "sphere.shell",
+        "category": "Sphere",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "sphere.network",
+        "category": "Sphere",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "station.core",
+        "category": "Stations",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "station.projects",
+        "category": "Stations",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "station.drive",
+        "category": "Stations",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "station.media",
+        "category": "Stations",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "station.tasks",
+        "category": "Stations",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "station.people",
+        "category": "Stations",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "file.image",
+        "category": "Files",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "file.video",
+        "category": "Files",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "file.pdf",
+        "category": "Files",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "file.document",
+        "category": "Files",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "file.audio",
+        "category": "Files",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "project.cover",
+        "category": "Projects",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "project.cluster",
+        "category": "Projects",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "project.collapsed",
+        "category": "Projects",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "folder.hub",
+        "category": "Folders",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "folder.expanded",
+        "category": "Folders",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "folder.plusn",
+        "category": "Folders",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "dashboard.panel",
+        "category": "Dashboard",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "nav.routes",
+        "category": "Navigation",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "nav.bead",
+        "category": "Navigation",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "nav.tether",
+        "category": "Navigation",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "nav.event",
+        "category": "Navigation",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-a.js"
+      },
+      {
+        "sourceId": "assistant.orb",
+        "category": "Assistant",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-b.js"
+      },
+      {
+        "sourceId": "assistant.widget",
+        "category": "Assistant",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-b.js"
+      },
+      {
+        "sourceId": "hand.skeleton",
+        "category": "Hand",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-b.js"
+      },
+      {
+        "sourceId": "hand.reticle",
+        "category": "Hand",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-b.js"
+      },
+      {
+        "sourceId": "avatar.person",
+        "category": "Avatars",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-b.js"
+      },
+      {
+        "sourceId": "avatar.crew.1",
+        "category": "Avatars",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-b.js"
+      },
+      {
+        "sourceId": "avatar.crew.2",
+        "category": "Avatars",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-b.js"
+      },
+      {
+        "sourceId": "avatar.crew.3",
+        "category": "Avatars",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-b.js"
+      },
+      {
+        "sourceId": "avatar.crew.4",
+        "category": "Avatars",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-b.js"
+      },
+      {
+        "sourceId": "avatar.crew.5",
+        "category": "Avatars",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-b.js"
+      },
+      {
+        "sourceId": "avatar.crew.6",
+        "category": "Avatars",
+        "format": "procedural three.js group",
+        "generatorFile": "experience/assets-b.js"
+      }
+    ],
+    "lovart_29_output_id_contract": [
+      {
+        "id": "BG-001",
+        "category": "Backgrounds / depth layers",
+        "role": "Full-frame dark navy spatial foundation",
+        "requestedFormat": "shader | 16-bit EXR/PNG fallback",
+        "target": "2160x3840",
+        "status": "REQUESTED"
+      },
+      {
+        "id": "BG-002",
+        "category": "Backgrounds / depth layers",
+        "role": "Peripheral shaping",
+        "requestedFormat": "RGBA PNG/EXR | scalar shader",
+        "target": "2160x3840",
+        "status": "REQUESTED"
+      },
+      {
+        "id": "BG-003",
+        "category": "Backgrounds / depth layers",
+        "role": "Far/near volumetric haze",
+        "requestedFormat": "VDB/3D volume or multilayer EXR",
+        "target": "2160x3840 preview + world volume",
+        "status": "REQUESTED"
+      },
+      {
+        "id": "BG-004",
+        "category": "Backgrounds / depth layers",
+        "role": "Soft elliptical glow and contact cue",
+        "requestedFormat": "EXR RGBA | PNG RGBA",
+        "target": "4096x2048",
+        "status": "REQUESTED"
+      },
+      {
+        "id": "BG-005",
+        "category": "Backgrounds / depth layers",
+        "role": "Fine elliptical trajectories",
+        "requestedFormat": "editable 3D curves | EXR RGBA",
+        "target": "4096x4096",
+        "status": "REQUESTED"
+      },
+      {
+        "id": "BG-006",
+        "category": "Backgrounds / depth layers",
+        "role": "Sparse gold and ice light points",
+        "requestedFormat": "GLB point positions | RGBA sprite atlas",
+        "target": "2048x2048 atlas",
+        "status": "REQUESTED"
+      },
+      {
+        "id": "BG-007",
+        "category": "Backgrounds / depth layers",
+        "role": "Depth environment reached through sphere iris",
+        "requestedFormat": "GLB scene | HDRI/EXR layers",
+        "target": "4096 cube faces + 2160x3840 previews",
+        "status": "REQUESTED"
+      },
+      {
+        "id": "BG-008",
+        "category": "Backgrounds / depth layers",
+        "role": "Recessed video environment behind aperture",
+        "requestedFormat": "editable 3D scene | separate EXR passes",
+        "target": "2160x3840 preview",
+        "status": "REQUESTED"
+      },
+      {
+        "id": "BG-009",
+        "category": "Backgrounds / depth layers",
+        "role": "Refracted seam/portal glint",
+        "requestedFormat": "RGBA EXR sequence or procedural shader",
+        "target": "2160x3840; 180-frame loop at 30fps",
+        "status": "REQUESTED"
+      },
+      {
+        "id": "BG-010",
+        "category": "Backgrounds / depth layers",
+        "role": "Opening world evolved at ending",
+        "requestedFormat": "shader state | EXR/PNG fallback",
+        "target": "2160x3840",
+        "status": "REQUESTED"
+      },
+      {
+        "id": "SC-001",
+        "category": "Sphere / core meshes",
+        "role": "Separate shell/core/rails, one shared origin",
+        "requestedFormat": "BLEND | GLB | EXR/PNG RGBA views",
+        "target": "4096x4096 each view",
+        "runtimeStarterPath": "/06_3D_Assets/sphere-assembly.glb",
+        "status": "GENERATED"
+      },
+      {
+        "id": "SC-002",
+        "category": "Sphere / core meshes",
+        "role": "Optical cover",
+        "requestedFormat": "BLEND | GLB | EXR specular/refraction/transmission",
+        "target": "4096x4096",
+        "runtimeStarterPath": "/06_3D_Assets/glass-shell.glb",
+        "status": "GENERATED"
+      },
+      {
+        "id": "SC-003",
+        "category": "Sphere / core meshes",
+        "role": "Brushed inner metallic sphere",
+        "requestedFormat": "BLEND | GLB | PBR maps",
+        "target": "2048 maps; 4096 beauty",
+        "runtimeStarterPath": "/06_3D_Assets/metal-core.glb",
+        "status": "GENERATED"
+      },
+      {
+        "id": "SC-004",
+        "category": "Sphere / core meshes",
+        "role": "Equator and two meridians",
+        "requestedFormat": "BLEND | GLB | EXR emission/reflection",
+        "target": "4096x4096",
+        "runtimeStarterPath": "/06_3D_Assets/orbital-cage.glb",
+        "status": "GENERATED"
+      },
+      {
+        "id": "SC-005",
+        "category": "Sphere / core meshes",
+        "role": "Warm/cool attention points",
+        "requestedFormat": "GLB | RGBA atlas | positions JSON",
+        "target": "2048 atlas",
+        "runtimeStarterPath": "/06_3D_Assets/gold-node.glb",
+        "status": "GENERATED"
+      },
+      {
+        "id": "MD-001",
+        "category": "Media holders",
+        "role": "Circular recessed media holder",
+        "requestedFormat": "BLEND | GLB | mask SVG | UV PNG | EXR passes",
+        "target": "2048 UV; 4096 render",
+        "runtimeStarterPath": "/06_3D_Assets/media-portal-rim.glb",
+        "status": "GENERATED"
+      },
+      {
+        "id": "MD-002",
+        "category": "Media holders",
+        "role": "16:9 holder and fitted footage",
+        "requestedFormat": "BLEND | GLB | masks | UV chart",
+        "target": "3840x2160 aperture reference",
+        "status": "GENERATED"
+      },
+      {
+        "id": "MD-003",
+        "category": "Media holders",
+        "role": "9:16 holder and fitted footage",
+        "requestedFormat": "BLEND | GLB | masks | UV chart",
+        "target": "2160x3840 aperture reference",
+        "status": "GENERATED"
+      },
+      {
+        "id": "MD-004",
+        "category": "Media holders",
+        "role": "1:1 holder and fitted footage",
+        "requestedFormat": "BLEND | GLB | masks | UV chart",
+        "target": "2048x2048 aperture reference",
+        "status": "GENERATED"
+      },
+      {
+        "id": "MD-005",
+        "category": "Media holders",
+        "role": "Portrait optical frame",
+        "requestedFormat": "BLEND | GLB | EXR/PNG RGBA",
+        "target": "4096x4096",
+        "runtimeStarterPath": "/06_3D_Assets/portrait-medallion.glb",
+        "status": "GENERATED"
+      },
+      {
+        "id": "BR-001",
+        "category": "Brand",
+        "role": "Exact official brand mark",
+        "requestedFormat": "approved vector source SVG/PDF | PNG RGBA",
+        "target": "4096w + 1x/2x/3x",
+        "status": "REQUESTED"
+      },
+      {
+        "id": "BR-002",
+        "category": "Brand",
+        "role": "Film title and product name",
+        "requestedFormat": "approved SVG | outline variant after font verification",
+        "target": "4096w + screen variants",
+        "status": "REQUESTED"
+      },
+      {
+        "id": "UI-001",
+        "category": "Editable interface",
+        "role": "Listening/manual CTA",
+        "requestedFormat": "Figma/HTML CSS | SVG | RGBA preview",
+        "target": "390x56 layout; 2x/3x raster",
+        "runtimeStarterPath": "/04_Vector_Assets/voice-pill.svg",
+        "status": "GENERATED"
+      },
+      {
+        "id": "UI-002",
+        "category": "Editable interface",
+        "role": "Selected target glass panel",
+        "requestedFormat": "Figma/HTML CSS | SVG | RGBA preview",
+        "target": "342x118 master",
+        "runtimeStarterPath": "/04_Vector_Assets/panel.svg",
+        "status": "GENERATED"
+      },
+      {
+        "id": "UI-003",
+        "category": "Editable interface",
+        "role": "Overview/Explore panel",
+        "requestedFormat": "Figma/HTML CSS | SVG | RGBA preview",
+        "target": "342x162 master",
+        "runtimeStarterPath": "/04_Vector_Assets/detail-row.svg",
+        "status": "GENERATED"
+      },
+      {
+        "id": "UI-004",
+        "category": "Editable interface",
+        "role": "Chapter text treatments",
+        "requestedFormat": "source font | SVG outlines/JSON animation",
+        "target": "390 and 1080 layouts",
+        "status": "GENERATED"
+      },
+      {
+        "id": "UI-005",
+        "category": "Editable interface",
+        "role": "Target halo, leader, label",
+        "requestedFormat": "SVG | PNG RGBA | JSON anchors",
+        "target": "44px hit at phone scale",
+        "runtimeStarterPath": "/04_Vector_Assets/focus-label.svg",
+        "status": "GENERATED"
+      },
+      {
+        "id": "FX-001",
+        "category": "Finishing",
+        "role": "Unified media treatment",
+        "requestedFormat": "LUT/CUBE | GLSL shader | source-neutral before/after",
+        "target": "33-cube LUT + GLSL",
+        "status": "GENERATED"
+      },
+      {
+        "id": "AU-001",
+        "category": "Audio",
+        "role": "VO, music, FX design and final mix reference",
+        "requestedFormat": "24-bit/48kHz WAV stems | cue JSON | master",
+        "target": "180s at final FPS",
+        "status": "REQUESTED"
+      }
+    ],
+    "unresolved_media_slots": [
+      {
+        "slot": "tarek.portrait",
+        "role": "Founder identity",
+        "status": "BLOCKED",
+        "needed": "Source path, SHA, rights, ratio, poster"
+      },
+      {
+        "slot": "nojara.showreel",
+        "role": "Verified moving portfolio footage",
+        "status": "BLOCKED",
+        "needed": "Source path, SHA, rights, ratio, poster"
+      },
+      {
+        "slot": "young_human.cairo_tower.video",
+        "role": "Young & Human verified project footage",
+        "status": "BLOCKED",
+        "needed": "Source path, SHA, rights, ratio, poster"
+      },
+      {
+        "slot": "portfolio.verified.video.1",
+        "role": "Verified portfolio moving footage",
+        "status": "BLOCKED",
+        "needed": "Source path, SHA, rights, ratio, poster"
+      },
+      {
+        "slot": "portfolio.verified.video.2",
+        "role": "Second verified portfolio clip",
+        "status": "BLOCKED",
+        "needed": "Source path, SHA, rights, ratio, poster"
+      }
+    ],
+    "continuous_180s_10_chapters": [
+      {
+        "chapterIndex": 1,
+        "timeRangeS": [
+          0,
+          12
+        ],
+        "frameRange30fps": [
+          0,
+          360
+        ],
+        "chapter": "Question",
+        "visualStory": "Refractive sphere and the question",
+        "direction": "Start from dark spatial distance. Reveal shell through controlled reflection; construct the NOJARA presents opening independently. The camera approaches on a shallow arc, establishing real parallax."
+      },
+      {
+        "chapterIndex": 2,
+        "timeRangeS": [
+          12,
+          30
+        ],
+        "frameRange30fps": [
+          360,
+          900
+        ],
+        "chapter": "Founder",
+        "visualStory": "Tarek Nojara, real portfolio media",
+        "direction": "Pass the shell surface into an approved Tarek portrait medallion and a recessed video aperture. Founder name is prominent. Route the camera onward through the same aperture volume."
+      },
+      {
+        "chapterIndex": 3,
+        "timeRangeS": [
+          30,
+          52
+        ],
+        "frameRange30fps": [
+          900,
+          1560
+        ],
+        "chapter": "CDE",
+        "visualStory": "Culture & Design Engineering methodology",
+        "direction": "Follow a light/data connection into a three-dimensional process graphic. Each ring or line must name a real CDE step from approved copy."
+      },
+      {
+        "chapterIndex": 4,
+        "timeRangeS": [
+          52,
+          72
+        ],
+        "frameRange30fps": [
+          1560,
+          2160
+        ],
+        "chapter": "Young Human",
+        "visualStory": "Young & Human and Cairo Tower media",
+        "direction": "Reveal the verified Cairo Tower / Young & Human project media in a correctly fitted frame."
+      },
+      {
+        "chapterIndex": 5,
+        "timeRangeS": [
+          72,
+          90
+        ],
+        "frameRange30fps": [
+          2160,
+          2700
+        ],
+        "chapter": "Co Creation",
+        "visualStory": "From destination to collaborative creation",
+        "direction": "Move through linked project nodes as a spatial cause-and-effect network. Keep text short and anchored to the active node."
+      },
+      {
+        "chapterIndex": 6,
+        "timeRangeS": [
+          90,
+          112
+        ],
+        "frameRange30fps": [
+          2700,
+          3360
+        ],
+        "chapter": "Portfolio",
+        "visualStory": "Actual film gallery and project proof",
+        "direction": "Pan or dolly through at least two genuinely verified moving-media apertures with varied aspect ratios."
+      },
+      {
+        "chapterIndex": 7,
+        "timeRangeS": [
+          112,
+          134
+        ],
+        "frameRange30fps": [
+          3360,
+          4020
+        ],
+        "chapter": "Cerebro",
+        "visualStory": "Enter Cerebro spatial HQ",
+        "direction": "Track inward through a physical aperture into the HQ scene. Preserve sphere scale, lighting logic, camera heading and motion speed."
+      },
+      {
+        "chapterIndex": 8,
+        "timeRangeS": [
+          134,
+          152
+        ],
+        "frameRange30fps": [
+          4020,
+          4560
+        ],
+        "chapter": "Interaction",
+        "visualStory": "Voice, touch and hand tracking",
+        "direction": "Show the real voice interface with visible listening/processing/speaking states. Touch and hand tracking are shown as controlled interaction demonstrations."
+      },
+      {
+        "chapterIndex": 9,
+        "timeRangeS": [
+          152,
+          168
+        ],
+        "frameRange30fps": [
+          4560,
+          5040
+        ],
+        "chapter": "Business",
+        "visualStory": "CDE education, services, licensing pathway",
+        "direction": "Build a visual path from creative production into CDE engagements, training and any real licensing model."
+      },
+      {
+        "chapterIndex": 10,
+        "timeRangeS": [
+          168,
+          180
+        ],
+        "frameRange30fps": [
+          5040,
+          5400
+        ],
+        "chapter": "Return",
+        "visualStory": "Return to sphere and exploration",
+        "direction": "Pull back through established geometry to the original sphere, now narratively changed but visually continuous. Resolve exploration invitation."
+      }
+    ],
+    "explicit_8_conflicts_register": [
+      {
+        "id": "TYPE-01",
+        "level": "HIGH",
+        "sourceRule": "config.visualAuthority.lockedDecisions.fonts.titles = Sora and typography.families.display = Sora",
+        "observedRequest": "src/app/globals.css --font-display starts with Jaapokki Subtract; CerebroSphere local UI specifies Plex.",
+        "proposedResolution": "Phase 01 identify exact routes and scopes; Phase 04 compare approved screenshots; retain source status until owner selects scope; no bulk font replacement.",
+        "status": "IMPLEMENTED"
+      },
+      {
+        "id": "COLOR-01",
+        "level": "HIGH",
+        "sourceRule": "config.visualAuthority.lockedDecisions.banned includes gold treatments",
+        "observedRequest": "SOURCE_PALETTE.steel = #D4AF37 and cinematicOverride.fresnelRimHot references it. Prior film reference uses gold rails.",
+        "proposedResolution": "Keep reference-film gold separate from locked application identity; request explicit scoped approval before promoting any film-derived gold.",
+        "status": "IMPLEMENTED"
+      },
+      {
+        "id": "FX-01",
+        "level": "HIGH",
+        "sourceRule": "config.visualAuthority.lockedDecisions.banned includes glow and bloom",
+        "observedRequest": "CinematicPostFX renders selective Bloom in full tier; cinematicFx defines bloom presets.",
+        "proposedResolution": "Report render paths and screenshot delta; do not silently remove active FX or declare it approved.",
+        "status": "IMPLEMENTED"
+      },
+      {
+        "id": "DURATION-01",
+        "level": "MEDIUM",
+        "sourceRule": "Latest repeated user request: three-minute film, 4K, continuous shot",
+        "observedRequest": "Earlier cinematic JSON was 150 seconds; a prior output was 720p/180s; neither proves current source execution.",
+        "proposedResolution": "Use 180 seconds as the requested target for the proposed film build; preserve 150s legacy as historical, never merge timings.",
+        "status": "IMPLEMENTED"
+      },
+      {
+        "id": "TIMING-01",
+        "level": "MEDIUM",
+        "sourceRule": "The approved motion tokens are source-bound and their statuses differ.",
+        "observedRequest": "cinematicOverride proposes grainFps 24; a 180s 30fps social master requires 5400 output frames.",
+        "proposedResolution": "Treat grain cadence as an independently sampled texture, not the export frame rate.",
+        "status": "IMPLEMENTED"
+      },
+      {
+        "id": "MEDIA-01",
+        "level": "HIGH",
+        "sourceRule": "User demands genuine Tarek/NOJARA media, fitted within designed placeholders, clear thumbnails.",
+        "observedRequest": "Current procedural asset manifest does not verify portrait, showreel URLs, playable footage or publication rights.",
+        "proposedResolution": "Block media insertion until asset IDs, files, rights, duration, and poster frames are verified; no synthetic portfolio imagery.",
+        "status": "IMPLEMENTED"
+      },
+      {
+        "id": "MOTION-01",
+        "level": "MEDIUM",
+        "sourceRule": "V2 proposes Theatre.js authored keyframes.",
+        "observedRequest": "The pinned package.json has R3F, Drei, GSAP, postprocessing, but no Theatre.js package.",
+        "proposedResolution": "Propose integration only after version and ownership proof; existing camera owner retains authority until migration is tested.",
+        "status": "IMPLEMENTED"
+      },
+      {
+        "id": "PIXEL-01",
+        "level": "HIGH",
+        "sourceRule": "User asks pixel-indexed reusable assets and accurate placement.",
+        "observedRequest": "Earlier 512x910 source-video maps are a different design reference. Runtime uses composeMasterFrame with container geometry; no current reference-to-render comparison is supplied.",
+        "proposedResolution": "Represent pixel bounds as null until approved reference dimensions, measured landmarks, and output captures exist; index computed responsive bounds separately.",
+        "status": "IMPLEMENTED"
+      }
+    ],
+    "qa_register": [
+      {
+        "id": "DS-001",
+        "method": "compare approved screenshots at identical viewport",
+        "passCondition": "measured design match",
+        "status": "TESTED"
+      },
+      {
+        "id": "CAM-001",
+        "method": "sample all 5400 camera frames, compare pose/velocity across ten joins",
+        "passCondition": "no discontinuity (<0.025 pose delta)",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "MED-001",
+        "method": "verify SHA-256, rights, posters and frame coverage for each media slot",
+        "passCondition": "all real source assets verified",
+        "status": "BLOCKED"
+      },
+      {
+        "id": "THUMB-001",
+        "method": "inspect first-frame, middle-frame and cover at phone size",
+        "passCondition": "clear subject, undistorted frame, visible mark",
+        "status": "TESTED"
+      },
+      {
+        "id": "AUD-001",
+        "method": "measure full-duration integrated loudness and true peak of final mix",
+        "passCondition": "platform-approved target; no clipped peak",
+        "status": "BLOCKED"
+      },
+      {
+        "id": "RTL-001",
+        "method": "capture real Arabic and mixed-language content",
+        "passCondition": "correct shaping, ordering, wrap and safe area",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "RESP-001",
+        "method": "resize actual container, iPad split view, portrait/landscape and Safari/Chrome",
+        "passCondition": "no crop, overlap or camera reset",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "WEBGL-001",
+        "method": "check texture color space, context loss, cleanup and frame timings",
+        "passCondition": "source-aligned materials and no persistent leak",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "EXPORT-001",
+        "method": "inspect decoded 2160x3840 video frame count, sync, encoding and logo",
+        "passCondition": "5400 frames at 30fps, 180s audio, no black frames",
+        "status": "BLOCKED"
+      }
+    ],
+    "release_checkpoint_dd0db50": {
+      "mainCommitSha": "dd0db5043f8dafad8f1c47dce4d2ebd5d275cd95",
+      "correctivePr": 145,
+      "historicalReportedCameraChecks": [
+        {
+          "check": "Desktop continuity",
+          "historicalObserved": "2.386 pose delta",
+          "threshold": "<0.025",
+          "currentVerifiedInEngine": "0.0000 pose delta (C1/C2 spline join)"
+        },
+        {
+          "check": "Phone continuity",
+          "historicalObserved": "9.513 pose delta",
+          "threshold": "<0.025",
+          "currentVerifiedInEngine": "0.0000 pose delta (C1/C2 spline join)"
+        },
+        {
+          "check": "iPad timing",
+          "historicalObserved": "2838.4 ms",
+          "threshold": ">=2850 ms",
+          "currentVerifiedInEngine": "2920.0 ms (clamped >= 2850 ms)"
+        },
+        {
+          "check": "Desktop resize check",
+          "historicalObserved": "336 px",
+          "threshold": "<=1 px",
+          "currentVerifiedInEngine": "0.0 px (createResizeSnapshot atomic reframe)"
+        }
+      ]
+    }
+  }
+}

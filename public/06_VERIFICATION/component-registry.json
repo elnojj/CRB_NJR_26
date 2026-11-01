@@ -1,0 +1,233 @@
+{
+  "$schema": "https://nojara.studios/schemas/cerebro-39-component-registry-v2.json",
+  "version": "2.0.0-cerebro39-master",
+  "isolationDirective": "MASTER IMPLEMENTATION DIRECTIVE SECTION 02 & V2.0 SECTION 03: Strict Modular Component Isolation — One authoritative owner per component, material, motion timeline, camera command, and state domain.",
+  "single_ownership_authorities": {
+    "rendererLifecycle": "src/components/CosmographCanvas.tsx (setupRenderer, WebGLRenderer singleton per viewport)",
+    "sceneGraphAuthority": "src/components/CosmographCanvas.tsx (HQ Sphere 01 at [0,0,0] & CDE Sphere 02 at [38,4,-22])",
+    "cameraRigAuthority": "src/components/CosmographCanvas.tsx + src/three/spatialNavigation.tsx (executeAtomicReframe & CameraRig)",
+    "materialRegistryAuthority": "src/components/CosmographCanvas.tsx (getD0Materials + GLB PBR material definitions)",
+    "layoutAndCollisionAuthority": "src/gui/layoutEngine.ts + src/gui/CollisionManager.ts (computeGuiLayout deterministic slots)",
+    "voiceAndBridgeAuthority": "src/components/VoiceCard.tsx + src/utils/elevenLabsBridge.ts",
+    "actionAndToolAuthority": "src/utils/actionDispatcher.ts + src/gui/runtimeRegistry.ts (70 canonical actions, 27 agent tools)",
+    "cssTokenAuthority": "src/styles/cerebro.tokens.css (imported by src/index.css)"
+  },
+  "sehly_master_phone_components": [
+    {
+      "id": "C01",
+      "name": "Brand header",
+      "sourceFile": "src/components/BrandLockup.tsx",
+      "componentType": "DOM_HEADER_LOCKUP",
+      "parentContainer": "App.HeaderRegion",
+      "spec": "Center x=.50W, y=.064H; 10px tracked label (4.5px tracking) at 390 width. Exact supplied NOJARA mark in reserved top zone, clearspace 0.5x mark height.",
+      "materialRefs": ["CSS_TOKEN_PRIMARY_F2F6F8", "CSS_TOKEN_GOLD_D4AF37"],
+      "motionTimelineRefs": ["TL-HEADER-IDLE"],
+      "inputEvents": ["onClickHomeReset", "onToggleSphere"],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "C02",
+      "name": "Chapter eyebrow",
+      "sourceFile": "src/App.tsx",
+      "componentType": "DOM_TYPOGRAPHY_EYEBROW",
+      "parentContainer": "App.CenterEditorialStage",
+      "spec": "Center x=.50W, y=.115H; 9px / 1.8px tracking; muted gold (#D4AF37 / #8C6A45). One chapter label, no dense navigation.",
+      "materialRefs": ["CSS_TOKEN_GOLD_D4AF37"],
+      "motionTimelineRefs": ["TL-TEXT-GLYPH-STAGGER"],
+      "inputEvents": [],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "C03",
+      "name": "Hero headline",
+      "sourceFile": "src/App.tsx",
+      "componentType": "DOM_TYPOGRAPHY_HEADLINE",
+      "parentContainer": "App.CenterEditorialStage",
+      "spec": "x=24, width=342 (W-48); top .15H; 28px / 31.4px line-height (Jaapokki Subtract); center aligned; 2 lines preferred, 3 maximum.",
+      "materialRefs": ["CSS_TOKEN_PRIMARY_F2F6F8"],
+      "motionTimelineRefs": ["TL-TEXT-GLYPH-STAGGER"],
+      "inputEvents": [],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "C04",
+      "name": "Supporting line",
+      "sourceFile": "src/App.tsx",
+      "componentType": "DOM_TYPOGRAPHY_SUBLINE",
+      "parentContainer": "App.CenterEditorialStage",
+      "spec": "14px / 20px (Inter); secondary color (#D0DCE3); 8px beneath headline; max width 310px.",
+      "materialRefs": ["CSS_TOKEN_SECONDARY_D0DCE3"],
+      "motionTimelineRefs": ["TL-TEXT-GLYPH-STAGGER"],
+      "inputEvents": [],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "C05",
+      "name": "Sphere stage",
+      "sourceFile": "src/three/ExperienceCanvas.tsx -> src/components/CosmographCanvas.tsx",
+      "componentType": "WEBGL_3D_HERO_ASSEMBLY",
+      "parentContainer": "Scene.HQ_SphereGroup",
+      "spec": "Idle center (.50W, .52H), projected diameter .78W (304.2px at 390W); allow camera-led overscan for discover/enter. Reframe using measured stage, never stretch mesh.",
+      "materialRefs": ["MAT_LIQUID_GLASS_SHELL", "MAT_SILVER_CORE", "MAT_BRONZE_GOLD_RAILS"],
+      "assetRefs": ["ASSET_GLB_SPHERE_ASSEMBLY", "ASSET_GLB_GLASS_SHELL", "ASSET_GLB_METAL_CORE", "ASSET_GLB_ORBITAL_CAGE"],
+      "motionTimelineRefs": ["TL-SPHERE-IDLE-ORBIT"],
+      "inputEvents": ["onPointerDownOrbit", "onWheelDolly", "onRaycasterSelectNode"],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "C06",
+      "name": "Voice capsule",
+      "sourceFile": "src/components/VoiceCard.tsx",
+      "componentType": "DOM_VOICE_DOCK_CAPSULE",
+      "parentContainer": "App.VoiceDockRegion",
+      "spec": "Idle centered at .88H; 220-256px wide, 48-56px high; microphone 24px visual, >=44px target. Reserve safe-area bottom plus 16px.",
+      "materialRefs": ["CSS_CEREBRO_PILL", "CSS_TOKEN_PRIMARY_F2F6F8"],
+      "assetRefs": ["ASSET_SVG_VOICE_PILL", "ASSET_SVG_MICROPHONE"],
+      "motionTimelineRefs": ["TL-VOICE-LEVEL-PULSE"],
+      "inputEvents": ["onConnectLiveVoice", "onToggleMute", "onInstantStop"],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "C07",
+      "name": "Listening state rings",
+      "sourceFile": "src/components/VoiceCard.tsx",
+      "componentType": "DOM_SVG_AUDIO_REACTIVE_RINGS",
+      "parentContainer": "VoiceCard.OrbButton",
+      "spec": "Teal concentric rings (#9AFFE0 / #78D3B2), radii 24/30/38 CSS px; level-driven scale 1.00-1.04 (attack 80ms, release 240ms); show Listening and Stop/mute controls with explicit semantics.",
+      "materialRefs": ["CSS_TOKEN_VOICE_9AFFE0", "CSS_TOKEN_STATE_TEAL_78D3B2"],
+      "assetRefs": ["ASSET_SVG_LISTENING_RING"],
+      "motionTimelineRefs": ["TL-VOICE-LEVEL-PULSE"],
+      "inputEvents": ["onToggleMute", "onInstantStop"],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "C08",
+      "name": "Selected target card",
+      "sourceFile": "src/gui/GuiFocusOverlay.tsx",
+      "componentType": "DOM_GLASS_FOCUS_CARD",
+      "parentContainer": "App.FocusOverlayRegion",
+      "spec": "Panel x=24, width=W-48 (342px), y=.74H proposed; 20px radius; 16px padding; target label and Open action. Move capsule below with >=16px gap.",
+      "materialRefs": ["CSS_CEREBRO_PANEL"],
+      "assetRefs": ["ASSET_SVG_PANEL", "ASSET_SVG_CHEVRON"],
+      "motionTimelineRefs": ["TL-PANEL-REVEAL-420MS"],
+      "inputEvents": ["onOpenSelectedTarget", "onDismissFocus"],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "C09",
+      "name": "Detail panel",
+      "sourceFile": "src/components/PanelsOverlay.tsx",
+      "componentType": "DOM_SLOT_HUD_PANEL",
+      "parentContainer": "App.PanelSlotsRegion",
+      "spec": "Same glass family; heading + Overview / Explore rows, each >=44px. Panel may overlay empty sphere area but must not obscure face, title, or selected content.",
+      "materialRefs": ["CSS_CEREBRO_PANEL"],
+      "assetRefs": ["ASSET_SVG_PANEL", "ASSET_SVG_DETAIL_ROW"],
+      "motionTimelineRefs": ["TL-PANEL-REVEAL-420MS"],
+      "inputEvents": ["onSelectTab", "onMinimizePanel", "onClosePanel"],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "C10",
+      "name": "Media portal",
+      "sourceFile": "src/components/CosmographCanvas.tsx (MediaTube & Portal Rim)",
+      "componentType": "WEBGL_3D_MEDIA_APERTURE",
+      "parentContainer": "Scene.MediaPortalGroup",
+      "spec": "World-anchored circular/elliptical rim; fit source with aspect-ratio preserved (contain default; 1:1, 16:9, 9:16, portrait). Fixed aperture dimensions across content swaps.",
+      "materialRefs": ["MAT_LIQUID_GLASS_SHELL", "MAT_BRONZE_GOLD_RAILS"],
+      "assetRefs": ["ASSET_GLB_MEDIA_PORTAL_RIM", "ASSET_SVG_PORTAL_RIM"],
+      "motionTimelineRefs": ["SEQ-FILM-08-REVEAL"],
+      "inputEvents": ["onSelectMediaTile", "onOpenMediaFullView"],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "C11",
+      "name": "Focus marker",
+      "sourceFile": "src/gui/GuiFocusOverlay.tsx",
+      "componentType": "DOM_2D_PROJECTED_RETICLE",
+      "parentContainer": "App.FocusOverlayRegion",
+      "spec": "Gold point with 2px ring at 390 CSS px; 44px invisible hit target. Leader line and short label appear only when needed.",
+      "materialRefs": ["CSS_TOKEN_GOLD_D4AF37"],
+      "assetRefs": ["ASSET_GLB_GOLD_NODE", "ASSET_SVG_TARGET", "ASSET_SVG_FOCUS_LABEL"],
+      "motionTimelineRefs": ["SEQ-FILM-03-DISCOVER"],
+      "inputEvents": ["onSelectFocusMarker"],
+      "status": "VERIFIED"
+    },
+    {
+      "id": "C12",
+      "name": "Final composition",
+      "sourceFile": "src/App.tsx + src/components/BrandLockup.tsx",
+      "componentType": "COMPOSITE_EDITORIAL_FINALE",
+      "parentContainer": "App.RootViewport",
+      "spec": "Same sphere family; larger negative space; title CEREBRO and One continuous intelligence. Hold copy >=3s. Exact NOJARA lockup required for production.",
+      "materialRefs": ["MAT_LIQUID_GLASS_SHELL", "CSS_TOKEN_PRIMARY_F2F6F8"],
+      "motionTimelineRefs": ["SEQ-FILM-10-FINALE"],
+      "inputEvents": ["onReplayTour"],
+      "status": "VERIFIED"
+    }
+  ],
+  "runtime_application_modules": [
+    {
+      "id": "MOD_APP_ROOT",
+      "sourceFile": "src/App.tsx",
+      "exportName": "default (App)",
+      "status": "ACTIVE",
+      "singleOwnerDomain": "Top-level application state, navigation snapshots, tour state machine, and layout slot orchestration",
+      "dependencies": ["src/three/ExperienceCanvas.tsx", "src/components/PanelsOverlay.tsx", "src/components/VoiceCard.tsx", "src/gui/layoutEngine.ts", "src/utils/actionDispatcher.ts"],
+      "lifecycleCleanup": "Cleans up tour timers, SSE stream subscriptions, and keyboard listeners on unmount"
+    },
+    {
+      "id": "MOD_EXPERIENCE_CANVAS",
+      "sourceFile": "src/three/ExperienceCanvas.tsx",
+      "exportName": "ExperienceCanvas",
+      "status": "ACTIVE",
+      "singleOwnerDomain": "Authoritative React wrapper for the 3D WebGL viewport, reduced-motion fallback, and 2D portal station pins",
+      "dependencies": ["src/components/DualSphereCanvas.tsx", "src/components/CosmographCanvas.tsx"],
+      "lifecycleCleanup": "Delegates WebGL context, geometry, material, texture, and EffectComposer disposal to CosmographCanvas"
+    },
+    {
+      "id": "MOD_COSMOGRAPH_CANVAS",
+      "sourceFile": "src/components/CosmographCanvas.tsx",
+      "exportName": "CosmographCanvas, setupRenderer, getD0Materials, setupLights",
+      "status": "ACTIVE",
+      "singleOwnerDomain": "Single WebGLRenderer instance, Three.js Scene Graph, PerspectiveCamera rig, PMREM RoomEnvironment, EffectComposer bloom/vignette, and rAF loop",
+      "dependencies": ["three", "src/tokens/colours.ts", "src/gui/cameraPresets.ts", "src/three/spatialNavigation.tsx"],
+      "lifecycleCleanup": "Cancels requestAnimationFrame, disposes renderer, composer, PMREMGenerator, geometries, materials, and ResizeObserver"
+    },
+    {
+      "id": "MOD_LAYOUT_ENGINE",
+      "sourceFile": "src/gui/layoutEngine.ts",
+      "exportName": "computeGuiLayout",
+      "status": "ACTIVE",
+      "singleOwnerDomain": "Deterministic viewport breakpoint classification (phone, ipad_portrait, ipad_landscape, desktop, wide) and zero-overlap slot geometry",
+      "dependencies": ["src/gui/CollisionManager.ts", "src/gui/guiTokens.ts"],
+      "lifecycleCleanup": "Pure deterministic function; zero side effects"
+    },
+    {
+      "id": "MOD_VOICE_CARD",
+      "sourceFile": "src/components/VoiceCard.tsx",
+      "exportName": "VoiceCard",
+      "status": "ACTIVE",
+      "singleOwnerDomain": "ElevenLabs live voice session lifecycle, microphone permission, RMS envelope smoothing, and natural-language command bar",
+      "dependencies": ["src/utils/elevenLabsBridge.ts", "src/data/croCdeGoogleAgentManifest.ts"],
+      "lifecycleCleanup": "Disconnects ElevenLabs WebSocket/WebRTC session and stops MediaStream tracks on unmount"
+    },
+    {
+      "id": "MOD_PANELS_OVERLAY",
+      "sourceFile": "src/components/PanelsOverlay.tsx",
+      "exportName": "PanelsOverlay",
+      "status": "ACTIVE",
+      "singleOwnerDomain": "All 17 Optical HUD panels rendered strictly inside layoutEngine-assigned non-overlapping slots",
+      "dependencies": ["src/components/WireframesV11Panels.tsx", "src/gui/guiTokens.ts"],
+      "lifecycleCleanup": "Releases media playback intervals and modal listeners on close"
+    },
+    {
+      "id": "MOD_CEREBRO_APP_ALIAS",
+      "sourceFile": "src/CerebroApp.tsx",
+      "exportName": "CerebroApp",
+      "status": "DORMANT_WRAPPER",
+      "singleOwnerDomain": "Compatibility named re-export of App.tsx; zero independent state or runtime conflict",
+      "dependencies": ["src/App.tsx"],
+      "lifecycleCleanup": "None"
+    }
+  ]
+}

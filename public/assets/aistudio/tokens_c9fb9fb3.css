@@ -1,0 +1,20 @@
+:root {
+  --c-deep: #05090E;
+  --c-canvas: #101D27;
+  --c-glass: #142632;
+  --c-primary: #F2F6F8;
+  --c-secondary: #D0DCE3;
+  --c-muted: #BDCBD3;
+  --c-ice: #B4DDFF;
+  --c-cobalt: #65ACFF;
+  --c-bronze: #8C6A45;
+  --c-gold: #D4AF37;
+  --c-voice: #9AFFE0;
+  --font-display: "Jaapokki Subtract", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --page-margin: 24px; --panel-radius: 20px; --pill-radius: 999px;
+  --motion-ease: cubic-bezier(.22,1,.36,1);
+}
+.cerebro-panel {background:rgba(20,38,50,.44); border:1px solid rgba(180,221,255,.36); border-radius:var(--panel-radius); backdrop-filter:blur(18px); box-shadow:inset 0 1px 0 rgba(242,246,248,.12),0 12px 48px rgba(0,0,0,.18);}
+.cerebro-pill {min-height:48px;border-radius:999px;padding:12px 20px;display:inline-flex;gap:12px;align-items:center;}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}}

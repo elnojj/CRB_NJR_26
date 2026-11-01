@@ -1,0 +1,2260 @@
+Regenerate the accurate json codes for the design system of cerebro 39, I’ve rewritten your instructions as a Master Implementation Protocol for Google AI Studio, designed to travel with your project ZIP, design-system files, 3D assets, textures, and source code.
+
+The most important architectural correction is this: isolate component ownership and behavior without breaking legitimate shared infrastructure. Every 3D object, material, animation, camera sequence, UI panel, and interaction must be independently controllable, but they can still participate in one synchronized cinematic experience.
+
+Your goal is not simply to generate a visually similar website. It is to reproduce the approved design faithfully, prevent implementation drift, eliminate competing code paths, and achieve precise control over every visible element.
+
+MASTER IMPLEMENTATION DIRECTIVE
+
+Design System Fidelity · Modular 3D Architecture · Cinematic WebGL · Cross-Platform Engineering
+
+Version: 1.0 · 1 November 2026
+Execution environment: Google AI Studio and compatible AI coding environments
+Input sources: Existing project ZIP, approved design system, source code, 3D models, material textures, media assets, and associated specifications
+Execution method: Sequential, controlled, in-place implementation
+Primary requirement: ZERO UNAUTHORIZED DESIGN OR LOGIC DRIFT
+
+⸻
+
+00. MASTER COMMAND
+
+You are acting as a senior creative technologist, WebGL engineer, frontend architect, motion-systems engineer, and design-system implementation specialist.
+
+Your assignment is to analyze the supplied project and implement the attached approved design system into its existing architecture.
+
+The existing project is the implementation target. The attached design system is the visual and interaction authority. Neither may be silently replaced with a newly invented interpretation.
+
+Do not create a substitute experience, simplified demonstration, unrelated application, or generic AI-generated interface.
+
+Work directly within the provided project structure wherever the execution environment permits.
+
+If direct file modification is unavailable, produce explicit, file-addressed patches that can be applied to the original project. Do not present generated code as though it has already been committed or deployed.
+
+Your implementation must satisfy six governing principles:
+
+1. Source Fidelity: Exact approved visual identity, content, assets, and interaction behavior.
+2. Architectural Isolation: One clearly defined owner for each component, material, motion behavior, and state transition.
+3. Deterministic Motion: Precise, inspectable, individually adjustable animation and camera controls.
+4. Cinematic Continuity: A coherent 3D environment with deliberate sequencing and seamless transitions.
+5. Responsive Rendering: Physically grounded WebGL rendering on supported desktop, mobile, and tablet devices.
+6. Evidence-Based Verification: Every implementation phase must produce measurable results and explicit QA evidence.
+
+No assumption, generated default, or aesthetic interpretation may override a documented approved decision.
+
+01. INPUT INSPECTION AND SOURCE AUTHORITY
+
+Before generating or modifying code, inspect the supplied ZIP files and attachments.
+
+Identify:
+
+* Project root, framework, build system, and package configuration.
+* Application entry points, routing, components, modules, and style ownership.
+* Existing WebGL renderer, scene graph, cameras, animation timelines, and rendering dependencies.
+* Fonts, typography rules, approved artwork, models, shaders, textures, and material presets.
+* Existing interaction, voice, data, and navigation contracts.
+* Design tokens, breakpoints, spacing, layout constraints, and animation specifications.
+* Duplicated implementations, obsolete components, overlapping event handlers, and competing code paths.
+
+Determine which existing files are actually active at runtime. A duplicate file is not automatically a runtime conflict.
+
+Produce a Source Authority Matrix:
+
+Source	Authority
+Explicit approved design-system specification	Visual and interaction requirements
+Approved asset files	Exact media and material identity
+Active existing source code	Actual implementation behavior
+Existing application contracts	Compatibility requirements
+Generated model suggestions	Proposals only, never automatic authority
+
+If two authoritative sources conflict, report the exact conflict and affected files. Do not silently choose or blend alternatives.
+
+Create a baseline inventory that includes file paths, component names, dependencies, asset identifiers, and the latest verified test results.
+
+02. STRICT COMPONENT ISOLATION
+
+This is a non-negotiable architecture requirement.
+
+Every component must have a clearly defined responsibility and explicit interfaces.
+
+A component must not silently change another component’s appearance, animation, state, camera settings, material properties, layout, or visibility.
+
+Implement the following rules:
+
+2.1 Single ownership
+
+Every functional behavior must have exactly one authoritative owner.
+
+Examples:
+
+* One renderer lifecycle manager.
+* One source of truth for each material definition.
+* One defined camera controller or orchestrator for the active viewport.
+* One animation timeline owner per independently animated object or group.
+* One navigation authority.
+* One state owner for each state domain.
+* One CSS styling authority per component or token scope.
+
+Do not allow several competing implementations to control the same behavior.
+
+2.2 Isolation boundaries
+
+Apply isolation to:
+
+* Component state
+* CSS classes and selectors
+* Shader uniforms
+* Material instances and configuration
+* Mesh transform properties
+* Animation timelines
+* Event listeners
+* Input handlers
+* Camera commands
+* Render targets
+* Postprocessing effects
+* UI overlays
+* Voice interaction state
+* Data subscriptions
+* Resource disposal
+
+Use scoped styles, namespaced identifiers, explicit APIs, and bounded lifecycle management.
+
+Avoid uncontrolled global variables, mutable shared singletons, broad CSS selectors, and cross-component side effects.
+
+2.3 Connectivity removal and conflict elimination
+
+When replacing a specific legacy implementation:
+
+1. Map all incoming and outgoing dependencies.
+2. Identify active consumers and producers.
+3. Classify each connection as required, obsolete, conflicting, or unknown.
+4. Establish the replacement component’s documented interface.
+5. Disconnect obsolete bindings and conflicting runtime ownership.
+6. Remove duplicated controllers, subscriptions, listeners, and render loops only after proving the replacement preserves required functionality.
+7. Reconnect necessary dependencies through explicit, typed interfaces.
+8. Verify that no remaining active pathway controls the same properties unexpectedly.
+
+Never delete unrelated integrations, production data, approved assets, or legitimate shared infrastructure merely to achieve apparent isolation.
+
+The requirement is zero unintended cross-component coupling, not zero dependencies.
+
+2.4 Renderer and camera architecture
+
+Independently controllable objects do not require a separate WebGL renderer for every object.
+
+Prefer one coordinated rendering architecture per viewport, unless the approved application genuinely requires multiple rendering contexts.
+
+Maintain:
+
+* A shared renderer lifecycle.
+* A documented scene graph.
+* Independently owned object transforms.
+* Scoped materials and animation controllers.
+* A central sequence orchestrator for cinematic synchronization.
+* Explicit camera ownership and transition handoffs.
+
+No component may directly overwrite another component’s camera animation.
+
+Avoid simultaneous conflicting controls over position, rotation, target, FOV, zoom, or camera rig hierarchy.
+
+03. MOTION AND CAMERA CONTROL SYSTEM
+
+All motion must be parameterized, independently editable, and observable.
+
+Every animated component must expose a defined motion contract containing:
+
+Parameter	Required control
+Component ID	Stable unique identifier
+Timeline ID	Unique timeline ownership
+Start	Explicit trigger or sequence time
+Duration	Editable duration in seconds
+Delay	Editable delay
+Easing	Defined curve or function
+Position	X, Y, Z transforms
+Rotation	Euler or quaternion representation
+Scale	Independent XYZ scaling
+Opacity	Alpha/visibility behavior
+Material	Animatable approved properties
+Camera	Explicit camera action requests
+Completion	Finished, interrupted, or cancelled state
+
+Use GSAP, Three.js animation facilities, or existing compatible project libraries according to actual project dependencies and approved implementation constraints.
+
+Do not introduce a second animation engine without a demonstrated architectural need.
+
+Camera requirements
+
+Provide independent parameters for:
+
+* Position and target
+* Field of view
+* Camera orientation
+* Dolly, orbit, pan, truck, pedestal, and crane-style movement
+* Path-following transitions
+* Focal emphasis and depth cues
+* Transition duration
+* Easing
+* Start and end states
+* Interruption, cancellation, and restoration
+
+For cinematic sequences, preserve spatial continuity and avoid sudden jumps, accidental re-centering, or unrelated camera resets.
+
+Use one authoritative camera command at a time, with explicit arbitration or blending when transitions require multiple influences.
+
+Visible control and debugging
+
+Provide a development-only motion inspector capable of exposing:
+
+* Selected component ID
+* Active timeline
+* Current animation state
+* Position/rotation/scale
+* Camera state
+* Duration and easing
+* Active material
+* Playback controls
+* Pause, resume, seek, and reset where technically supported
+
+Development inspection controls must not interfere with the approved production UI.
+
+No invisible motion ownership. No conflicting animation authorities. No unexplained camera movement.
+
+04. CINEMATIC VISUAL AND MATERIAL STANDARD
+
+Implement the approved visual direction using actual 3D rendering where the source specification requires it.
+
+Target qualities:
+
+Cinematic, physically grounded, high-fidelity, minimal, spatially coherent, optically convincing, and materially consistent.
+
+Do not achieve this aesthetic by adding unnecessary visual noise.
+
+Prioritize:
+
+* Accurate forms and surface finishes.
+* Controlled reflections and refractions.
+* Physically plausible material response.
+* Disciplined exposure and contrast.
+* Consistent color reproduction.
+* Deliberate depth composition.
+* Restrained bloom and postprocessing.
+* Clean typography and readable contrast.
+* Purposeful movement.
+* One coherent visual language.
+
+4.1 Physically Based Rendering
+
+Use a supported PBR workflow compatible with the existing rendering engine.
+
+Where appropriate, use MeshStandardMaterial, MeshPhysicalMaterial, or documented custom physically based shaders.
+
+Implement approved texture maps according to their actual material channels:
+
+* Base color / albedo
+* Metallic
+* Roughness
+* Normal
+* Ambient occlusion
+* Emissive
+* Transmission
+* Thickness
+* Alpha / opacity
+
+Do not synthesize missing texture maps or replace provided material definitions without an explicit design or technical reason.
+
+Correctly classify texture color spaces:
+
+* Color textures such as albedo generally use sRGB.
+* Non-color data textures such as normal, roughness, metallic, and displacement remain linear data.
+* Environment lighting must follow the renderer’s compatible lighting and color-management pipeline.
+
+Verify texture UV mapping, orientation, channel packing, alpha behavior, mipmapping, filtering, and color output.
+
+4.2 Rendering configuration
+
+Use consistent renderer-level settings for:
+
+* Output color space
+* Tone mapping
+* Exposure
+* Lighting configuration
+* Shadow maps and resolution
+* Transparency and blending
+* Antialiasing
+* Environment maps and reflections
+* Postprocessing chain
+* GPU resource budgets
+
+Do not independently override global rendering settings from unrelated components.
+
+If custom shader materials are used, ensure they are color-management compatible with the chosen renderer.
+
+4.3 Asset authenticity
+
+Use provided GLB/GLTF models, approved textures, and exact asset references.
+
+Do not silently replace true 3D objects with flattened images, CSS gradients, generic geometry, or static mockups.
+
+Do not invent new brand marks, fonts, colors, media, labels, or visual elements.
+
+If an approved asset cannot be loaded, report its path and failure reason. Use a clearly identified temporary diagnostic fallback only when necessary.
+
+05. RESPONSIVE WEBGL AND CROSS-PLATFORM BEHAVIOR
+
+Implement one coherent experience that adapts deliberately to the available viewport.
+
+Required validation targets:
+
+* Desktop Chrome
+* Desktop Safari
+* Android Chrome
+* iPhone Safari
+* iPad Safari
+* iPad Chrome
+* iPad portrait and landscape
+* iPad split-screen and resized viewports
+
+5.1 Adaptive pixel ratio
+
+Do not use a permanently fixed device pixel ratio.
+
+Start from:
+
+window.devicePixelRatio || 1
+
+Apply a configurable resolution ceiling and, where justified, dynamic resolution scaling informed by measured performance.
+
+A practical starting ceiling may be 2 on suitable devices, with lower quality presets on constrained hardware, but the final value must be validated.
+
+Do not assume device type alone predicts GPU capability.
+
+5.2 Responsive canvas
+
+Size the rendering viewport from its actual container using a reliable resize observer.
+
+Update:
+
+* Render width and height
+* Renderer pixel dimensions
+* Camera aspect ratio
+* Projection matrix
+* Postprocessing resolution
+* Responsive camera framing
+* Interaction hit testing
+
+Use CSS responsive layout constraints, dvh/viewport units where appropriate, and safe-area insets.
+
+Do not depend exclusively on fixed pixel dimensions or initial window.innerWidth.
+
+Support viewport changes caused by browser chrome, tablet split view, orientation changes, and resizing.
+
+5.3 Responsive cinematic composition
+
+Use breakpoint-specific or viewport-derived camera presets when appropriate.
+
+Maintain subject framing and hierarchy across aspect ratios. Different compositions may be necessary to preserve the same intended experience.
+
+Prevent:
+
+* Cropped primary subjects
+* Distorted geometry
+* Overlapping controls
+* Unreadable labels
+* Off-screen interactive elements
+* Broken pointer coordinates
+* Unexpected camera reset
+* Lost animation state after resizing
+
+5.4 Performance and resilience
+
+Apply measured performance optimization through:
+
+* Geometry and texture budgets
+* Texture compression where supported
+* Lazy loading and intentional preloading
+* Frustum culling where suitable
+* Controlled postprocessing costs
+* Animation cleanup
+* Memory and listener cleanup
+* WebGL context loss and restoration handling
+* Runtime performance measurements
+
+Avoid arbitrary performance claims. Report observed FPS, frame times, memory indicators where available, and device/test conditions.
+
+06. APPROVED DESIGN SYSTEM FIDELITY
+
+All implementation decisions must trace to the uploaded design-system source.
+
+Preserve exactly, where supplied:
+
+* Typography and font files
+* Font weights and hierarchy
+* Colors and tokens
+* Spacing and layout rules
+* Materials and surface finishes
+* Logo sizes and placement
+* UI copy
+* Component composition
+* Interaction patterns
+* Motion behavior
+* Backgrounds and visual textures
+* Responsive variants
+* RTL and Arabic rules
+* Media references
+
+Do not replace approved fonts with default system fonts except through a documented fallback strategy.
+
+Do not use arbitrary CSS values when approved tokens exist.
+
+Where the design system is incomplete, identify the missing specification and propose a value separately. Mark it PROPOSED, never APPROVED.
+
+07. ASSET INDEXING AND TRACEABILITY
+
+Create a machine-readable asset manifest for implementation and future agent handoffs.
+
+Every relevant asset record should include:
+
+* Unique asset ID
+* Original source path
+* Runtime output path
+* Source file hash
+* File format and MIME type
+* Dimensions or 3D bounding dimensions
+* Texture channels and color space where applicable
+* Transparency information
+* UV coordinates or texture atlas references where relevant
+* Associated component IDs
+* Material ID
+* Animation ID
+* Responsive usage
+* Load priority
+* Licensing/provenance metadata when available
+* Verification status
+
+Retain the actual approved source assets. Generated or optimized derivatives must be distinguishable and traceable to their originals.
+
+Create a component registry describing the source file, export, props, dependencies, material bindings, interaction contract, and motion ownership of each component.
+
+Do not claim pixel-perfect accuracy without a documented reference-to-render comparison.
+
+08. NEGATIVE CONSTRAINTS: STRICTLY FORBIDDEN
+
+The implementation must not:
+
+* Invent a replacement design system.
+* Rewrite approved copy unnecessarily.
+* Change approved brand identity.
+* Replace supplied 3D assets with approximations.
+* Add decorative elements not present in the approved specification.
+* Generate competing global styles.
+* Create duplicated camera controllers.
+* Create conflicting render loops.
+* Allow multiple components to animate the same property without coordination.
+* Introduce hidden dependencies.
+* Reset camera or motion state unexpectedly.
+* Delete unrelated project functionality.
+* Break existing integrations.
+* Invent placeholder data and present it as real.
+* Introduce new frameworks merely out of preference.
+* Treat code generation as equivalent to a tested implementation.
+* Claim cross-browser compatibility without testing.
+* Proceed to the next implementation phase before documenting the current phase’s results.
+* Declare success by hiding, skipping, or relaxing a failing check.
+
+Preserve existing package versions and project contracts unless an actual compatibility issue requires a documented change.
+
+09. SEQUENTIAL EXECUTION PROTOCOL
+
+Implement the project in four controlled phases.
+
+Each phase must receive its own prompt. Do not execute all four automatically.
+
+PHASE 1: CORE ENGINE AND ARCHITECTURAL ISOLATION
+
+Inspect the existing active rendering architecture and design-system implementation.
+
+Establish:
+
+* Renderer ownership
+* Scene graph organization
+* Camera controller ownership
+* Material registry
+* Component registry
+* Lifecycle management
+* Animation orchestration
+* Scoped CSS and event boundaries
+* Responsive rendering configuration
+* Asset loader architecture
+
+Resolve verified ownership conflicts within the scope of this phase.
+
+Preserve approved visuals and existing application functionality.
+
+Phase exit evidence:
+
+* Exact changed files
+* Dependency/ownership map
+* Conflicts resolved
+* Remaining conflicts
+* Build and type-check results
+* Renderer startup verification
+* Known blockers
+
+Stop after this phase.
+
+PHASE 2: SCENE, ASSETS, AND DATA
+
+Build or reconcile the approved 3D components and scene composition using the supplied models, textures, and specifications.
+
+Connect components to existing data contracts without inventing new application data.
+
+Implement independently controllable mesh transforms, scoped materials, approved spatial arrangements, and sequential animation timelines.
+
+Verify correct asset provenance, scaling, material channels, colors, and layout.
+
+Preserve camera authority established in Phase 1.
+
+Phase exit evidence:
+
+* Asset manifest
+* Component-to-asset mapping
+* Scene hierarchy
+* Data interface mapping
+* Motion timeline registry
+* Visual comparison
+* Missing or invalid assets
+* Executed test results
+
+Stop after this phase.
+
+PHASE 3: VOICE AND INTERACTION
+
+Integrate the existing approved voice and interaction architecture without silently replacing providers, credentials, prompts, or voice identities.
+
+Ensure:
+
+* Explicit microphone permission and user-gesture handling
+* Visible listening, thinking, speaking, muted, and error states
+* Reliable mute/unmute and stop controls
+* Clear session lifecycle
+* No duplicated microphone or audio sessions
+* No unintended audio feedback loops
+* Correct interruption/cancellation behavior
+* Voice commands routed through explicit interaction contracts
+* Camera and UI actions respecting their existing ownership boundaries
+
+Provide visual feedback synchronized to actual voice state, not fabricated animation.
+
+Where voice is unsupported or unavailable, display an accurate error or fallback state.
+
+Phase exit evidence:
+
+* Voice state diagram
+* Command-to-action mapping
+* Interaction test results
+* Permission behavior
+* Mute/interrupt verification
+* Provider configuration changes, if any
+* Unresolved issues
+
+Stop after this phase.
+
+PHASE 4: UI OVERLAYS, RESPONSIVENESS, AND FINAL INTEGRATION
+
+Implement approved panels, menus, captions, widgets, text layers, and overlays.
+
+Use isolated component styles and a documented visual stacking system.
+
+Coordinate 2D overlays and 3D scene behavior without conflicting camera control, event propagation, or layout.
+
+Validate:
+
+* Typography and design tokens
+* Safe areas and orientation
+* Touch, pointer, and keyboard interaction
+* Overlay collision and stacking
+* Camera continuity
+* Visual hierarchy
+* Motion timing
+* Responsive composition
+* Cross-browser rendering
+* Component isolation
+* Voice UI coexistence
+
+Execute the final QA matrix.
+
+Phase exit evidence:
+
+* File-by-file implementation report
+* Visual comparison results
+* Cross-platform test matrix
+* Regression results
+* Performance measurements
+* Missing approvals/assets
+* Remaining issues
+* Final implementation status
+
+Do not claim that the application is production-ready unless all required acceptance checks pass.
+
+10. STANDARD PHASE RESPONSE FORMAT
+
+After each phase, respond with:
+
+A. Baseline: What existed before modification, including the active code paths.
+
+B. Changes: Exact files and components created, edited, or removed.
+
+C. Isolation: Dependencies and conflicts found, with precise explanations of what was retained, replaced, or disconnected.
+
+D. Visual Fidelity: Design-system specifications applied and those not yet applied.
+
+E. Motion: Timelines, animation ownership, and camera controls added or verified.
+
+F. Tests: Commands executed, environments tested, and actual results.
+
+G. Unresolved: Failures, unsupported capabilities, missing inputs, or unknowns.
+
+H. Next Phase: Explicit next action without beginning it automatically.
+
+Use these status labels consistently:
+
+* NOT STARTED
+* PROPOSED
+* IMPLEMENTED
+* TESTED
+* VERIFIED
+* BLOCKED
+
+Never confuse generated source code with a functioning, verified implementation.
+
+11. FINAL ACCEPTANCE CRITERIA
+
+The completed implementation must demonstrate:
+
+* Approved design identity faithfully reproduced.
+* All required 3D assets resolved and loaded correctly.
+* One clear authority per active component behavior.
+* No conflicting camera or animation controllers.
+* Independently controllable motion timelines.
+* Deterministic camera transitions.
+* Correct PBR materials and texture color spaces.
+* Responsive canvas and intentional composition.
+* No unintended UI overlapping.
+* Functional, visible voice interaction when supported.
+* Preservation of existing application contracts.
+* Cross-platform test evidence.
+* Complete file, asset, and component mapping.
+* No known critical failures concealed by fallbacks.
+
+Final governing instruction:
+
+Preserve the source. Isolate the components. Eliminate conflicting ownership. Reproduce the approved design. Control motion precisely. Maintain cinematic continuity. Verify everything.
+
+Do not improvise beyond the attached specifications.
+
+Do not advance beyond the phase explicitly requested.
+
+⸻
+
+EXECUTION PROMPTS FOR GOOGLE AI STUDIO
+
+Use the master command above as the permanent instruction for the implementation session.
+
+Send the following four prompts individually, in order, with the project ZIP and approved design-system files available as source attachments.
+
+PROMPT 1 · CORE ENGINE
+
+Analyze the attached project and its design system. Establish the active code paths and dependency map before editing. Implement only Phase 1 of the Master Implementation Directive.
+
+Eliminate verified competing runtime ownership and isolate components through explicit interfaces. Preserve existing visuals, routes, copy, data, and integrations.
+
+Implement or reconcile renderer lifecycle, scene hierarchy, camera ownership, material registry, responsive sizing, animation orchestration, and scoped component architecture.
+
+Do not create a replacement project or redesign the interface.
+
+Return file-level changes, isolation findings, test evidence, and Phase 1 acceptance results. Stop.
+
+PROMPT 2 · SCENE AND ASSETS
+
+Continue exclusively from the verified Phase 1 output.
+
+Implement only Phase 2.
+
+Reproduce the approved 3D visual composition using the provided models, materials, textures, and existing data contracts.
+
+Make each scene component independently controllable while preserving the shared renderer and authoritative camera architecture.
+
+Implement individual timelines and a deterministic cinematic sequence controller.
+
+Index every asset, component, material, and timeline. Preserve source provenance.
+
+Report exact differences from the approved reference and provide Phase 2 verification results. Stop.
+
+PROMPT 3 · VOICE AND INTERACTION
+
+Continue from the verified Phase 2 state.
+
+Implement only Phase 3.
+
+Inspect the existing voice architecture before modifying it. Preserve approved providers, voice identity, prompts, authentication mechanisms, and interaction contracts.
+
+Integrate visible voice states, command handling, audio controls, permission handling, interruption, and synchronization with the scene.
+
+Ensure voice cannot bypass component ownership or create competing navigation, camera, or animation controllers.
+
+Test supported voice workflows and accurately report anything that cannot be verified. Stop.
+
+PROMPT 4 · OVERLAYS AND FINAL QA
+
+Continue from the verified Phase 3 state.
+
+Implement only Phase 4.
+
+Apply all approved UI overlays, typography, captions, buttons, widgets, and layout rules.
+
+Preserve the approved visual identity and protect the 3D environment from CSS, stacking, interaction, or resize conflicts.
+
+Validate mobile, iPad, desktop, orientation changes, split-screen layouts, Safari, and Chrome wherever test environments are available.
+
+Complete source mapping, visual QA, motion QA, voice QA, regression checks, and performance reporting.
+
+Return an evidence-backed acceptance matrix with accurate implementation and verification statuses.
+
+Do not claim deployment or production readiness unless actually established.
+
+Two technical rules I would enforce above everything else
+
+Component isolation is not the same as separating the entire scene into independent renderers.
+
+A 3D sphere, galaxy, glass panel, or text object can have separate materials, transforms, animations, and event ownership while sharing the same renderer and cinematic camera. This retains continuity and avoids multiplying GPU overhead.
+
+The design system must become an executable specification, not merely a visual reference.
+
+Each approved color, font, material, motion curve, asset, camera preset, and UI component needs a traceable token, file reference, or configuration. Otherwise, the AI will keep filling gaps with its own interpretations.
+
+Recommended packaging for your uploads
+
+When you upload the materials to Google AI Studio or another implementation environment, structure the handoff like this:
+
+MASTER IMPLEMENTATION PACKAGE
+
+Proposed
+
+/MASTER_PACKAGE ├── 00_MASTER_DIRECTIVE.md ├── 01_EXISTING_PROJECT/ │ └── project-source.zip ├── 02_APPROVED_DESIGN_SYSTEM/ │ ├── design-system.pdf │ └── tokens-and-specs/ ├── 03_APPROVED_ASSETS/ │ ├── models/ │ ├── textures/ │ ├── environments/ │ ├── typography/ │ └── media/ ├── 04_REFERENCE_MATERIAL/ │ ├── screenshots/ │ └── motion-references/ ├── 05_EXECUTION/ │ ├── prompt-01-engine.md │ ├── prompt-02-scene-data.md │ ├── prompt-03-voice.md │ └── prompt-04-overlays-qa.md └── 06_VERIFICATION/ ├── component-registry.json ├── asset-manifest.json ├── motion-registry.json └── qa-matrix.json
+
+Folder names and artifacts above define a proposed handoff structure. They have not been created or verified against your ZIP.
+
+One final constraint: when you test the same package across Google AI Studio, Cursor, other coding agents, or different deployment environments, keep the approved source assets and design-system revision fixed. Compare each platform’s output against that same baseline, rather than allowing one platform’s generated variation to become the next platform’s design reference.
+
+That is how you prevent the repeated cycle of correcting one component only to discover that another agent, stylesheet, camera controller, or material definition has quietly changed it again.
+
+
+MASTER 39 · Cinematic Motion & Design System v2.0
+
+Target: Google AI Studio, Cursor, Gemini, and compatible React/Three.js development environments.
+
+This revision introduces two connected systems:
+
+* The Cinematic Engine: React Three Fiber, Theatre.js, physically based materials, custom GLSL shaders, lighting, postprocessing, and uninterrupted camera choreography.
+* The Editorial Experience: Every screen should be visually complete enough to become a premium social-media still or a frame in a vertical cinematic video, with approximately 75% visual communication and 25% supporting text.
+
+The aesthetic should combine an interactive 3D film, editorial art direction, and a high-end information-design system. Not a conventional dashboard decorated with animations.
+
+The 20 technical keywords to investigate and implement
+
+#	Keyword / technology	Primary purpose
+01	React Three Fiber (R3F)	Declarative React-based 3D scene rendering
+02	Three.js Scene Graph	Structured 3D objects, cameras and transforms
+03	Theatre.js / @theatre/r3f	Cinematic keyframes and editable sequencing
+04	GSAP Timeline / ScrollTrigger	Controlled UI choreography and interaction timing
+05	Drei CameraControls	Smooth, interactive camera movements
+06	Camera Splines / Bézier Paths	Continuous dolly, orbital and tracking shots
+07	Quaternion Interpolation	Smooth camera/object rotation without abrupt orientation changes
+08	React Postprocessing / EffectComposer	Unified GPU postprocessing pipeline
+09	Selective Bloom / HDR Emission	Controlled optical glow and luminous highlights
+10	Film Grain / Vignette	Subtle cinematic texture and framing
+11	Depth of Field / Bokeh	Optical depth and selective focus
+12	GLSL ShaderMaterial	Bespoke GPU surface and animation effects
+13	Shader Uniform Animation	Precise control of procedural materials over time
+14	PBR / MeshPhysicalMaterial	Realistic glass, metallic and translucent surfaces
+15	HDRI / Environment Lighting / PMREM	Coherent reflections and image-based illumination
+16	KTX2 / BasisU / Meshopt	Optimized texture and mesh delivery
+17	Adaptive DPR / Frameloop	Responsive rendering resolution and frame scheduling
+18	GPU Profiling / Draw Calls	Performance and rendering diagnostics
+19	9:16 Editorial Motion Graphics	Screen-recordable visual narratives and infographic compositions
+20	Arabic RTL / Bidirectional Typography	Native Arabic editorial layout and multilingual fidelity
+
+The technical basis is documented: R3F manages canvas and frame rendering, Theatre.js provides keyframe authoring, React Postprocessing supplies effect composition, and CameraControls provides smooth camera transitions. Theatre.js’s R3F integration must be checked against the project’s installed versions because its repository flags that extension as pre-release. React Three Fiber +4
+
+MASTER IMPLEMENTATION PROTOCOL V2.0
+
+CINEMATIC DESIGN SYSTEM · MOTION ENGINE · EDITORIAL 3D EXPERIENCE
+
+Date: 01 November 2026
+Authority: Uploaded approved design system and verified project source
+Environment: Google AI Studio / React / Three.js / WebGL
+Mode: Sequential in-place implementation
+Status: MASTER INSTRUCTION · PROPOSED
+
+⸻
+
+00 · THE PRIMARY DIRECTIVE
+
+You are acting as a senior Creative Technology Director, React Three Fiber architect, cinematic motion designer, GLSL shader developer, technical art director, and frontend systems engineer.
+
+You will receive:
+
+* The existing application project as a ZIP archive.
+* The approved design-system documentation.
+* Approved 3D models and material textures.
+* Brand assets, typography and visual references.
+* Existing source code, configuration and dependencies.
+* Reference screenshots, videos and motion specifications where available.
+
+Your task is to implement the approved experience directly into the existing application without unauthorized redesign, architectural drift or invented content.
+
+The outcome must look, move and behave like a deliberately directed cinematic experience, not a collection of independently generated website components.
+
+Every camera movement, object, infographic, material, text transition and interactive element must have a defined owner, an editable configuration and a traceable relationship to the approved design system.
+
+Preserve all verified existing functionality, copy, data contracts and approved assets.
+
+Do not generate a new project when an existing implementation can be repaired or extended.
+
+Do not delete working functionality to make a new feature appear functional.
+
+Do not assume a generated output is equivalent to an implemented, tested or deployed feature.
+
+⸻
+
+01 · CREATIVE DIRECTION: EDITORIAL CINEMA
+
+1.1 Design philosophy
+
+The design must integrate five qualities:
+
+CINEMATIC
+Intentional framing, optical depth, controlled light, continuous movement and sophisticated composition.
+
+EDITORIAL
+Art-directed typography, disciplined hierarchy, meaningful negative space, strong image selection and visually compelling information.
+
+SPATIAL
+Real 3D objects, physically convincing surfaces, depth relationships, responsive camera movement and layered compositions.
+
+INFORMATION-RICH
+Meaningful charts, graphical narratives, diagrams, numbers, spatial data objects, infographics and interactive indicators.
+
+MINIMAL
+Few competing elements, restrained decoration, consistent color systems, clear typography and precise visual focus.
+
+Minimalism does not mean empty screens.
+
+Complexity must be organized through hierarchy, spatial grouping, motion sequencing and progressive disclosure.
+
+1.2 The screenshot test
+
+Every deliberately composed screen state must be capable of producing a high-quality editorial image when captured.
+
+Imagine the user captures a screenshot of any presentation scene.
+
+That image should feel like:
+
+* A premium technology magazine cover.
+* An art-directed 3D information graphic.
+* A cinematic documentary title frame.
+* A high-end vertical social-media editorial.
+* A sophisticated product-film composition.
+
+The image must remain intelligible without requiring the viewer to watch the preceding animation.
+
+Each meaningful scene should contain an intentional visual focal point, accurate information, readable typography and coherent depth.
+
+Transitions between these states must remain visually deliberate. Avoid accidental blank frames, broken layouts, unstyled loading flashes or objects entering from arbitrary positions.
+
+Do not add visual clutter simply to fill the screen.
+
+1.3 Visual-to-text ratio
+
+Target approximately 75% visual communication and 25% textual explanation.
+
+This is a creative-direction target, not a requirement to fill 75% of the screen with graphics.
+
+Visual communication includes:
+
+* 3D models
+* Cinematic visualizations
+* Infographics
+* Data visualizations
+* Charts
+* Maps and diagrams
+* Visual numbers
+* Motion-led comparisons
+* Geometric information systems
+* Image and video media
+* Meaningful animated indicators
+
+Use text primarily for:
+
+* Strong headlines
+* Concise captions
+* Section identifiers
+* Important numerical labels
+* One-line explanations
+* Clear calls to action
+
+Replace unnecessarily long paragraphs with meaningful visual explanations.
+
+Do not turn the interface into a collage of unrelated widgets.
+
+Do not fabricate data to increase visual density.
+
+⸻
+
+02 · THE CINEMATIC CORE ENGINE
+
+2.1 Primary rendering architecture
+
+Use the verified existing renderer where compatible.
+
+The preferred React implementation is:
+
+* React for application composition.
+* Three.js for underlying 3D graphics.
+* React Three Fiber for declarative 3D scene management.
+* Drei for compatible camera and 3D utilities.
+* Theatre.js for authored cinematic sequences.
+* GSAP for appropriate DOM/UI timelines and supported coordinated transitions.
+* React Postprocessing for the scene’s postprocessing pipeline.
+* GLSL for custom procedural surfaces and effects.
+
+These are preferred technologies, not permission to replace an approved existing stack unnecessarily.
+
+Before implementation, inspect the existing package versions and determine API compatibility.
+
+All packages must be compatible with the project’s actual React, Three.js and rendering versions.
+
+Do not blindly upgrade major versions.
+
+2.2 Single rendering authority
+
+Prefer one authoritative rendering system for a shared 3D viewport.
+
+The engine must manage:
+
+1. Renderer lifecycle.
+2. Main scene graph.
+3. Active camera and camera rig.
+4. Lights and environment.
+5. Materials and textures.
+6. Animation update order.
+7. Postprocessing pipeline.
+8. Input and raycasting.
+9. Render quality settings.
+10. GPU resource disposal and context recovery.
+
+Do not create a second renderer merely because a component needs independent animation.
+
+Independent components can share rendering infrastructure while retaining strict ownership of their internal properties.
+
+2.3 Core engine organization
+
+Establish clearly defined modules for:
+
+* RendererManager
+* SceneManager
+* CameraRig
+* CameraSequenceController
+* MotionOrchestrator
+* MaterialRegistry
+* ShaderRegistry
+* LightingRig
+* PostProcessingPipeline
+* AssetRegistry
+* ComponentRegistry
+* InteractionController
+* ResponsiveCompositionController
+* CaptureController
+* PerformanceMonitor
+
+These are responsibility boundaries, not mandatory new filenames. First reconcile them with the application’s existing modules.
+
+Each module must document its inputs, outputs, dependencies, lifecycle and controlled properties.
+
+⸻
+
+03 · STRICT MODULAR COMPONENT ISOLATION
+
+This is a mandatory architectural requirement.
+
+Every component must be independently identifiable, configurable, controllable and testable without accidentally changing another component.
+
+3.1 Component ownership
+
+Give each component a stable identifier and clearly scoped state.
+
+Each component must define:
+
+* Unique ID
+* Source file
+* Component type
+* Parent scene or layout container
+* Dependencies
+* Material reference
+* Motion timeline reference
+* Input events
+* Data bindings
+* Lifecycle cleanup
+* Accessibility behavior
+* Responsive behavior
+
+Every animated property must have an authoritative owner.
+
+A shared controller may coordinate multiple components, but it must do so through documented interfaces.
+
+3.2 Eliminate conflicting connectivity
+
+Before changing a component:
+
+1. Trace all active imports and runtime consumers.
+2. Identify its styling and state sources.
+3. Identify animation writers and event subscriptions.
+4. Identify camera, material and renderer dependencies.
+5. Detect duplicate ownership of mutable properties.
+6. Classify connections as legitimate, obsolete, conflicting or unknown.
+7. Replace obsolete bindings with documented interfaces where needed.
+8. Remove only connections proven unnecessary or conflicting.
+9. Verify that dependent functionality still works.
+10. Record every disconnection and its reason.
+
+Do not indiscriminately remove shared dependencies, integrations, assets or data sources.
+
+The objective is zero unintended coupling and zero conflicting ownership.
+
+3.3 Property-level separation
+
+Separate control of:
+
+* Position
+* Rotation
+* Scale
+* Visibility
+* Opacity
+* Material uniforms
+* Geometry state
+* Shader timing
+* Pointer interaction
+* Camera target
+* Camera orientation
+* Animation playback
+* Text content
+* Responsive layout
+
+Do not let two independently executing systems overwrite the same property.
+
+If Theatre.js owns an object’s transform during cinematic playback, other systems must not modify that transform without an explicit ownership handoff.
+
+If the user interrupts the sequence, transition ownership must be transferred safely.
+
+If a component unmounts, release its subscriptions, animation references, listeners and allocated GPU resources where appropriate.
+
+⸻
+
+04 · THEATRE.JS: CINEMATIC SEQUENCE SYSTEM
+
+Use Theatre.js as the preferred authoring environment for cinematic keyframe sequences when it is compatible with the verified project.
+
+Theatre.js and GSAP must not become competing authorities over the same properties.
+
+4.1 Responsibilities
+
+Theatre.js should control authored cinematic properties such as:
+
+* Camera positions and orientations
+* Camera targets
+* Mesh transforms
+* Object entrances and exits
+* Lighting changes
+* Selected material parameters
+* Scene transitions
+* Keyframe timing
+* Presentation sequencing
+
+GSAP may control appropriately scoped DOM and interface choreography, text transitions, counters and coordinated interaction effects.
+
+Procedural real-time effects may use shader uniforms or shared render-frame updates.
+
+All systems must receive time from a defined timing architecture.
+
+4.2 Sequence architecture
+
+Every cinematic segment must define:
+
+* Sequence ID
+* Scene ID
+* Start time
+* End time
+* Duration
+* Camera ownership
+* Target objects
+* Keyframes
+* Easing curves
+* Shader animations
+* Lighting transitions
+* Text cues
+* Interaction availability
+* Audio cues where applicable
+* Exit state
+* Interruption behavior
+
+Save authored Theatre.js project and sequence state as version-controlled project data.
+
+Do not depend on developer-local editor state as the only source of production animation.
+
+Theatre.js Studio should be available only in authorized development or editing environments.
+
+4.3 Playback control
+
+Provide explicit operations for:
+
+* Play
+* Pause
+* Resume
+* Seek
+* Restart
+* Reverse where supported
+* Cancel
+* Transition to another sequence
+* Restore interactive control
+
+Store the active sequence and playback position.
+
+Do not create unmanaged looping timelines.
+
+Sequence completion must provide an explicit state transition.
+
+4.4 Motion continuity
+
+Transitions must preserve the final spatial state of the outgoing scene unless a deliberately designed visual transition changes it.
+
+No unexplained camera reset.
+
+No instantaneous object teleportation.
+
+No sudden material replacement.
+
+No unexpected lighting discontinuity.
+
+No independent animation playing over a completed transition.
+
+For presentations intended to resemble a continuous shot, maintain a single coherent spatial world and choreograph camera, lighting and subject transitions inside it.
+
+⸻
+
+05 · CAMERA CINEMATOGRAPHY SYSTEM
+
+5.1 Camera direction
+
+The camera must behave like a directed virtual cinematography system.
+
+Support:
+
+* Dolly in and out
+* Truck left and right
+* Pedestal up and down
+* Crane-style movement
+* Orbit
+* Pan
+* Tilt
+* Arc shots
+* Tracking shots
+* Parallax reveals
+* Focus-target transitions
+* Spline-based movement
+* Smooth position and orientation interpolation
+
+Use camera-controls, Drei CameraControls, a purpose-built camera rig, or an approved existing equivalent.
+
+Select one authoritative camera control architecture.
+
+5.2 Continuous camera movement
+
+Implement camera trajectories through suitable interpolation techniques.
+
+Use:
+
+* Bézier curves
+* Catmull-Rom splines
+* Quaternion interpolation
+* Smooth damping
+* Controlled ease-in/ease-out
+* Explicit look-at targets
+* Optional focal-offset animation
+
+Preserve continuity in position, velocity, orientation and target behavior when joining shots.
+
+Do not assume a visually smooth camera path is achieved merely by increasing animation duration.
+
+Evaluate transition curves and their joins.
+
+5.3 Camera shot contract
+
+Every shot or camera move must document:
+
+Property	Specification
+Shot ID	Unique identifier
+Start / end	Sequence time
+Duration	Seconds
+Start position	XYZ
+End position	XYZ
+Start / end orientation	Quaternion or derived target
+Camera target	World-space reference
+FOV	Degrees
+Camera trajectory	Curve or control method
+Easing	Named/configured curve
+Subject	Component ID
+Focus behavior	Explicit or none
+Transition	Entry and exit state
+Ownership	Camera controller ID
+
+5.4 Cinematic choreography
+
+Each movement must communicate something.
+
+The camera can:
+
+* Introduce a spatial environment.
+* Reveal a hidden component.
+* Establish relationships between objects.
+* Follow a meaningful data connection.
+* Transition from a 3D object into an infographic.
+* Move through a glass interface.
+* Reframe around an expanding chart.
+* Transition from wide composition to editorial close-up.
+
+Avoid constant orbiting solely to make a scene appear dynamic.
+
+The camera should lead the viewer’s attention.
+
+5.5 User control handoff
+
+Define explicit modes:
+
+* Cinematic playback
+* Interactive exploration
+* Transitioning to interaction
+* Returning to presentation
+* Paused
+* Error / recovery
+
+During cinematic playback, user input must follow the approved interruption policy.
+
+During interactive exploration, user control must not fight the cinematic camera timeline.
+
+On returning to playback, use a designed transition from the current camera position to the next cinematic state.
+
+⸻
+
+06 · CUSTOM GLSL SHADERS AND REALISTIC MATERIALS
+
+The material system must combine physically plausible behavior with restrained custom shader techniques.
+
+6.1 Material philosophy
+
+Create convincing optical qualities rather than generic shiny surfaces.
+
+Depending on the approved assets, material families may include:
+
+* Optical glass
+* Frosted glass
+* Clear coated metal
+* Brushed aluminium
+* Dark metallic surfaces
+* Translucent resin
+* Thin-film interference
+* Fine procedural surface detail
+* Subtle emissive elements
+* Atmospheric materials
+
+Do not introduce a material family simply because it is technically impressive.
+
+6.2 Physically based rendering
+
+Use compatible PBR materials such as MeshPhysicalMaterial where appropriate.
+
+Configure material properties according to actual reference assets and physical intent:
+
+* Roughness
+* Metalness
+* Transmission
+* Index of refraction
+* Thickness
+* Clearcoat
+* Environment intensity
+* Emissive strength
+* Normal detail
+* Transparency
+* Attenuation parameters
+
+Maintain physically coherent color management.
+
+Color maps normally require sRGB interpretation; non-color data maps must be treated as data, not display color.
+
+Verify imported texture channel packing and model orientation.
+
+6.3 Custom shader architecture
+
+Use GLSL for effects that are not adequately achievable with conventional material parameters.
+
+Potential approved applications include:
+
+* Procedural micro-surface variation
+* Controlled energy patterns
+* Optical distortion
+* Fresnel-based appearance
+* Depth-dependent opacity
+* Subtle displacement
+* Time-based surface animation
+* Procedural noise
+* Highlight modulation
+* Special transition masks
+
+Each shader must expose a documented uniform schema.
+
+Example uniform categories:
+
+* Time
+* Progress
+* Intensity
+* Primary/secondary color
+* Roughness adjustment
+* Distortion magnitude
+* Noise scale
+* Fresnel strength
+* Opacity
+* Resolution
+
+Use physically compatible shader customization where possible.
+
+Do not replace a correct PBR lighting workflow with an unlit custom shader merely to create a visual effect.
+
+6.4 Shader control
+
+Shader animation should derive from the authoritative motion clock or explicitly documented real-time state.
+
+Avoid each shader creating its own unmanaged timing source.
+
+Support:
+
+* Pause and resume
+* Deterministic seeking
+* Controlled transitions
+* Reduced-motion variants
+* Debugging of uniforms
+* Cleanup on component disposal
+
+Test on Safari and Chrome.
+
+⸻
+
+07 · CINEMATIC LIGHTING
+
+Lighting must shape the composition, reveal materials and provide visual continuity.
+
+7.1 Lighting structure
+
+Define separate controllable lighting responsibilities:
+
+* Key light
+* Fill light
+* Rim/back light
+* Environment illumination
+* Approved accent lights
+* Emissive object sources
+* Contact shadows or other supported grounding techniques
+
+Use HDR environment lighting and PMREM where compatible and justified.
+
+Avoid adding multiple expensive real-time lights without measuring their effect.
+
+7.2 Lighting choreography
+
+Permit controlled animation of:
+
+* Light position
+* Light color
+* Intensity
+* Direction
+* Environment rotation where supported
+* Exposure-related presentation settings
+* Approved accent lighting
+
+Light changes must synchronize with the cinematic timeline.
+
+7.3 Visual discipline
+
+Avoid:
+
+* Overexposed highlights
+* Plastic-looking glass
+* Excessive colored lighting
+* Inconsistent environmental reflections
+* Unmotivated flashing
+* Heavy halos around every object
+* Unreadable dark materials
+
+Lighting should reveal the material quality without overwhelming the design.
+
+⸻
+
+08 · POSTPROCESSING AND OPTICAL FINISH
+
+Use a unified EffectComposer-based postprocessing system compatible with the existing renderer.
+
+8.1 Supported effects to evaluate
+
+* Selective Bloom
+* Depth of Field
+* Bokeh
+* Film Grain / Noise
+* Vignette
+* Ambient Occlusion
+* Antialiasing
+* Color grading
+* Controlled atmospheric depth
+* Motion blur, only where technically justified and stable
+
+Effects must be enabled individually through a defined configuration.
+
+Do not apply every effect by default.
+
+8.2 Suggested initial art-direction ranges
+
+The following are exploratory tuning targets, not approved design tokens:
+
+Effect	Initial direction
+Bloom	Low intensity, restricted to highlights
+Grain	Very subtle, avoid masking text
+Vignette	Low-to-moderate edge treatment
+Depth of Field	Selective and primarily cinematic
+Ambient Occlusion	Subtle grounding
+Chromatic aberration	Disabled unless explicitly required
+Motion blur	Disabled by default until validated
+Sharpening	Avoid halos and artificial edges
+
+Tune using visual references and device comparisons.
+
+No postprocessing may make typography, charts or UI controls difficult to read.
+
+8.3 Postprocessing ownership
+
+Maintain one authoritative pipeline per intended rendered scene.
+
+Individual components may request effect presets or effect parameters through explicit APIs.
+
+They must not instantiate uncontrolled competing composers.
+
+Ensure postprocessing resize behavior matches the render viewport and pixel ratio.
+
+Test correct color-space output and antialiasing behavior.
+
+⸻
+
+09 · 9:16 EDITORIAL AND SOCIAL-MEDIA COMPOSITION
+
+This section is a primary requirement, not a secondary export feature.
+
+Every major narrative screen should be designed to work both as an interactive experience and as premium vertical visual content.
+
+9.1 Required design modes
+
+MODE A: Interactive Web Experience
+
+Responsive, functional application layout for mobile, iPad and desktop.
+
+MODE B: Editorial Portrait
+
+Art-directed, static 9:16 composition suitable for screenshot capture or a social-media cover.
+
+MODE C: Cinematic Vertical Playback
+
+Time-controlled 9:16 animated sequence suitable for recording as a vertical social video.
+
+All three modes must derive from shared approved components, materials and data.
+
+Do not maintain three unrelated visual designs.
+
+9.2 Vertical composition dimensions
+
+Provide these output configurations:
+
+Output	Resolution	Aspect ratio
+Portrait reference	1080 × 1920	9:16
+High-resolution portrait	2160 × 3840	9:16
+Social cover	1080 × 1920	9:16
+Desktop web	Responsive container	Variable
+iPad web	Responsive container	Variable
+
+1080 × 1920 and 2160 × 3840 are export targets, not a requirement that every interactive mobile device render internally at those dimensions.
+
+Fixed export resolution and adaptive runtime DPR must be managed separately.
+
+9.3 Composition rules
+
+Each portrait screen must have:
+
+1. One clearly dominant visual subject.
+2. One principal headline or narrative message.
+3. One relevant numerical, analytical or informational focal element where the content supports it.
+4. Supporting data graphics where meaningful.
+5. Carefully controlled negative space.
+6. Strong depth separation.
+7. Readable caption hierarchy.
+8. Clean alignment.
+9. Safe placement for essential information.
+10. A coherent frame when captured mid-sequence.
+
+Do not place all the information into floating glass boxes.
+
+Use a range of composition techniques:
+
+* Full-bleed 3D hero frames
+* Cinematic macro compositions
+* Layered infographic planes
+* Radial information systems
+* Spatial diagrams
+* Floating numbers
+* Animated vector geometry
+* Data-driven sculptural forms
+* Editorial title cards
+* Minimal but meaningful graphical overlays
+
+9.4 Social-safe composition
+
+Support configurable safe-area guides for platform interface overlays.
+
+Create separate templates for:
+
+* Clean master frame
+* TikTok-style preview-safe frame
+* Instagram Reels preview-safe frame
+* Story-safe frame
+
+Keep essential captions, logos and interactive prompts away from areas reserved for platform controls.
+
+Do not hardcode one universal social safe area for every platform.
+
+Safe-area geometry must be adjustable and validated against current target platform requirements.
+
+9.5 Every frame should be art-directed
+
+A continuous camera shot must still produce meaningful intermediate compositions.
+
+Ensure:
+
+* A readable point of interest
+* No accidental clipping
+* No wandering text
+* No unmotivated empty frames
+* No unrelated object intersections
+* No excessive visual noise
+* No important information obscured by effects
+* No uncontrolled layout reflow during animation
+
+For editorial capture, define designated keyframes that represent the strongest approved compositions.
+
+Every intentionally capturable keyframe should be exportable independently as a still.
+
+⸻
+
+10 · DATA VISUALIZATION AND MOTION GRAPHICS
+
+10.1 Information-design approach
+
+Avoid text-heavy dashboards.
+
+Communicate information through:
+
+* Radial diagrams
+* Data rings
+* Timelines
+* Network diagrams
+* Animated bar charts
+* Line charts
+* Comparison graphics
+* Progress systems
+* KPI compositions
+* Process diagrams
+* Spatial data relationships
+* 3D models where genuinely useful
+
+Use a charting technology compatible with the existing application, such as SVG-based React components, an approved charting library or custom WebGL visualization.
+
+The selected approach must serve clarity, not technical spectacle.
+
+10.2 Meaningful visual geometry
+
+Use shapes with distinct purposes:
+
+Circles and rings: cycles, proportions, stages and systems.
+
+Lines and connections: relationships, transitions and data flows.
+
+Bars and columns: measurable comparisons.
+
+Spheres: spatial identities, systems or three-dimensional data relationships.
+
+Planes and panels: supporting information and interaction surfaces.
+
+Paths: progression, chronology and process flow.
+
+Do not invent decorative data relationships.
+
+Every visualization must have a semantic connection to its content.
+
+10.3 Motion graphics
+
+Implement animation such as:
+
+* Chart reveals
+* Sequential bar growth
+* Numeric counters
+* Diagram construction
+* Data-point connections
+* Geometric transformations
+* Typography reveals
+* Depth-based panel transitions
+* Morphing between compatible shapes
+* Camera-driven infographic transitions
+
+Preserve correct underlying values during animation.
+
+A chart should not communicate a false intermediate value or misleading scale.
+
+10.4 Editorial typography
+
+Use the exact approved fonts.
+
+For English, apply the approved brand display typography where specified.
+
+For Arabic, use a correctly shaped, approved Arabic-capable typeface.
+
+Provide:
+
+* Large display headlines
+* Bold, concise supporting statements
+* Controlled typography scale
+* High-contrast data labels
+* Consistent baseline alignment
+* Legible numerical treatments
+* Clear distinction between captions and functional controls
+
+Do not shrink large quantities of text merely to fit a scene.
+
+Instead, redesign the information hierarchy.
+
+⸻
+
+11 · ARABIC-FIRST VISUAL QUALITY AND RTL
+
+Arabic must receive the same design quality and creative direction as English.
+
+Arabic is not an afterthought, mirrored English screenshot or automatic translation layer.
+
+11.1 Linguistic requirements
+
+Use natural, professionally written Arabic appropriate to the selected audience.
+
+Support a configurable content locale:
+
+* English
+* Arabic
+* Arabic regional variants when approved
+
+Do not assume Egyptian, Najdi or formal Arabic are interchangeable.
+
+Do not invent Arabic translations of brand names or technical terms when approved spellings already exist.
+
+11.2 Typography requirements
+
+* Use a typeface with proper Arabic glyph coverage.
+* Preserve Arabic shaping and joining.
+* Use appropriate line height and visual weight.
+* Avoid letter spacing that breaks connected Arabic script.
+* Preserve punctuation and word boundaries.
+* Support Arabic diacritics where required.
+* Ensure numbers and Latin abbreviations display correctly.
+* Apply font fallbacks explicitly and verify their visual quality.
+
+Arabic display headlines must feel editorial, bold and intentional.
+
+Do not use generic fallback typography when the approved design requires something more specific.
+
+11.3 RTL engineering
+
+Use semantic HTML language and direction attributes.
+
+Apply lang="ar" and dir="rtl" to appropriate Arabic content containers.
+
+Use logical CSS properties such as:
+
+* margin-inline-start
+* margin-inline-end
+* padding-inline-start
+* padding-inline-end
+* inset-inline-start
+* text-align: start
+
+Use bidirectional text isolation for mixed Arabic, English, numbers, dates, URLs and technical identifiers.
+
+Do not reverse data order, chronological charts or numerical axes automatically merely because the UI is RTL.
+
+Determine direction based on information semantics.
+
+11.4 Arabic motion graphics
+
+Arabic text animation must respect word integrity and letter shaping.
+
+Prefer word-level, line-level, mask-based or container-level animation when letter-level animation would disrupt joining.
+
+Implement proper wrapping and animation bounds for changing text widths.
+
+Avoid clipped ascenders, descenders and punctuation.
+
+Test actual Arabic screens, not placeholder Lorem Ipsum.
+
+11.5 RTL quality control
+
+Verify:
+
+* Arabic shaping
+* Real text, not broken glyphs
+* Correct numeral direction
+* Mixed Arabic/English ordering
+* RTL controls
+* Chart labels
+* Caption alignment
+* Text wrapping
+* Visual hierarchy
+* Landscape and portrait layouts
+* Screenshot and video capture
+
+English and Arabic modes must achieve equivalent visual quality, though their precise compositions may differ.
+
+⸻
+
+12 · RESPONSIVE RENDERING AND PERFORMANCE
+
+12.1 Supported environments
+
+Validate on:
+
+* Desktop Chrome
+* Desktop Safari
+* Android Chrome
+* iPhone Safari
+* iPad Safari
+* iPad Chrome
+* Portrait orientation
+* Landscape orientation
+* Tablet split-screen
+* Resized browser windows
+
+Do not claim support for an environment that has not been tested.
+
+12.2 Pixel ratio and resizing
+
+Use device-aware, performance-aware DPR management.
+
+Configure rendering resolution separately from CSS layout dimensions.
+
+Update render targets, camera aspect, postprocessing and interaction coordinates whenever the rendering container changes.
+
+Use the container’s actual dimensions, rather than assuming the application always fills the device screen.
+
+Support dynamic viewport units, safe-area insets and ResizeObserver-based layout recalculation where appropriate.
+
+12.3 Performance optimization
+
+Implement measured optimization strategies:
+
+* Adaptive pixel ratio
+* Texture compression
+* Geometry optimization
+* Asset preloading
+* Lazy loading
+* Frustum culling
+* Instancing where useful
+* Shader complexity management
+* Controlled light/shadow budgets
+* Postprocessing quality presets
+* Draw-call reduction
+* GPU memory cleanup
+* Context-loss recovery
+* Render-loop scheduling
+
+Maintain visual quality without forcing every device to use identical internal rendering settings.
+
+12.4 Performance targets
+
+Proposed initial evaluation targets:
+
+* Desktop: aim for a stable 60 FPS where feasible.
+* Mobile: aim for 60 FPS on capable devices, with a validated 30 FPS fallback.
+* Avoid persistent frame-time spikes during camera transitions.
+* Avoid sustained memory growth during repeated navigation.
+* Keep typography and interactions responsive while assets load.
+
+These are engineering targets, not guarantees.
+
+Record real measurements with the tested device, viewport, resolution scale and scene.
+
+Do not fake successful performance by hiding objects or disabling essential approved features without documenting the tradeoff.
+
+⸻
+
+13 · CAPTURE AND RECORDING SYSTEM
+
+The application must support high-quality visual capture.
+
+13.1 Screenshot system
+
+Provide an authorized capture workflow that can export designated presentation states.
+
+Supported capture concepts:
+
+* Current screen capture
+* Named cinematic keyframe
+* Clean editorial frame
+* Portrait composition
+* High-resolution render where supported
+* Arabic and English variants
+
+A full-screen capture must include both WebGL and visible HTML/CSS overlays where required.
+
+Do not assume a WebGL canvas export includes separate DOM text, menus or React overlays.
+
+13.2 Cinematic video recording
+
+Create an export architecture capable of producing timed presentation sequences.
+
+Consider:
+
+* Deterministic frame seeking
+* Fixed frame-rate output
+* Synchronized typography and motion
+* WebGL compositing
+* DOM overlay capture
+* Approved audio integration
+* Captions
+* Export resolution
+* Encoding compatibility
+* File-size and memory constraints
+
+Use browser-native capture capabilities or a suitable server/offline render pipeline based on what the actual environment supports.
+
+Do not claim 4K, 60 FPS or audio synchronization merely because the interface exposes an export button.
+
+13.3 Frame quality
+
+Define key presentation poses at exact timeline positions.
+
+Each frame must be rendered from the same approved asset and material configurations.
+
+Capture must not introduce inconsistent fonts, mismatched effects or changed camera framing.
+
+⸻
+
+14 · VOICE AND INTERACTION INTEGRATION
+
+Where the existing application includes voice, preserve the verified provider and interaction contracts.
+
+Do not replace voice prompts, agents, credentials or voice identities without explicit authorization.
+
+The voice experience must remain visibly integrated with the interface.
+
+Required states:
+
+* Idle
+* Listening
+* Processing
+* Speaking
+* Muted
+* Interrupted
+* Error
+
+Voice actions that trigger navigation, camera movement or component animation must pass through the corresponding authorized controller.
+
+Voice must not independently overwrite camera or scene state.
+
+Provide mute, unmute and interruption behavior.
+
+Ensure captions remain legible over cinematic backgrounds.
+
+Voice captions should animate with deliberate timing without creating visual clutter.
+
+⸻
+
+15 · DESIGN TOKEN AND ASSET GOVERNANCE
+
+The attached approved design system is the visual authority.
+
+Preserve:
+
+* Brand identity
+* Logo geometry
+* Color tokens
+* Font identities
+* Typography hierarchy
+* Approved materials
+* Texture references
+* Motion styles
+* Camera direction
+* UI compositions
+* Visual hierarchy
+* Responsive behavior
+* Approved copy
+* Arabic spelling and terminology
+
+No new color, font, shader look or motion style may be promoted into the approved design system without explicit approval.
+
+All tokens must be traceable.
+
+15.1 Required registries
+
+Create or update these machine-readable outputs:
+
+Asset Registry
+
+Asset ID, original path, runtime path, file type, hash, dimensions, color space, texture channels, provenance, and component usage.
+
+Component Registry
+
+Component ID, file path, parent, dependencies, public interface, controlled state, material references and lifecycle.
+
+Motion Registry
+
+Sequence ID, component ID, controlled properties, timing, easing, triggers, camera relationships and interruption behavior.
+
+Material Registry
+
+Material ID, source textures, shader type, PBR values, uniforms, transparency settings and color management.
+
+Camera Registry
+
+Camera ID, rig, positioning, lens parameters, paths, targets, ownership and transition contracts.
+
+Design Token Registry
+
+Token ID, value, source of authority, scope, variants and implementation references.
+
+QA Registry
+
+Requirement ID, test method, expected result, observed result, environment, evidence and status.
+
+Do not invent source identifiers, filenames or hashes. Generate them from the inspected project.
+
+⸻
+
+16 · SEQUENTIAL IMPLEMENTATION AND CHANGE CONTROL
+
+Work in-place and in controlled phases.
+
+Do not rewrite the entire project in one uncontrolled pass.
+
+Before each phase:
+
+1. Read the latest verified project state.
+2. Read the source files affected by the phase.
+3. Identify existing active owners.
+4. Compare against the approved design system.
+5. Define exact intended changes.
+6. Implement only the authorized scope.
+7. Test the affected functionality.
+8. Perform visual and regression verification.
+9. Report actual outcomes.
+10. Stop before the next phase.
+
+Maintain a file-level change log.
+
+Never present a speculative fix as tested.
+
+Never delete an existing implementation merely because another version looks cleaner.
+
+⸻
+
+17 · FOUR EXECUTION PHASES
+
+PHASE 01: CORE ENGINE, FIBER AND ISOLATION
+
+Establish the rendering and motion architecture.
+
+Scope:
+
+* Audit active React and Three.js code paths.
+* Confirm React Three Fiber compatibility.
+* Establish renderer lifecycle and scene ownership.
+* Establish the authoritative camera rig.
+* Integrate Theatre.js where compatible.
+* Define motion scheduling and GSAP ownership.
+* Establish material/shader registries.
+* Isolate event handling and component state.
+* Resolve verified runtime conflicts.
+* Configure responsive rendering and quality presets.
+
+Acceptance gate: One coherent renderer architecture, documented component ownership, functioning camera control and no known conflicting render or animation ownership.
+
+Stop and report the exact files changed.
+
+PHASE 02: 3D ASSETS, MATERIALS AND CINEMATIC MOTION
+
+Implement the approved visual system.
+
+Scope:
+
+* Import and verify approved 3D assets.
+* Apply correct material textures and PBR settings.
+* Implement approved custom shaders.
+* Configure cinematic lighting.
+* Establish the postprocessing pipeline.
+* Implement named Theatre.js sequences.
+* Configure continuous camera paths.
+* Create animation and camera registries.
+* Validate visual fidelity against references.
+
+Acceptance gate: Approved visual elements are implemented, controllable and visually verified at specified reference states.
+
+Stop and report the exact changes and outstanding issues.
+
+PHASE 03: DATA, INTERACTIONS AND VOICE
+
+Connect real behavior to the cinematic environment.
+
+Scope:
+
+* Preserve existing data contracts.
+* Build or reconcile approved information visualizations.
+* Connect charts and spatial graphics to actual data.
+* Implement component interaction APIs.
+* Connect voice actions through defined controllers.
+* Implement interruption and handoff behavior.
+* Verify interactive states and lifecycle cleanup.
+* Test motion ownership under simultaneous interactions.
+
+Acceptance gate: Interactive components work without conflicting ownership, fabricated data or unauthorized voice changes.
+
+Stop and report the evidence.
+
+PHASE 04: EDITORIAL UI, SOCIAL CAPTURE AND FINAL QA
+
+Implement the visual communication system and final integration.
+
+Scope:
+
+* Apply editorial typography and layout.
+* Implement 75/25 visual-first composition.
+* Complete infographic and motion-graphic treatments.
+* Implement portrait and landscape compositions.
+* Verify Arabic and RTL.
+* Implement supported screenshot/capture modes.
+* Test full WebGL and DOM compositing.
+* Validate social safe areas.
+* Test Safari and Chrome on available devices.
+* Perform screenshot comparisons.
+* Test motion and camera continuity.
+* Measure performance.
+* Run regression checks.
+* Produce final component, asset and motion indexes.
+
+Acceptance gate: Evidence-backed visual, functional, responsive and performance verification.
+
+Do not call the project production-ready when required checks remain unverified.
+
+⸻
+
+18 · REQUIRED QA/QC CHECKLIST
+
+All checks must receive actual evidence or an explicit unverified status.
+
+Visual fidelity
+
+* [ ]	Approved typography applied.
+* [ ]	Approved logo and brand assets used.
+* [ ]	Approved colors and materials used.
+* [ ]	No unauthorized decorative elements.
+* [ ]	Visual hierarchy is intentional.
+* [ ]	Every designated keyframe passes the screenshot test.
+* [ ]	Editorial portrait composition verified.
+* [ ]	No conflicting or duplicate visual systems.
+
+WebGL and materials
+
+* [ ]	Renderer ownership verified.
+* [ ]	3D assets load correctly.
+* [ ]	PBR material values verified.
+* [ ]	Texture color spaces correct.
+* [ ]	Shader uniforms independently controllable.
+* [ ]	Postprocessing output visually validated.
+* [ ]	No unintended z-fighting or transparency artifacts.
+* [ ]	GPU resources cleaned up correctly.
+
+Motion and camera
+
+* [ ]	Single authoritative camera controller.
+* [ ]	Theatre.js timelines load correctly.
+* [ ]	Animation properties have documented owners.
+* [ ]	Camera paths produce continuous motion.
+* [ ]	Transition handoffs function correctly.
+* [ ]	Pause, resume and interruption tested.
+* [ ]	No conflicting GSAP/Theatre.js property writes.
+* [ ]	No unexplained camera resets.
+
+Editorial and data
+
+* [ ]	Visual-first 75/25 communication target reviewed.
+* [ ]	Charts represent correct values.
+* [ ]	Infographics communicate meaningful relationships.
+* [ ]	Typography remains readable in portrait.
+* [ ]	Screenshots preserve the design hierarchy.
+* [ ]	Captions and UI do not obscure key visuals.
+* [ ]	Social framing validated.
+
+Arabic and multilingual
+
+* [ ]	Approved Arabic typeface.
+* [ ]	Correct glyph shaping.
+* [ ]	Correct RTL layout.
+* [ ]	Correct mixed-language direction.
+* [ ]	Correct numerical presentation.
+* [ ]	Arabic motion does not break letter joining.
+* [ ]	Arabic portrait capture verified.
+* [ ]	Arabic and English receive equivalent visual quality.
+
+Responsive and performance
+
+* [ ]	Desktop layout verified.
+* [ ]	Mobile layout verified.
+* [ ]	iPad portrait verified.
+* [ ]	iPad landscape verified.
+* [ ]	Split-screen resizing verified.
+* [ ]	Safari behavior checked.
+* [ ]	Chrome behavior checked.
+* [ ]	Performance evidence recorded.
+* [ ]	No known critical regression concealed by a fallback.
+
+Delivery evidence
+
+* [ ]	File change manifest supplied.
+* [ ]	Component registry supplied.
+* [ ]	Material registry supplied.
+* [ ]	Motion registry supplied.
+* [ ]	Camera registry supplied.
+* [ ]	Asset registry supplied.
+* [ ]	QA report supplied.
+* [ ]	Remaining issues documented.
+
+⸻
+
+19 · NEGATIVE IMPLEMENTATION RULES
+
+STRICTLY FORBIDDEN:
+
+* Replacing the uploaded design with a generic generated UI.
+* Fabricating approved assets or brand information.
+* Introducing competing camera controllers.
+* Allowing multiple animation systems to overwrite one property.
+* Creating arbitrary render loops.
+* Using 2D approximations instead of required real 3D assets.
+* Adding random particle effects, glow or lens distortion.
+* Applying excessive bloom or film grain.
+* Using generic Arabic typography.
+* Breaking Arabic text into visually disconnected characters.
+* Creating charts with fabricated values.
+* Forcing all responsive layouts into the same camera framing.
+* Mixing preview and production animation state.
+* Replacing existing voice configuration without authorization.
+* Deleting legitimate dependencies merely to simplify code.
+* Making unverified claims of compatibility or performance.
+* Claiming a screenshot is a functioning interactive experience.
+* Claiming a video was exported when only a preview exists.
+* Proceeding beyond the instructed phase.
+
+⸻
+
+20 · FINAL RESPONSE FORMAT FOR EVERY AI AGENT
+
+After executing a phase, report:
+
+1. VERIFIED BASELINE
+What actually existed and which code paths were active.
+
+2. IMPLEMENTATION
+Exact files and components changed.
+
+3. ISOLATION AND DEPENDENCIES
+Conflicts found, resolved and remaining.
+
+4. VISUAL FIDELITY
+Approved design elements applied and differences from source.
+
+5. MOTION AND CAMERA
+Sequences created, controllers configured and continuity verified.
+
+6. EDITORIAL AND ARABIC
+Portrait composition, information hierarchy, typography and RTL results.
+
+7. TEST RESULTS
+Executed commands, tested devices, screenshots, recordings and observed outcomes.
+
+8. UNRESOLVED ITEMS
+Blockers, unverified behaviors and known issues.
+
+9. NEXT PHASE
+The exact next action without executing it automatically.
+
+Use only these statuses:
+
+NOT STARTED / PROPOSED / IMPLEMENTED / TESTED / VERIFIED / BLOCKED.
+
+⸻
+
+FINAL MASTER INSTRUCTION
+
+Treat this project as a directed cinematic information environment.
+
+The design system is the authority.
+
+React Three Fiber provides the reactive 3D environment.
+
+Theatre.js provides authored cinematic sequencing.
+
+The camera system provides spatial continuity.
+
+GLSL and PBR materials provide controlled optical realism.
+
+Postprocessing provides the final cinematic treatment.
+
+React components provide functional interaction and structured information.
+
+Editorial composition makes each scene visually meaningful.
+
+Arabic receives native, high-quality visual treatment.
+
+All elements operate under explicit, isolated ownership.
+
+Every frame should be intentional.
+
+Every animation should be controllable.
+
+Every visual should communicate something.
+
+Every technical claim should be verified.
+
+Do not create another attractive approximation. Implement the actual approved system, one controlled phase at a time.
+
+Architecture reference
+
+Proposed logical architecture. The actual module boundaries must be reconciled against the uploaded source code.
+
+For the Arabic implementation, follow semantic directionality and bidirectional text handling rather than relying on visual CSS mirroring alone. The W3C provides specific guidance on both structural RTL layouts and mixed Arabic/English text. W3C +1
+
+Execution boundary: This is the rewritten master instruction, not an implemented or tested project. The project ZIP and approved design-system assets have not been inspected in this turn. The first implementation action is therefore Phase 01: inspect the actual source, confirm dependency compatibility, and establish the verified rendering and motion baseline before modifying it.

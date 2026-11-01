@@ -1,0 +1,420 @@
+Spatial Architecture, Bilateral Voice Transcription, and Interactive Systems Audit of the CEREBRO + CDE Workspace
+Executive Architectural Synthesis
+An exhaustive audit of the recent workspace archives and application builds identifies the CEREBRO + CDE Spatial OS (⁠cerebro-+-cde.zip⁠, hosted via Google AI Studio as ⁠CEREBRO + CDE — NOJARA Studios⁠) as the premier, fully integrated interactive 3D and conversational experience. Engineered for operator ⁠39⁠ (Tarek Nojara, Founder and Culture and Design Engineer of NOJARA Studios, established 2016 in Cairo and Riyadh), the application unifies two distinct three-dimensional WebGL environments—Sphere 01: CEREBRO HQ (an operational headquarters for project, task, people, file, and media telemetry) and Sphere 02: CDE Universe (an interactive Culture and Design Engineer cosmograph and six-chapter biographical journey)—under the real-time pilotage of the Cerebro voice and gesture intelligence layer.
+Rather than treating conversational AI as an isolated chat widget, the system embeds bilateral voice transcription, tool invocation, and 21-landmark hand tracking directly into the spatial scene graph. The architecture enforces a strict behavioral constitution derived from the studio's reference handoff specifications (⁠01 KB handoff⁠, ⁠02 Blueprint Rasma v0.2⁠, ⁠05 SEVEN knowledge base⁠, ⁠08 Design system⁠, ⁠09 Media⁠, and ⁠10 NOJARA company profile + Tarek Nojara bio⁠). Central to this design is a division between silent spatial execution—where navigation, camera choreography, and panel transitions occur instantaneously without verbose conversational filler—and queued bilateral transcription, where vocalized responses and 3D-anchored captions are reserved strictly for arrival authentication, guided tour narration, direct analytical queries, and task extraction confirmations.
+At the system telemetry level, the workspace is governed by locked quantitative performance and spatial thresholds. Hardware-accelerated GPU sessions render ⁠6,400⁠ total galaxy particles (⁠3,200⁠ per sphere, scaling to ⁠4,400⁠ total or ⁠2,200⁠ per sphere on software rasterizers) at a target frame rate of ⁠60 FPS⁠ with a strict ⁠50 FPS⁠ floor on iPad viewports (⁠1194×834⁠). The interactive rig tracks ⁠21⁠ skeletal hand landmarks connected by ⁠24⁠ bone segments and ⁠5⁠ pentatonic fingertip piano triggers, while the spatial tour sequences ⁠6⁠ automated stops at ⁠30 seconds⁠ per stop (⁠180 seconds⁠ total duration) following an ⁠8,000 ms⁠ four-stage arrival boot insertion. Visual consistency across both DOM and WebGL surfaces is maintained by ⁠15⁠ runtime CSS custom property colour tokens (⁠7⁠ locked core tokens and ⁠8⁠ editable sample tokens).
+Inventory of Recent Interactive Experience Files and Handoff Specifications
+An examination of the workspace archive and server configuration reveals a multi-tiered repository structure that separates live operational code from canonical reference handoffs. The executable package (⁠uploaded:cerebro-+-cde.zip⁠) contains a complete full-stack TypeScript (⁠~5.8.2⁠ / ⁠5.8.3⁠), React 19 (⁠^19.0.1⁠ / ⁠19.2.7⁠), Three.js (⁠^0.184.0⁠), and Express (⁠^4.21.2⁠ / ⁠4.22.2⁠) application configured for local execution and cloud deployment on Google AI Studio.
+Concurrently, the internal file registry (⁠FILES_DATA⁠ in ⁠src/data/cerebroData.ts⁠) and backend synchronization router (⁠server.ts⁠) catalog eight foundational handoff documents and data targets across ⁠/NOJARA_HQ⁠ and ⁠/Reference_Kit⁠. Crucially, the server architecture enforces a strict data provenance boundary: the ⁠/api/drive/hq-sync⁠ endpoint targets live NOJARA HQ data sources (⁠07 Project Register⁠ via ⁠NOJARA_HQ_PROJECT_REGISTER_ID⁠ and HQ root folders via ⁠NOJARA_HQ_DRIVE_ROOT_ID⁠) while explicitly blacklisting the build kit reference folder (⁠1xO_Jdrtenw8opJ_cHmyXQnkpwp9ZsWgj⁠) from live operational mutation.
+File / Module Identifier
+Repository Path / Location
+Architectural Role & Interactive Scope
+Access Tier
+Operational Status
+src/App.tsx
+cerebro-+-cde.zip / src/App.tsx
+Master spatial state machine, 25-tool execution router (executeTool), bilingual NL command parser, queued speech/caption emitter (speakLine), and 11 URL view-state inspectors.
+System Core
+Active / Executable
+src/components/DualSphereCanvas.tsx
+cerebro-+-cde.zip / src/components/
+Custom Three.js WebGL engine rendering dual refractive liquid-glass spheres, 6,400 DOF galaxy particles, proximity-scaled Project Suns, cardiac electric wires, and a 3D bevelled glass slab.
+System Core
+Active / Executable
+src/components/VoiceCard.tsx
+cerebro-+-cde.zip / src/components/
+Snap-docked bilateral voice pilot interface featuring 3 operational pockets (Tap to talk, Hands, Compose), 4 tool drawers, task proposal workflow, and live transcription console.
+System Core
+Active (SIMULATED / BLOCKED live audio key)
+src/components/HandsWireframeOverlay.tsx
+cerebro-+-cde.zip / src/components/
+21-landmark skeletal hand tracking overlay with OneEuroFilter stabilization, 60% dimmed mirrored camera feed, diamond sparkle trails, and 5 fingertip piano triggers.
+System Core
+Active (SIMULATED + getUserMedia LIVE toggle)
+src/components/StationPanels.tsx
+cerebro-+-cde.zip / src/components/
+Hybrid 3D HTML/WebGL overlay cards (rotateY(-3deg)) for the 5 CEREBRO stations, Project Sun rollups, RACI matrices, CDE dimensions, and 6-chapter biography journey.
+Audience-Gated
+Active / Executable
+src/components/OwnerLockKeypad.tsx
+cerebro-+-cde.zip / src/components/
+Zero-Enter numeric keypad that automatically unlocks owner-tier records the instant the 4-digit PIN (3939) is entered.
+owner
+Active / Executable
+server.ts
+cerebro-+-cde.zip / server.ts
+Express API server managing Gemini Live 2.5 Native Audio status checks, NOJARA HQ Drive sync verification, gemini-3-flash-preview task extraction, and in-memory feedback logging.
+Backend
+Active (Port 3000)
+01 KB handoff (file-01)
+/Reference_Kit/01_KB_Handoff
+Core Cerebro behavioral constitution, arrival greeting rules, silent execution mandate, and identity locks.
+public
+Reference Specification (MISSING_ATTACHMENT in local zip)
+02 Blueprint Rasma v0.2 (file-02)
+/Reference_Kit/02_Blueprint_Rasma_v0.2
+Spatial frame geometry, glass pocket positioning, collision avoidance rules, and camera choreography.
+public
+Reference Specification (MISSING_ATTACHMENT in local zip)
+05 SEVEN knowledge base (file-05)
+/Reference_Kit/05_SEVEN_KB
+Reference interactive spatial journey architecture ("chapters you travel through, not pages you scroll") and voice auto-greet parity.
+public
+Reference Specification (MISSING_ATTACHMENT in local zip)
+08 Design system (file-08)
+/Reference_Kit/08_Design_System
+3D meshes, refractive materials, motion easing (cubic-bezier(0.16, 1, 0.3, 1)), and locked/sample CSS colour tokens.
+public
+Reference Specification (MISSING_ATTACHMENT in local zip)
+09 Media (file-09)
+/Reference_Kit/09_Media
+Approved studio 16:9 full-screen showreels, spatial walkthroughs, and caustic study renders.
+public
+Reference Specification (MISSING_ATTACHMENT in local zip)
+10 NOJARA profile + 39 bio (file-10)
+/Reference_Kit/10_Profile_Bio
+Exclusive canonical text source for the NOJARA Studios company profile and 39's biography.
+public
+Reference Specification (MISSING_ATTACHMENT in local zip)
+NOJARA Project Register (file-hq-reg)
+/NOJARA_HQ/Project_Register
+Canonical read-only project register governing live deadlines, progress percentages, and RACI assignments.
+partner
+Live Sync Target (BLOCKED awaiting OAuth & Sheet ID)
+Master Governance Vault (file-hq-vault)
+/NOJARA_HQ/Owner_Vault
+SAMPLE_NOJARA_HQ_Master_Governance.pdf restricted to Owner-only visibility.
+owner
+Indexed (SAMPLE_INDEXED)
+
+Voice Pilot Constitution and Bilateral Transcription Architecture
+The conversational intelligence layer—embodied in ⁠src/App.tsx⁠, ⁠src/components/VoiceCard.tsx⁠, and ⁠server.ts⁠—is architected around a bilateral transcription and tool-calling paradigm. While the backend status endpoint (⁠/api/gemini/status⁠) is wired to verify credentials for ⁠gemini-2.5-flash-native-audio-preview-12-2025⁠ and ⁠gemini-3-flash-preview⁠, the behavioral rules implemented in the client state machine strictly codify the studio's voice pilot instructions (⁠01 KB handoff⁠ and ⁠Master Instruction v2⁠).
+Arrival Authentication and Audience Awareness Protocol
+The voice pilot's initialization sequence is deterministic and stripped of conversational bloat. Requirement 4 in ⁠src/App.tsx⁠ dictates that upon completing or bypassing the 8-second boot sequence, ⁠Cerebro⁠ emits strictly two lines and nothing else: at timestamp ⁠00:00⁠ (⁠id: 'init-1'⁠, ⁠toolCalled: 'arrival_greet'⁠), the pilot states ⁠"Welcome back, sir."⁠, followed immediately at ⁠00:01⁠ (⁠id: 'init-2'⁠, ⁠toolCalled: 'arrival_greet'⁠) by ⁠"Anyone with you?"⁠.
+This second prompt directly drives the Audience Awareness Lock (⁠AudienceLevel⁠: ⁠'owner' | 'partner' | 'public'⁠), which defaults to ⁠'owner'⁠ while displaying a translucent top-center prompt banner (⁠Cerebro: "Anyone with you?"⁠) with one-tap selectors for ⁠Owner only⁠, ⁠Partner / Assistant⁠, and ⁠Public⁠. In tandem with the numeric Owner Lock Keypad (⁠ownerUnlocked⁠), this privacy state dynamically filters the 3D scene graph and station panels so that sensitive records—such as ⁠SAMPLE Project 02 (Owner Only)⁠, ⁠tsk-04⁠ (⁠Owner-only contract addendum review⁠), ⁠SAMPLE_NOJARA_HQ_Master_Governance.pdf⁠, and personnel buyout/retainer clauses (⁠contractNoteOwnerOnly⁠)—remain completely invisible in both the 3D label projection layer and the HTML DOM until both ⁠audience === 'owner'⁠ and ⁠ownerUnlocked === true⁠ are satisfied.
+Silent Tool Execution vs. Queued Vocalization
+A defining architectural characteristic of the CEREBRO voice specification is the separation of kinetic action from verbal feedback. In conventional voice interfaces, every command triggers a redundant verbal confirmation, which introduces cognitive friction during rapid spatial navigation. Requirement 5 in ⁠src/App.tsx⁠ explicitly prohibits chatty acknowledgments (⁠"locked on"⁠ or ⁠"ok — Travelled to..."⁠) and enforces a calm, unhurried operational demeanor. When the operator issues any navigation, sphere-switching, camera-rig, orbital-spin, background-mode, or panel-closing command (⁠switch_sphere⁠, ⁠navigate_to⁠, ⁠open_station⁠, ⁠open_panel⁠, ⁠open_item⁠, ⁠focus_project⁠, ⁠open_dimension⁠, ⁠open_subdomain⁠, ⁠open_chapter⁠, ⁠camera⁠, ⁠auto_orbit⁠, ⁠play_media⁠, ⁠pause_media⁠, ⁠set_volume⁠, ⁠close_panel⁠, ⁠set_background⁠, ⁠set_audience⁠, or ⁠get_page_state⁠), ⁠executeTool⁠ mutates the React state and Three.js camera targets silently without pushing any string to the speech queue.
+Conversely, vocalization (⁠voiceState = 'Speaking'⁠) and 3D floating bubble projection (⁠floatingBubbleText⁠) are invoked via ⁠speakLine(text, toolName)⁠ exclusively under five bounded conditions: the two-part arrival greeting (⁠arrival_greet⁠); sequential stop narrations during the 6-stop guided tour (⁠tour_stop_1⁠ through ⁠tour_stop_6⁠); interruption notifications when manual touch, pointer drag, wheel zoom, or voice pauses an active tour (⁠"Tour paused."⁠ via ⁠pause_tour⁠); direct analytical queries (⁠get_projects⁠, ⁠get_project⁠, ⁠get_briefing⁠, ⁠get_raci⁠, ⁠search_files⁠, ⁠log_feedback⁠, and ⁠get_live_feed⁠); and task synthesis prompts triggered from the Compose pocket (⁠"Make this a task?"⁠ via ⁠compose_analyse⁠).
+Speech Queue Cadence and Caption Decay Mechanics
+When ⁠speakLine(text, toolName)⁠ is invoked, the system appends a structured ⁠TranscriptEntry⁠ (⁠id⁠, ⁠speaker: 'Cerebro'⁠, ⁠text⁠, ⁠toolCalled⁠, ⁠timestamp⁠) to the bilateral transcription state and enqueues ⁠text⁠ into ⁠narrationQueueRef.current⁠. The queue processor (⁠processQueue⁠) enforces a two-stage temporal lifecycle:
+Each queued line holds the ⁠'Speaking'⁠ state for ⁠1,600 ms⁠ before advancing to the next item. Once the queue is exhausted, ⁠voiceState⁠ reverts to ⁠'Listening'⁠, and ⁠captionTimerRef⁠ initiates a ⁠2,400 ms⁠ silence countdown after which ⁠liveCaption⁠ is cleared to ⁠null⁠.
+Complete Tool Schema and Bilingual Command Routing
+The voice and command router in ⁠src/App.tsx⁠ exposes 25 distinct tool handlers inside ⁠executeTool(toolName, args)⁠ alongside a natural language parser (⁠handleExecuteCommand⁠) designed for bilingual English and Egyptian Arabic (Masri) operation. In the raw ⁠src/App.tsx⁠ source inside ⁠cerebro-+-cde.zip⁠, several Arabic string literals inside ⁠handleExecuteCommand⁠ and ⁠cerebroData.ts⁠ experienced character-encoding stripping during archive packaging (leaving whitespace placeholders such as ⁠lower.includes(' ')⁠), which makes explicit client-tool JSON binding essential for production reliability.
+Tool Name (executeTool)
+Accepted Arguments (args)
+Spatial & State Mutation
+Vocalized Output (speakLine)
+arrival_greet
+None (Boot init)
+Initializes transcripts with two greeting entries and sets liveCaption = 'Anyone with you?'.
+"Welcome back, sir." \rightarrow "Anyone with you?"
+switch_sphere
+{ sphere: 'cerebro' | 'cde' }
+Transitions activeSphere, sets activeDimensionId ('dim-01' on CDE), and flies camera to sphere center (16.5u CDE / 17.0u HQ).
+Silent execution
+navigate_to / open_station / open_panel
+{ station | panel | target }
+Opens target station (projects, tasks, people, files, media) or People sub-panel (hq, team, raci) and flies camera to 13.5u.
+Silent execution
+open_item / focus_project
+{ id | project }
+Matches project (seven, cerebro-cde, etc.), sets selectedProjectId, and flies camera to sun world position at 10.2u radius.
+Silent execution
+open_dimension
+{ id: 'dim-01'..'dim-04' }
+Switches to 'cde', exits story mode, selects dimension, and flies camera to normalized surface vector at 14.2u radius.
+Silent execution
+open_subdomain
+{ id: 'sub-01-1'.. }
+Switches to 'cde', selects parent dimension and target subdomain, and updates focusedId.
+Silent execution
+open_chapter
+{ id: 'ch-01'..'ch-06' }
+Switches to 'cde', enables cdeStoryMode = true, selects biography chapter, and flies camera to chapter node at 13.2u radius.
+Silent execution
+camera
+{ action }
+Mutates cameraStateRef: center/home (\theta=0.28, \phi=1.32, r=17.5), orbit (+\Delta\theta\,0.85), tilt (-\Delta\phi\,0.35), pan (\Delta X=2.6), zoom in (-4.2\text{u}), zoom out (+4.2\text{u}), max-in (8.4\text{u}), max-out (29.5\text{u}), scan (+\Delta\theta\,0.75\pi, \phi=1.15), focus (10.2\text{u}).
+Silent execution
+auto_orbit
+{ mode: 'faster' | 'slower' | 'stop' }
+Steps autoOrbitSpeed across [0.14, 0.35, 0.72, 1.15, \pi/2] \text{rad/s} or disables autoOrbitEnabled.
+Silent execution
+start_tour
+None
+Starts 6-stop tour (step: 1, secondsLeft: 30) and triggers applyTourStop(1).
+"${stop.title}: ${stop.narrationEn}"
+pause_tour
+None (or touch event)
+Sets tourState.paused = true.
+"Tour paused."
+resume_tour
+None
+Sets tourState.active = true, paused = false.
+Silent execution
+stop_tour
+None
+Resets tour state (active: false, paused: false, step: 1, secondsLeft: 30).
+Silent execution
+play_media
+{ id }
+Opens FullscreenMediaModal for target MEDIA_DATA item and sets mediaPlaying = true.
+Silent execution
+pause_media
+None
+Sets mediaPlaying = false.
+Silent execution
+set_volume
+{ volume: '0'..'100' }
+Clamps and updates mediaVolume between 0 and 100.
+Silent execution
+close_panel
+None
+Closes topmost active view in priority order: fullscreenMedia \rightarrow selectedProjectId \rightarrow last openStations item \rightarrow activeDimensionId/activeChapterId.
+Silent execution
+set_background
+{ mode: 'scene' | 'camera' | 'media' }
+Switches background layer; 'camera' activates HandsWireframeOverlay, 'media' opens full-screen media stage.
+Silent execution
+get_projects
+None
+Reads PROJECTS_DATA summary list.
+"4 projects: SEVEN (On track, ...), CEREBRO + CDE ..."
+get_project
+{ id }
+Selects target project and reads health, progress, and deadline.
+"${p.name}: ${p.health}, progress ..., deadline ${p.nextDeadline}."
+get_briefing
+None
+Summarizes current register connection state.
+"SEVEN and CEREBRO + CDE metrics are marked SAMPLE awaiting 07 Project Register."
+get_raci
+{ project }
+Opens people station to 'raci' sub-panel and reads RACI roles.
+"Accountable on ${proj.name}: ${proj.raci.accountable}. Responsible: ${proj.raci.responsible}."
+search_files
+{ query }
+Filters FILES_DATA by name, folder, or description and opens files station.
+Speaks match count and top 1–2 file names/folders.
+log_feedback
+{ note }
+Reports honest persistence status of external feedback sheet.
+"Not saved. External HQ feedback sheet is not linked."
+get_live_feed
+None
+Reports honest status of live register feed.
+"Live feed awaiting 07 Project Register connection (SAMPLE)."
+set_audience
+{ level: 'owner' | 'partner' | 'public' }
+Sets audience privacy tier and dismisses arrival banner.
+Silent execution
+get_page_state
+None
+Serializes live telemetry (sphere, openPanels, measuredFps, particleCount, camera pose, tour, audienceLevel) into lastPageStateDump.
+Silent execution (renders JSON in VoiceCard)
+compose_analyse
+(text, attachmentName)
+Triggered on Compose submit; sets pendingTaskProposal and prompts operator to convert note into an actionable task.
+"Make this a task?"
+
+Dual-Sphere 3D Spatial Architecture and Shader Engineering
+The visual centerpiece of the experience is ⁠src/components/DualSphereCanvas.tsx⁠, which constructs a custom WebGL scene graph using Three.js (⁠v0.184.0⁠) with ACES Filmic tone mapping (⁠exposure: 1.18⁠), sRGB color output, exponential depth fog (⁠THREE.FogExp2⁠ at density ⁠0.014⁠), and a ⁠RoomEnvironment⁠ PMREM environment map. To guarantee visual fidelity without sacrificing frame rate, the engine probes ⁠WEBGL_debug_renderer_info⁠ at startup to detect software rasterizers (⁠SwiftShader⁠, ⁠llvmpipe⁠, ⁠softpipe⁠, ⁠Basic Render⁠), dynamically scaling pixel ratio (⁠1⁠ vs. ⁠Math.min(devicePixelRatio, 2)⁠), sphere geometry segments (⁠48×36⁠ vs. ⁠64×48⁠), physical transmission (⁠0⁠ vs. ⁠0.96⁠), and particle density (⁠2,200⁠ vs. ⁠3,200⁠ per sphere).
+￼
+Liquid-Glass Enclosure and Living Surface Shaders
+Both the ⁠CEREBRO HQ⁠ sphere at ￼ and the ⁠CDE Universe⁠ sphere at ￼ share a physical radius of ￼ world units and are devoid of traditional geodesic wireframe clutter. Instead, each enclosure is constructed from a ⁠THREE.MeshPhysicalMaterial⁠ (⁠ior: 1.52⁠, ⁠thickness: 2.8⁠, ⁠roughness: 0.04⁠, ⁠clearcoat: 1.0⁠, ⁠attenuationDistance: 9.5⁠) augmented via ⁠onBeforeCompile⁠ with custom GLSL vertex and fragment shader injections. Within the vertex shader, every vertex position ￼ along the outer glass sphere is continuously displaced along its surface normal ￼ by a tri-axial harmonic wave:
+Within the fragment shader, given view direction ￼ and surface normal ￼, the shader computes a high-exponent Fresnel rim term ￼ and a procedural internal caustic wave ￼, adding ￼ directly to ⁠outgoingLight⁠. A secondary back-face shader shell at ￼ (⁠THREE.BackSide⁠, additive blending) reinforces internal refraction so objects behind the sphere visibly bend and shimmer even on software renderers.
+Multi-Layer Galaxy, Depth-of-Field Bokeh, and Cardiac Wires
+Inside each liquid-glass shell, ⁠buildLiquidGlassGalaxySphere⁠ populates a 4-arm, 3-layer spiral galaxy of glowing particles (⁠3,200⁠ per sphere on GPU, ⁠6,400⁠ total) with disk-flattening factors of ⁠0.28⁠, ⁠0.58⁠, and ⁠0.92⁠. Each particle ￼ is assigned a radial distance ￼, a scale attribute ￼, and a random phase ￼. During each animation tick, the vertex shader applies differential orbital drift and real-time Depth-of-Field (DOF) point-size expansion relative to the camera's focal distance ￼:
+In the fragment shader, particles near the focal plane (￼) render with a sharp, high-contrast core (￼), whereas out-of-focus background and foreground particles (￼) diffuse into soft Gaussian bokeh discs (￼).
+Embedded within this particle field are the Project Suns (⁠PROJECTS_DATA⁠). Each sun comprises a ⁠0.28u⁠ photosphere core, a ⁠0.42u⁠ additive chromosphere shell colored by its non-red health token (⁠--token-health-ontrack⁠ ⁠#7CE0B8⁠, ⁠--token-health-atrisk⁠ ⁠#F2B66D⁠, or ⁠--token-health-blocked⁠ ⁠#4C8DFF⁠), a camera-billboarded ⁠2.1u × 2.1u⁠ radial corona bloom shader, and 2 to 3 tilted ⁠TorusGeometry⁠ orbital rings carrying planetoid beads. As the camera flies toward a sun, its group scale expands inversely with distance:
+Suns that share personnel or tasks (⁠SUN_WIRES_DATA⁠) are linked by curved ⁠CatmullRomCurve3⁠ tubes (⁠radius: 0.022u⁠) executing a double-peaked cardiac heartbeat shader along texture coordinate ￼ at link-specific pulse speed ￼:
+The specific orbital velocities, ring counts, cardiac wire pulse speeds, and camera radial distance presets that govern the 3D scene graph are detailed in the table below.
+Spatial Entity / Camera Preset
+Identifier / Mode
+World Coordinates / Radial Distance
+Orbital / Pulse Velocity Multiplier
+Ring Count / Structural Spec
+Health / Token Mapping
+CEREBRO + CDE Sun
+cerebro-cde
+HQ: [-1.8, 1.1, 2.0] / CDE: [-1.9, 1.0, 2.1]
+2.60x (orbitSpeedFactor)
+3 orbital rings (dim-03)
+On track (--token-health-ontrack #7CE0B8)
+SEVEN Sun
+seven
+HQ: [1.4, 1.6, 2.2] / CDE: [1.5, 1.9, 2.1]
+2.20x (orbitSpeedFactor)
+3 orbital rings (dim-01)
+On track (--token-health-ontrack #7CE0B8)
+SAMPLE Project 01 Sun
+sample-project-01
+HQ: [2.1, -1.4, 1.5] / CDE: [2.2, -1.2, 1.6]
+1.40x (orbitSpeedFactor)
+2 orbital rings (dim-02, partner)
+At risk (--token-health-atrisk #F2B66D)
+SAMPLE Project 02 Sun
+sample-project-02
+HQ: [-1.6, -1.7, 1.7] / CDE: [-1.5, -1.8, 1.6]
+0.75x (orbitSpeedFactor)
+2 orbital rings (dim-04, owner)
+Blocked (--token-health-blocked #4C8DFF)
+Wire: SEVEN \leftrightarrow CEREBRO
+wire-seven-cerebro
+Shared Owner (39) & Spatial Architecture
+1.85x (pulseSpeed)
+CatmullRomCurve3 (r = 0.022u)
+Base #7CE0B8 \rightarrow Pulse #F2B66D
+Wire: SEVEN \leftrightarrow Project 01
+wire-seven-smp1
+Shared People & Tasks (SAMPLE)
+1.25x (pulseSpeed)
+CatmullRomCurve3 (r = 0.022u)
+Base #7CE0B8 \rightarrow Pulse #F2B66D
+Wire: CEREBRO \leftrightarrow Project 02
+wire-cerebro-smp2
+Shared HQ RACI Accountable (39)
+0.95x (pulseSpeed)
+CatmullRomCurve3 (r = 0.022u)
+Base #7CE0B8 \rightarrow Pulse #F2B66D
+Wire: Project 01 \leftrightarrow Project 02
+wire-smp1-smp2
+Shared Studio Tasks (SAMPLE)
+0.70x (pulseSpeed)
+CatmullRomCurve3 (r = 0.022u)
+Base #F2B66D \rightarrow Pulse #F2F6F8
+Camera: Max-Out / Galaxy-Far
+max-out / ?view=galaxy-far
+29.5u (max-out) / 28.5u (galaxy-far)
+5 spin steps (0.14 to 1.57 rad/s)
+Full-sphere cosmic overview (clamp 3.2u–34.0u)
+--token-canvas (#101D27) fog
+Camera: Arrival / Home Orbit
+boot / center / home
+23.5u (Arrival) \rightarrow 17.5u (Home target)
+0.08 rad/s ambient drift
+\theta = -0.65 \to 0.28, \phi = 1.18 \to 1.32
+Mid-orbit documentary approach
+Camera: Sphere / Node Focus
+cde / dimension / station / chapter
+16.5u (CDE) / 14.2u (Dim) / 13.5u (Station) / 13.2u (Bio)
+Smoothstep Bézier comet weave
+28-point trailing ribbon (cometHead)
+--token-station-media (#F2B66D) trail
+Camera: Sun Close-Up / Max-In
+focus_project / sun-close / max-in
+10.2u (Focus) / 9.2u (URL) / 8.4u (Max-in)
+Proximity scale up to 2.35x
+Liquid-Glass Sphere Shell at 6.2u radius
+Selective sun bloom (2.1u × 2.1u)
+
+Spherical Camera Rig, Comet Navigation Weave, and Hybrid 3D Panels
+Camera motion in ⁠DualSphereCanvas.tsx⁠ is governed by an exponentially damped spherical coordinate rig ￼ with frame-rate-independent damping factor ￼:
+When ⁠flyCameraToPosition(worldPos, sphere, zoomRadius)⁠ is triggered by voice or click, the engine launches a 28-segment Comet Navigation Weave (⁠cometHead⁠ + ⁠cometLine⁠) along a smoothstep-eased (￼) quadratic Bézier arc from the previous focal point ￼ through an elevated apex ￼ to the target node ￼:
+Simultaneously, whenever a station, project, dimension, or biography chapter panel is open (⁠hasOpen3DPanel⁠), ⁠DualSphereCanvas.tsx⁠ renders a physical 3D extruded bevelled liquid-glass slab (⁠hybridPanel3DMesh⁠, ⁠3.2u × 4.6u × 0.14u⁠) locked to camera space at local offset ￼. This 3D slab tilts subtly toward the viewer (￼) to catch the scene's single Key Light (⁠[16, 22, 20]⁠, intensity ⁠1.85⁠) and Rim Light (⁠[-18, -14, -16]⁠, intensity ⁠1.35⁠), while ⁠StationPanels.tsx⁠ renders crisp, CSS-perspective-tilted (⁠rotateY(-3deg)⁠) HTML typography directly over it.
+21-Landmark Hand Tracking, One Euro Filtering, and Gesture Controls
+To fulfill the spatial computing mandate without requiring dedicated VR hardware, ⁠src/components/HandsWireframeOverlay.tsx⁠ implements a 21-landmark hand-tracking rig that operates in both ⁠SIMULATED⁠ pointer mode and ⁠LIVE⁠ webcam mode (⁠navigator.mediaDevices.getUserMedia({ video: true, audio: false })⁠).
+Signal Stabilization via the One Euro Filter
+Raw optical hand and pointer coordinates suffer from high-frequency jitter at low speeds and lag at high speeds. ⁠HandsWireframeOverlay.tsx⁠ resolves this trade-off by filtering normalized ￼ coordinates through dual ⁠OneEuroFilter⁠ instances configured with minimum cutoff frequency ￼, speed coefficient ￼, and derivative cutoff ￼. For each frame interval ￼, the filter computes smoothing weight ￼ and adaptive cutoff ￼:
+Skeletal Topology, Glove Modes, and Fingertip Piano Triggers
+The 2D canvas overlay (⁠z-20⁠) renders 24 anatomical bone segments connecting the 21 landmarks: wrist (⁠0⁠), thumb (⁠1–4⁠), index (⁠5–8⁠), middle (⁠9–12⁠), ring (⁠13–16⁠), pinky (⁠17–20⁠), and palm metacarpal bridges (⁠[5,9]⁠, ⁠[9,13]⁠, ⁠[13,17]⁠, ⁠[5,17]⁠). Operators can switch between three glove configurations and four gesture states, while triggering five pentatonic fingertip piano nodes (⁠4⁠, ⁠8⁠, ⁠12⁠, ⁠16⁠, ⁠20⁠) that emit diamond-shaped sparkle particles (⁠up to 180 concurrent particles⁠) and nudge orbital rotation:
+Hand Rig Component / Mode
+Landmark / Parameter Specification
+Spatial Action & Callback Invoked
+Visual & Token Feedback
+Mirrored Camera Backdrop
+z-0 <video> / radial fallback with scaleX(-1)
+Places operator silhouette behind the 3D sphere at ~60% dim (opacity-40 + bg-token-canvas-60).
+Deep Navy --token-canvas (#101D27) + Cobalt glow
+Right-Hand Glove ('right')
+Single-hand rig (isLeft: false, mirror: 1)
+Tracks primary right-hand cursor with rounded wrist cuff telemetry.
+--token-cobalt (#4C8DFF) stroke & label
+Left-Hand Glove ('left')
+Single-hand rig (isLeft: true, mirror: -1)
+Tracks mirrored left-hand cursor with rectangular wrist cuff.
+--token-station-people (#7CE0B8) stroke & label
+Two-Hand Set ('both')
+Dual rigs separated by 150px (195 ± 28px in zoom)
+Enables bimanual spread-zoom and dual wrist cuffs (Glove L + Glove R).
+Left #7CE0B8 + Right #4C8DFF
+Pinch & Move ('pinch_orbit')
+pinchFactor = 0.25 (thumb 4 & index 8 converge)
+Invokes onOrbitDelta(0.38, 0.12) to rotate active 3D sphere.
+Active Cobalt chip & converged thumb/index tips
+Two-Hand Spread ('spread_zoom')
+spreadFactor = 1.32, forces handMode = 'both'
+Invokes onZoomDelta(-3.2) to fly camera closer into the sphere.
+Dual-hand expansion & Cobalt chip
+Open Palm ('palm_stop')
+spreadFactor = 1.15 (all 5 digits extended)
+Invokes onPalmStop() \rightarrow executeTool('auto_orbit', { mode: 'stop' }).
+Halts sphere rotation immediately
+Index Point ('point_select')
+Index 8 extended (-104px), tips 12,16,20 curled
+Invokes onPointSelect() \rightarrow executeTool('open_station', { station: 'projects' }).
+Opens Projects station & flies camera to 13.5u
+Fingertip Piano Triggers
+Landmarks #4 (C4), #8 (D4), #12 (E4), #16 (G4), #20 (A4)
+Depresses tip by +10px on mouseDown and calls onOrbitDelta((i - 2) * 0.16, -0.06).
+Expands marker radius (10.5px \rightarrow 14px) in Amber #F2B66D
+
+Direct URL View-State Inspectors and Design System Governance
+To support automated visual verification, screenshot auditing, and instant state jumping without waiting for the 8-second boot loader, ⁠src/App.tsx⁠ implements 11 URL query parameter inspectors (⁠?view=...⁠) alongside a strict 15-token CSS Custom Property color system (⁠src/index.css⁠ and ⁠COLOUR_TABLE⁠ in ⁠src/data/cerebroData.ts⁠). Every DOM component and Three.js material reads colors dynamically from ⁠:root⁠ via ⁠getCssTokenValue⁠ and ⁠getThreeColorFromToken⁠ (⁠src/utils/themeTokens.ts⁠), ensuring that zero hexadecimal literals are hardcoded in rendering logic and that red (⁠--token-system-error: #E5484D⁠) is never used for project health.
+URL Query Inspector / Token Group
+Parameter Value / CSS Custom Property
+Resolved Value / Target State Configuration
+Verification & Governance Status
+Boot Loader View
+?view=loader
+Forces isBooting = true to inspect the 8-second arrival sequence and Square-Kufic Bismillah SVG.
+Verified (BootLoader.tsx)
+Arrival Prompt View
+?view=arrival
+Skips boot loader and displays the "Anyone with you?" Audience Awareness banner over CEREBRO HQ.
+Verified (App.tsx)
+Far Galaxy Overview
+?view=galaxy-far
+Sets cameraStateRef.current.radius = 28.5 for a full-sphere wide shot.
+Verified (App.tsx)
+Sun Close-Up View
+?view=sun-close
+Focuses seven sun (sun-seven) and locks camera radius to 9.2u to inspect orbital rings and pulsing wires.
+Note: Requires sunPositionHq fix in App.tsx
+Station Inspector Views
+?view=station-projects (tasks, people, files, media)
+Sets ownerUnlocked = true and opens the specified station's Hybrid 3D Liquid-Glass panel.
+Verified (App.tsx + StationPanels.tsx)
+CDE Cosmograph View
+?view=cde
+Switches activeSphere to 'cde', selects dim-01, and flies camera to 15.8u.
+Verified (App.tsx)
+39 Biography Journey View
+?view=bio
+Switches to 'cde', enables cdeStoryMode = true, opens ch-01, and flies camera to 13.2u.
+Verified (App.tsx)
+Guided Tour View
+?view=tour
+Unlocks Owner tier, activates Stop 1/6 (secondsLeft: 28), and opens projects station.
+Verified (App.tsx)
+Hands & Camera Rig View
+?view=hands
+Enables handsActive = true and backgroundMode = 'camera' (21-landmark wireframe + 60% dim feed).
+Verified (HandsWireframeOverlay.tsx)
+Owner Keypad View
+?view=keypad
+Opens the 4-digit auto-unlock numeric keypad modal (PIN: 3939, no Enter button).
+Verified (OwnerLockKeypad.tsx)
+Locked Core Palette Tokens
+--token-canvas, --token-glass-solid, --token-text-primary, --token-text-secondary, --token-cobalt, --token-ice, --token-station-media
+#101D27 (Canvas), #142632 (88% Glass), #F2F6F8 (Primary/Ice), #BDCBD3 (Secondary), #4C8DFF (Cobalt), #F2B66D (Media Amber).
+LOCKED (Master Instruction v2)
+Editable Sample Tokens
+--token-station-projects, --token-station-tasks, --token-station-people, --token-station-files, --token-cde-dim-01..04
+#4C8DFF (Projects/Dim-02), #5CC8D7 (Tasks/Dim-03), #7CE0B8 (People/Dim-04/On-Track), #9DB8D6 (Files), #F2B66D (Dim-01/At-Risk).
+SAMPLE_TOKEN (Editable in src/index.css)
+
+Technical Synthesis and Actionable Engineering Recommendations
+A cross-module static analysis of the ⁠cerebro-+-cde.zip⁠ build surfaces three high-priority engineering actions required to transition the workspace from its current simulated preview state to a zero-error production deployment. First, schema-to-prop drift inside ⁠src/App.tsx⁠ must be reconciled prior to live voice deployment. While the child components (⁠DualSphereCanvas.tsx⁠, ⁠StationPanels.tsx⁠, ⁠VoiceCard.tsx⁠, and ⁠OwnerLockKeypad.tsx⁠) and data definitions (⁠cerebroData.ts⁠) implement the updated Master Instruction v2 interfaces, ⁠src/App.tsx⁠ retains legacy v1 prop names (⁠hasOpenHybridPanel⁠ instead of ⁠hasOpen3DPanel⁠, ⁠onSelectProjectSun⁠ instead of ⁠onSelectProject⁠, ⁠onFileSearchChange⁠ instead of ⁠onChangeFileSearch⁠, and ⁠onInvokeTool⁠ instead of ⁠onExecuteToolDirect⁠) and references ⁠proj.sunPosition⁠ instead of ⁠proj.sunPositionHq⁠ and ⁠proj.sunPositionCde⁠. Aligning these bindings in ⁠src/App.tsx⁠ and eliminating the duplicate ⁠buildLiquidGlassGalaxySphere(CEREBRO_CENTER, colCobalt)⁠ invocation in ⁠DualSphereCanvas.tsx⁠ (lines 410–414) restores clean TypeScript compilation (⁠tsc --noEmit⁠) and reclaims ⁠3,200⁠ redundant GPU vertices.
+Second, stripped Arabic string literals inside ⁠handleExecuteCommand⁠ in ⁠src/App.tsx⁠ should be restored and supplemented with direct client-tool JSON bindings. Because several Arabic/Masri string literals inside ⁠handleExecuteCommand⁠ were reduced to single space characters (⁠' '⁠) during archive serialization, substring checks such as ⁠lower.includes(' ')⁠ inadvertently match any multi-word English command containing a space and prematurely trigger ⁠stop_tour⁠. Replacing those blank substring checks with explicit UTF-8 Arabic keywords and binding the 25 ⁠executeTool⁠ handlers directly as structured ⁠clientTools⁠ for the conversational agent eliminates natural-language routing ambiguity.
+Finally, live upstream credentials should be injected to activate bilateral audio streaming and NOJARA HQ register synchronization. Both the Express server (⁠server.ts⁠) and the client UI are engineered for strict data truthfulness, explicitly displaying ⁠GEMINI LIVE: BLOCKED (NEEDS KEY)⁠ and ⁠SAMPLE (Awaiting 07 Project Register)⁠ until valid environment secrets are detected. Provisioning ⁠GEMINI_API_KEY⁠ alongside ⁠NOJARA_HQ_PROJECT_REGISTER_ID⁠ and ⁠NOJARA_HQ_DRIVE_ROOT_ID⁠ transitions the CEREBRO + CDE workspace from its ⁠SIMULATED⁠ and ⁠SAMPLE⁠ fallback states into full bilateral voice pilotage and live studio register telemetry.

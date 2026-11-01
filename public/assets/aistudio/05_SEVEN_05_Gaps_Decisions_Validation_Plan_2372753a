@@ -1,0 +1,105 @@
+﻿SEVEN × NOJARA KNOWLEDGE BASE
+05 - Current Gaps, Decisions and Validation Plan
+
+
+CURRENT GAPS
+1. Drive authority
+- The supplied folder was empty and titled INT-NASA-COMMS-26 before this KB set was created.
+- No approval register, rights register, access matrix, dated decision log or authoritative brand-language record was available.
+
+
+2. Portal implementation
+- The published portal source was reviewed, but no repository, deployment project, commit history, build logs or production release record was provided.
+- Therefore the implementation owner, deployment source and rollback path are unknown.
+
+
+3. Authentication
+- Gate and voice configuration are live.
+- The unauthenticated session endpoint correctly returns locked.
+- Valid access-code verification, cookie retention, expiry handling and successful signed URL issuance were not tested.
+
+
+4. Browser behavior
+- No live microphone permission, WebSocket, audio playback or console/network trace was captured in the audit browser because the browser connection failed.
+- Browser-specific autoplay and permission outcomes remain unverified.
+
+
+5. Rights and approvals
+- No underlying licenses, releases, logo permissions, client approvals or talent approvals were present in Drive.
+- Public portal presence is not enough to mark any asset rights-cleared.
+
+
+6. Naming and identity
+- Current prompt/first-message Arabic spelling conflicts with corrections recorded in recent calls.
+- An authorized brand-language decision is required before changing the agent or KB.
+
+
+DECISIONS REQUIRED
+- Confirm whether folder 13OUNhwHFS6PuzJ2W3_07aSk0lK9JaizB is intentionally the SEVEN × NOJARA master folder despite its current title.
+- Approve the exact Arabic spelling and pronunciation of NOJARA.
+- Define the product contract: automatic on page load, automatic after unlock, or greeting after an explicit Start Seven action.
+- Define supported browsers and mobile devices.
+- Identify the portal source repository and deployment owner.
+- Identify the authorized owner for SEVEN brand, talent, photo, video and document approvals.
+- Identify which published PDF version is authoritative for each subject.
+
+
+VALIDATION PLAN - PROPOSED
+A. Source control and deployment
+1. Locate the production source repository and current deployed commit.
+2. Verify the published seven-client.js matches that commit.
+3. Make changes on a branch.
+4. Review diff, security boundaries and user-facing states.
+5. Publish only after approval.
+6. Read back the live asset and deployed version.
+
+
+B. Auth and signed URL
+1. Open the portal directly in a clean browser profile.
+2. Verify status before unlock: configured, locked.
+3. Enter a valid code without exposing it in logs or documents.
+4. Verify same-origin session cookie is stored and expires as designed.
+5. Verify /api/seven/session returns a signed URL only while unlocked.
+6. Verify expired/logout states cannot issue a session.
+
+
+C. Voice lifecycle
+1. Select Start Seven.
+2. Accept microphone permission.
+3. Confirm WebSocket connects.
+4. Confirm the Arabic first message is heard once.
+5. Confirm it is not repeated after route change, retrieval, silence or reconnect.
+6. End the call and verify microphone capture stops.
+7. Repeat for denied permission, microphone busy, lost network and token expiry.
+
+
+D. Duplicate-instance protection
+1. Confirm one module include and one mount in the final DOM.
+2. Confirm no "Seven widget already initialized" console error.
+3. Navigate all routes without remounting the agent client.
+4. Confirm only one active microphone stream and one WebSocket session.
+
+
+E. Content, identity and permissions
+1. Test identity: Seven, feminine AI guide, not a SEVEN employee or spokesperson.
+2. Test proposal status: for discussion, not approved.
+3. Test person-name and project-name boundary behavior.
+4. Test navigation success/failure honesty.
+5. Test restricted information refusal.
+6. Test approved Arabic name spelling after the decision is recorded.
+
+
+COMPLETION EVIDENCE REQUIRED BEFORE A FIX CLAIM
+- Live deployed URL and deployed version/commit.
+- Successful status, unlock and signed-session sequence.
+- Browser/network evidence with secrets redacted.
+- Audible first-message confirmation in each supported browser.
+- No duplicate instance, microphone stream or WebSocket.
+- Final Drive inventory and rights/approval readback.
+
+
+CURRENT FINAL STATE
+- Diagnosis prepared from live configuration, published code, published PDFs and recent conversation metadata.
+- KB document set prepared for the exact user-supplied Drive destination.
+- No portal or ElevenLabs settings were modified.
+- No voice-agent fix was deployed.

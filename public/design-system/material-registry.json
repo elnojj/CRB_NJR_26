@@ -1,0 +1,176 @@
+{
+  "$schema": "https://nojara.studios/schemas/cerebro-39-material-registry-v2.json",
+  "version": "2.0.0-cerebro39-master",
+  "rendererConfig": {
+    "rendererClass": "THREE.WebGLRenderer",
+    "outputColorSpace": "THREE.SRGBColorSpace",
+    "toneMapping": "THREE.AgXToneMapping (fallback THREE.ACESFilmicToneMapping)",
+    "toneMappingExposure": 1.05,
+    "clearColorHex": "#1B2230",
+    "filmDeepCanvasHex": "#05090E",
+    "filmCanvasHex": "#101D27",
+    "adaptiveDpr": "Math.min(window.devicePixelRatio || 1, 2)",
+    "shadowMap": {
+      "enabled": true,
+      "type": "THREE.PCFSoftShadowMap"
+    },
+    "environmentLighting": "THREE.PMREMGenerator.fromScene(new RoomEnvironment(), 0.04)"
+  },
+  "lightingRig": {
+    "owner": "src/components/CosmographCanvas.tsx (setupLights)",
+    "lights": [
+      {
+        "id": "LIGHT_KEY_WARM",
+        "type": "THREE.DirectionalLight",
+        "colorHex": "#FFF4D0",
+        "intensity": 2.8,
+        "position": [12, 18, 14],
+        "castShadow": true,
+        "role": "Primary directional key light"
+      },
+      {
+        "id": "LIGHT_RIM_COOL",
+        "type": "THREE.DirectionalLight",
+        "colorHex": "#A4CBFF",
+        "intensity": 1.9,
+        "position": [-14, -10, -8],
+        "castShadow": false,
+        "role": "Cool optical rim & refraction backlight"
+      },
+      {
+        "id": "LIGHT_FILL_HEMI",
+        "type": "THREE.HemisphereLight",
+        "skyColorHex": "#3A516E",
+        "groundColorHex": "#101622",
+        "intensity": 0.9,
+        "role": "Deep slate ambient hemisphere fill"
+      }
+    ]
+  },
+  "postProcessingPipeline": {
+    "owner": "src/components/CosmographCanvas.tsx (EffectComposer)",
+    "passes": [
+      {
+        "id": "PASS_01_RENDER",
+        "type": "RenderPass",
+        "enabled": true
+      },
+      {
+        "id": "PASS_02_SELECTIVE_BLOOM",
+        "type": "UnrealBloomPass",
+        "enabled": true,
+        "parameters": {
+          "strength": 0.28,
+          "radius": 0.55,
+          "threshold": 0.82
+        },
+        "artDirectionNote": "Restrained low-intensity optical bloom restricted to specular gold and emissive highlights; never masks typography."
+      },
+      {
+        "id": "PASS_03_OPTICAL_VIGNETTE_GRAIN",
+        "type": "ShaderPass",
+        "enabled": true,
+        "parameters": {
+          "vignetteDarkness": 0.24,
+          "vignetteOffset": 1.05,
+          "filmGrainIntensity": 0.018
+        }
+      }
+    ]
+  },
+  "materials": [
+    {
+      "id": "MAT_LIQUID_GLASS_SHELL",
+      "gltfMaterialName": "Glass_proposed_normalized",
+      "threeClass": "THREE.MeshPhysicalMaterial",
+      "authority": "design_tokens_998287f6.json + regenerate_starter_meshes_90077fad.py",
+      "colorSpace": "SRGBColorSpace (albedo/attenuation) + Linear (roughness/metalness/ior/transmission)",
+      "parameters": {
+        "color": "#0A1218",
+        "gltfBaseColorFactor": [0.75, 0.88, 1.0, 1.0],
+        "transmission": 0.96,
+        "roughness": 0.04,
+        "metalness": 0.0,
+        "ior": 1.52,
+        "sceneThickness": 2.8,
+        "normalizedGlbThickness": 0.03,
+        "clearcoat": 0.9,
+        "clearcoatRoughness": 0.06,
+        "attenuationColor": "#101D27",
+        "attenuationColorLinear": [0.063, 0.114, 0.153],
+        "attenuationDistance": 3.4,
+        "transparent": true
+      },
+      "gltfExtensions": [
+        "KHR_materials_transmission",
+        "KHR_materials_ior",
+        "KHR_materials_volume",
+        "KHR_materials_clearcoat"
+      ],
+      "assignedComponents": ["C05_SPHERE_STAGE", "C10_MEDIA_PORTAL", "glass-shell.glb", "sphere-assembly.glb", "media-portal-rim.glb"]
+    },
+    {
+      "id": "MAT_SILVER_CORE",
+      "gltfMaterialName": "Core_proposed",
+      "threeClass": "THREE.MeshPhysicalMaterial",
+      "authority": "design_tokens_998287f6.json + regenerate_starter_meshes_90077fad.py",
+      "colorSpace": "SRGBColorSpace",
+      "parameters": {
+        "color": "#BCC9D4",
+        "d0BrushedSilverHex": "#C5CCD6",
+        "gltfBaseColorFactor": [0.72, 0.78, 0.84, 1.0],
+        "metalness": 0.94,
+        "roughness": 0.28,
+        "clearcoat": 0.2
+      },
+      "assignedComponents": ["C05_SPHERE_STAGE", "metal-core.glb", "sphere-assembly.glb"]
+    },
+    {
+      "id": "MAT_BRONZE_GOLD_RAILS",
+      "gltfMaterialName": "Bronze_source_related",
+      "threeClass": "THREE.MeshPhysicalMaterial",
+      "authority": "design_tokens_998287f6.json + regenerate_starter_meshes_90077fad.py",
+      "colorSpace": "SRGBColorSpace",
+      "parameters": {
+        "color": "#8C6A45",
+        "accentGoldHex": "#D4AF37",
+        "specularSheenHex": "#FFF4D0",
+        "gltfBaseColorFactor": [0.549, 0.416, 0.271, 1.0],
+        "metalness": 0.85,
+        "roughness": 0.18
+      },
+      "assignedComponents": ["C05_SPHERE_STAGE", "C11_FOCUS_MARKER", "orbital-cage.glb", "gold-node.glb", "portrait-medallion.glb"]
+    },
+    {
+      "id": "MAT_D0_GOLD_RIBBED",
+      "gltfMaterialName": "D0_GoldRibbed",
+      "threeClass": "THREE.MeshPhysicalMaterial",
+      "authority": "src/components/CosmographCanvas.tsx (getD0Materials)",
+      "colorSpace": "SRGBColorSpace (color) + Linear (stripeBump procedural DataTexture)",
+      "parameters": {
+        "color": "#D4AF37",
+        "metalness": 0.92,
+        "roughness": 0.22,
+        "clearcoat": 0.4,
+        "clearcoatRoughness": 0.15,
+        "reflectivity": 1.0,
+        "sheen": 0.35,
+        "sheenColor": "#FFF4D0",
+        "bumpScale": 0.035
+      },
+      "assignedComponents": ["HQ_OrbitalRings", "CDE_MeridianRings"]
+    },
+    {
+      "id": "SHADER_FRESNEL_CAUSTIC_RIM",
+      "threeClass": "onBeforeCompile GLSL Fragment Patch (patchFresnelRimOnOpaqueFragment)",
+      "authority": "src/three/spatialNavigation.tsx",
+      "uniformSchema": {
+        "uFresnelColor": { "type": "THREE.Color", "default": "#B4DDFF" },
+        "uFresnelPower": { "type": "float", "default": 3.2 },
+        "uFresnelIntensity": { "type": "float", "default": 0.45 },
+        "uTime": { "type": "float", "clockOwner": "CosmographCanvas.AnimationLoop" }
+      },
+      "assignedComponents": ["C05_SPHERE_STAGE", "CDE_SphereShell"]
+    }
+  ]
+}

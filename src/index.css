@@ -1,0 +1,335 @@
+@import "tailwindcss";
+@import "./styles/cerebro.tokens.css";
+
+@font-face {
+  font-family: 'JaapokkiSubtract';
+  src: local('Jaapokki Subtract'), local('JaapokkiSubtract-Regular'), local('Jaapokki'), local('Sora');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --bg-canvas: var(--cj-bg-viewport);
+    --bg-glass-solid: var(--cj-bg-surface);
+    --bg-glass-rgba: var(--cj-glass-panel);
+    --text-primary: #F2F6F8;
+    --text-secondary: var(--cj-silver-metal);
+    --accent-cobalt: var(--cj-gold-primary);
+    --focus-ring: var(--cj-gold-primary);
+    --station-projects: var(--cj-gold-primary);
+    --station-tasks: var(--cj-silver-metal);
+    --station-people: var(--cj-gold-sheen);
+    --station-files: var(--cj-silver-metal);
+    --station-media: var(--cj-gold-primary);
+    --voice-orb-mint: var(--cj-gold-primary);
+    --voice-orb-teal: #E6CA65;
+    --voice-orb-deep: #685218;
+    --sphere-wireframe: var(--cj-gold-sheen);
+    --ease-cerebro: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at 50% 40%, #1B2230 0%, #101622 100%);
+    background-color: var(--cj-bg-viewport);
+    color: #F2F6F8;
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    line-height: 1.45;
+    overflow: hidden;
+    touch-action: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    user-select: none;
+  }
+
+  /* Focus ring locked to gold #D4AF37 */
+  *:focus-visible {
+    outline: 2px solid var(--cj-gold-primary);
+    outline-offset: 2px;
+  }
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.font-arabic {
+  font-family: var(--font-arabic);
+  letter-spacing: 0 !important;
+}
+
+/* Enforce zero letter-spacing across Arabic RTL switches */
+[dir='rtl'],
+[dir='rtl'] * {
+  font-family: var(--font-arabic);
+  letter-spacing: 0 !important;
+}
+
+[dir='rtl'] .font-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0 !important;
+}
+
+/* D0 Scope canvas gestures */
+canvas {
+  touch-action: none;
+  outline: none;
+  display: block;
+}
+
+.hud-overlay {
+  pointer-events: none;
+}
+
+.hud-interactive {
+  pointer-events: auto;
+}
+
+/* D0 Orb-Slot Spacer bugfix: always visible and sized even if aria-hidden is present */
+.orb-slot-spacer,
+[data-orb-slot] {
+  display: block !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+  min-width: 280px !important;
+  min-height: 280px !important;
+}
+
+/* Unified Cerebro-Nojara D0 v1.24 Glass Card across all HUD panels, cards, docks and sheets */
+.cj-glass-card,
+.glass-panel,
+.cerebro-glass-panel,
+.cerebro-stellar-glass,
+.cerebro-hud-panel,
+.cerebro-hud-elevated,
+.optical-hud-panel,
+.hud-sheet {
+  background: var(--cj-glass-panel) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border: 1px solid var(--cj-border-hairline) !important;
+  border-radius: 16px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+@supports not ((backdrop-filter: blur(14px)) or (-webkit-backdrop-filter: blur(14px))) {
+  .cj-glass-card,
+  .glass-panel,
+  .cerebro-glass-panel,
+  .cerebro-stellar-glass,
+  .cerebro-hud-panel,
+  .cerebro-hud-elevated,
+  .optical-hud-panel,
+  .hud-sheet {
+    background: rgba(16, 22, 34, 0.94) !important;
+  }
+}
+
+/* D0 Voice/Talk Widget always on top (z-index: 100) and mobile sheet docking */
+[data-testid="voice-card"],
+.voice-talk-widget {
+  z-index: 100 !important;
+}
+
+@media (max-width: 720px) {
+  body[data-sheet-open='true'] [data-testid="voice-card"],
+  [data-testid="voice-card"][data-compacted='true'] {
+    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    max-height: 52px !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+    z-index: 100 !important;
+  }
+}
+
+/* Voice Pilot Orb — Metallic Gold & Specular Sheen */
+.voice-orb-gradient {
+  background: radial-gradient(
+    circle at 34% 30%,
+    var(--cj-gold-sheen) 0%,
+    var(--cj-gold-primary) 56%,
+    #685218 100%
+  );
+  box-shadow:
+    0 0 28px var(--cj-glow-accent),
+    inset 0 1px 2px rgba(255, 244, 208, 0.55);
+}
+
+@keyframes orbPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 24px var(--cj-glow-accent);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 38px rgba(212, 175, 55, 0.6);
+  }
+}
+
+.voice-orb-speaking {
+  animation: orbPulse 2.2s var(--ease-cerebro) infinite;
+}
+
+@keyframes shimmerSweep {
+  0% {
+    opacity: 0.82;
+    filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.18));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 14px rgba(212, 175, 55, 0.45));
+  }
+  100% {
+    opacity: 0.82;
+    filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.18));
+  }
+}
+
+.lockup-shimmer {
+  animation: shimmerSweep 4s var(--ease-cerebro) infinite;
+}
+
+@keyframes neuralPanelReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.neural-reveal {
+  animation: neuralPanelReveal 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes pulseRing {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.75;
+  }
+  70% {
+    transform: scale(1.32);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.32);
+    opacity: 0;
+  }
+}
+
+.neural-pulse-ring::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 1.5px solid var(--cj-gold-primary);
+  animation: pulseRing 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  pointer-events: none;
+}
+
+/* Scrollbar styling inside floating optical glass cards */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(16, 22, 34, 0.45);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(197, 204, 214, 0.28);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.65);
+}
+
+/* --- Nojara Logo & Animated Arabic Typography --- */
+@keyframes angelFloat {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-3px) scale(1.01); }
+}
+
+.nojara-brand-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  background: var(--cj-glass-panel);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--cj-border-hairline);
+  border-radius: 14px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.nojara-logo-title {
+  font-size: clamp(16px, 1.8vw, 22px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  color: #F2F6F8;
+}
+
+.nojara-brand-loader .nojara-logo-title {
+  font-size: clamp(28px, 3.5vw, 48px);
+}
+
+.nojara-arabic-subtitle {
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+  font-size: 11px;
+  line-height: 1.1;
+  color: var(--cj-silver-metal);
+  animation: angelFloat 6s ease-in-out infinite;
+}
+
+.overflow-y-auto,
+.overflow-x-auto {
+  touch-action: pan-x pan-y;
+}
+
+/* Cerebro Angel Watermark Motif */
+.cerebro-angel-emblem {
+  opacity: 0.35;
+  mix-blend-mode: screen;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+.cerebro-angel-emblem:hover, .cerebro-angel-emblem.active {
+  opacity: 0.9;
+  filter: drop-shadow(0 0 24px var(--cj-glow-accent));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 120ms !important;
+  }
+}

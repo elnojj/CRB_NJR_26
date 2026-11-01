@@ -1,0 +1,495 @@
+{
+  "schema": "cerebro.stellar.gui.amend/3.0",
+  "target": "Existing Google AI Studio cerebro-stellar-command.zip; amend in place; no NOJARA public website",
+  "evidence": {
+    "verified": [
+      "PanelsOverlay.tsx openPanels.map uses index parity left/right",
+      "phone posClass identical for left and right, causing overlapping sheets",
+      "VoiceCard.tsx fixed z-40 with max-width 460/560px and independent drag transform",
+      "PanelsOverlay.tsx z-20, modal z-50",
+      "CosmographCanvas.tsx has PerspectiveCamera, flightCurve, raycast and camera commands"
+    ],
+    "unknown": [
+      "exact runtime screenshots and safe-area dimensions",
+      "live ElevenLabs word timing",
+      "actual GPU frame times",
+      "approved final image comparison"
+    ]
+  },
+  "authority": {
+    "preserve": [
+      "existing navigation",
+      "camera command semantics",
+      "ElevenLabs connection",
+      "media",
+      "panels data",
+      "source content",
+      "approved tokens and logo",
+      "existing gesture controls"
+    ],
+    "do_not": [
+      "replace with static image",
+      "invent brand colors",
+      "claim untested pass",
+      "break keyboard access",
+      "add multiple renderers",
+      "expose internal secrets"
+    ],
+    "status": "PROPOSED implementation parameters; not approved final visual lock"
+  },
+  "files": {
+    "inspect": [
+      "src/App.tsx",
+      "src/components/PanelsOverlay.tsx",
+      "src/components/VoiceCard.tsx",
+      "src/components/CosmographCanvas.tsx",
+      "src/components/HandsOverlay.tsx",
+      "src/index.css",
+      "src/tokens/colours.ts",
+      "src/utils/elevenLabsBridge.ts"
+    ],
+    "create": [
+      "src/gui/layoutEngine.ts",
+      "src/gui/guiTokens.ts",
+      "src/gui/useViewport.ts",
+      "src/gui/CollisionManager.ts",
+      "src/gui/GuiFocusOverlay.tsx",
+      "src/gui/cameraPresets.ts",
+      "src/gui/visualStateMachine.ts",
+      "src/gui/gui-layout.test.ts"
+    ],
+    "modify": [
+      "src/App.tsx",
+      "src/components/PanelsOverlay.tsx",
+      "src/components/VoiceCard.tsx",
+      "src/components/CosmographCanvas.tsx",
+      "src/index.css"
+    ]
+  },
+  "breakpoints_css_px": {
+    "phone": {
+      "min": 0,
+      "max": 599
+    },
+    "tablet": {
+      "min": 600,
+      "max": 1023
+    },
+    "desktop": {
+      "min": 1024,
+      "max": 1599
+    },
+    "wide": {
+      "min": 1600
+    }
+  },
+  "coordinate_system": {
+    "origin": "top-left CSS px; x right y down",
+    "viewport": "window.innerWidth/Height and visualViewport for keyboard",
+    "safeInsets": "env(safe-area-inset-*) plus 12px minimum",
+    "rect": "x,y,width,height",
+    "collision": "intersection area must be zero between independent persistent panels and voice widget; margin >= 12px"
+  },
+  "layout": {
+    "phone_390x844": {
+      "outerMargin": 12,
+      "topHeader": {
+        "x": 12,
+        "y": 12,
+        "w": 366,
+        "h": 52
+      },
+      "worldCanvas": {
+        "x": 0,
+        "y": 64,
+        "w": 390,
+        "h": 530
+      },
+      "panelMode": "ONE bottom sheet only; other panels tabs inside same sheet",
+      "sheet": {
+        "x": 12,
+        "y": 380,
+        "w": 366,
+        "collapsedH": 68,
+        "defaultH": 248,
+        "expandedH": 400,
+        "maxHeightRatio": 0.48,
+        "scrollBody": true
+      },
+      "voice": {
+        "x": 12,
+        "y": 752,
+        "w": 366,
+        "collapsedH": 64,
+        "expandedMode": "replace sheet or enter mutually exclusive full-screen conversation",
+        "minTouchTarget": 44
+      },
+      "bottomSafeReserve": 16,
+      "rule": "When sheet expands, voice becomes 52px dock; never overlay sheet content; canvas remains interactive outside sheet"
+    },
+    "ipad_820x1180": {
+      "margin": 20,
+      "headerH": 60,
+      "canvasSafe": {
+        "x": 20,
+        "y": 90,
+        "w": 780,
+        "h": 820
+      },
+      "panel": {
+        "x": 20,
+        "y": 110,
+        "w": 304,
+        "hMax": 680
+      },
+      "voice": {
+        "x": 480,
+        "y": 1040,
+        "w": 320,
+        "h": 88
+      },
+      "centerSphereSafe": {
+        "x": 344,
+        "y": 150,
+        "w": 420,
+        "h": 740
+      },
+      "rule": "One inspector on left, voice dock right-bottom; second inspector must replace first or use a tab"
+    },
+    "desktop_1440x900": {
+      "margin": 24,
+      "headerH": 64,
+      "leftPanel": {
+        "x": 24,
+        "y": 96,
+        "w": 340,
+        "hMax": 640
+      },
+      "rightPanel": {
+        "x": 1076,
+        "y": 96,
+        "w": 340,
+        "hMax": 640
+      },
+      "voice": {
+        "x": 490,
+        "y": 798,
+        "w": 460,
+        "h": 76
+      },
+      "centerSafe": {
+        "x": 384,
+        "y": 96,
+        "w": 672,
+        "h": 674
+      },
+      "maxSimultaneousPanels": 2,
+      "rule": "Third panel becomes tab in existing panel or closes least recently used panel; never stack"
+    },
+    "wide_1920x1080": {
+      "margin": 32,
+      "leftW": 400,
+      "rightW": 400,
+      "voiceW": 480,
+      "maxPanels": 2,
+      "centerMinWidth": 960
+    }
+  },
+  "zLayers": {
+    "canvas": 0,
+    "ambientHUD": 10,
+    "panels": 30,
+    "focusPointer": 35,
+    "voiceDock": 40,
+    "modalBackdrop": 50,
+    "modalContent": 60,
+    "emergencyStop": 70
+  },
+  "glass": {
+    "backdropFilter": "blur(18px) saturate(1.18)",
+    "background": "rgba(20,38,50,0.72)",
+    "panelOpacity": 0.72,
+    "border": "1px solid rgba(232,251,255,0.24)",
+    "radiusPx": 18,
+    "shadow": "0 16px 48px rgba(0,0,0,0.28)",
+    "headerH": 52,
+    "bodyPaddingPx": 16,
+    "bodyMinTextPx": 14,
+    "titleMinPx": 17,
+    "captionMinPx": 12,
+    "focusOutlinePx": 2,
+    "doNotBlurText": true,
+    "fallback": "rgba(20,38,50,0.94) if backdrop-filter unsupported"
+  },
+  "collisionRules": [
+    "Layout engine owns positions and drag snapping; no independent inline transform after collision resolution",
+    "Recompute on resize, orientation, keyboard, panel open, voice expand and drag end",
+    "Panel z-order changes must not cause overlapping readable bodies",
+    "Snap only to free regions; if none exists switch to tabs",
+    "Persist panel active tab and scroll on minimize",
+    "Avoid pointer capture over scene except actual widget bounds"
+  ],
+  "camera": {
+    "sensorMm": [
+      36,
+      24
+    ],
+    "lensPresets": [
+      {
+        "name": "universe",
+        "focalMm": 28,
+        "verticalFovDeg": 46.4,
+        "travelMs": 3200,
+        "sphereHeightOccupancy": 0.32
+      },
+      {
+        "name": "approach",
+        "focalMm": 35,
+        "verticalFovDeg": 37.8,
+        "travelMs": 2400,
+        "sphereHeightOccupancy": 0.5
+      },
+      {
+        "name": "focused",
+        "focalMm": 50,
+        "verticalFovDeg": 27.0,
+        "travelMs": 1800,
+        "sphereHeightOccupancy": 0.65
+      },
+      {
+        "name": "detail",
+        "focalMm": 85,
+        "verticalFovDeg": 16.1,
+        "travelMs": 1400,
+        "sphereHeightOccupancy": 0.78
+      }
+    ],
+    "formula": "verticalFov=2*atan(24/(2*focalMm)); fit camera distance from bounding sphere and unobstructed viewport rect, not entire canvas",
+    "path": "CatmullRomCurve3 with arc-length sampled progression; quaternion orientation interpolation; lookAt selected world center offset by GUI-safe-area center",
+    "easing": "quintic smootherstep 6t^5-15t^4+10t^3",
+    "interrupt": "new command cancels old tween, starts from current camera pose and velocity; no teleport",
+    "targetSafeArea": "sphere center must stay in unobstructed rectangle; padding 24px",
+    "reducedMotion": "crossfade 120ms with no large camera flight"
+  },
+  "loops": {
+    "sphereBody": {
+      "periodSec": 210,
+      "angularRadSec": 0.02992
+    },
+    "orbitalRing": {
+      "periodSec": 55
+    },
+    "internalAtmosphere": {
+      "periodSec": 30,
+      "amplitude": 0.08
+    },
+    "particleDrift": {
+      "periodSec": 36,
+      "maxRadiusFraction": 0.78
+    },
+    "rimBreath": {
+      "periodSec": 8,
+      "intensityAmplitude": 0.08
+    },
+    "voiceAttackMs": 100,
+    "voiceReleaseMs": 320,
+    "travelMotionAttenuation": 0.5,
+    "freezeIfHidden": true,
+    "dtClampMs": 33,
+    "loopRequirement": "One RAF ownership; avoid duplicate scene loops and stale closures"
+  },
+  "interaction": {
+    "states": [
+      "idle",
+      "hover",
+      "focus",
+      "selected",
+      "traveling",
+      "landing",
+      "panel-open",
+      "speaking",
+      "listening",
+      "error"
+    ],
+    "hoverMs": 180,
+    "focusMs": 260,
+    "landingHoldMs": 350,
+    "pointerHaloPx": 32,
+    "focusRingPx": 44,
+    "focusRingStrokePx": 1.5,
+    "focusTrailMaxPx": 120,
+    "targetHighlight": "projected object world position into screen coordinates each frame; show path/destination label",
+    "voiceSync": {
+      "preferred": "real provider word timestamps anchored to audio playback clock",
+      "targetP95ErrorMs": 100,
+      "fallback": "phrase-level cue sheet with no false word-accurate claim"
+    },
+    "actions": [
+      "navigate",
+      "focus",
+      "openPanel",
+      "closePanel",
+      "openMedia",
+      "playMedia",
+      "pauseMedia",
+      "startTour",
+      "pauseTour",
+      "stopVoice"
+    ],
+    "noFakeSuccess": true
+  },
+  "screens": [
+    {
+      "id": "S01",
+      "name": "Boot / Arrival",
+      "layout": "Full-screen canvas, top identity, bottom 1 voice entry",
+      "camera": "universe",
+      "entryMs": 800,
+      "actions": [
+        "skip",
+        "enter",
+        "talk"
+      ],
+      "noStack": true
+    },
+    {
+      "id": "S02",
+      "name": "Universe idle",
+      "layout": "World center unobstructed, header and small dock",
+      "camera": "universe",
+      "actions": [
+        "selectSphere",
+        "orbit",
+        "zoom",
+        "talk"
+      ],
+      "loop": "sphereBody+orbitalRing+rimBreath"
+    },
+    {
+      "id": "S03",
+      "name": "Sphere hover / focus",
+      "layout": "One focus label anchored to selected sphere; no inspector yet",
+      "camera": "approach",
+      "actions": [
+        "focus",
+        "open",
+        "back"
+      ],
+      "loop": "reduce ambient motion by 50%"
+    },
+    {
+      "id": "S04",
+      "name": "Travel",
+      "layout": "Route line, destination title, voice status; suppress inspector",
+      "camera": "approach",
+      "actions": [
+        "stop",
+        "redirect",
+        "back"
+      ],
+      "loop": "camera 2400ms and attenuated particles"
+    },
+    {
+      "id": "S05",
+      "name": "World landing",
+      "layout": "One active inspector on available flank; voice dock separate",
+      "camera": "focused",
+      "actions": [
+        "openPanel",
+        "openMedia",
+        "back"
+      ],
+      "loop": "landing hold 350ms"
+    },
+    {
+      "id": "S06",
+      "name": "Project / Media",
+      "layout": "Dedicated media frame with controls; panels minimize or tab",
+      "camera": "detail",
+      "actions": [
+        "play",
+        "pause",
+        "seek",
+        "close"
+      ],
+      "loop": "freeze unnecessary sphere drift"
+    },
+    {
+      "id": "S07",
+      "name": "Panel multitask",
+      "layout": "max 2 panels desktop, 1 sheet phone, 1 panel tablet",
+      "camera": "focused",
+      "actions": [
+        "switchTab",
+        "minimize",
+        "close",
+        "drag"
+      ],
+      "loop": "no autonomous camera unless requested"
+    },
+    {
+      "id": "S08",
+      "name": "Voice expanded",
+      "layout": "One conversation surface; panel collapses on phone, separate safe slot desktop",
+      "camera": "focused",
+      "actions": [
+        "talk",
+        "type",
+        "stop",
+        "minimize"
+      ],
+      "loop": "voice waveform only; no intrusive scene pulse"
+    },
+    {
+      "id": "S09",
+      "name": "Return / Resume",
+      "layout": "Restore previous focus, panel tab and camera bookmark",
+      "camera": "universe",
+      "actions": [
+        "return",
+        "resume",
+        "select"
+      ],
+      "loop": "normal idle after arrival"
+    }
+  ],
+  "implementation": {
+    "priority": [
+      "P0 remove index parity panel placement and implement single owner layout",
+      "P0 unify voice/panel collision and safe-area",
+      "P0 apply glass token surfaces to every panel, preserving legibility",
+      "P0 camera frame to available content region",
+      "P1 visible touchpoint action receipt and voice cue sync",
+      "P1 loop presets and grade polish"
+    ],
+    "testMatrix": [
+      "390x844",
+      "820x1180",
+      "1440x900",
+      "1920x1080"
+    ],
+    "assertions": [
+      "no overlap between visible independent panel rects",
+      "no overlap between voice dock and panel rects",
+      "all touch targets >=44px",
+      "sphere unobstructed by panels at focus state",
+      "one and only one panel sheet on phone",
+      "panel content scrolls independently",
+      "keyboard does not hide input",
+      "close/minimize does not end voice session",
+      "camera transition interruptible",
+      "motion respects reduced motion",
+      "no CSS hard-coded unapproved new hues",
+      "no false action success"
+    ],
+    "deliver": [
+      "changed source files",
+      "build and tsc results",
+      "screenshots for all 9 screens at phone/tablet/desktop",
+      "8-12s actual travel capture",
+      "runtime FPS and frame-time logs",
+      "open issues with severity",
+      "rollback instructions"
+    ]
+  }
+}

@@ -1,0 +1,2005 @@
+{
+  "$schema": "https://nojara.studios/schemas/cerebro.config.v2.json",
+  "schemaVersion": "2.0.0",
+  "sourceLock": "1f78a1295d4dd36a11320995c1e14bf17788ac25",
+  "releaseCheckpointSha": "dd0db5043f8dafad8f1c47dce4d2ebd5d275cd95",
+  "tokenFile": "docs/design-system/config/cerebro.config.json",
+  "tokenCountSummary": {
+    "totalDeclaredLeaves": 453,
+    "statusBreakdown": {
+      "locked": 96,
+      "source": 177,
+      "reference-only": 19,
+      "extension": 149,
+      "deprecated": 12
+    }
+  },
+  "visualAuthority": {
+    "lockedDecisions": {
+      "fonts": {
+        "titles": "Sora",
+        "body": "Inter",
+        "data": "JetBrains Mono",
+        "arabic": "Noto Kufi Arabic",
+        "not": "IBM Plex",
+        "minimumPx": 13
+      },
+      "captions": {
+        "mode": "sentence-by-sentence",
+        "fadeInMs": 180,
+        "holdMs": 2400,
+        "maxLines": 2,
+        "noMidWordCut": true
+      },
+      "banned": [
+        "glow",
+        "bloom",
+        "animated or blurred halos",
+        "purple",
+        "gold treatments",
+        "glitch text"
+      ],
+      "stations": [
+        "core",
+        "projects",
+        "files",
+        "media",
+        "tasks",
+        "people"
+      ]
+    },
+    "filmReferenceVariant": {
+      "variantId": "sehly-180s-film-reference",
+      "status": "scoped-reference-pending-owner-decision",
+      "displayFont": "Jaapokki Subtract",
+      "orbitalRailsColor": "#D4AF37",
+      "bronzeRailColor": "#8C6A45",
+      "selectiveBloomAllowedInFilmVariant": true
+    }
+  },
+  "tokens": {
+    "color": {
+      "base.canvas": {
+        "value": "#101D27",
+        "status": "locked"
+      },
+      "base.deep": {
+        "value": "#05090E",
+        "status": "locked"
+      },
+      "base.glass": {
+        "value": "#142632",
+        "status": "locked"
+      },
+      "base.glassTint": {
+        "value": "#E8FBFF",
+        "status": "locked"
+      },
+      "base.ice": {
+        "value": "#B4DDFF",
+        "status": "locked"
+      },
+      "base.cobalt": {
+        "value": "#65ACFF",
+        "status": "locked"
+      },
+      "text.primary": {
+        "value": "#F2F6F8",
+        "status": "locked"
+      },
+      "text.secondary": {
+        "value": "#D0DCE3",
+        "status": "locked"
+      },
+      "text.muted": {
+        "value": "#BDCBD3",
+        "status": "locked"
+      },
+      "semantic.focus": {
+        "value": "{tokens.color.base.cobalt}",
+        "resolved": "#65ACFF",
+        "status": "locked"
+      },
+      "semantic.error": {
+        "value": "#FF5666",
+        "status": "locked"
+      },
+      "semantic.success": {
+        "value": "#36E88D",
+        "status": "locked"
+      },
+      "semantic.pending": {
+        "value": "#FFF1D4",
+        "status": "locked"
+      },
+      "semantic.spatialRim": {
+        "value": "{tokens.color.base.ice}",
+        "resolved": "#B4DDFF",
+        "status": "source"
+      },
+      "semantic.scrim": {
+        "value": "#05090E9E",
+        "status": "source"
+      },
+      "voice.v100": {
+        "value": "#9AFFE0",
+        "status": "locked"
+      },
+      "voice.v200": {
+        "value": "#78D3B2",
+        "status": "locked"
+      },
+      "voice.v300": {
+        "value": "#52A496",
+        "status": "locked"
+      },
+      "voice.v500": {
+        "value": "#1D5560",
+        "status": "locked"
+      },
+      "voice.v700": {
+        "value": "#133A44",
+        "status": "locked"
+      },
+      "station.core": {
+        "value": "#F2F6F8",
+        "status": "locked"
+      },
+      "station.projects": {
+        "value": "#65ACFF",
+        "status": "locked"
+      },
+      "station.drive": {
+        "value": "#B4DDFF",
+        "status": "locked"
+      },
+      "station.media": {
+        "value": "#F2B66D",
+        "status": "locked"
+      },
+      "station.tasks": {
+        "value": "#FFF1D4",
+        "status": "locked"
+      },
+      "station.people": {
+        "value": "#E6A2B4",
+        "status": "locked"
+      },
+      "station.teamRoom": {
+        "value": "#F29A72",
+        "status": "locked"
+      },
+      "historical.mediaAmber": {
+        "value": "#F2B66D",
+        "status": "reference-only"
+      },
+      "crewReference.crew39": {
+        "value": "#F2F6F8",
+        "status": "reference-only"
+      },
+      "crewReference.grandy": {
+        "value": "#F5E15A",
+        "status": "reference-only"
+      },
+      "crewReference.zebda": {
+        "value": "#4FD1E8",
+        "status": "reference-only"
+      },
+      "crewReference.fakir": {
+        "value": "#FF9F43",
+        "status": "reference-only"
+      },
+      "crewReference.rasma": {
+        "value": "#FF8FB1",
+        "status": "reference-only"
+      },
+      "crewReference.nasaq": {
+        "value": "#D4EF5C",
+        "status": "reference-only"
+      },
+      "crewReference.katib": {
+        "value": "#8EC5FF",
+        "status": "reference-only"
+      },
+      "crewReference.bilal": {
+        "value": "#E0B88A",
+        "status": "reference-only"
+      },
+      "crewReference.musa": {
+        "value": "#C9D3DB",
+        "status": "reference-only"
+      },
+      "crewReference.webDesigner": {
+        "value": "#5B8DEF",
+        "status": "reference-only"
+      },
+      "crewReference.kinzo": {
+        "value": "#A8C66C",
+        "status": "reference-only"
+      },
+      "crewReference.baghira": {
+        "value": "#FF9C7A",
+        "status": "reference-only"
+      },
+      "crew.crew39": {
+        "value": "#F2F6F8",
+        "status": "locked"
+      },
+      "crew.grandy": {
+        "value": "#F5E15A",
+        "status": "locked"
+      },
+      "crew.zebda": {
+        "value": "#4FD1E8",
+        "status": "locked"
+      },
+      "crew.fakir": {
+        "value": "#FF9F43",
+        "status": "locked"
+      },
+      "crew.rasma": {
+        "value": "#FF8FB1",
+        "status": "locked"
+      },
+      "crew.nasaq": {
+        "value": "#D4EF5C",
+        "status": "locked"
+      },
+      "crew.katib": {
+        "value": "#8EC5FF",
+        "status": "locked"
+      },
+      "crew.bilal": {
+        "value": "#E0B88A",
+        "status": "locked"
+      },
+      "crew.musa": {
+        "value": "#C9D3DB",
+        "status": "locked"
+      },
+      "crew.webDesigner": {
+        "value": "#5B8DEF",
+        "status": "locked"
+      },
+      "crew.kinzo": {
+        "value": "#A8C66C",
+        "status": "locked"
+      },
+      "crew.baghira": {
+        "value": "#FF9C7A",
+        "status": "locked"
+      },
+      "panel.portfolio": {
+        "value": "#3D8BFF",
+        "status": "locked"
+      },
+      "panel.project": {
+        "value": "#FF7A59",
+        "status": "locked"
+      },
+      "panel.tasks": {
+        "value": "#B8F04A",
+        "status": "locked"
+      },
+      "panel.insights": {
+        "value": "#FFD54A",
+        "status": "locked"
+      },
+      "panel.briefing": {
+        "value": "#FFB38A",
+        "status": "locked"
+      },
+      "panel.gmail": {
+        "value": "#FF6FA0",
+        "status": "locked"
+      },
+      "panel.calendar": {
+        "value": "#54D2FF",
+        "status": "locked"
+      },
+      "panel.drive": {
+        "value": "#3DDC97",
+        "status": "locked"
+      },
+      "panel.viewer": {
+        "value": "#E8D5A8",
+        "status": "locked"
+      },
+      "panel.crew": {
+        "value": "#3FD0E0",
+        "status": "locked"
+      },
+      "panel.baghira": {
+        "value": "#F4F4F0",
+        "status": "locked"
+      },
+      "panel.kinzo": {
+        "value": "#7FB34A",
+        "status": "locked"
+      },
+      "panel.settings": {
+        "value": "#9AA7B2",
+        "status": "locked"
+      },
+      "panel.gate": {
+        "value": "#C9D3DC",
+        "status": "locked"
+      },
+      "panel.voice": {
+        "value": "{tokens.color.voice.v500}",
+        "resolved": "#1D5560",
+        "status": "locked"
+      },
+      "panel.media": {
+        "value": "{tokens.color.station.media}",
+        "resolved": "#F2B66D",
+        "status": "locked"
+      },
+      "panel.people": {
+        "value": "{tokens.color.station.people}",
+        "resolved": "#E6A2B4",
+        "status": "locked"
+      },
+      "intro.background": {
+        "value": "#030304",
+        "status": "locked"
+      }
+    },
+    "typography": {
+      "families.interface": {
+        "value": "Inter",
+        "status": "locked"
+      },
+      "families.data": {
+        "value": "JetBrains Mono",
+        "status": "locked"
+      },
+      "families.arabic": {
+        "value": "Noto Kufi Arabic",
+        "status": "locked"
+      },
+      "families.display": {
+        "value": "Sora",
+        "status": "locked"
+      },
+      "minimumSize": {
+        "value": 13,
+        "status": "locked"
+      },
+      "arabicLetterSpacing": {
+        "value": 0,
+        "status": "locked"
+      },
+      "tabularNumbers": {
+        "value": true,
+        "status": "locked"
+      },
+      "style.wordmark.size": {
+        "value": 20,
+        "status": "source"
+      },
+      "style.wordmark.lineHeight": {
+        "value": 24,
+        "status": "source"
+      },
+      "style.wordmark.weight": {
+        "value": 600,
+        "status": "source"
+      },
+      "style.wordmark.tracking": {
+        "value": 0.32,
+        "status": "source"
+      },
+      "style.heroWordmark.sizeMin": {
+        "value": 40,
+        "status": "source"
+      },
+      "style.heroWordmark.sizeMax": {
+        "value": 72,
+        "status": "source"
+      },
+      "style.heroWordmark.weight": {
+        "value": 600,
+        "status": "source"
+      },
+      "style.heroWordmark.lineHeight": {
+        "value": 1,
+        "status": "source"
+      },
+      "style.heading1.size": {
+        "value": 28,
+        "status": "source"
+      },
+      "style.heading1.lineHeight": {
+        "value": 36,
+        "status": "source"
+      },
+      "style.heading1.weight": {
+        "value": 600,
+        "status": "source"
+      },
+      "style.heading2.size": {
+        "value": 20,
+        "status": "source"
+      },
+      "style.heading2.lineHeight": {
+        "value": 26,
+        "status": "source"
+      },
+      "style.heading2.weight": {
+        "value": 500,
+        "status": "source"
+      },
+      "style.body.size": {
+        "value": 15,
+        "status": "source"
+      },
+      "style.body.lineHeight": {
+        "value": 22,
+        "status": "source"
+      },
+      "style.body.weight": {
+        "value": 400,
+        "status": "source"
+      },
+      "style.label.size": {
+        "value": 13,
+        "status": "source"
+      },
+      "style.label.lineHeight": {
+        "value": 16,
+        "status": "source"
+      },
+      "style.label.weight": {
+        "value": 500,
+        "status": "source"
+      },
+      "style.button.size": {
+        "value": 15,
+        "status": "source"
+      },
+      "style.button.lineHeight": {
+        "value": 20,
+        "status": "source"
+      },
+      "style.button.weight": {
+        "value": 600,
+        "status": "source"
+      },
+      "style.eyebrow.size": {
+        "value": 13,
+        "status": "source"
+      },
+      "style.eyebrow.weight": {
+        "value": 500,
+        "status": "source"
+      },
+      "style.eyebrow.tracking": {
+        "value": 0.18,
+        "status": "source"
+      },
+      "style.eyebrow.lineHeight": {
+        "value": 16,
+        "status": "extension"
+      },
+      "style.data.size": {
+        "value": 13,
+        "status": "source"
+      },
+      "style.data.weight": {
+        "value": 400,
+        "status": "source"
+      },
+      "style.data.lineHeight": {
+        "value": 18,
+        "status": "extension"
+      },
+      "style.arabicBody.size": {
+        "value": 15,
+        "status": "source"
+      },
+      "style.arabicBody.lineHeight": {
+        "value": 24,
+        "status": "source"
+      },
+      "style.arabicBody.weight": {
+        "value": 400,
+        "status": "source"
+      },
+      "deprecated.Sora": {
+        "value": "Sora",
+        "status": "deprecated"
+      },
+      "deprecated.Inter": {
+        "value": "Inter",
+        "status": "deprecated"
+      },
+      "deprecated.JetBrainsMono": {
+        "value": "JetBrains Mono",
+        "status": "deprecated"
+      },
+      "deprecated.NotoKufiArabic": {
+        "value": "Noto Kufi Arabic",
+        "status": "deprecated"
+      },
+      "deprecated.Oxanium": {
+        "value": "Oxanium",
+        "status": "deprecated"
+      },
+      "deprecated.PlusJakartaSans": {
+        "value": "Plus Jakarta Sans",
+        "status": "deprecated"
+      },
+      "deprecated.IBMPlexSans": {
+        "value": "IBM Plex Sans",
+        "status": "deprecated"
+      },
+      "deprecated.IBMPlexMono": {
+        "value": "IBM Plex Mono",
+        "status": "deprecated"
+      }
+    },
+    "spacing": {
+      "unit": {
+        "value": 4,
+        "status": "source"
+      },
+      "step1": {
+        "value": 4,
+        "status": "source"
+      },
+      "step2": {
+        "value": 8,
+        "status": "source"
+      },
+      "step3": {
+        "value": 12,
+        "status": "source"
+      },
+      "step4": {
+        "value": 16,
+        "status": "source"
+      },
+      "step5": {
+        "value": 24,
+        "status": "source"
+      },
+      "step6": {
+        "value": 32,
+        "status": "source"
+      },
+      "step7": {
+        "value": 40,
+        "status": "source"
+      },
+      "step8": {
+        "value": 48,
+        "status": "source"
+      }
+    },
+    "radius": {
+      "chip": {
+        "value": 8,
+        "status": "source"
+      },
+      "button": {
+        "value": 12,
+        "status": "source"
+      },
+      "panel": {
+        "value": 18,
+        "status": "source"
+      },
+      "media": {
+        "value": 20,
+        "status": "source"
+      },
+      "frame": {
+        "value": 28,
+        "status": "source"
+      }
+    },
+    "stroke": {
+      "icon": {
+        "value": 1.5,
+        "status": "source"
+      },
+      "surface": {
+        "value": 1,
+        "status": "source"
+      },
+      "selected": {
+        "value": 1.5,
+        "status": "source"
+      },
+      "focus": {
+        "value": 2,
+        "status": "source"
+      }
+    },
+    "surface": {
+      "primary.fill": {
+        "value": "#1426328C",
+        "status": "source"
+      },
+      "primary.rim": {
+        "value": "#B4DDFF66",
+        "status": "source"
+      },
+      "primary.blur": {
+        "value": 12,
+        "status": "source"
+      },
+      "lite.fill": {
+        "value": "#1426326B",
+        "status": "source"
+      },
+      "lite.rim": {
+        "value": "#B4DDFF38",
+        "status": "source"
+      },
+      "lite.blur": {
+        "value": 10,
+        "status": "source"
+      },
+      "maximumBlur": {
+        "value": 12,
+        "status": "locked"
+      },
+      "maximumSimultaneousBlurred": {
+        "value": 2,
+        "status": "locked"
+      },
+      "animateBlur": {
+        "value": false,
+        "status": "locked"
+      },
+      "control.rim": {
+        "value": "#B4DDFF8C",
+        "status": "extension"
+      },
+      "readable.fill": {
+        "value": "#142632B8",
+        "status": "locked"
+      },
+      "readable.rim": {
+        "value": "#B4DDFF38",
+        "status": "source"
+      },
+      "readable.blur": {
+        "value": 0,
+        "status": "source"
+      },
+      "readable.backing": {
+        "value": "#05090E80",
+        "status": "extension"
+      }
+    },
+    "elevation": {
+      "interfaceLayer.sceneCanvas": {
+        "value": 0,
+        "status": "source"
+      },
+      "interfaceLayer.projectedStationHud": {
+        "value": 10,
+        "status": "source"
+      },
+      "interfaceLayer.ambientStatus": {
+        "value": 20,
+        "status": "source"
+      },
+      "interfaceLayer.healthOverlay": {
+        "value": 30,
+        "status": "source"
+      },
+      "interfaceLayer.dock": {
+        "value": 40,
+        "status": "source"
+      },
+      "interfaceLayer.inspector": {
+        "value": 50,
+        "status": "source"
+      },
+      "interfaceLayer.menu": {
+        "value": 60,
+        "status": "source"
+      },
+      "interfaceLayer.dialog": {
+        "value": 70,
+        "status": "source"
+      },
+      "interfaceLayer.criticalFeedback": {
+        "value": 80,
+        "status": "source"
+      },
+      "asset.worldPanelFar": {
+        "value": 20,
+        "status": "extension"
+      },
+      "asset.worldPanelNear": {
+        "value": 140,
+        "status": "extension"
+      },
+      "asset.worldPanelFocus": {
+        "value": 260,
+        "status": "extension"
+      }
+    },
+    "layout": {
+      "minimumTarget": {
+        "value": 44,
+        "status": "source"
+      },
+      "iconGrid": {
+        "value": 20,
+        "status": "source"
+      },
+      "dockOrbCollapsed": {
+        "value": 56,
+        "status": "source"
+      },
+      "dockOrbExpanded": {
+        "value": 72,
+        "status": "source"
+      },
+      "miniPlayer": {
+        "value": [
+          320,
+          180
+        ],
+        "status": "source"
+      },
+      "sphereCap.compactLandscape": {
+        "value": 280,
+        "status": "source"
+      },
+      "sphereCap.compactPortrait": {
+        "value": 360,
+        "status": "source"
+      },
+      "sphereCap.tabletSplit": {
+        "value": 460,
+        "status": "source"
+      },
+      "sphereCap.tabletPortrait": {
+        "value": 650,
+        "status": "source"
+      },
+      "sphereCap.workspace": {
+        "value": 700,
+        "status": "source"
+      },
+      "sphereCap.desktopWide": {
+        "value": 920,
+        "status": "source"
+      },
+      "breakpoint.compactPortraitBelow": {
+        "value": 600,
+        "status": "source"
+      },
+      "breakpoint.tabletSplitBelow": {
+        "value": 768,
+        "status": "source"
+      },
+      "breakpoint.tabletPortraitBelow": {
+        "value": 1200,
+        "status": "source"
+      },
+      "breakpoint.workspaceBelow": {
+        "value": 1600,
+        "status": "source"
+      },
+      "breakpoint.compactLandscapeHeightBelow": {
+        "value": 540,
+        "status": "source"
+      },
+      "spherePositioning": {
+        "value": "usable-stage-center",
+        "status": "locked"
+      },
+      "proposed.headerHeight": {
+        "value": 68,
+        "status": "extension"
+      },
+      "proposed.dockHeight": {
+        "value": 72,
+        "status": "extension"
+      },
+      "proposed.inspectorWidth": {
+        "value": 340,
+        "status": "extension"
+      },
+      "proposed.sheetMaxHeight": {
+        "value": 0.38,
+        "status": "extension"
+      },
+      "proposed.compactStageMin": {
+        "value": 120,
+        "status": "extension"
+      },
+      "panel.desktopSingleWidth": {
+        "value": 560,
+        "status": "locked"
+      },
+      "panel.desktopDoubleWidth": {
+        "value": 500,
+        "status": "locked"
+      },
+      "panel.desktopMaxPanels": {
+        "value": 4,
+        "status": "locked"
+      },
+      "panel.ipadMaxPanels": {
+        "value": 2,
+        "status": "locked"
+      },
+      "panel.phoneMaxPanels": {
+        "value": 1,
+        "status": "locked"
+      },
+      "panel.phoneSheetLow": {
+        "value": 0.5,
+        "status": "locked"
+      },
+      "panel.phoneSheetHigh": {
+        "value": 0.92,
+        "status": "locked"
+      },
+      "panel.crewMaxPanels": {
+        "value": 4,
+        "status": "locked"
+      },
+      "panel.liteTierBelow": {
+        "value": 720,
+        "status": "locked"
+      }
+    },
+    "component": {
+      "node.targetedScale": {
+        "value": 1.15,
+        "status": "source"
+      },
+      "node.targetedDuration": {
+        "value": 150,
+        "status": "source"
+      },
+      "node.pressedScale": {
+        "value": 0.92,
+        "status": "source"
+      },
+      "node.pressedDuration": {
+        "value": 80,
+        "status": "source"
+      },
+      "node.selectedScale": {
+        "value": 1.2,
+        "status": "source"
+      },
+      "node.selectedOutline": {
+        "value": 1.5,
+        "status": "source"
+      },
+      "node.recededOpacity": {
+        "value": 0.25,
+        "status": "source"
+      },
+      "node.disabledOpacity": {
+        "value": 0.35,
+        "status": "source"
+      },
+      "voiceOrb.maxScaleDelta": {
+        "value": 0.025,
+        "status": "source"
+      },
+      "video.controlsHideDelay": {
+        "value": 2500,
+        "status": "source"
+      },
+      "video.bufferingThreshold": {
+        "value": 400,
+        "status": "source"
+      },
+      "video.skip": {
+        "value": 10,
+        "status": "source"
+      },
+      "tour.holdDuration": {
+        "value": 4000,
+        "status": "locked"
+      },
+      "orbit.clusterPeriodMin": {
+        "value": 70,
+        "status": "extension"
+      },
+      "orbit.clusterPeriodMax": {
+        "value": 110,
+        "status": "extension"
+      },
+      "orbit.filePeriodMin": {
+        "value": 35,
+        "status": "extension"
+      },
+      "orbit.filePeriodMax": {
+        "value": 60,
+        "status": "extension"
+      },
+      "orbit.targetSettle": {
+        "value": 200,
+        "status": "extension"
+      },
+      "orbit.selectionSettle": {
+        "value": 360,
+        "status": "extension"
+      },
+      "audio.ambientDefaultGain": {
+        "value": 0.5,
+        "status": "extension"
+      },
+      "audio.gainRamp": {
+        "value": 80,
+        "status": "extension"
+      },
+      "audio.loaderPeakTarget": {
+        "value": -6,
+        "status": "extension"
+      },
+      "audio.uiRelativeToLoader": {
+        "value": -12,
+        "status": "extension"
+      },
+      "audio.duckingEnabled": {
+        "value": false,
+        "status": "extension"
+      },
+      "avatar.sizeSmall": {
+        "value": 32,
+        "status": "extension"
+      },
+      "avatar.sizeMedium": {
+        "value": 48,
+        "status": "extension"
+      },
+      "avatar.sizeLarge": {
+        "value": 96,
+        "status": "extension"
+      },
+      "avatar.hitTarget": {
+        "value": "{tokens.layout.minimumTarget}",
+        "resolved": 44,
+        "status": "extension"
+      },
+      "avatar.selectedScale": {
+        "value": "{tokens.component.node.selectedScale}",
+        "resolved": 1.2,
+        "status": "extension"
+      },
+      "avatar.targetedScale": {
+        "value": "{tokens.component.node.targetedScale}",
+        "resolved": 1.15,
+        "status": "extension"
+      },
+      "avatar.unavailableOpacity": {
+        "value": "{tokens.component.node.disabledOpacity}",
+        "resolved": 0.35,
+        "status": "extension"
+      },
+      "avatar.outlineWidth": {
+        "value": "{tokens.stroke.selected}",
+        "resolved": 1.5,
+        "status": "extension"
+      },
+      "avatar.focusOutline": {
+        "value": "{tokens.stroke.focus}",
+        "resolved": 2,
+        "status": "extension"
+      },
+      "approval.confirmWindow": {
+        "value": 4000,
+        "status": "locked"
+      },
+      "approval.undoWindow": {
+        "value": 5000,
+        "status": "source"
+      },
+      "sound.off": {
+        "value": 0,
+        "status": "extension"
+      },
+      "sound.subtle": {
+        "value": 0.18,
+        "status": "extension"
+      },
+      "sound.cinematic": {
+        "value": 0.35,
+        "status": "extension"
+      },
+      "gate.codeLength": {
+        "value": 4,
+        "status": "locked"
+      },
+      "gate.maxFailures": {
+        "value": 5,
+        "status": "extension"
+      },
+      "gate.lockoutSeconds": {
+        "value": 60,
+        "status": "extension"
+      },
+      "voiceCard.snapPoints": {
+        "value": 8,
+        "status": "extension"
+      },
+      "voiceCard.readbackExpiry": {
+        "value": 60,
+        "status": "extension"
+      },
+      "voiceCard.placement": {
+        "value": "draggable-edge-snap-card",
+        "status": "locked"
+      },
+      "voiceCard.abovePanels": {
+        "value": true,
+        "status": "locked"
+      },
+      "insight.blockedApprovalDays": {
+        "value": 3,
+        "status": "extension"
+      },
+      "insight.openMax": {
+        "value": 8,
+        "status": "extension"
+      },
+      "insight.overdueMax": {
+        "value": 3,
+        "status": "extension"
+      },
+      "loaderLines.line1": {
+        "value": "Waking the core",
+        "status": "extension"
+      },
+      "loaderLines.line2": {
+        "value": "Assembling the shell",
+        "status": "extension"
+      },
+      "loaderLines.line3": {
+        "value": "Linking the stations",
+        "status": "extension"
+      },
+      "loaderLines.line4": {
+        "value": "Ready for take-off",
+        "status": "extension"
+      }
+    },
+    "geometry": {
+      "sphereRadius": {
+        "value": 1,
+        "status": "source"
+      },
+      "internalDepthMin": {
+        "value": 0.25,
+        "status": "extension"
+      },
+      "internalDepthMax": {
+        "value": 0.94,
+        "status": "extension"
+      },
+      "shellClearance": {
+        "value": 0.2,
+        "status": "source"
+      },
+      "stationHitTarget": {
+        "value": 44,
+        "status": "source"
+      },
+      "logo.boundsRadius": {
+        "value": 1,
+        "status": "extension"
+      },
+      "logo.shellRadius": {
+        "value": 1,
+        "status": "extension"
+      },
+      "logo.shellThickness": {
+        "value": 0.022,
+        "status": "extension"
+      },
+      "logo.cellRadius": {
+        "value": 0.075,
+        "status": "extension"
+      },
+      "logo.cellGap": {
+        "value": 0.012,
+        "status": "extension"
+      },
+      "logo.bevelWidth": {
+        "value": 0.006,
+        "status": "extension"
+      },
+      "logo.openEdgeAngle": {
+        "value": 80,
+        "status": "extension"
+      },
+      "logo.nucleusSize": {
+        "value": 0.07,
+        "status": "extension"
+      },
+      "logo.branchCount": {
+        "value": 14,
+        "status": "extension"
+      },
+      "logo.assemblyDistance": {
+        "value": 0.9,
+        "status": "extension"
+      },
+      "logo.orderSeed": {
+        "value": 7,
+        "status": "extension"
+      },
+      "asset.panelThickness": {
+        "value": 0.03,
+        "status": "extension"
+      },
+      "asset.panelBevel": {
+        "value": 0.006,
+        "status": "extension"
+      },
+      "asset.avatarFrameDiameter": {
+        "value": 1,
+        "status": "extension"
+      },
+      "asset.avatarFrameThickness": {
+        "value": 0.06,
+        "status": "extension"
+      },
+      "asset.avatarCrewBounds": {
+        "value": 0.9,
+        "status": "extension"
+      },
+      "asset.stationGlyphRadius": {
+        "value": 0.5,
+        "status": "extension"
+      },
+      "asset.thumbDepth": {
+        "value": 0.02,
+        "status": "extension"
+      },
+      "asset.reticleRadius": {
+        "value": 0.5,
+        "status": "extension"
+      },
+      "asset.orbRadius": {
+        "value": 0.5,
+        "status": "extension"
+      }
+    },
+    "material": {
+      "shell.baseColor": {
+        "value": "{tokens.color.base.glass}",
+        "resolved": "#142632",
+        "status": "source"
+      },
+      "shell.rimColor": {
+        "value": "{tokens.color.semantic.spatialRim}",
+        "resolved": "#B4DDFF",
+        "status": "source"
+      },
+      "shell.full.opacity": {
+        "value": 0.1,
+        "status": "extension"
+      },
+      "shell.full.roughness": {
+        "value": 0.05,
+        "status": "extension"
+      },
+      "shell.full.metalness": {
+        "value": 0,
+        "status": "extension"
+      },
+      "shell.full.transmission": {
+        "value": 0.9,
+        "status": "extension"
+      },
+      "shell.full.thickness": {
+        "value": 0.6,
+        "status": "extension"
+      },
+      "shell.full.ior": {
+        "value": 1.45,
+        "status": "extension"
+      },
+      "shell.full.rimStrength": {
+        "value": 0.9,
+        "status": "extension"
+      },
+      "shell.full.rimPower": {
+        "value": 3,
+        "status": "extension"
+      },
+      "shell.full.renderOrder": {
+        "value": 10,
+        "status": "extension"
+      },
+      "shell.full.depthWrite": {
+        "value": false,
+        "status": "extension"
+      },
+      "shell.full.depthTest": {
+        "value": true,
+        "status": "extension"
+      },
+      "shell.balanced.opacity": {
+        "value": 0.1,
+        "status": "extension"
+      },
+      "shell.balanced.roughness": {
+        "value": 0.08,
+        "status": "extension"
+      },
+      "shell.balanced.metalness": {
+        "value": 0,
+        "status": "extension"
+      },
+      "shell.balanced.transmission": {
+        "value": 0.6,
+        "status": "extension"
+      },
+      "shell.balanced.thickness": {
+        "value": 0.4,
+        "status": "extension"
+      },
+      "shell.balanced.ior": {
+        "value": 1.4,
+        "status": "extension"
+      },
+      "shell.balanced.rimStrength": {
+        "value": 0.9,
+        "status": "extension"
+      },
+      "shell.balanced.rimPower": {
+        "value": 2.6,
+        "status": "extension"
+      },
+      "shell.balanced.renderOrder": {
+        "value": 10,
+        "status": "extension"
+      },
+      "shell.balanced.depthWrite": {
+        "value": false,
+        "status": "extension"
+      },
+      "shell.balanced.depthTest": {
+        "value": true,
+        "status": "extension"
+      },
+      "shell.lite.opacity": {
+        "value": 0.12,
+        "status": "extension"
+      },
+      "shell.lite.rimStrength": {
+        "value": 0.7,
+        "status": "extension"
+      },
+      "shell.lite.rimPower": {
+        "value": 2.6,
+        "status": "extension"
+      },
+      "shell.lite.renderOrder": {
+        "value": 10,
+        "status": "extension"
+      },
+      "shell.lite.depthWrite": {
+        "value": false,
+        "status": "extension"
+      },
+      "shell.lite.depthTest": {
+        "value": true,
+        "status": "extension"
+      },
+      "asset.avatarBody": {
+        "value": "{tokens.color.base.glass}",
+        "resolved": "#142632",
+        "status": "extension"
+      },
+      "asset.avatarEdge": {
+        "value": "{tokens.color.semantic.spatialRim}",
+        "resolved": "#B4DDFF",
+        "status": "extension"
+      },
+      "asset.avatarRoughness": {
+        "value": 0.42,
+        "status": "extension"
+      },
+      "asset.avatarMetalness": {
+        "value": 0.12,
+        "status": "extension"
+      },
+      "asset.panelBody": {
+        "value": "{tokens.color.base.glass}",
+        "resolved": "#142632",
+        "status": "extension"
+      },
+      "asset.panelOpacity": {
+        "value": 0.94,
+        "status": "extension"
+      },
+      "asset.handColor": {
+        "value": "{tokens.color.semantic.spatialRim}",
+        "resolved": "#B4DDFF",
+        "status": "extension"
+      },
+      "asset.orbBody": {
+        "value": "{tokens.color.voice.v500}",
+        "resolved": "#1D5560",
+        "status": "extension"
+      },
+      "asset.orbEdge": {
+        "value": "{tokens.color.voice.v200}",
+        "resolved": "#78D3B2",
+        "status": "extension"
+      }
+    },
+    "lighting": {
+      "key": {
+        "value": [
+          -0.6,
+          0.7,
+          0.5
+        ],
+        "status": "extension"
+      },
+      "effects.bloom": {
+        "value": false,
+        "status": "locked"
+      },
+      "effects.emissiveShellHalo": {
+        "value": false,
+        "status": "locked"
+      },
+      "effects.decorativeGlow": {
+        "value": false,
+        "status": "locked"
+      },
+      "effects.lensFlare": {
+        "value": false,
+        "status": "locked"
+      },
+      "effects.glitchText": {
+        "value": false,
+        "status": "locked"
+      },
+      "effects.exteriorOrbitRings": {
+        "value": false,
+        "status": "locked"
+      },
+      "effects.exteriorDustBelt": {
+        "value": false,
+        "status": "locked"
+      },
+      "effects.directionalIcyRim": {
+        "value": true,
+        "status": "locked"
+      },
+      "gallery.key": {
+        "value": [
+          -0.6,
+          0.7,
+          0.5
+        ],
+        "status": "extension"
+      },
+      "gallery.keyIntensity": {
+        "value": 1.5,
+        "status": "extension"
+      },
+      "gallery.fillIntensity": {
+        "value": 0.35,
+        "status": "extension"
+      },
+      "gallery.ambientIntensity": {
+        "value": 0.65,
+        "status": "extension"
+      },
+      "gallery.edgeColor": {
+        "value": "{tokens.color.semantic.spatialRim}",
+        "resolved": "#B4DDFF",
+        "status": "extension"
+      }
+    },
+    "camera": {
+      "rollEnabled": {
+        "value": false,
+        "status": "source"
+      },
+      "fovAnimation": {
+        "value": false,
+        "status": "source"
+      },
+      "restDelay": {
+        "value": 6000,
+        "status": "source"
+      },
+      "driftLateralMax": {
+        "value": 3,
+        "status": "source"
+      },
+      "arrivalDuration": {
+        "value": 6000,
+        "status": "source"
+      },
+      "arrivalOrbit": {
+        "value": 20,
+        "status": "source"
+      },
+      "projectOpenOrbit": {
+        "value": 12,
+        "status": "source"
+      },
+      "projectApproachOffAxisMin": {
+        "value": 10,
+        "status": "source"
+      },
+      "projectApproachOffAxisMax": {
+        "value": 15,
+        "status": "source"
+      },
+      "momentumStop": {
+        "value": 600,
+        "status": "source"
+      },
+      "flight.base": {
+        "value": 600,
+        "status": "source"
+      },
+      "flight.perDegree": {
+        "value": 6,
+        "status": "source"
+      },
+      "flight.min": {
+        "value": 760,
+        "status": "source"
+      },
+      "flight.max": {
+        "value": 1400,
+        "status": "source"
+      },
+      "flight.arcThreshold": {
+        "value": 20,
+        "status": "source"
+      },
+      "orbit.msPer90": {
+        "value": 600,
+        "status": "source"
+      },
+      "orbit.min": {
+        "value": 400,
+        "status": "source"
+      },
+      "orbit.max": {
+        "value": 2400,
+        "status": "source"
+      },
+      "shot.healthPosition": {
+        "value": [
+          2.9,
+          1.7,
+          4.4
+        ],
+        "status": "extension"
+      },
+      "shot.healthTarget": {
+        "value": [
+          0.3,
+          0,
+          0
+        ],
+        "status": "extension"
+      },
+      "shot.overviewPosition": {
+        "value": [
+          0,
+          0.5,
+          4.6
+        ],
+        "status": "extension"
+      },
+      "shot.projectDistance": {
+        "value": 2.4,
+        "status": "extension"
+      },
+      "shot.resourceDistance": {
+        "value": 0.9,
+        "status": "extension"
+      },
+      "shot.sphereSafeRadius": {
+        "value": 0.88,
+        "status": "extension"
+      },
+      "gallery.position": {
+        "value": [
+          0,
+          0.35,
+          3.2
+        ],
+        "status": "extension"
+      },
+      "gallery.minDistance": {
+        "value": 1.6,
+        "status": "extension"
+      },
+      "gallery.maxDistance": {
+        "value": 6,
+        "status": "extension"
+      },
+      "gallery.autoRotateSpeed": {
+        "value": 0.25,
+        "status": "extension"
+      }
+    },
+    "route": {
+      "l1.width": {
+        "value": 1.5,
+        "status": "source"
+      },
+      "l1.opacity": {
+        "value": 0.55,
+        "status": "source"
+      },
+      "l2.width": {
+        "value": 1,
+        "status": "source"
+      },
+      "l2.opacity": {
+        "value": 0.35,
+        "status": "source"
+      },
+      "l3.width": {
+        "value": 0.5,
+        "status": "source"
+      },
+      "l3.opacity": {
+        "value": 0.18,
+        "status": "source"
+      },
+      "l3.color": {
+        "value": "{tokens.color.text.secondary}",
+        "resolved": "#D0DCE3",
+        "status": "source"
+      },
+      "l4.width": {
+        "value": 2,
+        "status": "source"
+      },
+      "l4.opacity": {
+        "value": 0.9,
+        "status": "source"
+      },
+      "l4.tailOpacity": {
+        "value": 0.3,
+        "status": "source"
+      },
+      "l5.width": {
+        "value": 1,
+        "status": "source"
+      },
+      "l5.opacity": {
+        "value": 0.5,
+        "status": "source"
+      },
+      "l5.dash": {
+        "value": [
+          3,
+          4
+        ],
+        "status": "source"
+      },
+      "l6.width": {
+        "value": 1,
+        "status": "source"
+      },
+      "l6.opacity": {
+        "value": 0.6,
+        "status": "source"
+      },
+      "activeColor": {
+        "value": "{tokens.color.semantic.spatialRim}",
+        "resolved": "#B4DDFF",
+        "status": "source"
+      },
+      "state.targetedOpacityDelta": {
+        "value": 0.2,
+        "status": "source"
+      },
+      "state.dimmedSpine": {
+        "value": 0.15,
+        "status": "source"
+      },
+      "state.dimmedMesh": {
+        "value": 0.08,
+        "status": "source"
+      },
+      "state.pulseDuration": {
+        "value": 600,
+        "status": "source"
+      },
+      "state.pulseMaxPerSecond": {
+        "value": 1,
+        "status": "source"
+      }
+    },
+    "motion": {
+      "easing.signature": {
+        "value": [
+          0.45,
+          0,
+          0.25,
+          1
+        ],
+        "status": "source"
+      },
+      "easing.reveal": {
+        "value": [
+          0.16,
+          1,
+          0.3,
+          1
+        ],
+        "status": "source"
+      },
+      "easing.exit": {
+        "value": [
+          0.7,
+          0,
+          0.84,
+          0
+        ],
+        "status": "source"
+      },
+      "easing.flight": {
+        "value": [
+          0.65,
+          0,
+          0.35,
+          1
+        ],
+        "status": "source"
+      },
+      "easing.linear": {
+        "value": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "status": "source"
+      },
+      "duration.press": {
+        "value": 80,
+        "status": "source"
+      },
+      "duration.fadeReduced": {
+        "value": 120,
+        "status": "source"
+      },
+      "duration.highlight": {
+        "value": 150,
+        "status": "source"
+      },
+      "duration.micro": {
+        "value": 160,
+        "status": "source"
+      },
+      "duration.reveal": {
+        "value": 300,
+        "status": "source"
+      },
+      "duration.standard": {
+        "value": 320,
+        "status": "source"
+      },
+      "duration.route": {
+        "value": 420,
+        "status": "source"
+      },
+      "duration.zoom": {
+        "value": 420,
+        "status": "source"
+      },
+      "duration.recede": {
+        "value": 420,
+        "status": "source"
+      },
+      "duration.panel": {
+        "value": 560,
+        "status": "source"
+      },
+      "duration.travel": {
+        "value": 760,
+        "status": "source"
+      },
+      "duration.restore": {
+        "value": 760,
+        "status": "source"
+      },
+      "stagger.controls": {
+        "value": 40,
+        "status": "source"
+      },
+      "stagger.rows": {
+        "value": 55,
+        "status": "source"
+      },
+      "stagger.branches": {
+        "value": 20,
+        "status": "source"
+      },
+      "stagger.rowsLimit": {
+        "value": 6,
+        "status": "source"
+      },
+      "exitFactor": {
+        "value": 0.7,
+        "status": "source"
+      },
+      "spring.stiffness": {
+        "value": 170,
+        "status": "source"
+      },
+      "spring.damping": {
+        "value": 26,
+        "status": "source"
+      },
+      "loader.total": {
+        "value": 8000,
+        "status": "locked"
+      },
+      "loader.shot1End": {
+        "value": 600,
+        "status": "deprecated"
+      },
+      "loader.shot2End": {
+        "value": 1800,
+        "status": "deprecated"
+      },
+      "loader.shot3End": {
+        "value": 3200,
+        "status": "deprecated"
+      },
+      "loader.shot4End": {
+        "value": 4200,
+        "status": "deprecated"
+      },
+      "loader.skipAfter": {
+        "value": 2000,
+        "status": "extension"
+      },
+      "loader.pullbackArc": {
+        "value": 15,
+        "status": "extension"
+      },
+      "loader.reducedTotal": {
+        "value": 1200,
+        "status": "locked"
+      },
+      "loader.statusLineCount": {
+        "value": 4,
+        "status": "locked"
+      },
+      "loader.statusLineDuration": {
+        "value": 2000,
+        "status": "locked"
+      },
+      "asset.select": {
+        "value": "{tokens.motion.duration.panel}",
+        "resolved": 560,
+        "status": "extension"
+      },
+      "asset.settle": {
+        "value": "{tokens.component.orbit.selectionSettle}",
+        "resolved": 360,
+        "status": "extension"
+      },
+      "asset.assemble": {
+        "value": 1200,
+        "status": "extension"
+      },
+      "asset.focus": {
+        "value": "{tokens.motion.duration.travel}",
+        "resolved": 760,
+        "status": "extension"
+      }
+    },
+    "textMotion": {
+      "captionDismiss": {
+        "value": 2400,
+        "status": "source"
+      },
+      "captionMaxLines": {
+        "value": 2,
+        "status": "source"
+      },
+      "reducedFade": {
+        "value": "{tokens.motion.duration.fadeReduced}",
+        "resolved": 120,
+        "status": "source"
+      }
+    },
+    "gesture": {
+      "gloveColor": {
+        "value": "{tokens.color.semantic.spatialRim}",
+        "resolved": "#B4DDFF",
+        "status": "locked"
+      },
+      "reticleColor": {
+        "value": "{tokens.color.semantic.spatialRim}",
+        "resolved": "#B4DDFF",
+        "status": "locked"
+      },
+      "sourceReference.pinchClose": {
+        "value": 0.25,
+        "status": "reference-only"
+      },
+      "sourceReference.pinchOpen": {
+        "value": 0.35,
+        "status": "reference-only"
+      },
+      "sourceReference.stableTarget": {
+        "value": 180,
+        "status": "reference-only"
+      },
+      "sourceReference.cooldown": {
+        "value": 400,
+        "status": "reference-only"
+      },
+      "sourceReference.lostHand": {
+        "value": 300,
+        "status": "reference-only"
+      },
+      "sourceReference.dragThreshold": {
+        "value": 0.12,
+        "status": "reference-only"
+      }
+    },
+    "shader": {
+      "rimLightFloor": {
+        "value": 0.3,
+        "status": "extension"
+      },
+      "rimLightGain": {
+        "value": 0.7,
+        "status": "extension"
+      },
+      "rimMixGain": {
+        "value": 1.5,
+        "status": "extension"
+      },
+      "alphaMax": {
+        "value": 0.8,
+        "status": "extension"
+      }
+    },
+    "chart": {
+      "voiceRampAllowed": {
+        "value": false,
+        "status": "locked"
+      }
+    },
+    "quality": {
+      "fullPoints": {
+        "value": 3000,
+        "status": "extension"
+      },
+      "balancedPoints": {
+        "value": 1500,
+        "status": "extension"
+      },
+      "litePoints": {
+        "value": 900,
+        "status": "extension"
+      },
+      "fullDpr": {
+        "value": 1.75,
+        "status": "extension"
+      },
+      "balancedDpr": {
+        "value": 1.5,
+        "status": "extension"
+      },
+      "liteDpr": {
+        "value": 1.25,
+        "status": "extension"
+      },
+      "asset.fullSegments": {
+        "value": 48,
+        "status": "extension"
+      },
+      "asset.balancedSegments": {
+        "value": 32,
+        "status": "extension"
+      },
+      "asset.liteSegments": {
+        "value": 16,
+        "status": "extension"
+      },
+      "asset.fullTexture": {
+        "value": 512,
+        "status": "extension"
+      },
+      "asset.balancedTexture": {
+        "value": 256,
+        "status": "extension"
+      },
+      "asset.liteTexture": {
+        "value": 128,
+        "status": "extension"
+      },
+      "asset.liteEdges": {
+        "value": false,
+        "status": "extension"
+      }
+    },
+    "accessibility": {
+      "textContrast": {
+        "value": 4.5,
+        "status": "source"
+      },
+      "graphicContrast": {
+        "value": 3,
+        "status": "source"
+      },
+      "minimumTarget": {
+        "value": "{tokens.layout.minimumTarget}",
+        "resolved": 44,
+        "status": "source"
+      },
+      "focusColor": {
+        "value": "{tokens.color.semantic.focus}",
+        "resolved": "#65ACFF",
+        "status": "source"
+      },
+      "focusStroke": {
+        "value": "{tokens.stroke.focus}",
+        "resolved": 2,
+        "status": "source"
+      },
+      "reducedMotion.idleDrift": {
+        "value": false,
+        "status": "source"
+      },
+      "reducedMotion.cameraTravel": {
+        "value": false,
+        "status": "source"
+      },
+      "reducedMotion.travelBead": {
+        "value": false,
+        "status": "source"
+      },
+      "reducedMotion.rowStagger": {
+        "value": false,
+        "status": "source"
+      },
+      "asset.hitTarget": {
+        "value": "{tokens.layout.minimumTarget}",
+        "resolved": 44,
+        "status": "extension"
+      },
+      "asset.focusStroke": {
+        "value": "{tokens.stroke.focus}",
+        "resolved": 2,
+        "status": "extension"
+      },
+      "asset.focusColor": {
+        "value": "{tokens.color.semantic.focus}",
+        "resolved": "#65ACFF",
+        "status": "extension"
+      },
+      "asset.requireName": {
+        "value": true,
+        "status": "extension"
+      },
+      "asset.reducedStatic": {
+        "value": true,
+        "status": "extension"
+      }
+    }
+  }
+}

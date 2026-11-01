@@ -1,0 +1,73 @@
+{
+  "status": "proposed reproducible motion logic, anchored to observed film states; not recovered original animation",
+  "fps_reference": 30,
+  "frames_reference": 5400,
+  "rules": {
+    "master_clock": "absolute seconds; frame/fps; one camera authority",
+    "camera": "C2-continuous position spline, quaternion orientation, smooth FOV; world-anchored portals; no DOM resize teleport",
+    "text": "glyph stagger 2 frames; 12-frame opacity/lift entry; 66-frame min readable hold; 10-frame exit; clamp glyph progress to [0,1]",
+    "glyph_formula": "p=clamp((frame-inFrame-glyphIndex*2)/12,0,1); opacity=p*p*(3-2*p); offsetY=(1-opacity)*8 CSS px; retain final layout metrics",
+    "panel": "420ms translateY 12px -> 0 and opacity 0 -> 1; focus remains inside visible panel",
+    "idle": "2 degrees/second yaw, .008R sin(2*pi*t/6) vertical drift",
+    "voice": "audio level smoothed attack 80ms, release 240ms; rings scale 1+0.04*level; do not randomize speaking state",
+    "media": "sourceTime=inPoint+(t-componentIn); deterministic decode for exports; no hard crop changes",
+    "reduced_motion": "hold camera and replace travel with short opacity handoffs; keep all controls operable"
+  },
+  "observed_states": [
+    {
+      "id": "intro",
+      "representative_time": 3,
+      "copyId": "copy-00"
+    },
+    {
+      "id": "awaken",
+      "representative_time": 18,
+      "copyId": "copy-01"
+    },
+    {
+      "id": "focus",
+      "representative_time": 39,
+      "copyId": "copy-02"
+    },
+    {
+      "id": "discover",
+      "representative_time": 51,
+      "copyId": "copy-03"
+    },
+    {
+      "id": "enter",
+      "representative_time": 63,
+      "copyId": "copy-04"
+    },
+    {
+      "id": "connect",
+      "representative_time": 87,
+      "copyId": "copy-05"
+    },
+    {
+      "id": "open",
+      "representative_time": 111,
+      "copyId": "copy-06"
+    },
+    {
+      "id": "explore",
+      "representative_time": 135,
+      "copyId": "copy-07"
+    },
+    {
+      "id": "reveal",
+      "representative_time": 147,
+      "copyId": "copy-08"
+    },
+    {
+      "id": "return",
+      "representative_time": 159,
+      "copyId": "copy-09"
+    },
+    {
+      "id": "finale",
+      "representative_time": 175,
+      "copyId": "copy-10"
+    }
+  ]
+}
