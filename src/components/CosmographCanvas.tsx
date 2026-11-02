@@ -38,7 +38,13 @@ import {
   executeAtomicReframe,
   IDLE_MS,
 } from '../three/spatialNavigation';
-import { mountSphereVideoTexture, type SphereVideoHandle } from '../lib/sphereVideoTexture';
+import {
+  mountProjectNodeVideoShell,
+  mountSphereVideoTexture,
+  resolveProjectMediaSrc,
+  type SphereVideoHandle,
+} from '../lib/sphereVideoTexture';
+import { SPHERE_SHOTS, STATION_SHOTS, resolveShotMedia } from '../data/shotMediaCatalog';
 import {
   createMatLiquidGlassShell,
   MAT_GOLD_SHEEN,
@@ -2143,17 +2149,17 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       return tex;
     };
 
-    // Prefer same-origin posters so the inner media sieve never waits on remote CORS.
+    // Prefer same-origin shot posters so the inner media sieve never waits on remote CORS.
     const hqMediaDiscTexture = createLiveMediaScreenTexture(
       PUBLIC_BRAND_MEDIA.showreel2023.title,
-      '/media/riyadh-season-launch-still.jpg',
+      SPHERE_SHOTS.hq?.posterPath || '/media/riyadh-season-launch-still.jpg',
       '#D4AF37'
     );
     extraDisposables.push(hqMediaDiscTexture);
 
     const mediaStationDiscTexture = createLiveMediaScreenTexture(
       PUBLIC_BRAND_MEDIA.elBatron.title,
-      '/assets/media/el-batron.jpg',
+      STATION_SHOTS.media?.posterPath || '/assets/media/el-batron.jpg',
       '#F2B66D'
     );
     extraDisposables.push(mediaStationDiscTexture);
@@ -2827,6 +2833,23 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         emissiveMats,
         connectorUniforms: spoke.handle.uniforms,
       });
+
+      // Fill every sculptural node sieve with a distinct edited-second local clip.
+      const shotUrl =
+        resolveProjectMediaSrc(canonicalId) || resolveShotMedia(canonicalId)?.videoUrl || null;
+      if (shotUrl) {
+        try {
+          const nodeMedia = mountProjectNodeVideoShell({
+            parent: nodeGroup,
+            projectId: canonicalId,
+            radius: 0.58 * Math.max(scale, 0.85),
+            name: `${canonicalId}-shot-shell`,
+          });
+          extraDisposables.push({ dispose: nodeMedia.dispose });
+        } catch (err) {
+          console.warn(`[CosmographCanvas] node video shell failed for ${canonicalId}`, err);
+        }
+      }
     };
 
     /**
@@ -2938,23 +2961,23 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       }
     }
 
-    // Studio films are broad-sphere ambience; project-world credits are resolved separately.
+    // Local edited-second cutdowns fill every sphere sieve (distinct shots, same-origin).
     const ALWAYS_ON_SPHERE_MEDIA: Record<string, { url: string; poster: string }> = {
       hq: {
-        url: PUBLIC_BRAND_MEDIA.showreel2023.url,
-        poster: PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
+        url: SPHERE_SHOTS.hq?.videoPath || PUBLIC_BRAND_MEDIA.showreel2023.url,
+        poster: SPHERE_SHOTS.hq?.posterPath || PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
       },
       cde: {
-        url: PUBLIC_BRAND_MEDIA.showreel2023.url,
-        poster: PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
+        url: SPHERE_SHOTS.cde?.videoPath || PUBLIC_BRAND_MEDIA.showreel2023.url,
+        poster: SPHERE_SHOTS.cde?.posterPath || PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
       },
       'campaign-os': {
-        url: PUBLIC_BRAND_MEDIA.laligaFilm.url,
-        poster: PUBLIC_BRAND_MEDIA.laligaFilm.posterUrl,
+        url: SPHERE_SHOTS['campaign-os']?.videoPath || PUBLIC_BRAND_MEDIA.laligaFilm.url,
+        poster: SPHERE_SHOTS['campaign-os']?.posterPath || PUBLIC_BRAND_MEDIA.laligaFilm.posterUrl,
       },
       'about-us': {
-        url: PUBLIC_BRAND_MEDIA.showreel2023.url,
-        poster: PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
+        url: SPHERE_SHOTS['about-us']?.videoPath || PUBLIC_BRAND_MEDIA.elBatron.url,
+        poster: SPHERE_SHOTS['about-us']?.posterPath || PUBLIC_BRAND_MEDIA.elBatron.posterUrl,
       },
     };
     const mountAlwaysOnMedia = (

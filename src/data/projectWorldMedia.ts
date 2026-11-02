@@ -12,6 +12,7 @@ import {
 } from './driveMediaCatalog';
 import { PUBLIC_BRAND_MEDIA } from './publicBrandMedia';
 import type { ProjectWorldRightsState } from './projectWorldManifest';
+import { PROJECT_SHOTS, SHOT_CATALOG_POLICY } from './shotMediaCatalog';
 
 export type ProjectWorldMediaSlot = {
   id: string;
@@ -139,6 +140,23 @@ export function resolveProjectWorldMediaSlots(project: {
           note: 'Local attached Tabuk mobile render.',
         });
       }
+      const sevenCut = PROJECT_SHOTS.SEVEN;
+      if (sevenCut) {
+        slots.push({
+          id: sevenCut.id,
+          catalogId: null,
+          kind: 'video',
+          role: 'showreel',
+          url: sevenCut.videoPath,
+          poster: sevenCut.posterPath,
+          aspect: '16:9',
+          projection: 'flat',
+          provenance: 'public-brand',
+          playable: true,
+          rights: 'restricted',
+          note: `${sevenCut.note}. ${SHOT_CATALOG_POLICY}`,
+        });
+      }
       return slots;
     }
     case 'EL-BATRON': {
@@ -185,10 +203,48 @@ export function resolveProjectWorldMediaSlots(project: {
     case 'BSOCIAL':
     case 'AL-AHRAM':
     case 'MUSEUM-OF-ALMOST':
-    case 'GONDWANA':
+    case 'GONDWANA': {
+      const cut = PROJECT_SHOTS[project.id];
+      if (!cut) return [unavailableSlot(project.id)];
+      return [
+        {
+          id: cut.id,
+          catalogId: null,
+          kind: 'video',
+          role: 'showreel',
+          url: cut.videoPath,
+          poster: cut.posterPath,
+          aspect: '16:9',
+          projection: 'flat',
+          provenance: 'public-brand',
+          playable: true,
+          rights,
+          note: `${cut.note}. ${SHOT_CATALOG_POLICY}`,
+        },
+      ];
+    }
+    default: {
+      const cut = PROJECT_SHOTS[project.id];
+      if (cut) {
+        return [
+          {
+            id: cut.id,
+            catalogId: null,
+            kind: 'video',
+            role: 'showreel',
+            url: cut.videoPath,
+            poster: cut.posterPath,
+            aspect: '16:9',
+            projection: 'flat',
+            provenance: 'public-brand',
+            playable: true,
+            rights,
+            note: `${cut.note}. ${SHOT_CATALOG_POLICY}`,
+          },
+        ];
+      }
       return [unavailableSlot(project.id)];
-    default:
-      return [unavailableSlot(project.id)];
+    }
   }
 }
 

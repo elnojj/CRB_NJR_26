@@ -144,7 +144,7 @@ export const MISSING_ITEMS: MissingItem[] = [
     item: '09 Media — remaining Hotspot masters without distinct local/public playback URLs (project-attributed showreels still partial)',
     referencedIn: 'Master Instruction v2 ("09 Media: the only media allowed") & 01 KB Handoff §3 & driveMediaCatalog',
     currentFallbackInPhase0:
-      'Ambient HQ/CDE shells use PUBLIC_BRAND_MEDIA Wix studio films + soft poster /media/riyadh-season-launch-still.jpg. Drive catalog + resolveAssetPlaybackUrl wired (local → Wix → Drive → shared fallback last). Project nodes refuse borrowed ambient plates; unattributed project masters remain SAMPLE / missing-asset.',
+      'Filled every sphere / station / project / dimension / subdomain sieve with distinct ~5.5s local edited cutdowns from public Wix masters (showreel2023, LaLiga, El Batron) under /media/shots — see shotMediaCatalog.ts. Provenance is public-brand cutdown, not unique project camera masters. Soft posters under /media/shot-posters.',
   },
   {
     id: 'M03',

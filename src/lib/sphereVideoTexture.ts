@@ -6,6 +6,10 @@ import {
   type DriveMediaAsset,
 } from '../data/driveMediaCatalog';
 import { resolveVerifiedProjectVideoUrl } from '../data/projectWorldMedia';
+import {
+  buildProjectMediaSrcMap,
+  resolveShotMedia,
+} from '../data/shotMediaCatalog';
 
 export type SphereVideoHandle = {
   video: HTMLVideoElement;
@@ -18,11 +22,22 @@ export type SphereVideoHandle = {
   bindMaterial: (mat: THREE.MeshBasicMaterial | THREE.MeshPhysicalMaterial) => void;
 };
 
-/** Project node footage must be attributable to that project — no borrowed ambient plates. */
-export const PROJECT_MEDIA_SRC: Record<string, string> = {};
+/**
+ * Local edited-second cutdowns for every project node.
+ * Provenance: public-brand showreel shots (see shotMediaCatalog) — fills sieves
+ * without inventing unique project camera masters.
+ */
+export const PROJECT_MEDIA_SRC: Record<string, string> = buildProjectMediaSrcMap();
 
 export function resolveProjectMediaSrc(projectId: string): string | null {
-  return resolveVerifiedProjectVideoUrl(projectId) || PROJECT_MEDIA_SRC[projectId] || null;
+  // Prefer local edited-second cutdowns so every node sieve loops a distinct shot.
+  // Full public masters remain available via projectWorldMedia for inspection panels.
+  return (
+    PROJECT_MEDIA_SRC[projectId] ||
+    resolveShotMedia(projectId)?.videoUrl ||
+    resolveVerifiedProjectVideoUrl(projectId) ||
+    null
+  );
 }
 
 export type NodeVideoHandle = {

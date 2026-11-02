@@ -491,5 +491,25 @@
       "sharedFallbackOnly": "/media/sphere-showreel-fallback.mp4"
     },
     "policy": "Do not borrow ambient plates into PROJECT_MEDIA_SRC; project footage must be attributable."
+  },
+  "editedShotCutdowns": {
+    "authority": "src/data/shotMediaCatalog.ts + public/media/shot-catalog.json",
+    "clipDurationSec": 5.5,
+    "masters": [
+      "showreel2023",
+      "laliga",
+      "el-batron"
+    ],
+    "videoDir": "/media/shots",
+    "posterDir": "/media/shot-posters",
+    "fills": [
+      "sphere",
+      "station",
+      "project",
+      "dimension",
+      "subdomain"
+    ],
+    "policy": "Public-brand edited seconds to fill every sieve; not unique project camera masters.",
+    "shotCount": 45
   }
 }
