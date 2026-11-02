@@ -1341,7 +1341,8 @@ export const CDE_STUDY_DOCUMENTS: ShowreelSpec[] = [
     timecodePreview: '00:00 — 01:56 · 4K Concept',
     drivePath: 'drive:1P-cbrL4pRtu5ywBj-uA4A61HrJexKWMR/YAH_Opening_Reel',
     sourceKind: 'Hotspot_26_media [SAMPLE]',
-    posterUrl: '/assets/aistudio/06_SEVEN_Tabuk_concept_render_mobile_1080x1920_8efe6dff.jpg',
+    // Do not reuse SEVEN Tabuk still as a YAH poster — no verified YAH plate in catalog.
+    posterUrl: undefined,
     companionSticker: 'Design the next moment',
     isRealVideo: false,
   },

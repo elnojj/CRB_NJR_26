@@ -5,6 +5,7 @@ import {
   resolveAssetPlaybackUrl,
   type DriveMediaAsset,
 } from '../data/driveMediaCatalog';
+import { resolveVerifiedProjectVideoUrl } from '../data/projectWorldMedia';
 
 export type SphereVideoHandle = {
   video: HTMLVideoElement;
@@ -16,20 +17,12 @@ export type SphereVideoHandle = {
   setSourceUrl: (url: string) => void;
 };
 
-/** Map project ids → local intro/workspace media plates (under /assets/media). */
-export const PROJECT_MEDIA_SRC: Record<string, string> = {
-  SEVEN: '/assets/media/production.mp4',
-  YAH: '/assets/media/young-human.mp4',
-  MHE: '/assets/media/tarek.mp4',
-  BSOCIAL: '/assets/media/young-human.mp4',
-  'AL-AHRAM': '/assets/media/production.mp4',
-  'MUSEUM-OF-ALMOST': '/assets/media/showreel.mp4',
-  'EL-BATRON': '/assets/media/el-batron.mp4',
-  GONDWANA: '/assets/media/laliga.mp4',
-};
-
-export function resolveProjectMediaSrc(projectId: string): string {
-  return PROJECT_MEDIA_SRC[projectId] || '/assets/media/showreel.mp4';
+/**
+ * Verified project → video only. Shared /assets/media/*.mp4 duplicates are NOT
+ * project masters — absent sources resolve to null (caller must use ice plate).
+ */
+export function resolveProjectMediaSrc(projectId: string): string | null {
+  return resolveVerifiedProjectVideoUrl(projectId);
 }
 
 export type NodeVideoHandle = {
@@ -207,14 +200,18 @@ export function mountSphereVideoTexture(options: {
   parent: THREE.Object3D;
   asset?: DriveMediaAsset;
   sourceUrl?: string;
+  /** When true, skip video and mount ice plate only (no invented project footage). */
+  iceOnly?: boolean;
   portalRadius?: number;
   shellBandRadius?: number;
   wrapRadius?: number;
   namePrefix?: string;
 }): SphereVideoHandle {
   const asset = options.asset ?? getSphereTextureAsset();
-  const initialUrl = options.sourceUrl || resolveAssetPlaybackUrl(asset);
-  const video = createVideoElement(initialUrl);
+  const initialUrl = options.iceOnly
+    ? SPHERE_MEDIA_FALLBACK_PLATE
+    : options.sourceUrl || resolveAssetPlaybackUrl(asset);
+  const video = createVideoElement(options.iceOnly ? '' : initialUrl);
   const prefix = options.namePrefix || 'sphere';
 
   const texture = new THREE.VideoTexture(video);
@@ -292,7 +289,7 @@ export function mountSphereVideoTexture(options: {
   };
 
   const tryPlay = () => {
-    if (usingFallback) return;
+    if (usingFallback || options.iceOnly) return;
     video.muted = true;
     const playPromise = video.play();
     if (playPromise && typeof playPromise.catch === 'function') {
@@ -301,18 +298,22 @@ export function mountSphereVideoTexture(options: {
       });
     }
   };
-  attachVideoKeepAlive(video, tryPlay);
 
-  video.addEventListener('error', () => {
-    applyFallbackPlate('video element error (Drive/local 404 or decode failure)');
-  });
-  video.addEventListener('stalled', () => {
-    // Soft signal only; keepAlive will retry. Empty shell never preferred.
-  });
+  if (options.iceOnly) {
+    applyFallbackPlate('iceOnly — no verified sphere footage bound');
+  } else {
+    attachVideoKeepAlive(video, tryPlay);
+    video.addEventListener('error', () => {
+      applyFallbackPlate('video element error (Drive/local 404 or decode failure)');
+    });
+    video.addEventListener('stalled', () => {
+      // Soft signal only; keepAlive will retry. Empty shell never preferred.
+    });
+  }
 
   // Detect WebGL texImage2D upload failures after first frames.
   const texGuard = window.setInterval(() => {
-    if (usingFallback) {
+    if (usingFallback || options.iceOnly) {
       window.clearInterval(texGuard);
       return;
     }
@@ -382,16 +383,51 @@ export function mountProjectNodeVideoShell(options: {
   radius?: number;
   name?: string;
 }): NodeVideoHandle {
-  const url = resolveProjectMediaSrc(options.projectId);
-  const video = createVideoElement(url);
+  const verified = resolveProjectMediaSrc(options.projectId);
+  const radius = options.radius ?? 0.62;
+  const geo = createSphericalVideoShellGeometry(radius, 16 / 9, 48, 32);
+
+  // Absent verified video → ice plate only (never invent a project master from shared fallbacks).
+  if (!verified) {
+    const ice = createFallbackTexture();
+    const mat = new THREE.MeshBasicMaterial({
+      map: ice,
+      side: THREE.FrontSide,
+      transparent: true,
+      opacity: 0.88,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.name = options.name || `project-video-${options.projectId}`;
+    mesh.renderOrder = 4;
+    mesh.userData = {
+      projectMediaId: options.projectId,
+      mediaUnavailable: true,
+      introInteractive: true,
+    };
+    options.parent.add(mesh);
+    const stub = document.createElement('video');
+    return {
+      video: stub,
+      texture: ice as unknown as THREE.VideoTexture,
+      mesh,
+      dispose: () => {
+        ice.dispose();
+        geo.dispose();
+        mat.dispose();
+        options.parent.remove(mesh);
+      },
+    };
+  }
+
+  const video = createVideoElement(verified);
   const texture = new THREE.VideoTexture(video);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
   texture.generateMipmaps = false;
 
-  const radius = options.radius ?? 0.62;
-  const geo = createSphericalVideoShellGeometry(radius, 16 / 9, 48, 32);
   const mat = new THREE.MeshBasicMaterial({
     map: texture,
     side: THREE.FrontSide,
@@ -404,7 +440,6 @@ export function mountProjectNodeVideoShell(options: {
   mesh.name = options.name || `project-video-${options.projectId}`;
   mesh.renderOrder = 4;
   mesh.userData = {
-    ...(options.parent.userData || {}),
     projectMediaId: options.projectId,
     introInteractive: true,
   };

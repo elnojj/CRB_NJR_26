@@ -1,8 +1,10 @@
 /**
  * Google Drive Hotspot_26_media catalog (folder 1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh)
- * Wired for sphere VideoTexture + About Us bios. Prefer streamUrl via /api/drive/stream/:id;
- * localFallback keeps the WebGL path alive when Drive egress is blocked.
+ * Wired for sphere VideoTexture + About Us bios. Prefer streamUrl via /api/drive/stream/:id
+ * or public Wix URLs; shared local MP4 fallbacks are ice/placeholder plates only — not
+ * project-specific verified masters.
  */
+import { PUBLIC_BRAND_MEDIA } from './publicBrandMedia';
 
 export const HOTSPOT_26_MEDIA_FOLDER_ID = '1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh';
 
@@ -25,7 +27,7 @@ export type DriveMediaAsset = {
   title: string;
   kind: DriveMediaKind;
   mimeType: string;
-  role: 'sphere-texture' | 'showreel' | 'about-portrait' | 'about-bio';
+  role: 'sphere-texture' | 'showreel' | 'about-portrait' | 'about-bio' | 'project-still';
   /** L13 — required provenance contract fields */
   projectId: string | null;
   mediaType: DriveMediaKind;
@@ -36,9 +38,16 @@ export type DriveMediaAsset = {
   durationSec: number | null;
   playable: boolean;
   projectCode?: string;
+  /** Direct public playback URL when available (preferred over shared local plates). */
+  publicUrl?: string;
   localFallback?: string;
+  /** True when localFallback is the shared showreel/ice plate, not a distinct master. */
+  localFallbackIsSharedPlate?: boolean;
   caption?: string;
 };
+
+/** Shared local plate SHA — not a distinct project master. */
+export const SHARED_SHOWREEL_FALLBACK = '/media/sphere-showreel-fallback.mp4';
 
 export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
   {
@@ -52,13 +61,14 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
     mediaType: 'video',
     aspect: '16:9',
     projection: 'equatorial',
-    poster: '/media/sphere-showreel-fallback.mp4',
+    poster: PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
     provenance: 'verified-footage',
     durationSec: null,
     playable: true,
     projectCode: 'RIYADH-SEASON',
-    localFallback: '/media/sphere-showreel-fallback.mp4',
-    caption: 'Primary equator-band video texture for HQ glass sphere',
+    localFallback: SHARED_SHOWREEL_FALLBACK,
+    localFallbackIsSharedPlate: true,
+    caption: 'Primary equator-band video texture for HQ glass sphere (Drive stream preferred)',
   },
   {
     id: 'njr-showreel-2023',
@@ -71,12 +81,14 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
     mediaType: 'video',
     aspect: '16:9',
     projection: 'flat',
-    poster: '/media/sphere-showreel-fallback.mp4',
+    poster: PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
     provenance: 'verified-footage',
-    durationSec: null,
+    durationSec: PUBLIC_BRAND_MEDIA.showreel2023.expectedDurationSec,
     playable: true,
     projectCode: 'NOJARA',
-    localFallback: '/media/sphere-showreel-fallback.mp4',
+    publicUrl: PUBLIC_BRAND_MEDIA.showreel2023.url,
+    localFallback: SHARED_SHOWREEL_FALLBACK,
+    localFallbackIsSharedPlate: true,
     caption: 'NOJARA Studios Showreel 2023 — About Us visual anchor',
   },
   {
@@ -90,12 +102,14 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
     mediaType: 'video',
     aspect: '16:9',
     projection: 'flat',
-    poster: '/media/sphere-showreel-fallback.mp4',
+    poster: PUBLIC_BRAND_MEDIA.laligaFilm.posterUrl,
     provenance: 'verified-footage',
-    durationSec: null,
+    durationSec: PUBLIC_BRAND_MEDIA.laligaFilm.expectedDurationSec,
     playable: true,
     projectCode: 'LALIGA',
-    localFallback: '/media/sphere-showreel-fallback.mp4',
+    publicUrl: PUBLIC_BRAND_MEDIA.laligaFilm.url,
+    localFallback: SHARED_SHOWREEL_FALLBACK,
+    localFallbackIsSharedPlate: true,
   },
   {
     id: 'batron-showreel',
@@ -108,12 +122,58 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
     mediaType: 'video',
     aspect: '16:9',
     projection: 'flat',
-    poster: '/media/sphere-showreel-fallback.mp4',
+    poster: PUBLIC_BRAND_MEDIA.elBatron.posterUrl,
     provenance: 'verified-footage',
-    durationSec: null,
+    durationSec: PUBLIC_BRAND_MEDIA.elBatron.expectedDurationSec,
     playable: true,
     projectCode: 'EL-BATRON',
-    localFallback: '/media/sphere-showreel-fallback.mp4',
+    publicUrl: PUBLIC_BRAND_MEDIA.elBatron.url,
+    localFallback: SHARED_SHOWREEL_FALLBACK,
+    localFallbackIsSharedPlate: true,
+  },
+  {
+    id: 'seven-tabuk-desktop',
+    driveFileId: '',
+    title: 'SEVEN Tabuk — Concept Render (Desktop 3840×2160)',
+    kind: 'image',
+    mimeType: 'image/jpeg',
+    role: 'project-still',
+    projectId: 'SEVEN',
+    mediaType: 'image',
+    aspect: '16:9',
+    projection: 'flat',
+    poster:
+      '/assets/aistudio/06_SEVEN_Tabuk_concept_render_desktop_3840x2160_a125f8eb.jpg',
+    provenance: 'render',
+    durationSec: null,
+    playable: true,
+    projectCode: 'SEVEN',
+    localFallback:
+      '/assets/aistudio/06_SEVEN_Tabuk_concept_render_desktop_3840x2160_a125f8eb.jpg',
+    localFallbackIsSharedPlate: false,
+    caption: 'Attached Tabuk concept render — still only; no cleared SEVEN showreel',
+  },
+  {
+    id: 'seven-tabuk-mobile',
+    driveFileId: '',
+    title: 'SEVEN Tabuk — Concept Render (Mobile 1080×1920)',
+    kind: 'image',
+    mimeType: 'image/jpeg',
+    role: 'project-still',
+    projectId: 'SEVEN',
+    mediaType: 'image',
+    aspect: '9:16',
+    projection: 'portrait',
+    poster:
+      '/assets/aistudio/06_SEVEN_Tabuk_concept_render_mobile_1080x1920_8efe6dff.jpg',
+    provenance: 'render',
+    durationSec: null,
+    playable: true,
+    projectCode: 'SEVEN',
+    localFallback:
+      '/assets/aistudio/06_SEVEN_Tabuk_concept_render_mobile_1080x1920_8efe6dff.jpg',
+    localFallbackIsSharedPlate: false,
+    caption: 'Attached Tabuk concept render (mobile) — still only',
   },
   {
     id: 'about-tarek-portrait',
@@ -131,6 +191,7 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
     durationSec: null,
     playable: true,
     localFallback: '/media/about-tarek-afrima.jpg',
+    localFallbackIsSharedPlate: false,
     caption: 'Owner-supplied portrait plate for About Us / founder page',
   },
 ];
@@ -178,14 +239,35 @@ export function resolveDriveStreamPath(driveFileId: string): string {
   return `/api/drive/stream/${encodeURIComponent(driveFileId)}`;
 }
 
+/**
+ * Playback URL priority: public Wix → Drive stream → distinct local → shared plate last.
+ * Shared local plates are not treated as project-specific verified masters.
+ */
 export function resolveAssetPlaybackUrl(asset: DriveMediaAsset): string {
+  if (asset.publicUrl) return asset.publicUrl;
+  if (asset.driveFileId) return resolveDriveStreamPath(asset.driveFileId);
+  if (asset.localFallback && !asset.localFallbackIsSharedPlate) return asset.localFallback;
   if (asset.localFallback) return asset.localFallback;
-  return resolveDriveStreamPath(asset.driveFileId);
+  return SHARED_SHOWREEL_FALLBACK;
 }
 
 export function getSphereTextureAsset(): DriveMediaAsset {
   return (
     DRIVE_MEDIA_ASSETS.find((a) => a.role === 'sphere-texture') ||
     DRIVE_MEDIA_ASSETS[0]
+  );
+}
+
+export function getDriveAssetsForProject(projectId: string): DriveMediaAsset[] {
+  return DRIVE_MEDIA_ASSETS.filter(
+    (a) => a.projectId === projectId || a.projectCode === projectId
+  );
+}
+
+export function getShowreelAssetByCode(
+  projectCode: 'NOJARA' | 'LALIGA' | 'EL-BATRON'
+): DriveMediaAsset | undefined {
+  return DRIVE_MEDIA_ASSETS.find(
+    (a) => a.role === 'showreel' && a.projectCode === projectCode
   );
 }
