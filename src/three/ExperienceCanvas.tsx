@@ -150,6 +150,7 @@ interface ExperienceCanvasProps {
   gestureTrackingActive?: boolean;
   projectWorldId?: string | null;
   projectWorldState?: 'entry' | 'active' | 'suspended' | 'exiting' | 'unavailable' | null;
+  idleOrbitAllowed?: boolean;
 }
 
 export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
@@ -180,6 +181,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
   gestureTrackingActive = true,
   projectWorldId = null,
   projectWorldState = null,
+  idleOrbitAllowed = true,
 }) => {
   const osReducedMotion = useReducedMotion();
   const effectiveReducedMotion = Boolean(reducedMotion || osReducedMotion);
@@ -212,6 +214,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
         gestureTrackingActive={gestureTrackingActive}
         projectWorldId={projectWorldId}
         projectWorldState={projectWorldState}
+        idleOrbitAllowed={idleOrbitAllowed}
       />
 
       {/* Reduced-Motion / Fallback Rest Sphere + Interactive 2D SVG Orbital Station Pins */}

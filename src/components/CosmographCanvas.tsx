@@ -611,6 +611,11 @@ export interface CosmographCanvasProps {
   /** Active project-world portal id — mounts/disposes a scoped host under master. */
   projectWorldId?: string | null;
   projectWorldState?: 'entry' | 'active' | 'suspended' | 'exiting' | 'unavailable' | null;
+  /**
+   * L08 — idle auto-orbit only when no voice/panel/project/media/tour owns the stage.
+   * Explicit autoOrbit commands still apply.
+   */
+  idleOrbitAllowed?: boolean;
 }
 
 export const HQ_CENTER = sphereCenterVec('hq');
@@ -878,6 +883,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   gestureTrackingActive = true,
   projectWorldId = null,
   projectWorldState = null,
+  idleOrbitAllowed = true,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const masterRootRef = useRef<THREE.Object3D | null>(null);
@@ -919,6 +925,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
   const mediaTubeStateRef = useRef<MediaTubeStateProp | null>(mediaTubeState);
   mediaTubeStateRef.current = mediaTubeState;
+  const idleOrbitAllowedRef = useRef(idleOrbitAllowed);
+  idleOrbitAllowedRef.current = idleOrbitAllowed;
 
   const unobstructedRectRef = useRef<GuiRect | undefined>(unobstructedRect);
   unobstructedRectRef.current = unobstructedRect;
@@ -3801,7 +3809,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         s.gestureResidualAzVel = 0;
       } else {
         const baseSphereRate = GUI_WORLD_MOTION_TOKENS.rates.sphereRadPerSec; // 0.02992 rad/s (210s period)
-        const isUserIdle = (now - s.lastUserInputTime) >= IDLE_MS;
+        // L08: inactivity alone is not enough — stage owners block idle orbit.
+        const isUserIdle =
+          idleOrbitAllowedRef.current && (now - s.lastUserInputTime) >= IDLE_MS;
         const desiredVel = s.reducedMotion || (!isUserIdle && !s.autoOrbit)
           ? 0
           : s.autoOrbit

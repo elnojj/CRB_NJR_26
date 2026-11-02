@@ -6,8 +6,8 @@ Date: 2026-11-02 (Africa/Cairo)
 
 | Remote | SHA | Status |
 |--------|-----|--------|
-| Cursor Origin `main` | `cc7a628` | Explore follow-up + context rebuild · verified |
-| GitHub `elnojj/CRB_NJR_26` `main` | `cc7a628` | Synced · matches Origin |
+| Cursor Origin `main` | tip after L08 idle ownership | Explore + WebGL rebuild + idle gate |
+| GitHub `elnojj/CRB_NJR_26` `main` | same tip | Synced via deployment PAT |
 
 ## Gates
 
@@ -41,7 +41,7 @@ Date: 2026-11-02 (Africa/Cairo)
 | L05 | Done | Capsule dock, keyboard inset, voice-sheet owns phone, utility in collision |
 | L06 | Partial→strong | Nav generation on camera cmds; unavailable receipts for missing project/panel |
 | L07 | Done | `cerebro.session.v1` + canonical navigation |
-| L08–L09 | Prior/partial | Boot skip OK; unknown panel receipt added |
+| L08–L09 | Stronger | Boot skip OK; idle orbit gated by stage ownership; unknown panel receipt |
 | L10 | Done for bloom | Default-app bloom off; film bloom intro-only |
 | L11 | Partial | lang/dir + Arabic letter-spacing 0 + keyboard/SR |
 | L12 | Partial | SystemStatusLayer + return-to-master |
@@ -52,7 +52,7 @@ Date: 2026-11-02 (Africa/Cairo)
 1. **GitHub main publication** — needs `GH_TOKEN` (Origin is current).
 2. **Rich project-world interiors** — hosts mount unavailable plates; scoped playable worlds still need verified assets per project.
 3. **Full SR journey proof** without WebGL hit-testing.
-4. **Idle-replay ownership** audit (L08).
+4. **Idle-replay** — orbit gated; full film idle-replay still separate from sphere auto-orbit.
 
 ## Screenshots
 

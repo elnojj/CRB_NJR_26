@@ -3461,6 +3461,25 @@ export default function App() {
       ? 'error'
       : 'idle';
 
+  // L08 — idle orbit only when no interaction surface owns the stage.
+  const idleOrbitAllowed =
+    bootDone &&
+    !projectWorld.projectId &&
+    openPanels.length === 0 &&
+    !mediaTubeState.active &&
+    !tourState.active &&
+    !voiceExpanded &&
+    !voiceSheetExpanded &&
+    !fullscreenMedia &&
+    !showDeveloperDrawer &&
+    !showDownloadModal &&
+    voiceState !== 'Listening' &&
+    voiceState !== 'Speaking' &&
+    voiceState !== 'Thinking' &&
+    voiceState !== 'Connecting' &&
+    voiceState !== 'Reconnecting' &&
+    !mediaPlayback.playing;
+
   const currentVisualState = deriveVisualState({
     hasError: voiceState === 'Error',
     voiceStatus: mappedVoiceStatus,
@@ -3684,6 +3703,7 @@ export default function App() {
           )
         }
         gestureTrackingActive={gestureTrackingActive}
+        idleOrbitAllowed={idleOrbitAllowed}
       />
 
       {/* 3A. Z-35 Focus Pointer, Projected 3D Target Ring, S04 Flight Route & GUI v3.0 QA Inspector */}
