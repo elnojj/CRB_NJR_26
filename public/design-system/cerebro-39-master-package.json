@@ -862,9 +862,9 @@
       "rendererLifecycle": "src/components/CosmographCanvas.tsx (setupRenderer, WebGLRenderer singleton per viewport)",
       "sceneGraphAuthority": "src/components/CosmographCanvas.tsx (HQ Sphere 01 at [0,0,0] & CDE Sphere 02 at [38,4,-22])",
       "cameraRigAuthority": "src/components/CosmographCanvas.tsx + src/three/spatialNavigation.tsx (executeAtomicReframe & CameraRig)",
-      "materialRegistryAuthority": "src/components/CosmographCanvas.tsx (getD0Materials + GLB PBR material definitions)",
+      "materialRegistryAuthority": "src/materials/matLiquidGlassShell.ts + src/materials/matCardiacConnector.ts + public/design-system/material-registry.json + CosmographCanvas getD0Materials",
       "layoutAndCollisionAuthority": "src/gui/layoutEngine.ts + src/gui/CollisionManager.ts (computeGuiLayout deterministic slots)",
-      "voiceAndBridgeAuthority": "src/components/VoiceCard.tsx + src/utils/elevenLabsBridge.ts",
+      "voiceAndBridgeAuthority": "src/components/VoiceCard.tsx + src/utils/googleAiStudioVoiceBridge.ts (primary google-ai-studio; elevenLabsBridge.ts legacy only)",
       "actionAndToolAuthority": "src/utils/actionDispatcher.ts + src/gui/runtimeRegistry.ts (70 canonical actions, 27 agent tools)",
       "cssTokenAuthority": "src/styles/cerebro.tokens.css (imported by src/index.css)"
     },
@@ -1186,12 +1186,13 @@
         "sourceFile": "src/components/VoiceCard.tsx",
         "exportName": "VoiceCard",
         "status": "ACTIVE",
-        "singleOwnerDomain": "ElevenLabs live voice session lifecycle, microphone permission, RMS envelope smoothing, and natural-language command bar",
+        "singleOwnerDomain": "Google AI Studio (Cro-cde-google) voice session lifecycle, microphone permission, RMS envelope smoothing, and natural-language command bar",
         "dependencies": [
-          "src/utils/elevenLabsBridge.ts",
-          "src/data/croCdeGoogleAgentManifest.ts"
+          "src/utils/googleAiStudioVoiceBridge.ts",
+          "src/data/croCdeGoogleAgentManifest.ts",
+          "src/utils/elevenLabsBridge.ts (legacy dormant)"
         ],
-        "lifecycleCleanup": "Disconnects ElevenLabs WebSocket/WebRTC session and stops MediaStream tracks on unmount"
+        "lifecycleCleanup": "Stops SpeechRecognition / speechSynthesis and MediaStream tracks on unmount; legacy ElevenLabs disconnect path retained but not primary"
       },
       {
         "id": "MOD_PANELS_OVERLAY",
@@ -1311,7 +1312,7 @@
         "id": "MAT_LIQUID_GLASS_SHELL",
         "gltfMaterialName": "Glass_proposed_normalized",
         "threeClass": "THREE.MeshPhysicalMaterial",
-        "authority": "design_tokens_998287f6.json + regenerate_starter_meshes_90077fad.py",
+        "authority": "src/materials/matLiquidGlassShell.ts + design_tokens_998287f6.json",
         "colorSpace": "SRGBColorSpace (albedo/attenuation) + Linear (roughness/metalness/ior/transmission)",
         "parameters": {
           "color": "#0A1218",
@@ -1336,7 +1337,10 @@
             0.153
           ],
           "attenuationDistance": 3.4,
-          "transparent": true
+          "transparent": true,
+          "sheen": 0,
+          "sheenRoughness": 1,
+          "sheenColor": "#B4DDFF"
         },
         "gltfExtensions": [
           "KHR_materials_transmission",
@@ -1350,13 +1354,18 @@
           "glass-shell.glb",
           "sphere-assembly.glb",
           "media-portal-rim.glb"
-        ]
+        ],
+        "realismLock": {
+          "ior": 1.52,
+          "sheen": 0,
+          "note": "Glass family never inherits gold sheen; IOR locked at optical glass 1.52."
+        }
       },
       {
         "id": "MAT_SILVER_CORE",
         "gltfMaterialName": "Core_proposed",
         "threeClass": "THREE.MeshPhysicalMaterial",
-        "authority": "design_tokens_998287f6.json + regenerate_starter_meshes_90077fad.py",
+        "authority": "src/materials/matLiquidGlassShell.ts (silver family) + design_tokens_998287f6.json",
         "colorSpace": "SRGBColorSpace",
         "parameters": {
           "color": "#BCC9D4",
@@ -1369,13 +1378,19 @@
           ],
           "metalness": 0.94,
           "roughness": 0.28,
-          "clearcoat": 0.2
+          "clearcoat": 0.2,
+          "sheen": 0,
+          "sheenRoughness": 1
         },
         "assignedComponents": [
           "C05_SPHERE_STAGE",
           "metal-core.glb",
           "sphere-assembly.glb"
-        ]
+        ],
+        "realismLock": {
+          "sheen": 0,
+          "note": "Silver/core family: ice specular only \u2014 no gold sheen."
+        }
       },
       {
         "id": "MAT_BRONZE_GOLD_RAILS",
@@ -1394,7 +1409,10 @@
             1.0
           ],
           "metalness": 0.85,
-          "roughness": 0.18
+          "roughness": 0.18,
+          "sheen": 0.35,
+          "sheenRoughness": 0.25,
+          "sheenColor": "#FFF4D0"
         },
         "assignedComponents": [
           "C05_SPHERE_STAGE",
@@ -1402,7 +1420,8 @@
           "orbital-cage.glb",
           "gold-node.glb",
           "portrait-medallion.glb"
-        ]
+        ],
+        "note": "GLB rail/node material; live gold sheen recipe owned by MAT_GOLD_SHEEN / MAT_D0_GOLD_RIBBED."
       },
       {
         "id": "MAT_D0_GOLD_RIBBED",
@@ -1419,12 +1438,14 @@
           "reflectivity": 1.0,
           "sheen": 0.35,
           "sheenColor": "#FFF4D0",
-          "bumpScale": 0.035
+          "bumpScale": 0.035,
+          "sheenRoughness": 0.25
         },
         "assignedComponents": [
           "HQ_OrbitalRings",
           "CDE_MeridianRings"
-        ]
+        ],
+        "sheenFamily": "MAT_GOLD_SHEEN"
       },
       {
         "id": "SHADER_FRESNEL_CAUSTIC_RIM",
@@ -1452,6 +1473,75 @@
           "C05_SPHERE_STAGE",
           "CDE_SphereShell"
         ]
+      },
+      {
+        "id": "MAT_GOLD_SHEEN",
+        "gltfMaterialName": null,
+        "threeClass": "shared sheen recipe (applied onto MeshPhysicalMaterial gold family)",
+        "authority": "src/materials/matLiquidGlassShell.ts (MAT_GOLD_SHEEN export)",
+        "colorSpace": "SRGBColorSpace (sheenColor)",
+        "parameters": {
+          "sheen": 0.35,
+          "sheenRoughness": 0.25,
+          "sheenColor": "#FFF4D0"
+        },
+        "assignedComponents": [
+          "HQ_OrbitalRings",
+          "CDE_MeridianRings",
+          "MAT_D0_GOLD_RIBBED",
+          "MAT_BRONZE_GOLD_RAILS"
+        ],
+        "realismLock": {
+          "note": "Single gold-family sheen recipe. Never apply to MAT_LIQUID_GLASS_SHELL or MAT_SILVER_CORE."
+        }
+      },
+      {
+        "id": "MAT_CARDIAC_CONNECTOR",
+        "gltfMaterialName": null,
+        "threeClass": "THREE.ShaderMaterial (additive transparent)",
+        "authority": "src/materials/matCardiacConnector.ts",
+        "colorSpace": "Linear (shader uniforms)",
+        "parameters": {
+          "uColor": "#65ACFF",
+          "uPulseColor": "#FFF1D4",
+          "uSpeed": 0.38,
+          "uDimFactor": 1.0,
+          "blending": "THREE.AdditiveBlending",
+          "depthWrite": false,
+          "transparent": true
+        },
+        "uniformSchema": {
+          "uTime": {
+            "type": "float",
+            "clockOwner": "CosmographCanvas.AnimationLoop"
+          },
+          "uDimFactor": {
+            "type": "float",
+            "default": 1.0
+          },
+          "uSpeed": {
+            "type": "float",
+            "default": 0.38
+          },
+          "uAudioRms": {
+            "type": "float",
+            "default": 0.0
+          },
+          "uColor": {
+            "type": "THREE.Color",
+            "default": "#65ACFF"
+          },
+          "uPulseColor": {
+            "type": "THREE.Color",
+            "default": "#FFF1D4"
+          }
+        },
+        "assignedComponents": [
+          "HQ_CDE_CardiacBridge",
+          "inter_project_tubes",
+          "orbital_domain_spokes"
+        ],
+        "note": "Double-peaked cardiac pulse along CatmullRom / Bezier tubes. Not a glass recipe."
       }
     ]
   },

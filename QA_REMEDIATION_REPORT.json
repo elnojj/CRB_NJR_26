@@ -34,10 +34,11 @@
       "id": "r07-tool-parity-surface",
       "status": "PASS",
       "detail": {
-        "message": "Frontend accepts place/name_or_code/back aliases and exposes truthful capability flags. Live ElevenLabs agent/KB verified against client default.",
-        "agentId": "agent_7201m53ed3kred6ba17rvzmyv9q4",
-        "versionId": "agtvrsn_1901m6cwnngxfq8a5ddazqkba643",
-        "knowledgeBaseDocumentCount": 21
+        "message": "Frontend accepts place/name_or_code/back aliases and exposes truthful capability flags. Google AI Studio Cro-cde-google is primary voice authority (ElevenLabs dormant).",
+        "provider": "google-ai-studio",
+        "agentName": "Cro-cde-google",
+        "toolCount": 27,
+        "legacyElevenLabsAgentId": "agent_7201m53ed3kred6ba17rvzmyv9q4"
       }
     },
     {
@@ -57,7 +58,7 @@
         "rights": "Owner-supplied About Us / founder portrait plate (AFRIMA Summit 2022); catalogued in driveMediaCatalog as about-tarek-portrait",
         "ratio": "portrait plate for medallion/aperture use",
         "poster": "/media/about-tarek-afrima.jpg",
-        "verifiedAt": "2026-11-02T06:56:00Z"
+        "verifiedAt": "2026-11-02T13:35:00Z"
       }
     },
     {
@@ -83,11 +84,11 @@
         "presentOnOrigin": false,
         "presentOnGithub": false,
         "currentAuthority": {
-          "sourceLock": "1f78a1295d4dd36a11320995c1e14bf17788ac25",
-          "mainSha": "ed9aa0c6b17944c632b93ea05b0aba9c690fd14d",
+          "sourceLock": "4c7a2fff03d81c20645ae36bac54d6e7d0e11681",
+          "mainSha": "4c7a2fff03d81c20645ae36bac54d6e7d0e11681",
           "baselineCheckpoint": "1.25.0"
         },
-        "verifiedAt": "2026-11-02T06:56:00Z"
+        "verifiedAt": "2026-11-02T13:35:00Z"
       }
     }
   ],
@@ -95,9 +96,9 @@
   "dispositionAuthority": "public/design-system/gate-disposition.json",
   "closedGates": [
     {
-      "id": "r07_elevenlabs_agent_kb_sync",
-      "disposition": "verified_live_against_client",
-      "summary": "Live ElevenLabs agent id/version/KB match the deployed client DEFAULT_INTERNAL_AGENT_ID."
+      "id": "r07_google_ai_studio_voice_sync",
+      "disposition": "verified_against_client_manifest",
+      "summary": "Primary voice is Google AI Studio Cro-cde-google with 27 Cerebro tools; ElevenLabs retained as legacy only."
     },
     {
       "id": "tarek_portrait_aperture",
@@ -113,6 +114,11 @@
       "id": "legacy_checkpoints_8b70e08_2d68907",
       "disposition": "superseded_absent_shas",
       "summary": "Requested historical SHAs are absent from remotes; current main + sourceLock are the authority."
+    },
+    {
+      "id": "design_sot_voice_materials_media_sync",
+      "disposition": "registries_aligned_to_live_code",
+      "summary": "Design SoT registries synced for voice provider, gold/cardiac materials, and media provenance roles."
     }
   ]
 }

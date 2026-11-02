@@ -194,19 +194,33 @@
       "clearcoatRoughness": 0.06,
       "attenuationColor": "#101D27",
       "attenuationColorLinear": [0.063, 0.114, 0.153],
-      "attenuationDistance": 3.4
+      "attenuationDistance": 3.4,
+      "sheen": 0,
+      "sheenRoughness": 1,
+      "sheenColor": "#B4DDFF"
+    },
+    "goldSheen": {
+      "id": "MAT_GOLD_SHEEN",
+      "sheen": 0.35,
+      "sheenRoughness": 0.25,
+      "sheenColor": "#FFF4D0",
+      "note": "Gold family only — never apply to liquidGlass or silver core"
     },
     "bronze": {
       "color": "#8C6A45",
       "baseColorFactor": [0.549, 0.416, 0.271, 1.0],
       "roughness": 0.18,
-      "metalness": 0.85
+      "metalness": 0.85,
+      "sheen": 0.35,
+      "sheenRoughness": 0.25,
+      "sheenColor": "#FFF4D0"
     },
     "core_proposed": {
       "color": "#BCC9D4",
       "baseColorFactor": [0.72, 0.78, 0.84, 1.0],
       "metalness": 0.94,
-      "roughness": 0.28
+      "roughness": 0.28,
+      "sheen": 0
     },
     "geometry_ratios": {
       "hero_shell_radius": 1.0,

@@ -13,10 +13,28 @@
       "mimeType": "model/gltf-binary",
       "bytes": 647616,
       "sha256": "007d62bcd2c372c67d0acfa75a3faf383af09623bc84b603b0d3692a8663f6f9",
-      "meshes": ["shell", "core", "equator", "meridian_a", "meridian_b"],
-      "boundingDimensions": { "shellRadius": 1.0, "coreRadius": 0.82, "ringRadius": 1.015, "ringTube": 0.008 },
-      "materialIds": ["MAT_LIQUID_GLASS_SHELL", "MAT_SILVER_CORE", "MAT_BRONZE_GOLD_RAILS"],
-      "associatedComponentIds": ["C05", "C12"],
+      "meshes": [
+        "shell",
+        "core",
+        "equator",
+        "meridian_a",
+        "meridian_b"
+      ],
+      "boundingDimensions": {
+        "shellRadius": 1.0,
+        "coreRadius": 0.82,
+        "ringRadius": 1.015,
+        "ringTube": 0.008
+      },
+      "materialIds": [
+        "MAT_LIQUID_GLASS_SHELL",
+        "MAT_SILVER_CORE",
+        "MAT_BRONZE_GOLD_RAILS"
+      ],
+      "associatedComponentIds": [
+        "C05",
+        "C12"
+      ],
       "verificationStatus": "VERIFIED"
     },
     {
@@ -28,10 +46,20 @@
       "mimeType": "model/gltf-binary",
       "bytes": 119636,
       "sha256": "e94213a999469119196977a9c9009522e14dd52313fd2417dbc442d75900e546",
-      "meshes": ["shell"],
-      "boundingDimensions": { "radius": 1.0, "nu": 64, "nv": 32 },
-      "materialIds": ["MAT_LIQUID_GLASS_SHELL"],
-      "associatedComponentIds": ["C05"],
+      "meshes": [
+        "shell"
+      ],
+      "boundingDimensions": {
+        "radius": 1.0,
+        "nu": 64,
+        "nv": 32
+      },
+      "materialIds": [
+        "MAT_LIQUID_GLASS_SHELL"
+      ],
+      "associatedComponentIds": [
+        "C05"
+      ],
       "verificationStatus": "VERIFIED"
     },
     {
@@ -43,10 +71,20 @@
       "mimeType": "model/gltf-binary",
       "bytes": 119724,
       "sha256": "518cbaedb73e9f45835c8ad5d6cb2b94d6cf540656b3a705d60f79d8cfb9e38a",
-      "meshes": ["core"],
-      "boundingDimensions": { "radius": 0.82, "nu": 64, "nv": 32 },
-      "materialIds": ["MAT_SILVER_CORE"],
-      "associatedComponentIds": ["C05"],
+      "meshes": [
+        "core"
+      ],
+      "boundingDimensions": {
+        "radius": 0.82,
+        "nu": 64,
+        "nv": 32
+      },
+      "materialIds": [
+        "MAT_SILVER_CORE"
+      ],
+      "associatedComponentIds": [
+        "C05"
+      ],
       "verificationStatus": "VERIFIED"
     },
     {
@@ -58,10 +96,23 @@
       "mimeType": "model/gltf-binary",
       "bytes": 410412,
       "sha256": "33ce469f0159fce6532b3efc90a913df12ae21d7108915929db737106a9fcc95",
-      "meshes": ["equator", "meridian_a", "meridian_b"],
-      "boundingDimensions": { "ringRadius": 1.015, "tubeRadius": 0.008, "n": 192, "m": 12 },
-      "materialIds": ["MAT_BRONZE_GOLD_RAILS"],
-      "associatedComponentIds": ["C05"],
+      "meshes": [
+        "equator",
+        "meridian_a",
+        "meridian_b"
+      ],
+      "boundingDimensions": {
+        "ringRadius": 1.015,
+        "tubeRadius": 0.008,
+        "n": 192,
+        "m": 12
+      },
+      "materialIds": [
+        "MAT_BRONZE_GOLD_RAILS"
+      ],
+      "associatedComponentIds": [
+        "C05"
+      ],
       "verificationStatus": "VERIFIED"
     },
     {
@@ -73,10 +124,20 @@
       "mimeType": "model/gltf-binary",
       "bytes": 32176,
       "sha256": "9b30a9ad5e8baefd2ea9b56325a5950765ab50e4cd60986a6e134482eee9b586",
-      "meshes": ["node"],
-      "boundingDimensions": { "radius": 0.055, "nu": 32, "nv": 16 },
-      "materialIds": ["MAT_BRONZE_GOLD_RAILS"],
-      "associatedComponentIds": ["C11"],
+      "meshes": [
+        "node"
+      ],
+      "boundingDimensions": {
+        "radius": 0.055,
+        "nu": 32,
+        "nv": 16
+      },
+      "materialIds": [
+        "MAT_BRONZE_GOLD_RAILS"
+      ],
+      "associatedComponentIds": [
+        "C11"
+      ],
       "verificationStatus": "VERIFIED"
     },
     {
@@ -88,10 +149,21 @@
       "mimeType": "model/gltf-binary",
       "bytes": 121208,
       "sha256": "cd505880a83ffdf95f3db47d9dc7e866da60ac4c5af55de17878aca30d194ddd",
-      "meshes": ["rim"],
-      "boundingDimensions": { "ringRadius": 0.85, "tubeRadius": 0.025, "n": 128, "m": 16 },
-      "materialIds": ["MAT_LIQUID_GLASS_SHELL"],
-      "associatedComponentIds": ["C10"],
+      "meshes": [
+        "rim"
+      ],
+      "boundingDimensions": {
+        "ringRadius": 0.85,
+        "tubeRadius": 0.025,
+        "n": 128,
+        "m": 16
+      },
+      "materialIds": [
+        "MAT_LIQUID_GLASS_SHELL"
+      ],
+      "associatedComponentIds": [
+        "C10"
+      ],
       "verificationStatus": "VERIFIED"
     },
     {
@@ -103,10 +175,22 @@
       "mimeType": "model/gltf-binary",
       "bytes": 92460,
       "sha256": "b33fec52e6f2f5cce41082765d5f0bca961d7b4bbeb8d7dfa6cac174dd44e20a",
-      "meshes": ["rim"],
-      "boundingDimensions": { "ringRadius": 0.6, "tubeRadius": 0.012, "n": 128, "m": 12 },
-      "materialIds": ["MAT_BRONZE_GOLD_RAILS"],
-      "associatedComponentIds": ["C10", "C11"],
+      "meshes": [
+        "rim"
+      ],
+      "boundingDimensions": {
+        "ringRadius": 0.6,
+        "tubeRadius": 0.012,
+        "n": 128,
+        "m": 12
+      },
+      "materialIds": [
+        "MAT_BRONZE_GOLD_RAILS"
+      ],
+      "associatedComponentIds": [
+        "C10",
+        "C11"
+      ],
       "verificationStatus": "VERIFIED"
     }
   ],
@@ -116,10 +200,18 @@
       "sourcePath": "/public/assets/aistudio/idle_9c4b74dd.svg",
       "runtimePath": "/assets/aistudio/idle_9c4b74dd.svg",
       "mimeType": "image/svg+xml",
-      "dimensions": [390, 844],
+      "dimensions": [
+        390,
+        844
+      ],
       "bytes": 1716,
       "sha256": "9c4b74dd946c395b2977dc083ed1a607ef6474fca0fbf328136e7d837c94dda2",
-      "associatedComponentIds": ["C01", "C03", "C05", "C06"],
+      "associatedComponentIds": [
+        "C01",
+        "C03",
+        "C05",
+        "C06"
+      ],
       "verificationStatus": "VERIFIED"
     },
     {
@@ -127,10 +219,19 @@
       "sourcePath": "/public/assets/aistudio/listening_67d8197e.svg",
       "runtimePath": "/assets/aistudio/listening_67d8197e.svg",
       "mimeType": "image/svg+xml",
-      "dimensions": [390, 844],
+      "dimensions": [
+        390,
+        844
+      ],
       "bytes": 1718,
       "sha256": "67d8197e9166ca10e9e0cede3a5df3dbe6fefac7cd40a9da190ff26aeb47ac91",
-      "associatedComponentIds": ["C01", "C03", "C05", "C06", "C07"],
+      "associatedComponentIds": [
+        "C01",
+        "C03",
+        "C05",
+        "C06",
+        "C07"
+      ],
       "verificationStatus": "VERIFIED"
     },
     {
@@ -138,10 +239,17 @@
       "sourcePath": "/public/assets/aistudio/selected_fa7b28ff.svg",
       "runtimePath": "/assets/aistudio/selected_fa7b28ff.svg",
       "mimeType": "image/svg+xml",
-      "dimensions": [390, 844],
+      "dimensions": [
+        390,
+        844
+      ],
       "bytes": 1948,
       "sha256": "fa7b28ff1d636bbed6b9fef9cdb6ff82f3820b81ded1b6a997e859e63f44a37b",
-      "associatedComponentIds": ["C05", "C06", "C08"],
+      "associatedComponentIds": [
+        "C05",
+        "C06",
+        "C08"
+      ],
       "verificationStatus": "VERIFIED"
     },
     {
@@ -149,10 +257,17 @@
       "sourcePath": "/public/assets/aistudio/detail_4ee68824.svg",
       "runtimePath": "/assets/aistudio/detail_4ee68824.svg",
       "mimeType": "image/svg+xml",
-      "dimensions": [390, 844],
+      "dimensions": [
+        390,
+        844
+      ],
       "bytes": 1965,
       "sha256": "4ee68824b48766ab7bbf49eb0816d7a6886748f74b37ed8f2736852a4669cac7",
-      "associatedComponentIds": ["C05", "C06", "C09"],
+      "associatedComponentIds": [
+        "C05",
+        "C06",
+        "C09"
+      ],
       "verificationStatus": "VERIFIED"
     },
     {
@@ -160,39 +275,221 @@
       "sourcePath": "/public/assets/aistudio/media_3a2b184c.svg",
       "runtimePath": "/assets/aistudio/media_3a2b184c.svg",
       "mimeType": "image/svg+xml",
-      "dimensions": [390, 844],
+      "dimensions": [
+        390,
+        844
+      ],
       "bytes": 1889,
       "sha256": "3a2b184c98afcda59ad4f079bcd31efc573387b3a905369c9c3eba7b630f2a97",
-      "associatedComponentIds": ["C05", "C06", "C10"],
+      "associatedComponentIds": [
+        "C05",
+        "C06",
+        "C10"
+      ],
       "verificationStatus": "VERIFIED"
     }
   ],
   "editable_vector_components_svg": [
-    { "assetId": "ASSET_SVG_MICROPHONE", "runtimePath": "/04_Vector_Assets/microphone.svg", "bytes": 291, "sha256": "4146f2bd112ae1fc73c2b5354a47c46953a69bf66a9cc5f1f5b2ec8b6722e249", "componentId": "C06", "verificationStatus": "VERIFIED" },
-    { "assetId": "ASSET_SVG_CHEVRON", "runtimePath": "/04_Vector_Assets/chevron.svg", "bytes": 208, "sha256": "2976df488498f17dc5d23dfa6e921f258e5438cfa693463dd965f93f5d419c5c", "componentId": "C08", "verificationStatus": "VERIFIED" },
-    { "assetId": "ASSET_SVG_CLOSE", "runtimePath": "/04_Vector_Assets/close.svg", "bytes": 192, "sha256": "f5fbf76730ce64ad3a7b5abd8ddfb25243746e3362bb57044100e7fc779f47bf", "componentId": "C09", "verificationStatus": "VERIFIED" },
-    { "assetId": "ASSET_SVG_BACK", "runtimePath": "/04_Vector_Assets/back.svg", "bytes": 211, "sha256": "ada8ada3469f6b063c422ec426c00a0afc47a94e75550a4de8b31cbb7a59d3ca", "componentId": "C09", "verificationStatus": "VERIFIED" },
-    { "assetId": "ASSET_SVG_VOICE_PILL", "runtimePath": "/04_Vector_Assets/voice-pill.svg", "bytes": 945, "sha256": "a2c94e76e09117981042ece5c3daddade25421d465b0a71304bd4845758de275", "componentId": "C06", "verificationStatus": "VERIFIED" },
-    { "assetId": "ASSET_SVG_LISTENING_RING", "runtimePath": "/04_Vector_Assets/listening-ring.svg", "bytes": 349, "sha256": "5a1f984d06f762ceb6ada931944b692f035a70d0ce9044f55097fd9b20582038", "componentId": "C07", "verificationStatus": "VERIFIED" },
-    { "assetId": "ASSET_SVG_TARGET", "runtimePath": "/04_Vector_Assets/target.svg", "bytes": 239, "sha256": "909f75493691897658b85d4cbfd5120ee175095376e4ba5b966a2052d2bff081", "componentId": "C11", "verificationStatus": "VERIFIED" },
-    { "assetId": "ASSET_SVG_PANEL", "runtimePath": "/04_Vector_Assets/panel.svg", "bytes": 635, "sha256": "95dbf31406dbc29151b9796e182d4e8cc7843469d17f5bd70436caf12a38b6a9", "componentId": "C08", "verificationStatus": "VERIFIED" },
-    { "assetId": "ASSET_SVG_DETAIL_ROW", "runtimePath": "/04_Vector_Assets/detail-row.svg", "bytes": 384, "sha256": "1b50fc699a26a1f356ac245fceae4ff641bd8b16775259dbfff532964d83ba61", "componentId": "C09", "verificationStatus": "VERIFIED" },
-    { "assetId": "ASSET_SVG_ORBITAL_LINE", "runtimePath": "/04_Vector_Assets/orbital-line.svg", "bytes": 267, "sha256": "6d56817c486289fa3b205dbaca9bd563d72a6b114c3530fbfc6d20f6e0ff749b", "componentId": "C05", "verificationStatus": "VERIFIED" },
-    { "assetId": "ASSET_SVG_PORTAL_RIM", "runtimePath": "/04_Vector_Assets/portal-rim.svg", "bytes": 393, "sha256": "36ea202ce97bd4dcba5208d792fb372708bc65e1735ef419984260b891aa63ed", "componentId": "C10", "verificationStatus": "VERIFIED" },
-    { "assetId": "ASSET_SVG_FOCUS_LABEL", "runtimePath": "/04_Vector_Assets/focus-label.svg", "bytes": 377, "sha256": "2a4052d1956e5992a9ef62a31685f97e5eac10914bcc4b6b1775649d324259e3", "componentId": "C11", "verificationStatus": "VERIFIED" }
+    {
+      "assetId": "ASSET_SVG_MICROPHONE",
+      "runtimePath": "/04_Vector_Assets/microphone.svg",
+      "bytes": 291,
+      "sha256": "4146f2bd112ae1fc73c2b5354a47c46953a69bf66a9cc5f1f5b2ec8b6722e249",
+      "componentId": "C06",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "ASSET_SVG_CHEVRON",
+      "runtimePath": "/04_Vector_Assets/chevron.svg",
+      "bytes": 208,
+      "sha256": "2976df488498f17dc5d23dfa6e921f258e5438cfa693463dd965f93f5d419c5c",
+      "componentId": "C08",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "ASSET_SVG_CLOSE",
+      "runtimePath": "/04_Vector_Assets/close.svg",
+      "bytes": 192,
+      "sha256": "f5fbf76730ce64ad3a7b5abd8ddfb25243746e3362bb57044100e7fc779f47bf",
+      "componentId": "C09",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "ASSET_SVG_BACK",
+      "runtimePath": "/04_Vector_Assets/back.svg",
+      "bytes": 211,
+      "sha256": "ada8ada3469f6b063c422ec426c00a0afc47a94e75550a4de8b31cbb7a59d3ca",
+      "componentId": "C09",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "ASSET_SVG_VOICE_PILL",
+      "runtimePath": "/04_Vector_Assets/voice-pill.svg",
+      "bytes": 945,
+      "sha256": "a2c94e76e09117981042ece5c3daddade25421d465b0a71304bd4845758de275",
+      "componentId": "C06",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "ASSET_SVG_LISTENING_RING",
+      "runtimePath": "/04_Vector_Assets/listening-ring.svg",
+      "bytes": 349,
+      "sha256": "5a1f984d06f762ceb6ada931944b692f035a70d0ce9044f55097fd9b20582038",
+      "componentId": "C07",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "ASSET_SVG_TARGET",
+      "runtimePath": "/04_Vector_Assets/target.svg",
+      "bytes": 239,
+      "sha256": "909f75493691897658b85d4cbfd5120ee175095376e4ba5b966a2052d2bff081",
+      "componentId": "C11",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "ASSET_SVG_PANEL",
+      "runtimePath": "/04_Vector_Assets/panel.svg",
+      "bytes": 635,
+      "sha256": "95dbf31406dbc29151b9796e182d4e8cc7843469d17f5bd70436caf12a38b6a9",
+      "componentId": "C08",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "ASSET_SVG_DETAIL_ROW",
+      "runtimePath": "/04_Vector_Assets/detail-row.svg",
+      "bytes": 384,
+      "sha256": "1b50fc699a26a1f356ac245fceae4ff641bd8b16775259dbfff532964d83ba61",
+      "componentId": "C09",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "ASSET_SVG_ORBITAL_LINE",
+      "runtimePath": "/04_Vector_Assets/orbital-line.svg",
+      "bytes": 267,
+      "sha256": "6d56817c486289fa3b205dbaca9bd563d72a6b114c3530fbfc6d20f6e0ff749b",
+      "componentId": "C05",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "ASSET_SVG_PORTAL_RIM",
+      "runtimePath": "/04_Vector_Assets/portal-rim.svg",
+      "bytes": 393,
+      "sha256": "36ea202ce97bd4dcba5208d792fb372708bc65e1735ef419984260b891aa63ed",
+      "componentId": "C10",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "ASSET_SVG_FOCUS_LABEL",
+      "runtimePath": "/04_Vector_Assets/focus-label.svg",
+      "bytes": 377,
+      "sha256": "2a4052d1956e5992a9ef62a31685f97e5eac10914bcc4b6b1775649d324259e3",
+      "componentId": "C11",
+      "verificationStatus": "VERIFIED"
+    }
   ],
   "design_system_source_documents": [
-    { "assetId": "DOC_SEHLY_MASTER_PDF", "runtimePath": "/assets/aistudio/Sehly_Cerebro_Master_Guidelines_11f9ec1e.pdf", "bytes": 1372400, "sha256": "11f9ec1ea0840102a13be1b30df510c1def8ad280f019c76e6701ab3242cfaff", "verificationStatus": "VERIFIED" },
-    { "assetId": "DOC_SEHLY_VISUAL_GUIDE_HTML", "runtimePath": "/assets/aistudio/Sehly_Visual_Guide_be1410a7.html", "bytes": 11891, "sha256": "be1410a7adbd5cedfb5cbd76d61d3d8748db2c803f7c4a2dc4b2a263b50a78d2", "verificationStatus": "VERIFIED" },
-    { "assetId": "DOC_DESIGN_TOKENS_JSON", "runtimePath": "/assets/aistudio/design_tokens_998287f6.json", "bytes": 3150, "sha256": "998287f66f320bcf09eaf6dc0f8b92c716b8d35a891440aa9316a96ca477a60c", "verificationStatus": "VERIFIED" },
-    { "assetId": "DOC_TOKENS_CSS", "runtimePath": "/assets/aistudio/tokens_c9fb9fb3.css", "bytes": 934, "sha256": "c9fb9fb3c1b557fc31c731cdfc1e924526aaae6973fb54b194db24274b043251", "verificationStatus": "VERIFIED" },
-    { "assetId": "DOC_MOTION_CONTRACT_JSON", "runtimePath": "/assets/aistudio/motion_contract_57f3127a.json", "bytes": 2258, "sha256": "57f3127a8127f29c8d337d2fad53ebe9a88f179d9c9f615a318199992dbc0a8e", "verificationStatus": "VERIFIED" },
-    { "assetId": "DOC_MESH_GENERATOR_PY", "runtimePath": "/assets/aistudio/regenerate_starter_meshes_90077fad.py", "bytes": 4236, "sha256": "90077fadf8d10087d1eb1d28b5f79019b67a7fdd7f639a1c42f1fc203b7d7131", "verificationStatus": "VERIFIED" },
-    { "assetId": "DOC_D0_V124_PDF", "runtimePath": "/assets/aistudio/Cerebro-Nojara_D0_v1.24-_code__materials__libraries__wireframes__tokens__PROPOSE_9c182eb9.pdf", "bytes": 174607, "sha256": "9c182eb9f40dafd3edb8e8b9b3074b0f0f7bd23cadff69d69a88f9470ed45299", "verificationStatus": "VERIFIED" }
+    {
+      "assetId": "DOC_SEHLY_MASTER_PDF",
+      "runtimePath": "/assets/aistudio/Sehly_Cerebro_Master_Guidelines_11f9ec1e.pdf",
+      "bytes": 1372400,
+      "sha256": "11f9ec1ea0840102a13be1b30df510c1def8ad280f019c76e6701ab3242cfaff",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "DOC_SEHLY_VISUAL_GUIDE_HTML",
+      "runtimePath": "/assets/aistudio/Sehly_Visual_Guide_be1410a7.html",
+      "bytes": 11891,
+      "sha256": "be1410a7adbd5cedfb5cbd76d61d3d8748db2c803f7c4a2dc4b2a263b50a78d2",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "DOC_DESIGN_TOKENS_JSON",
+      "runtimePath": "/assets/aistudio/design_tokens_998287f6.json",
+      "bytes": 3150,
+      "sha256": "998287f66f320bcf09eaf6dc0f8b92c716b8d35a891440aa9316a96ca477a60c",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "DOC_TOKENS_CSS",
+      "runtimePath": "/assets/aistudio/tokens_c9fb9fb3.css",
+      "bytes": 934,
+      "sha256": "c9fb9fb3c1b557fc31c731cdfc1e924526aaae6973fb54b194db24274b043251",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "DOC_MOTION_CONTRACT_JSON",
+      "runtimePath": "/assets/aistudio/motion_contract_57f3127a.json",
+      "bytes": 2258,
+      "sha256": "57f3127a8127f29c8d337d2fad53ebe9a88f179d9c9f615a318199992dbc0a8e",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "DOC_MESH_GENERATOR_PY",
+      "runtimePath": "/assets/aistudio/regenerate_starter_meshes_90077fad.py",
+      "bytes": 4236,
+      "sha256": "90077fadf8d10087d1eb1d28b5f79019b67a7fdd7f639a1c42f1fc203b7d7131",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "assetId": "DOC_D0_V124_PDF",
+      "runtimePath": "/assets/aistudio/Cerebro-Nojara_D0_v1.24-_code__materials__libraries__wireframes__tokens__PROPOSE_9c182eb9.pdf",
+      "bytes": 174607,
+      "sha256": "9c182eb9f40dafd3edb8e8b9b3074b0f0f7bd23cadff69d69a88f9470ed45299",
+      "verificationStatus": "VERIFIED"
+    }
   ],
   "missing_external_production_sources": [
-    { "item": "Official NOJARA vector brand mark SVG/AI", "status": "AWAITING_SOURCE_ASSET", "policy": "Do not fabricate; reserve exact top mark slot with 0.5x clearspace." },
-    { "item": "Licensed Jaapokki Subtract font file (.woff2)", "status": "AWAITING_SOURCE_ASSET", "policy": "Use documented @font-face local('Jaapokki Subtract') with Sora/Inter fallback." },
-    { "item": "Original 180s film camera keyframe file & raw VO/music stems", "status": "AWAITING_SOURCE_ASSET", "policy": "Keep reconstruction status honest as 'proposed-film-derived'." }
-  ]
+    {
+      "item": "Official NOJARA vector brand mark SVG/AI",
+      "status": "AWAITING_SOURCE_ASSET",
+      "policy": "Do not fabricate; reserve exact top mark slot with 0.5x clearspace."
+    },
+    {
+      "item": "Licensed Jaapokki Subtract font file (.woff2)",
+      "status": "AWAITING_SOURCE_ASSET",
+      "policy": "Use documented @font-face local('Jaapokki Subtract') with Sora/Inter fallback."
+    },
+    {
+      "item": "Original 180s film camera keyframe file & raw VO/music stems",
+      "status": "AWAITING_SOURCE_ASSET",
+      "policy": "Keep reconstruction status honest as 'proposed-film-derived'."
+    },
+    {
+      "item": "Confirmed portraits for Shweekar Ahmed and Khaled El Shaalan",
+      "status": "AWAITING_SOURCE_ASSET",
+      "policy": "Keep image fields null; do not invent faces."
+    },
+    {
+      "item": "Confirmed 17 project codes + quantitative progress % + per-project RACI sign-offs",
+      "status": "PARTIAL_SAMPLE",
+      "policy": "Keep SAMPLE labels on unverified cells; only 4 register projects have grounded rows."
+    }
+  ],
+  "mediaRoles": {
+    "authority": "src/data/driveMediaCatalog.ts + src/data/publicBrandMedia.ts",
+    "playbackPrecedence": [
+      "distinct localFallback",
+      "public Wix URL (PUBLIC_BRAND_MEDIA)",
+      "Drive stream (/api/drive/stream/:id)",
+      "shared showreel/ice plate last (never as project master)"
+    ],
+    "roles": {
+      "sphere-texture": "HQ/CDE ambient VideoTexture shells \u2014 public brand studio films preferred",
+      "showreel": "Project-attributed showreel masters (must be distinct footage)",
+      "project-still": "Still plate for project nodes",
+      "about-portrait": "People aperture / medallion portraits",
+      "about-gallery": "About Us gallery plates",
+      "about-bio": "Bio text / PDF companions (when attached)"
+    },
+    "ambientAuthority": {
+      "films": [
+        "PUBLIC_BRAND_MEDIA.showreel2023",
+        "PUBLIC_BRAND_MEDIA.laligaFilm",
+        "PUBLIC_BRAND_MEDIA.elBatron"
+      ],
+      "localSoftPoster": "/media/riyadh-season-launch-still.jpg",
+      "sharedFallbackOnly": "/media/sphere-showreel-fallback.mp4"
+    },
+    "policy": "Do not borrow ambient plates into PROJECT_MEDIA_SRC; project footage must be attributable."
+  }
 }

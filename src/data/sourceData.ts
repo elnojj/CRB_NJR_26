@@ -141,9 +141,10 @@ export const MISSING_ITEMS: MissingItem[] = [
   },
   {
     id: 'M02',
-    item: '09 Media (HOTSPOT_26_MEDIA 1mNIsnqFkqoD_kNC6VBLEwgvXVZvOT2iq video showreels & stills)',
-    referencedIn: 'Master Instruction v2 ("09 Media: the only media allowed") & 01 KB Handoff §3',
-    currentFallbackInPhase0: 'Used the 2 attachedrenders (06_SEVEN_Tabuk_concept_render_desktop & mobile) and labelled unattached video showreels as SAMPLE.',
+    item: '09 Media — remaining Hotspot masters without distinct local/public playback URLs (project-attributed showreels still partial)',
+    referencedIn: 'Master Instruction v2 ("09 Media: the only media allowed") & 01 KB Handoff §3 & driveMediaCatalog',
+    currentFallbackInPhase0:
+      'Ambient HQ/CDE shells use PUBLIC_BRAND_MEDIA Wix studio films + soft poster /media/riyadh-season-launch-still.jpg. Drive catalog + resolveAssetPlaybackUrl wired (local → Wix → Drive → shared fallback last). Project nodes refuse borrowed ambient plates; unattributed project masters remain SAMPLE / missing-asset.',
   },
   {
     id: 'M03',
@@ -174,6 +175,13 @@ export const MISSING_ITEMS: MissingItem[] = [
     item: 'External Gmail OAuth / SMTP credentials & Cursor Cloud Webhook endpoint',
     referencedIn: 'Workspace Integration & Development Tracker',
     currentFallbackInPhase0: 'Meeting notes save locally to disk (.cerebro-data/store.json) with honest status "Draft ready — email not connected". Tasks, notes, and messages persist locally without fabricating external Gmail or Cursor receipts.',
+  },
+  {
+    id: 'M08',
+    item: 'Confirmed portraits for Shweekar Ahmed and Khaled El Shaalan',
+    referencedIn: 'docs/intro/README.md & People Station / About Us aperture slots',
+    currentFallbackInPhase0:
+      'Image fields remain null. Tarek founder plate is owner-supplied (/media/about-tarek-afrima.jpg). No invented faces substituted.',
   },
 ];
 
@@ -1874,7 +1882,7 @@ export const BUILD_TRACKER_TIERS: BuildTrackerTier[] = [
     title: 'Persistent Conversation, Voice Bridge, Media Player & Grounded Tour',
     status: 'VERIFIED',
     items: [
-      { code: 'B07', name: 'Persistent ElevenLabs Voice Session Across Navigation & Panel Changes', status: 'VERIFIED', evidence: 'elevenLabsBridge.ts + VoiceCard.tsx' },
+      { code: 'B07', name: 'Persistent Google AI Studio Voice Session Across Navigation & Panel Changes', status: 'VERIFIED', evidence: 'googleAiStudioVoiceBridge.ts + croCdeGoogleAgentManifest.ts + VoiceCard.tsx (elevenLabsBridge.ts legacy)' },
       { code: 'B08', name: 'Durable Disk Persistence (.cerebro-data/store.json) + Binary File Uploads', status: 'VERIFIED', evidence: 'server.ts' },
       { code: 'B09', name: 'Grounded 6-Stop Tour Waiting for Camera Settle & Visible DOM Bounds', status: 'VERIFIED', evidence: 'App.tsx' },
     ],

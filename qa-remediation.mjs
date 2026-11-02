@@ -13,7 +13,12 @@ import {
   PROPOSED_FIFTH_SPHERE,
   SPHERE_NETWORK,
 } from './src/three/sphereNetwork.ts';
-import { DEFAULT_INTERNAL_AGENT_ID } from './src/data/croCdeGoogleAgentManifest.ts';
+import {
+  CEREBRO_VOICE_PROVIDER,
+  CRO_CDE_GOOGLE_AGENT_NAME,
+  CRO_CDE_GOOGLE_TOOLS_SCHEMA,
+  DEFAULT_INTERNAL_AGENT_ID,
+} from './src/data/croCdeGoogleAgentManifest.ts';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const checks = [];
@@ -97,21 +102,23 @@ assert.match(appSrc, /sessionCapture/);
 assert.match(appSrc, /capabilities/);
 assert.match(appSrc, /activeEdition/);
 
-const r07 = disposition.gates.r07_elevenlabs_agent_kb_sync;
+const r07 = disposition.gates.r07_google_ai_studio_voice_sync;
 assert.equal(r07.status, 'CLOSED');
-assert.equal(r07.evidence.liveAgentId, DEFAULT_INTERNAL_AGENT_ID);
-assert.equal(r07.evidence.clientDefaultAgentId, DEFAULT_INTERNAL_AGENT_ID);
-assert.ok(r07.evidence.versionId);
-assert.ok(r07.evidence.knowledgeBaseDocumentCount >= 1);
+assert.equal(r07.evidence.provider, CEREBRO_VOICE_PROVIDER);
+assert.equal(r07.evidence.agentName, CRO_CDE_GOOGLE_AGENT_NAME);
+assert.equal(r07.evidence.toolCount, CRO_CDE_GOOGLE_TOOLS_SCHEMA.length);
+assert.equal(r07.evidence.legacyElevenLabsAgentId, DEFAULT_INTERNAL_AGENT_ID);
+assert.equal(r07.evidence.bridge, 'src/utils/googleAiStudioVoiceBridge.ts');
 checks.push({
   id: 'r07-tool-parity-surface',
   status: 'PASS',
   detail: {
     message:
-      'Frontend accepts place/name_or_code/back aliases and exposes truthful capability flags. Live ElevenLabs agent/KB verified against client default.',
-    agentId: r07.evidence.liveAgentId,
-    versionId: r07.evidence.versionId,
-    knowledgeBaseDocumentCount: r07.evidence.knowledgeBaseDocumentCount,
+      'Frontend accepts place/name_or_code/back aliases and exposes truthful capability flags. Google AI Studio Cro-cde-google is primary voice authority (ElevenLabs dormant).',
+    provider: r07.evidence.provider,
+    agentName: r07.evidence.agentName,
+    toolCount: r07.evidence.toolCount,
+    legacyElevenLabsAgentId: r07.evidence.legacyElevenLabsAgentId,
   },
 });
 

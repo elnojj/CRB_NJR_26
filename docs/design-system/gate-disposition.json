@@ -3,31 +3,42 @@
   "schemaVersion": "1.0.0",
   "title": "Unified Cerebro remediation + intro gate disposition",
   "authority": {
-    "sourceLock": "1f78a1295d4dd36a11320995c1e14bf17788ac25",
-    "mainShaAtVerification": "ed9aa0c6b17944c632b93ea05b0aba9c690fd14d",
+    "sourceLock": "4c7a2fff03d81c20645ae36bac54d6e7d0e11681",
+    "mainShaAtVerification": "4c7a2fff03d81c20645ae36bac54d6e7d0e11681",
     "note": "Single source of truth for qa:remediation and qa:intro open-gate status. Do not hardcode divergent openGates lists in scripts."
   },
   "gates": {
-    "r07_elevenlabs_agent_kb_sync": {
-      "id": "r07_elevenlabs_agent_kb_sync",
-      "surfaces": ["qa:remediation"],
+    "r07_google_ai_studio_voice_sync": {
+      "id": "r07_google_ai_studio_voice_sync",
+      "surfaces": [
+        "qa:remediation"
+      ],
       "status": "CLOSED",
-      "disposition": "verified_live_against_client",
+      "disposition": "verified_against_client_manifest",
+      "supersedes": "r07_elevenlabs_agent_kb_sync",
       "evidence": {
-        "clientDefaultAgentId": "agent_7201m53ed3kred6ba17rvzmyv9q4",
-        "liveAgentId": "agent_7201m53ed3kred6ba17rvzmyv9q4",
-        "liveAgentName": "Cerebro HQ — Internal",
-        "branchId": "agtbrch_9701m53ed56jf9390jvqnnn0f9e4",
-        "versionId": "agtvrsn_1901m6cwnngxfq8a5ddazqkba643",
-        "knowledgeBaseDocumentCount": 21,
+        "provider": "google-ai-studio",
+        "agentName": "Cro-cde-google",
+        "firstMessage": "Welcome back, sir. Anyone with you?",
+        "toolCount": 27,
+        "manifest": "src/data/croCdeGoogleAgentManifest.ts",
+        "bridge": "src/utils/googleAiStudioVoiceBridge.ts",
+        "voiceTurnRoute": "/api/gemini/voice-turn",
+        "importPack": "docs/voice/google-ai-studio-cerebro-agent.json",
+        "legacyElevenLabsAgentId": "agent_7201m53ed3kred6ba17rvzmyv9q4",
+        "legacyStatus": "dormant \u2014 not primary voice authority",
         "clientToolSurface": "src/data/croCdeGoogleAgentManifest.ts + get_page_state capabilities",
-        "verifiedAt": "2026-11-02T06:56:00Z"
+        "verifiedAt": "2026-11-02T13:35:00Z"
       },
-      "summary": "Live ElevenLabs agent id/version/KB match the deployed client DEFAULT_INTERNAL_AGENT_ID."
+      "summary": "Primary voice is Google AI Studio Cro-cde-google with 27 Cerebro tools; ElevenLabs retained as legacy only."
     },
     "tarek_portrait_aperture": {
       "id": "tarek_portrait_aperture",
-      "surfaces": ["qa:remediation", "delivery_manifest", "cerebro39MasterSystem"],
+      "surfaces": [
+        "qa:remediation",
+        "delivery_manifest",
+        "cerebro39MasterSystem"
+      ],
       "status": "CLOSED",
       "disposition": "local_owner_supplied_plate_approved",
       "evidence": {
@@ -39,13 +50,16 @@
         "rights": "Owner-supplied About Us / founder portrait plate (AFRIMA Summit 2022); catalogued in driveMediaCatalog as about-tarek-portrait",
         "ratio": "portrait plate for medallion/aperture use",
         "poster": "/media/about-tarek-afrima.jpg",
-        "verifiedAt": "2026-11-02T06:56:00Z"
+        "verifiedAt": "2026-11-02T13:35:00Z"
       },
       "summary": "Founder portrait aperture unblocked with owner-supplied local plate + SHA-256 + rights note."
     },
     "fifth_sphere_industry_making": {
       "id": "fifth_sphere_industry_making",
-      "surfaces": ["qa:remediation", "sphereNetwork"],
+      "surfaces": [
+        "qa:remediation",
+        "sphereNetwork"
+      ],
       "status": "CLOSED",
       "disposition": "accepted_proposed_only",
       "evidence": {
@@ -53,33 +67,41 @@
         "file": "src/three/sphereNetwork.ts",
         "liveSphereCount": 4,
         "proposedId": "industry-making",
-        "productDecision": "Industry & Making / إصطمبة remains proposed and must not register as a navigable ConnectedSphereId in this release",
-        "verifiedAt": "2026-11-02T06:56:00Z"
+        "productDecision": "Industry & Making / \u0625\u0635\u0637\u0645\u0628\u0629 remains proposed and must not register as a navigable ConnectedSphereId in this release",
+        "verifiedAt": "2026-11-02T13:35:00Z"
       },
       "summary": "Proposed-only fifth sphere is an accepted product disposition, not an unresolved defect."
     },
     "legacy_checkpoints_8b70e08_2d68907": {
       "id": "legacy_checkpoints_8b70e08_2d68907",
-      "surfaces": ["qa:remediation"],
+      "surfaces": [
+        "qa:remediation"
+      ],
       "status": "CLOSED",
       "disposition": "superseded_absent_shas",
       "evidence": {
-        "requestedShas": ["8b70e08", "2d68907"],
+        "requestedShas": [
+          "8b70e08",
+          "2d68907"
+        ],
         "presentOnCheckout": false,
         "presentOnOrigin": false,
         "presentOnGithub": false,
         "currentAuthority": {
-          "sourceLock": "1f78a1295d4dd36a11320995c1e14bf17788ac25",
-          "mainSha": "ed9aa0c6b17944c632b93ea05b0aba9c690fd14d",
+          "sourceLock": "4c7a2fff03d81c20645ae36bac54d6e7d0e11681",
+          "mainSha": "4c7a2fff03d81c20645ae36bac54d6e7d0e11681",
           "baselineCheckpoint": "1.25.0"
         },
-        "verifiedAt": "2026-11-02T06:56:00Z"
+        "verifiedAt": "2026-11-02T13:35:00Z"
       },
       "summary": "Requested historical SHAs are absent from remotes; current main + sourceLock are the authority."
     },
     "browser_webgl_verification": {
       "id": "browser_webgl_verification",
-      "surfaces": ["qa:intro", "cerebro.intro.json#gates"],
+      "surfaces": [
+        "qa:intro",
+        "cerebro.intro.json#gates"
+      ],
       "status": "CLOSED",
       "disposition": "verified_local_browser",
       "evidence": {
@@ -95,6 +117,25 @@
         "verdict": "VERIFIED"
       },
       "summary": "Local browser WebGL verification passed for the 180s intro canvas (not 2D fallback)."
+    },
+    "design_sot_voice_materials_media_sync": {
+      "id": "design_sot_voice_materials_media_sync",
+      "surfaces": [
+        "qa:remediation",
+        "design-system"
+      ],
+      "status": "CLOSED",
+      "disposition": "registries_aligned_to_live_code",
+      "evidence": {
+        "materialsAdded": [
+          "MAT_GOLD_SHEEN",
+          "MAT_CARDIAC_CONNECTOR"
+        ],
+        "voiceAuthority": "google-ai-studio / Cro-cde-google",
+        "mediaAuthority": "driveMediaCatalog + publicBrandMedia",
+        "verifiedAt": "2026-11-02T13:35:00Z"
+      },
+      "summary": "Design SoT registries synced for voice provider, gold/cardiac materials, and media provenance roles."
     }
   },
   "openGateIds": [],
@@ -108,6 +149,21 @@
       "id": "gates.unified_disposition",
       "issue": "qa:remediation hard-coded openGates while qa:intro read cerebro.intro.json gates independently",
       "resolution": "Both scripts now consume public/design-system/gate-disposition.json as the shared authority"
+    },
+    {
+      "id": "voice.google_ai_studio_primary",
+      "issue": "Component registry + gate still named ElevenLabs as voice authority after Cro-cde-google cutover",
+      "resolution": "Retargeted voiceAndBridgeAuthority and r07 gate to googleAiStudioVoiceBridge / Cro-cde-google; ElevenLabs marked legacy"
+    },
+    {
+      "id": "materials.gold_sheen_and_cardiac",
+      "issue": "MAT_GOLD_SHEEN and MAT_CARDIAC_CONNECTOR lived in code but not material-registry.json",
+      "resolution": "Registered both; locked glass/silver sheen=0 and gold sheen=0.35 / IOR 1.52"
+    },
+    {
+      "id": "media.provenance_roles",
+      "issue": "Asset manifest lacked Hotspot/Wix media role authority after project media distribution patch",
+      "resolution": "Documented mediaRoles + playback precedence in asset-manifest; refreshed MISSING_ITEMS M02"
     }
   ]
 }
