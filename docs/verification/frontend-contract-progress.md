@@ -6,8 +6,8 @@ Date: 2026-11-02 (Africa/Cairo)
 
 | Remote | SHA | Status |
 |--------|-----|--------|
-| Cursor Origin `main` | pending WebGL rebuild push | Explore follow-up + context rebuild |
-| GitHub `elnojj/CRB_NJR_26` `main` | pending same tip | Synced via prior deployment PAT |
+| Cursor Origin `main` | `cc7a628` | Explore follow-up + context rebuild · verified |
+| GitHub `elnojj/CRB_NJR_26` `main` | `cc7a628` | Synced · matches Origin |
 
 ## Gates
 
@@ -28,6 +28,7 @@ Date: 2026-11-02 (Africa/Cairo)
 | HQ/CDE `frontShellMat.opacity` vs `MAT_LIQUID_GLASS_SHELL` | Fixed — MAT base opacity; tube dims from registry base only |
 | captionBubble `aria-live` | Fixed — `role="status"` + `aria-live="polite"` |
 | WebGL context-lost tick pause | Fixed — local `contextLost` flag skips GPU work + resize render |
+| WebGL context restore rebuild | Fixed — `webglRebuildKey` remounts renderer; Retry no longer full reload; pose kept in `stateRef` |
 
 ## Layer status
 
