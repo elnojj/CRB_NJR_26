@@ -426,12 +426,24 @@ canvas {
 }
 .nojara-logo-image {
   display: block;
-  width: 148px;
+  width: 168px;
   height: auto;
-  aspect-ratio: 2584 / 644;
+  aspect-ratio: 200 / 36;
   object-fit: contain;
   flex: 0 0 auto;
   background: transparent;
+  /* Soft lift so ice/void blooms don't wash out thin strokes */
+  filter: drop-shadow(0 1px 1px rgba(5, 9, 14, 0.55));
+}
+.nojara-logo-fallback-text {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--token-text-primary);
+  line-height: 1;
+  padding: 0.2rem 0.15rem;
 }
 .cerebro-wordmark-image {
   display: block;
@@ -441,7 +453,7 @@ canvas {
   flex: 0 1 auto;
 }
 .nojara-brand-header.is-centered-stack .nojara-logo-image {
-  width: min(168px, 42vw);
+  width: min(188px, 48vw);
 }
 .nojara-brand-header.is-centered-stack .cerebro-wordmark-image {
   width: 72px;
@@ -453,7 +465,7 @@ canvas {
   padding: 20px 24px;
 }
 .nojara-brand-loader .nojara-logo-image {
-  width: 280px;
+  width: min(320px, 72vw);
 }
 @media (max-width: 767px) {
   .nojara-brand-container {
@@ -469,10 +481,10 @@ canvas {
     gap: 3px;
   }
   .nojara-brand-header .nojara-logo-image {
-    width: 108px;
+    width: 132px;
   }
   .nojara-brand-header.is-centered-stack .nojara-logo-image {
-    width: min(132px, 46vw);
+    width: min(156px, 52vw);
   }
   .nojara-brand-header .cerebro-wordmark-image {
     width: 58px;
@@ -483,7 +495,7 @@ canvas {
     height: 11px;
   }
   .nojara-brand-loader .nojara-logo-image {
-    width: min(240px, 70vw);
+    width: min(260px, 78vw);
   }
 }
 
