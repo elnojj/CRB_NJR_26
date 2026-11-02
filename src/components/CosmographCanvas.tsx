@@ -4235,16 +4235,16 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               borderColor: COLOUR_TOKENS.outlineControl,
             }}
           >
-            <div className="flex items-center justify-between gap-2 border-b border-[rgba(197,204,214,0.22)] pb-2.5">
+            <div className="flex items-center justify-between gap-2 border-b border-[color:var(--token-divider)] pb-2.5">
               <div className="min-w-0">
-                <div className="font-mono text-[10px] text-[#D4AF37] uppercase tracking-wider">
+                <div className="font-mono text-[12px] text-[#D4AF37] uppercase tracking-wider">
                   REDUCED-GRAPHICS SPATIAL WORKSPACE
                 </div>
                 <h2 className="font-display text-sm md:text-base font-semibold text-[#F2F6F8] truncate">
                   {activeSphere === 'hq' ? 'HQ Spatial Map' : 'CDE Universe Map'}
                 </h2>
               </div>
-              <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#C5CCD6] shrink-0">
+              <span className="font-mono text-[12px] px-2 py-0.5 rounded bg-[#101622] border border-[color:var(--token-divider)] text-[#C5CCD6] shrink-0">
                 {webglReason || '2D Spatial Navigation Active'}
               </span>
             </div>
@@ -4256,9 +4256,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                       key={st.id}
                       type="button"
                       onClick={() => onSelectNode(st.id, 'station', 'hq')}
-                      className="min-h-[42px] p-2 rounded-xl border border-[rgba(197,204,214,0.22)] bg-[#101622]/90 hover:border-[#D4AF37] text-left cursor-pointer transition-colors"
+                      className="min-h-[42px] p-2 rounded-xl border border-[color:var(--token-divider)] bg-[#101622]/90 hover:border-[#D4AF37] text-left cursor-pointer transition-colors"
                     >
-                      <div className="font-mono text-[10px]" style={{ color: st.colour }}>
+                      <div className="font-mono text-[12px]" style={{ color: st.colour }}>
                         {st.code}
                       </div>
                       <div className="font-display text-xs font-semibold text-[#F2F6F8] truncate">
@@ -4271,9 +4271,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                       key={dim.id}
                       type="button"
                       onClick={() => onSelectNode(dim.id, 'dimension', 'cde')}
-                      className="min-h-[42px] p-2 rounded-xl border border-[rgba(197,204,214,0.22)] bg-[#101622]/90 hover:border-[#D4AF37] text-left cursor-pointer transition-colors"
+                      className="min-h-[42px] p-2 rounded-xl border border-[color:var(--token-divider)] bg-[#101622]/90 hover:border-[#D4AF37] text-left cursor-pointer transition-colors"
                     >
-                      <div className="font-mono text-[10px]" style={{ color: dim.colour }}>
+                      <div className="font-mono text-[12px]" style={{ color: dim.colour }}>
                         CDE DIMENSION
                       </div>
                       <div className="font-display text-xs font-semibold text-[#F2F6F8] truncate">
@@ -4283,15 +4283,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                   ))}
             </div>
 
-            <div className="pt-2 border-t border-[rgba(197,204,214,0.22)]">
-              <div className="font-mono text-[10px] text-[#C5CCD6] mb-1.5">PROJECTS</div>
+            <div className="pt-2 border-t border-[color:var(--token-divider)]">
+              <div className="font-mono text-[12px] text-[#C5CCD6] mb-1.5">PROJECTS</div>
               <div className="flex flex-wrap gap-1.5">
                 {PROJECTS_DATA.map((p) => (
                   <button
                     key={p.id}
                     type="button"
                     onClick={() => onSelectNode(p.id, 'project', activeSphere)}
-                    className="min-h-[36px] px-2.5 py-1 rounded-lg border border-[rgba(197,204,214,0.22)] bg-[#101622]/90 font-mono text-[11px] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer transition-colors"
+                    className="min-h-[36px] px-2.5 py-1 rounded-lg border border-[color:var(--token-divider)] bg-[#101622]/90 font-mono text-[13px] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer transition-colors"
                   >
                     {p.code}
                   </button>
@@ -4322,7 +4322,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               x="42"
               y="78"
               textAnchor="middle"
-              className="font-mono text-[9px] uppercase"
+              className="font-mono text-[12px] uppercase"
               fill={COLOUR_TOKENS.textCoord}
             >
               {touchIndicator.mode}
@@ -4490,7 +4490,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                     className="w-2 h-2 rounded-full"
                     style={{ backgroundColor: '#D4AF37' }}
                   />
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#B4DDFF]">
+                  <span className="font-mono text-[12px] uppercase tracking-wider text-[#B4DDFF]">
                     Cerebro
                   </span>
                 </div>
@@ -4514,7 +4514,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                 className="cj-glass-card fixed left-1/2 bottom-28 -translate-x-1/2 z-30 pointer-events-auto flex flex-wrap items-center gap-2 px-4 py-2.5 rounded-2xl border backdrop-blur-xl shadow-2xl max-w-[94vw]"
               >
                 <div className="pr-2 border-r border-white/15">
-                  <div className="font-mono text-[10px] text-[#D4AF37] uppercase">
+                  <div className="font-mono text-[12px] text-[#D4AF37] uppercase">
                     3D MEDIA TUBE · {mediaTubeState.projectId} (8×3 CYLINDER · 5.4u)
                   </div>
                   <div className="font-sans text-xs font-semibold text-[#F2F6F8]">

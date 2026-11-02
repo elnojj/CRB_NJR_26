@@ -817,11 +817,11 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                       : '0 0 10px rgba(54, 232, 141, 0.45)',
                   }}
                 />
-                <span className="font-display font-semibold text-[10px] sm:text-xs tracking-[0.08em] uppercase text-[#F2F6F8] truncate">
+                <span className="font-display font-semibold text-[12px] sm:text-xs tracking-[0.08em] uppercase text-[#F2F6F8] truncate">
                   #11 · {gestureMeta[activeGesture].title}
                 </span>
                 <span
-                  className="font-mono tabular-nums text-[10px] px-2 py-0.5 rounded-lg text-[#36E88D] border shrink-0"
+                  className="font-mono tabular-nums text-[12px] px-2 py-0.5 rounded-lg text-[#36E88D] border shrink-0"
                   style={{
                     backgroundColor: 'rgba(12, 18, 28, 0.72)',
                     borderColor: 'rgba(180, 221, 255, 0.22)',
@@ -894,7 +894,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                       title={g.full}
                       aria-label={g.full}
                       onClick={() => onTriggerGesture(g.id)}
-                      className={`min-h-[40px] sm:min-h-[44px] px-2 sm:px-3 py-1.5 rounded-xl font-mono text-[10px] sm:text-xs border transition-colors cursor-pointer ${
+                      className={`min-h-[40px] sm:min-h-[44px] px-2 sm:px-3 py-1.5 rounded-xl font-mono text-[12px] sm:text-xs border transition-colors cursor-pointer ${
                         active
                           ? 'text-[#F2F6F8] font-semibold'
                           : 'text-[#BDCBD3] hover:text-[#F2F6F8]'

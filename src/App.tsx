@@ -3541,10 +3541,10 @@ export default function App() {
                             : '#C5CCD6',
                       }}
                     >
-                      <div className="font-mono text-[10px] font-semibold text-[#F2F6F8]">
+                      <div className="font-mono text-[12px] font-semibold text-[#F2F6F8]">
                         {al.title}
                       </div>
-                      <div className="font-mono text-[10px] text-[#C5CCD6]">
+                      <div className="font-mono text-[12px] text-[#C5CCD6]">
                         {al.detail}
                       </div>
                     </div>
@@ -3656,7 +3656,7 @@ export default function App() {
       {/* 4. Clear fixed header — centered NOJARA + CEREBRO only */}
       <header
         data-testid="workspace-header"
-        className="fixed top-0 left-0 right-0 z-30 pointer-events-none flex items-start justify-center px-3 pt-3 pb-1 safe-area-top"
+        className="fixed top-0 left-0 right-0 z-30 pointer-events-none flex items-start justify-center px-4 pt-4 pb-2 safe-area-top"
       >
         <div className="pointer-events-auto">
           <BrandLockup
@@ -3672,7 +3672,7 @@ export default function App() {
       {/* Floating icon-only toggles (phone / iPad / desktop) — kept out of the brand header */}
       <div
         data-testid="header-controls-region"
-        className="fixed top-0 right-0 z-40 pointer-events-none px-3 pt-3 safe-area-top"
+        className="fixed top-0 right-0 z-40 pointer-events-none px-4 pt-4 safe-area-top"
       >
         <FloatingIconToggles
           moreOpen={showMoreMenu}
@@ -3991,7 +3991,7 @@ export default function App() {
               setShowCameraTray((v) => !v);
               if (showGuiQaHud) setShowGuiQaHud(false);
             }}
-            className={`cj-glass-card min-h-[40px] px-3 py-1.5 rounded-full font-mono text-[11px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`cj-glass-card min-h-[40px] px-3 py-1.5 rounded-full font-mono text-[13px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
               showCameraTray || showGuiQaHud
                 ? 'border-[#D4AF37] text-[#FFF4D0] bg-[#D4AF37]/20'
                 : 'text-[#F2F6F8] hover:border-[#D4AF37]'
@@ -3999,10 +3999,10 @@ export default function App() {
           >
             <span className="w-2 h-2 rounded-full bg-[#D4AF37]" />
             <span>Camera</span>
-            <span className="text-[10px] text-[#C5CCD6] font-normal">
+            <span className="text-[12px] text-[#C5CCD6] font-normal">
               {telemetry.focalLengthMm ?? 35}mm
             </span>
-            <span className="text-[10px] text-[#C5CCD6]">
+            <span className="text-[12px] text-[#C5CCD6]">
               {showCameraTray || showGuiQaHud ? '▾' : '▴'}
             </span>
           </button>
@@ -4018,12 +4018,12 @@ export default function App() {
                     openPanels.length > 0
                       ? 'left-3 right-3 md:left-auto md:right-5 bottom-[144px] md:w-[360px]'
                       : 'left-3 right-3 md:left-5 md:right-auto lg:left-6 bottom-[144px] md:bottom-[64px] md:w-[304px] lg:w-[420px]'
-                  } max-h-[240px] overflow-y-auto overscroll-contain p-3 rounded-2xl font-mono text-[10px] text-[#C5CCD6] flex flex-col gap-2.5 z-[48] shadow-2xl`
+                  } max-h-[240px] overflow-y-auto overscroll-contain p-3 rounded-2xl font-mono text-[12px] text-[#C5CCD6] flex flex-col gap-2.5 z-[48] shadow-2xl`
                 : 'sr-only'
             }
           >
-            <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-[rgba(197,204,214,0.22)] shrink-0">
-              <div className="flex items-center gap-1.5 text-[10px] text-[#C5CCD6] min-w-0">
+            <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-[color:var(--token-divider)] shrink-0">
+              <div className="flex items-center gap-1.5 text-[12px] text-[#C5CCD6] min-w-0">
                 <span className="font-semibold text-[#F2F6F8]">CAMERA OPTICS</span>
                 <span aria-hidden="true">·</span>
                 <span data-testid="camera-telemetry-readout" className="truncate">
@@ -4037,7 +4037,7 @@ export default function App() {
                   setShowCameraTray(false);
                   setShowGuiQaHud(false);
                 }}
-                className="min-w-[28px] min-h-[28px] px-2 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer shrink-0"
+                className="min-w-[28px] min-h-[28px] px-2 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer shrink-0"
               >
                 Close ×
               </button>
@@ -4045,7 +4045,7 @@ export default function App() {
 
             {/* Section 1: Cinema Prime / Macro Lens Selector */}
             <div className="space-y-1">
-              <div className="text-[9px] uppercase tracking-wider text-[#C5CCD6]/80">Lenses</div>
+              <div className="text-[12px] uppercase tracking-wider text-[#C5CCD6]/80">Lenses</div>
               <div className="flex flex-wrap items-center gap-1">
                 {(
                   [
@@ -4075,7 +4075,7 @@ export default function App() {
                       className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
                         isActive
                           ? 'bg-[#D4AF37] text-[#101622] font-semibold'
-                          : 'bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] border border-[rgba(197,204,214,0.22)]'
+                          : 'bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] border border-[color:var(--token-divider)]'
                       }`}
                     >
                       {lens.label}
@@ -4087,7 +4087,7 @@ export default function App() {
 
             {/* Section 2: Numeric Angle Presets & Kinematic Loops */}
             <div className="space-y-1">
-              <div className="text-[9px] uppercase tracking-wider text-[#C5CCD6]/80">
+              <div className="text-[12px] uppercase tracking-wider text-[#C5CCD6]/80">
                 Angles & Loops
               </div>
               <div className="flex flex-wrap items-center gap-1">
@@ -4114,7 +4114,7 @@ export default function App() {
                       className={`min-h-[28px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
                         isAngActive
                           ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#FFF4D0]'
-                          : 'bg-[#101622] border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8]'
+                          : 'bg-[#101622] border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8]'
                       }`}
                     >
                       {ang.label}
@@ -4148,7 +4148,7 @@ export default function App() {
                       className={`min-h-[28px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
                         isLoopActive
                           ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#FFF4D0] font-semibold'
-                          : 'bg-[#101622] border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8]'
+                          : 'bg-[#101622] border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8]'
                       }`}
                     >
                       {lp.label}
@@ -4160,47 +4160,47 @@ export default function App() {
 
             {/* Section 3: Manual Movement Actions */}
             <div className="space-y-1">
-              <div className="text-[9px] uppercase tracking-wider text-[#C5CCD6]/80">Movement</div>
+              <div className="text-[12px] uppercase tracking-wider text-[#C5CCD6]/80">Movement</div>
               <div className="flex flex-wrap items-center gap-1">
                 <button
                   type="button"
                   onClick={() => dispatchCamera('zoom_in')}
-                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
                 >
                   + Zoom
                 </button>
                 <button
                   type="button"
                   onClick={() => dispatchCamera('zoom_out')}
-                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
                 >
                   - Zoom
                 </button>
                 <button
                   type="button"
                   onClick={() => dispatchCamera('pan', { deltaPanX: -2.2, deltaPanY: 0 })}
-                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
                 >
                   Pan Left
                 </button>
                 <button
                   type="button"
                   onClick={() => dispatchCamera('pan', { deltaPanX: 2.2, deltaPanY: 0 })}
-                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
                 >
                   Pan Right
                 </button>
                 <button
                   type="button"
                   onClick={() => dispatchCamera('stop')}
-                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#D4AF37] cursor-pointer"
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#D4AF37] cursor-pointer"
                 >
                   Stop
                 </button>
                 <button
                   type="button"
                   onClick={() => dispatchCamera('center', { targetSphere: activeSphere })}
-                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
                 >
                   Center
                 </button>
@@ -4228,7 +4228,7 @@ export default function App() {
               data-testid="browser-fullscreen-utility"
               data-cta-id="browser-fullscreen"
               onClick={() => void toggleBrowserFullscreen()}
-              className={`cj-glass-card min-h-[40px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full font-mono text-[11px] font-medium transition-colors cursor-pointer shrink-0 ${
+              className={`cj-glass-card min-h-[40px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full font-mono text-[13px] font-medium transition-colors cursor-pointer shrink-0 ${
                 browserFullscreen
                   ? 'border-[#D4AF37] text-[#FFF4D0] bg-[#D4AF37]/20'
                   : 'text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37]'
@@ -4253,7 +4253,7 @@ export default function App() {
             data-testid="ambience-mute-toggle"
             data-cta-id="ambience-toggle"
             onClick={handleToggleAmbience}
-            className="cj-glass-card min-h-[40px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full font-mono text-[11px] font-medium text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] transition-colors cursor-pointer shrink-0"
+            className="cj-glass-card min-h-[40px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full font-mono text-[13px] font-medium text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] transition-colors cursor-pointer shrink-0"
             title="Toggle ambient background soundscape"
           >
             <span
@@ -4304,7 +4304,7 @@ export default function App() {
             data-testid="developer-view-modal"
             className="cj-glass-card w-full max-w-4xl max-h-[88vh] rounded-xl p-5 flex flex-col gap-4 shadow-2xl neural-reveal overflow-hidden"
           >
-            <div className="flex items-center justify-between border-b border-[rgba(197,204,214,0.22)] pb-3 shrink-0">
+            <div className="flex items-center justify-between border-b border-[color:var(--token-divider)] pb-3 shrink-0">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#D4AF37] shrink-0" />
@@ -4312,7 +4312,7 @@ export default function App() {
                     Developer View — Diagnostics, Tool Schemas, Telemetry & Self-Tests
                   </h2>
                 </div>
-                <div className="font-mono tabular-nums text-[10px] text-[#C5CCD6] pl-4 mt-0.5">
+                <div className="font-mono tabular-nums text-[12px] text-[#C5CCD6] pl-4 mt-0.5">
                   AUTHENTICATED DEVELOPER DIAGNOSTICS · BUILD v{BUILD_VERSION} (CHECKPOINT v1.25.0 SAVED)
                 </div>
               </div>
@@ -4329,7 +4329,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setShowDeveloperDrawer(false)}
-                  className="min-w-[40px] min-h-[40px] rounded-lg border border-[rgba(197,204,214,0.22)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] font-mono cursor-pointer"
+                  className="min-w-[40px] min-h-[40px] rounded-lg border border-[color:var(--token-divider)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] font-mono cursor-pointer"
                 >
                   ×
                 </button>
@@ -4337,7 +4337,7 @@ export default function App() {
             </div>
 
             {!isOwnerOnly ? (
-              <div className="p-6 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] text-center space-y-2">
+              <div className="p-6 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] text-center space-y-2">
                 <div className="font-display text-sm font-semibold text-[#F2F6F8]">
                   Owner Authentication Required
                 </div>
@@ -4348,7 +4348,7 @@ export default function App() {
             ) : (
               <div className="overflow-y-auto flex-1 space-y-4 pr-1">
                 {/* Developer Action Bar */}
-                <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)]">
+                <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-[#101622] border border-[color:var(--token-divider)]">
                   <button
                     type="button"
                     onClick={() => {
@@ -4365,7 +4365,7 @@ export default function App() {
                       setShowDeveloperDrawer(false);
                       ensurePanelOpen('phase0-audit', true);
                     }}
-                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#1B2230] border border-[rgba(197,204,214,0.22)] text-[#F2F6F8] cursor-pointer"
+                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#1B2230] border border-[color:var(--token-divider)] text-[#F2F6F8] cursor-pointer"
                   >
                     Open Source Map & Colour Audit Panel
                   </button>
@@ -4390,7 +4390,7 @@ export default function App() {
 
                 {/* Live Camera Telemetry & Tool Registry Audit */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="p-3 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] font-mono tabular-nums text-xs space-y-1">
+                  <div className="p-3 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] font-mono tabular-nums text-xs space-y-1">
                     <div className="text-[#D4AF37] font-semibold">LIVE 3D CAMERA TELEMETRY</div>
                     <div>Sphere: {telemetry.sphere.toUpperCase()} · Node: {telemetry.focusedNodeId || 'none'}</div>
                     <div>Distance: {telemetry.distance}u · Azimuth: {telemetry.azimuthDeg}° · Polar: {telemetry.polarDeg}°</div>
@@ -4398,7 +4398,7 @@ export default function App() {
                     <div>Auto-Orbit: {String(telemetry.autoOrbit)} ({telemetry.turnSeconds}s/turn) · Moving: {String(telemetry.isMoving)}</div>
                     <div>Last Verb: {telemetry.lastCommand}</div>
                   </div>
-                  <div className="p-3 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] font-mono tabular-nums text-xs space-y-1">
+                  <div className="p-3 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] font-mono tabular-nums text-xs space-y-1">
                     <div className="text-[#C5CCD6] font-semibold">VOICE AGENT & TOOL REGISTRY AUDIT</div>
                     <div>Default Agent ID: {DEFAULT_INTERNAL_AGENT_ID}</div>
                     <div>
@@ -4414,13 +4414,13 @@ export default function App() {
                 </div>
 
                 {/* Unattached Assets & External Integrations Disclosure */}
-                <div className="p-3 rounded-lg bg-[#101622] border border-[rgba(197,204,214,0.22)] space-y-1.5">
+                <div className="p-3 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] space-y-1.5">
                   <div className="font-mono text-xs text-[#D4AF37] font-semibold">
                     DOCUMENTED UNATTACHED SOURCE ITEMS & EXTERNAL INTEGRATIONS ({MISSING_ITEMS.length})
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {MISSING_ITEMS.map((m) => (
-                      <div key={m.id} className="p-2 rounded-lg bg-[#1B2230] border border-[rgba(197,204,214,0.22)] font-mono text-[10px]">
+                      <div key={m.id} className="p-2 rounded-lg bg-[#1B2230] border border-[color:var(--token-divider)] font-mono text-[12px]">
                         <span className="text-[#D4AF37]">[{m.id}]</span>{' '}
                         <span className="text-[#F2F6F8]">{m.item}</span>
                         <div className="text-[#C5CCD6] mt-0.5">{m.currentFallbackInPhase0}</div>
@@ -4438,18 +4438,18 @@ export default function App() {
                     {selfTestResults.map((chk) => (
                       <div
                         key={chk.id}
-                        className="rounded-lg p-2.5 border border-[rgba(197,204,214,0.22)] bg-[#101622] flex items-center justify-between gap-3"
+                        className="rounded-lg p-2.5 border border-[color:var(--token-divider)] bg-[#101622] flex items-center justify-between gap-3"
                       >
                         <div className="min-w-0">
                           <div className="font-display text-xs font-semibold text-[#F2F6F8]">
                             [{chk.id}] {chk.title}
                           </div>
-                          <div className="font-mono text-[10px] text-[#C5CCD6] truncate">
+                          <div className="font-mono text-[12px] text-[#C5CCD6] truncate">
                             {chk.detail}
                           </div>
                         </div>
                         <span
-                          className="px-2.5 py-1 rounded-lg font-mono text-[10px] font-semibold shrink-0"
+                          className="px-2.5 py-1 rounded-lg font-mono text-[12px] font-semibold shrink-0"
                           style={{
                             backgroundColor:
                               chk.status === 'PASS'

@@ -137,6 +137,7 @@ canvas {
   box-shadow: var(--shadow-hud);
 }
 
+/* Feature queries need a literal length — keep in sync with --blur-glass (14px). */
 @supports not ((backdrop-filter: blur(14px)) or (-webkit-backdrop-filter: blur(14px))) {
   .cj-glass-card,
   .glass-panel,
@@ -218,21 +219,21 @@ canvas {
   box-shadow:
     var(--shadow-hud),
     inset 3px 0 0 0 var(--token-active-gold);
-  border-color: rgba(212, 175, 55, 0.45);
+  border-color: color-mix(in srgb, var(--token-active-gold) 45%, transparent);
 }
 
 .cj-panel-shell[data-accent='cobalt'] {
   box-shadow:
     var(--shadow-hud),
     inset 3px 0 0 0 var(--token-active-cobalt);
-  border-color: rgba(101, 172, 255, 0.5);
+  border-color: color-mix(in srgb, var(--token-active-cobalt) 50%, transparent);
 }
 
 .cj-panel-shell[data-accent='ice'] {
   box-shadow:
     var(--shadow-hud),
     inset 3px 0 0 0 var(--token-active-ice);
-  border-color: rgba(180, 221, 255, 0.48);
+  border-color: color-mix(in srgb, var(--token-active-ice) 48%, transparent);
 }
 
 .cj-panel-shell.is-camera-flight {
@@ -240,15 +241,24 @@ canvas {
   filter: saturate(0.7);
 }
 
-.cj-voice-shell[data-voice-live='true'] {
-  border-color: rgba(212, 175, 55, 0.55);
-  box-shadow:
-    var(--shadow-hud),
-    0 0 0 1px rgba(212, 175, 55, 0.22);
+.cj-voice-shell[data-chrome-state='cold'] {
+  opacity: var(--token-cold-opacity);
+  border-color: var(--token-cold-border);
+  filter: saturate(0.6);
 }
 
-.cj-voice-shell[data-voice-live='false'] {
-  opacity: 0.88;
+.cj-voice-shell[data-chrome-state='active'],
+.cj-voice-shell[data-voice-live='true'] {
+  opacity: var(--token-active-opacity);
+  filter: none;
+  border-color: color-mix(in srgb, var(--token-active-gold) 55%, transparent);
+  box-shadow:
+    var(--shadow-hud),
+    0 0 0 1px color-mix(in srgb, var(--token-active-gold) 22%, transparent);
+}
+
+.cj-voice-shell[data-voice-live='false'][data-chrome-state='cold'] {
+  opacity: calc(var(--token-cold-opacity) + 0.2);
   border-color: var(--token-cold-border);
 }
 
