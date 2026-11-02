@@ -428,12 +428,12 @@ canvas {
   display: block;
   width: 168px;
   height: auto;
-  aspect-ratio: 200 / 36;
+  aspect-ratio: 2584 / 644;
   object-fit: contain;
   flex: 0 0 auto;
   background: transparent;
-  /* Soft lift so ice/void blooms don't wash out thin strokes */
-  filter: drop-shadow(0 1px 1px rgba(5, 9, 14, 0.55));
+  /* Keep mark crisp over sphere blooms without changing the asset */
+  filter: drop-shadow(0 1px 2px rgba(5, 9, 14, 0.72));
 }
 .nojara-logo-fallback-text {
   font-family: var(--font-display);
@@ -453,7 +453,7 @@ canvas {
   flex: 0 1 auto;
 }
 .nojara-brand-header.is-centered-stack .nojara-logo-image {
-  width: min(188px, 48vw);
+  width: min(196px, 50vw);
 }
 .nojara-brand-header.is-centered-stack .cerebro-wordmark-image {
   width: 72px;
@@ -465,7 +465,7 @@ canvas {
   padding: 20px 24px;
 }
 .nojara-brand-loader .nojara-logo-image {
-  width: min(320px, 72vw);
+  width: 280px;
 }
 @media (max-width: 767px) {
   .nojara-brand-container {
@@ -481,10 +481,10 @@ canvas {
     gap: 3px;
   }
   .nojara-brand-header .nojara-logo-image {
-    width: 132px;
+    width: 128px;
   }
   .nojara-brand-header.is-centered-stack .nojara-logo-image {
-    width: min(156px, 52vw);
+    width: min(152px, 54vw);
   }
   .nojara-brand-header .cerebro-wordmark-image {
     width: 58px;
@@ -495,7 +495,7 @@ canvas {
     height: 11px;
   }
   .nojara-brand-loader .nojara-logo-image {
-    width: min(260px, 78vw);
+    width: min(240px, 70vw);
   }
 }
 

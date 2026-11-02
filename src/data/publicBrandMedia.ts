@@ -9,16 +9,7 @@
 
 export const PUBLIC_BRAND_MEDIA = {
   logoWhite: {
-    // Header/UI lockup uses the readable geometric SVG (abstract V31 PNG is illegible at chrome size).
-    url: '/assets/brand/nojara-wordmark.svg',
-    width: 200,
-    height: 36,
-    provenance:
-      'Readable geometric NOJARA SVG wordmark for Cerebro chrome; V31 abstract PNG retained at logoAbstract',
-    sourceUrl: '/assets/brand/nojara-wordmark.svg',
-  },
-  logoAbstract: {
-    // Official V31 abstract mark — keep for large art / showreel contexts, not small chrome.
+    // Local copy of the Wix white mark — already RGBA with transparent field (no baked black plate).
     url: '/assets/brand/nojara-logo-white.png',
     width: 2584,
     height: 644,

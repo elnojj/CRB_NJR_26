@@ -1,17 +1,11 @@
 import React, { useState } from 'react';
+import { PUBLIC_BRAND_MEDIA } from '../data/publicBrandMedia';
 
 type Props = {
   mode: 'loader' | 'header';
   activeSphere?: 'hq' | 'cde';
   onSwitchSphere?: (sphere: 'hq' | 'cde') => void;
 };
-
-/** Readable geometric wordmark — the V31 abstract PNG is too fragmented at header size. */
-const NOJARA_WORDMARK = {
-  url: '/assets/brand/nojara-wordmark.svg',
-  width: 200,
-  height: 36,
-} as const;
 
 export const BrandLockup: React.FC<Props> = ({ mode }) => {
   const isLoader = mode === 'loader';
@@ -30,14 +24,14 @@ export const BrandLockup: React.FC<Props> = ({ mode }) => {
         <img
           data-testid="nojara-public-logo"
           className="nojara-logo-image"
-          src={NOJARA_WORDMARK.url}
-          width={NOJARA_WORDMARK.width}
-          height={NOJARA_WORDMARK.height}
-          alt="NOJARA"
+          src={PUBLIC_BRAND_MEDIA.logoWhite.url}
+          width={PUBLIC_BRAND_MEDIA.logoWhite.width}
+          height={PUBLIC_BRAND_MEDIA.logoWhite.height}
+          alt="NOJARA Studios"
           decoding="async"
           fetchPriority={isLoader ? 'high' : 'auto'}
           onError={(e) => {
-            console.error('[NOJARA BRAND] Wordmark failed to load:', e);
+            console.error('[NOJARA BRAND] Public logo failed to load:', e);
             setLogoFailed(true);
           }}
         />
@@ -47,7 +41,7 @@ export const BrandLockup: React.FC<Props> = ({ mode }) => {
           className="nojara-logo-fallback-text"
           title="Logo image asset failed to load"
         >
-          NOJARA
+          NOJARA Studios
         </span>
       )}
       {!isLoader && (
