@@ -121,6 +121,8 @@ export function FloatingIconToggles({ toggles, moreOpen, moreMenu }: Props) {
           <button
             key={t.id}
             type="button"
+            data-toggle-id={t.id}
+            data-chrome-state={t.active || (t.id === 'more' && moreOpen) ? 'active' : 'cold'}
             data-testid={t.testId || `float-toggle-${t.id}`}
             aria-label={t.label}
             aria-pressed={Boolean(t.active)}

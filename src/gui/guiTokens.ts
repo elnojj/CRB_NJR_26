@@ -102,36 +102,42 @@ export const GUI_GLASS_TOKENS = {
   contentBackground: 'var(--token-glass-fill)',
   fallbackBackground: 'var(--token-glass-subtle)',
 
-  chromeAlpha: 0.72,
-  contentAlpha: 0.72,
-  fallbackAlpha: 0.88,
-  borderAlpha: 0.36,
+  chromeAlpha: 0.88,
+  contentAlpha: 0.88,
+  fallbackAlpha: 0.94,
+  borderAlpha: 0.22,
+  coldAlpha: 0.42,
 
   cardBackground: 'var(--token-glass-fill)',
-  panelBackground: 'rgba(20, 38, 50, 0.44)',
+  panelBackground: 'var(--token-glass-fill)',
   subtleBackground: 'var(--token-glass-subtle)',
-  pocketBackground: 'rgba(16, 29, 39, 0.68)',
+  pocketBackground: 'var(--token-glass-subtle)',
+  coldBackground: 'var(--token-cold-fill)',
 
   border: '1px solid var(--token-glass-border)',
   subtleBorder: '1px solid var(--token-glass-border-subtle)',
   hudBorder: '1px solid var(--token-divider)',
+  coldBorder: '1px solid var(--token-cold-border)',
 
-  blurPx: 18,
-  blurDesktopPx: 18,
-  blurMobilePx: 18,
+  blurPx: 14,
+  blurDesktopPx: 14,
+  blurMobilePx: 14,
   backdropFilter: 'blur(var(--blur-glass))',
   backdropFilterMobile: 'blur(var(--blur-glass))',
 
-  // The consolidated CSS does not apply a saturation filter.
-  saturate: 1,
+  saturate: 1.08,
 
-  cardRadiusPx: 16,
-  radiusPx: 16,
+  /* Panel / glass radius locked at 20 — no 16-vs-20 split */
+  cardRadiusPx: 20,
+  radiusPx: 20,
   panelRadiusPx: 20,
-  pocketRadiusPx: 8,
-  chipRadiusPx: 8,
-  controlRadiusPx: 8,
+  pocketRadiusPx: 10,
+  chipRadiusPx: 10,
+  controlRadiusPx: 12,
   pillRadiusPx: 999,
+
+  /** Distinct accents for concurrent open panels — gold / cobalt / ice cycle */
+  openAccentCycle: ['#D4AF37', '#65ACFF', '#B4DDFF'],
 
   shadow: 'var(--shadow-elevated)',
   cardShadow: 'var(--shadow-card)',
@@ -149,6 +155,26 @@ export const GUI_GLASS_TOKENS = {
   bodyPadPx: 16,
 } as const;
 
+export type GuiOpenAccentId = 'gold' | 'cobalt' | 'ice';
+
+export const GUI_OPEN_ACCENT_CYCLE: readonly {
+  id: GuiOpenAccentId;
+  hex: string;
+}[] = [
+  { id: 'gold', hex: '#D4AF37' },
+  { id: 'cobalt', hex: '#65ACFF' },
+  { id: 'ice', hex: '#B4DDFF' },
+] as const;
+
+/** Map open-panel index → distinct accent so concurrent panels are not flat-same. */
+export function resolveOpenPanelAccent(openIndex: number): {
+  id: GuiOpenAccentId;
+  hex: string;
+} {
+  const safe = Number.isFinite(openIndex) ? Math.max(0, Math.floor(openIndex)) : 0;
+  return GUI_OPEN_ACCENT_CYCLE[safe % GUI_OPEN_ACCENT_CYCLE.length];
+}
+
 /**
  * Exact font-stack ordering from the consolidated CSS.
  *
@@ -156,13 +182,13 @@ export const GUI_GLASS_TOKENS = {
  */
 export const GUI_TYPOGRAPHY_TOKENS = {
   display:
-    "'Sora', 'JaapokkiSubtract', 'Inter', system-ui, sans-serif",
+    "'JaapokkiSubtract', 'Jaapokki', 'Sora', system-ui, sans-serif",
 
   sans:
-    "'Inter', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif",
+    "'Sora', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif",
 
   arabic:
-    "'Cairo', 'Tajawal', 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif",
+    "'Cairo', 'Tajawal', 'IBM Plex Sans Arabic', 'Sora', system-ui, sans-serif",
 
   mono:
     "'JetBrains Mono', ui-monospace, SFMono-Regular, monospace",
@@ -174,14 +200,16 @@ export const GUI_TYPOGRAPHY_TOKENS = {
     mono: 'var(--font-mono)',
   },
 
-  // PROPOSED legacy scale; the consolidated CSS defines families only.
+  /** Root 16 body · support 13–14 · metadata floor 12 */
   scale: {
-    heroTitle: 'clamp(1.5rem, 2.2vw, 2.25rem)',
-    panelTitle: '1rem',
-    sectionTitle: '0.8125rem',
-    body: '0.875rem',
+    heroTitle: 'clamp(1.75rem, 3vw, 3rem)',
+    panelTitle: '1.0625rem',
+    sectionTitle: '0.875rem',
+    body: '1rem',
+    support: '0.875rem',
+    supportSm: '0.8125rem',
     meta: '0.75rem',
-    micro: '0.6875rem',
+    micro: '0.75rem',
   },
 } as const;
 

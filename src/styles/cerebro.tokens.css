@@ -36,11 +36,13 @@
   --token-bg-surface:     var(--c-surface);
   --token-bg-elevated:    var(--c-surface-d0);
 
-  --token-glass-fill:     rgba(20, 38, 50, 0.86);
-  --token-glass-solid:    var(--c-surface);
+  /* Approved D0 glass: void-navy at 0.88 · hairline silver · blur 14px */
+  --token-glass-fill:     rgba(27, 34, 48, 0.88);
+  --token-glass-solid:    var(--c-surface-d0);
   --token-glass-subtle:   rgba(16, 22, 34, 0.88);
-  --token-glass-border:   rgba(180, 221, 255, 0.36);
-  --token-glass-border-subtle: rgba(180, 221, 255, 0.24);
+  --token-glass-fallback: rgba(27, 34, 48, 0.94);
+  --token-glass-border:   rgba(197, 204, 214, 0.22);
+  --token-glass-border-subtle: rgba(197, 204, 214, 0.16);
   --token-divider:        rgba(197, 204, 214, 0.22);
 
   --token-text-primary:   var(--c-primary);
@@ -65,6 +67,17 @@
 
   --token-tracking-valid: var(--c-green);
   --token-system-error:   var(--c-red);
+
+  /* Active vs cold (inactive) — stronger signal for open surfaces, muted idle chrome */
+  --token-active-gold:    var(--c-gold);
+  --token-active-cobalt:  var(--c-cobalt);
+  --token-active-ice:     var(--c-ice);
+  --token-active-text:    var(--c-primary);
+  --token-cold-text:      rgba(197, 204, 214, 0.55);
+  --token-cold-border:    rgba(197, 204, 214, 0.12);
+  --token-cold-fill:      rgba(27, 34, 48, 0.42);
+  --token-cold-opacity:   0.42;
+  --token-active-opacity: 1;
 
   /* ------------------------------------------------------------------------
      3. STATUS COLORS — 4-tier truthful state system
@@ -100,13 +113,16 @@
      ------------------------------------------------------------------------ */
   --page-margin:   24px;
   --panel-radius:  20px;
-  --card-radius:   16px;
-  --control-radius: 10px;
-  --pocket-radius: 8px;
+  /* Glass panels / HUD cards share panel radius — no 16-vs-20 split */
+  --card-radius:   20px;
+  --control-radius: 12px;
+  --pocket-radius: 10px;
   --pill-radius:   999px;
   --touch-min:     44px;
+  --chrome-gap:    12px;
+  --chrome-pad:    16px;
 
-  /* Type scale (CSS px targets) */
+  /* Type scale — root 16px body; support 13–14; metadata ≥12 */
   --type-display: clamp(1.75rem, 3vw, 3rem); /* 28–48 */
   --type-display-lh: 1.14;
   --type-workspace: clamp(1.25rem, 2vw, 1.5rem); /* 20–24 */
@@ -116,8 +132,9 @@
   --type-body: 1rem; /* 16 */
   --type-body-lh: 1.5;
   --type-support: 0.875rem; /* 14 */
-  --type-support-lh: 1.5;
-  --type-meta: 0.75rem; /* 12 */
+  --type-support-lh: 1.45;
+  --type-support-sm: 0.8125rem; /* 13 */
+  --type-meta: 0.75rem; /* 12 — floor for metadata */
   --type-meta-lh: 1.45;
   --type-graph: 0.8125rem; /* 13 */
   --type-graph-lh: 1.35;
@@ -147,9 +164,29 @@
     0 8px 24px rgba(5, 9, 14, 0.32);
 
   /* ------------------------------------------------------------------------
-     8. BACKDROP BLUR
+     8. BACKDROP BLUR — approved glass blur 14px
      ------------------------------------------------------------------------ */
-  --blur-glass: 18px;
+  --blur-glass: 14px;
+}
+
+/* ==========================================================================
+   D0 / CJ ALIASES — single source for index.css + component consumers
+   ========================================================================== */
+:root {
+  --cj-bg-viewport:      var(--c-surface-d0);
+  --cj-bg-surface:       var(--c-canvas-d0);
+  --cj-glass-panel:      var(--token-glass-fill);
+  --cj-border-hairline:  var(--token-divider);
+  --cj-silver-metal:     var(--c-silver);
+  --cj-gold-primary:     var(--c-gold);
+  --cj-gold-sheen:       var(--c-gold-sheen);
+  --cj-glow-accent:      rgba(212, 175, 55, 0.45);
+  --cj-state-teal:       #78D3B2;
+  --cj-slate-blue:       #3A516E;
+  --cj-ice:              var(--c-ice);
+  --cj-cobalt:           var(--c-cobalt);
+  --cj-void:             var(--c-void);
+  --cj-text-primary:     var(--c-primary);
 }
 
 /* ==========================================================================
@@ -175,14 +212,32 @@
 
 .cj-glass-card,
 .cerebro-hud-panel,
-.optical-hud-panel {
+.optical-hud-panel,
+.glass-panel,
+.cerebro-glass-panel,
+.cerebro-stellar-glass,
+.cerebro-hud-elevated,
+.hud-sheet {
   background: var(--token-glass-fill);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
+  backdrop-filter: blur(var(--blur-glass)) saturate(1.08);
+  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(1.08);
   border: 1px solid var(--token-glass-border);
-  border-radius: var(--card-radius);
+  border-radius: var(--panel-radius);
   box-shadow: var(--shadow-card);
   color: var(--token-text-primary);
+}
+
+@supports not ((backdrop-filter: blur(14px)) or (-webkit-backdrop-filter: blur(14px))) {
+  .cj-glass-card,
+  .cerebro-hud-panel,
+  .optical-hud-panel,
+  .glass-panel,
+  .cerebro-glass-panel,
+  .cerebro-stellar-glass,
+  .cerebro-hud-elevated,
+  .hud-sheet {
+    background: var(--token-glass-fallback);
+  }
 }
 
 .cerebro-panel {
@@ -215,7 +270,7 @@
 .optical-hud-outer {
   background: var(--token-glass-fill);
   border: 1px solid var(--token-divider);
-  border-radius: var(--card-radius);
+  border-radius: var(--panel-radius);
   box-shadow: var(--shadow-hud);
 }
 
@@ -276,13 +331,14 @@
 .cerebro-infograph-label {
   max-width: min(42vw, 220px);
   will-change: transform;
-  backdrop-filter: blur(14px) saturate(1.12);
-  -webkit-backdrop-filter: blur(14px) saturate(1.12);
+  backdrop-filter: blur(var(--blur-glass)) saturate(1.12);
+  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(1.12);
   background: linear-gradient(
     145deg,
-    rgba(16, 24, 36, 0.62) 0%,
-    rgba(12, 18, 28, 0.48) 100%
-  ) !important;
+    rgba(27, 34, 48, 0.72) 0%,
+    rgba(12, 18, 28, 0.55) 100%
+  );
+  border-radius: var(--panel-radius);
 }
 
 /* Inner shell owns land-in + continuous float so camera motion stays continuous. */
@@ -302,15 +358,16 @@
   display: block;
   white-space: normal;
   overflow-wrap: anywhere;
-  line-height: 1.2;
-  font-size: clamp(0.68rem, 1.55vw, 0.82rem);
+  line-height: 1.25;
+  font-size: clamp(var(--type-meta), 1.55vw, var(--type-support-sm));
   letter-spacing: 0.01em;
 }
 
 .cerebro-infograph-label .ig-sub {
   display: block;
   white-space: normal;
-  font-size: clamp(0.58rem, 1.25vw, 0.7rem);
+  font-size: var(--type-meta);
+  line-height: var(--type-meta-lh);
   opacity: 0.88;
   margin-top: 0.1rem;
 }
@@ -394,11 +451,11 @@
   }
 
   .cerebro-infograph-label .ig-title {
-    font-size: clamp(0.62rem, 3.2vw, 0.74rem);
+    font-size: var(--type-meta);
   }
 
   .cerebro-infograph-label .ig-sub {
-    font-size: clamp(0.52rem, 2.6vw, 0.62rem);
+    font-size: var(--type-meta);
   }
 
   .cerebro-infograph-caption {

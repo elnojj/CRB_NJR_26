@@ -14,7 +14,7 @@
     --bg-canvas: var(--cj-bg-viewport);
     --bg-glass-solid: var(--cj-bg-surface);
     --bg-glass-rgba: var(--cj-glass-panel);
-    --text-primary: #F2F6F8;
+    --text-primary: var(--cj-text-primary);
     --text-secondary: var(--cj-silver-metal);
     --accent-cobalt: var(--cj-gold-primary);
     --focus-ring: var(--cj-gold-primary);
@@ -27,7 +27,7 @@
     --voice-orb-teal: #E6CA65;
     --voice-orb-deep: #685218;
     --sphere-wireframe: var(--cj-gold-sheen);
-    --ease-cerebro: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-cerebro: var(--motion-ease);
   }
 
   html,
@@ -37,17 +37,17 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    /* Deep ink atmospheric field — unmistakably not the old #101D27 navy slab. */
+    /* Deep ink atmospheric field — void #05090E family, ice + gold blooms. */
     background:
       radial-gradient(95% 70% at 22% 18%, rgba(180, 221, 255, 0.22) 0%, transparent 48%),
       radial-gradient(85% 65% at 78% 88%, rgba(212, 175, 55, 0.12) 0%, transparent 50%),
       radial-gradient(120% 90% at 50% 48%, rgba(36, 56, 72, 0.55) 0%, transparent 55%),
-      linear-gradient(168deg, #02050a 0%, #050b14 38%, #0a1520 68%, #03060c 100%);
-    background-color: #03060c;
-    color: #F2F6F8;
+      linear-gradient(168deg, #02050a 0%, var(--c-void) 38%, #0a1520 68%, #03060c 100%);
+    background-color: var(--c-void);
+    color: var(--token-text-primary);
     font-family: var(--font-sans);
-    font-size: 13.5px;
-    line-height: 1.45;
+    font-size: 16px;
+    line-height: var(--type-body-lh);
     overflow: hidden;
     touch-action: none;
     -webkit-font-smoothing: antialiased;
@@ -55,7 +55,7 @@
     user-select: none;
   }
 
-  /* Focus ring locked to gold #D4AF37 */
+  /* Focus ring locked to gold #D4AF37 — visible on every interactive control */
   *:focus-visible {
     outline: 2px solid var(--cj-gold-primary);
     outline-offset: 2px;
@@ -68,8 +68,8 @@
 
 .font-sans {
   font-family: var(--font-sans);
-  font-size: 13.5px;
-  line-height: 1.45;
+  font-size: var(--type-body);
+  line-height: var(--type-body-lh);
 }
 
 .font-mono {
@@ -120,7 +120,7 @@ canvas {
   min-height: 280px !important;
 }
 
-/* Unified Cerebro-Nojara D0 v1.24 Glass Card across all HUD panels, cards, docks and sheets */
+/* Unified glass — tokens own fill / blur 14 / hairline / panelRadius 20. No hex overrides. */
 .cj-glass-card,
 .glass-panel,
 .cerebro-glass-panel,
@@ -129,12 +129,12 @@ canvas {
 .cerebro-hud-elevated,
 .optical-hud-panel,
 .hud-sheet {
-  background: var(--cj-glass-panel) !important;
-  backdrop-filter: blur(14px) !important;
-  -webkit-backdrop-filter: blur(14px) !important;
-  border: 1px solid var(--cj-border-hairline) !important;
-  border-radius: 16px;
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: var(--token-glass-fill);
+  backdrop-filter: blur(var(--blur-glass)) saturate(1.08);
+  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(1.08);
+  border: 1px solid var(--token-divider);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--shadow-hud);
 }
 
 @supports not ((backdrop-filter: blur(14px)) or (-webkit-backdrop-filter: blur(14px))) {
@@ -146,8 +146,121 @@ canvas {
   .cerebro-hud-elevated,
   .optical-hud-panel,
   .hud-sheet {
-    background: rgba(16, 22, 34, 0.94) !important;
+    background: var(--token-glass-fallback);
   }
+}
+
+/* Editorial type helpers — floor metadata at 12px; supporting 13–14 */
+.cj-type-body {
+  font-size: var(--type-body);
+  line-height: var(--type-body-lh);
+}
+.cj-type-support {
+  font-size: var(--type-support);
+  line-height: var(--type-support-lh);
+}
+.cj-type-support-sm {
+  font-size: var(--type-support-sm);
+  line-height: var(--type-support-lh);
+}
+.cj-type-meta {
+  font-size: var(--type-meta);
+  line-height: var(--type-meta-lh);
+}
+.cj-type-card {
+  font-size: var(--type-card);
+  line-height: var(--type-card-lh);
+}
+
+/* ------------------------------------------------------------------------
+   Cold inactive vs active open — fewer on-screen details; clear state parse
+   ------------------------------------------------------------------------ */
+.cj-cold,
+[data-chrome-state='cold'] {
+  opacity: var(--token-cold-opacity);
+  color: var(--token-cold-text);
+  border-color: var(--token-cold-border);
+  background: var(--token-cold-fill);
+  filter: saturate(0.55);
+  transition:
+    opacity var(--motion-fast) var(--motion-ease),
+    color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease),
+    filter var(--motion-fast) var(--motion-ease);
+}
+
+.cj-cold:hover,
+.cj-cold:focus-visible,
+[data-chrome-state='cold']:hover,
+[data-chrome-state='cold']:focus-visible {
+  opacity: 0.78;
+  color: var(--token-text-secondary);
+  filter: saturate(0.85);
+}
+
+.cj-active,
+[data-chrome-state='active'] {
+  opacity: var(--token-active-opacity);
+  color: var(--token-active-text);
+  filter: none;
+}
+
+/* Open panel accent stripe — cycle gold / cobalt / ice so concurrent panels differ */
+.cj-panel-shell {
+  border-radius: var(--panel-radius);
+  border: 1px solid var(--token-divider);
+  box-shadow: var(--shadow-hud);
+  overflow: hidden;
+}
+
+.cj-panel-shell[data-accent='gold'] {
+  box-shadow:
+    var(--shadow-hud),
+    inset 3px 0 0 0 var(--token-active-gold);
+  border-color: rgba(212, 175, 55, 0.45);
+}
+
+.cj-panel-shell[data-accent='cobalt'] {
+  box-shadow:
+    var(--shadow-hud),
+    inset 3px 0 0 0 var(--token-active-cobalt);
+  border-color: rgba(101, 172, 255, 0.5);
+}
+
+.cj-panel-shell[data-accent='ice'] {
+  box-shadow:
+    var(--shadow-hud),
+    inset 3px 0 0 0 var(--token-active-ice);
+  border-color: rgba(180, 221, 255, 0.48);
+}
+
+.cj-panel-shell.is-camera-flight {
+  opacity: 0.55;
+  filter: saturate(0.7);
+}
+
+.cj-voice-shell[data-voice-live='true'] {
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow:
+    var(--shadow-hud),
+    0 0 0 1px rgba(212, 175, 55, 0.22);
+}
+
+.cj-voice-shell[data-voice-live='false'] {
+  opacity: 0.88;
+  border-color: var(--token-cold-border);
+}
+
+/* Hide unused chrome until needed — keeps sphere the cover hero */
+.cj-chrome-deferred[hidden],
+.cj-chrome-deferred[data-visible='false'] {
+  display: none !important;
+}
+
+.cj-chrome-deferred[data-visible='true'] {
+  display: flex;
+  animation: neuralPanelReveal var(--motion-base) var(--motion-ease) both;
 }
 
 /* D0 Voice/Talk Widget always on top (z-index: 100) and mobile sheet docking */
