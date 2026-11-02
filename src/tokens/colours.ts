@@ -150,10 +150,12 @@ export const COLOUR_TOKENS = {
   stationFiles: '#C5CCD6',
   stationMedia: '#D4AF37',
 
-  // Semantic Reservations
-  voiceOrbMint: '#D4AF37',
+  // Semantic Reservations — C07 voice orb (teal wins; gold never for voice UI)
+  voiceOrbMint: '#9AFFE0',
   voiceOrbTeal: '#78D3B2',
-  voiceOrbDeep: '#685218',
+  voiceOrbDeep: '#0f3d34',
+  listeningRing: '#9AFFE0',
+  listeningRingMid: '#78D3B2',
   trackingValid: '#36E88D',
   systemErrorRed: '#FF5666',
 

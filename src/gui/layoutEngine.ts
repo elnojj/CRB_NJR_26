@@ -86,21 +86,19 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
     const minimizedChipsRect: GuiRect = { x: padX, y: 388, w: colW, h: 36 };
 
     const isSheetOpen = openPanels.length > 0;
-    const isSheetExpanded = isSheetOpen && phoneSheetState === 'expanded';
-    // Reserve utility row (~52) + safe area; compact dock includes 2-line transcript preview.
-    const voiceH = isSheetOpen
-      ? 52
-      : params.voiceExpanded
-      ? Math.min(300, Math.round(height * 0.42))
-      : 132;
+    // C06 capsule: 220–256 × 48–56, center at ~0.88H (never full-width card).
+    // Sheet-open keeps capsule height in-range (52) and lifts above keyboard inset.
+    const voiceH = 52;
+    const voiceW = Math.min(256, Math.max(220, Math.round(width * 0.56)));
+    const voiceCenterY = Math.round(height * 0.88);
     const voiceY = Math.max(
       headerRect.y + headerRect.h + 16,
-      height - voiceH - 72 - kbInset
+      Math.min(height - voiceH - 16 - kbInset, voiceCenterY - Math.round(voiceH / 2))
     );
     const voiceRect: GuiRect = {
-      x: padX,
+      x: Math.round((width - voiceW) / 2),
       y: voiceY,
-      w: colW,
+      w: voiceW,
       h: voiceH,
     };
 
@@ -175,11 +173,16 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
     const inspectorTop = 80;
     const inspectorH = Math.max(220, Math.min(648, height - inspectorTop - 88 - kbInset));
 
-    const voiceW = Math.min(460, Math.max(320, width - (padX + inspectorW + 16) - padX));
-    const voiceH = params.voiceExpanded ? Math.min(320, Math.round(height * 0.34)) : 64;
+    // C06 capsule — bottom-center ~0.88H
+    const voiceW = Math.min(256, Math.max(220, Math.round(width * 0.28)));
+    const voiceH = 52;
+    const voiceCenterY = Math.round(height * 0.88);
     const voiceRect: GuiRect = {
-      x: width - padX - voiceW,
-      y: Math.max(inspectorTop + 120, height - 68 - voiceH - kbInset),
+      x: Math.round((width - voiceW) / 2),
+      y: Math.max(
+        inspectorTop + 120,
+        Math.min(height - voiceH - 16 - kbInset, voiceCenterY - Math.round(voiceH / 2))
+      ),
       w: voiceW,
       h: voiceH,
     };
@@ -241,11 +244,15 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
     const slotW = 288;
     const slotTop = 80;
     const headerRect: GuiRect = { x: padX, y: 16, w: width - padX * 2, h: 52 };
-    const voiceW = 460;
-    const voiceH = params.voiceExpanded ? 240 : 64;
+    const voiceW = Math.min(256, 240);
+    const voiceH = 52;
+    const voiceCenterY = Math.round(height * 0.88);
     const voiceRect: GuiRect = {
       x: Math.round((width - voiceW) / 2),
-      y: Math.max(slotTop + 160, height - 68 - voiceH - kbInset),
+      y: Math.max(
+        slotTop + 160,
+        Math.min(height - voiceH - 16 - kbInset, voiceCenterY - Math.round(voiceH / 2))
+      ),
       w: voiceW,
       h: voiceH,
     };
@@ -319,10 +326,14 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
   const slotW = isWide ? 400 : 352;
   const quadrantSlotW = isWide ? 360 : 304;
   const slotTop = isWide ? 88 : 80;
-  const voiceW = isWide ? 480 : 460;
-  const voiceH = params.voiceExpanded ? Math.min(340, Math.round(height * 0.36)) : 64;
+  // C06 capsule — fixed idle geometry; drag still clamps within viewport
+  const voiceW = 256;
+  const voiceH = 52;
   const defaultVoiceX = Math.round((width - voiceW) / 2);
-  const defaultVoiceY = height - (isWide ? 76 : 68) - voiceH - kbInset;
+  const defaultVoiceY = Math.min(
+    height - voiceH - (isWide ? 24 : 16) - kbInset,
+    Math.round(height * 0.88) - Math.round(voiceH / 2)
+  );
 
   const dragX = Math.round(params.voiceDragDelta?.x ?? 0);
   const dragY = Math.round(params.voiceDragDelta?.y ?? 0);

@@ -7,6 +7,8 @@ interface BootLoaderProps {
   initialPhase?: 'keypad' | 'loader';
   lockOnComplete?: boolean;
   onTakeOff: () => void;
+  /** Optional health telemetry strip (offline / WebGL / voice). */
+  healthLine?: string | null;
 }
 
 const STATUS_LINES = [
@@ -21,6 +23,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
   initialPhase = 'loader',
   lockOnComplete = false,
   onTakeOff,
+  healthLine = null,
 }) => {
   const [phase, setPhase] = useState<'keypad' | 'loader'>(initialPhase);
   const [pinCode, setPinCode] = useState<string>('');
@@ -410,6 +413,16 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
             <span>{Math.round(progressRatio * 100)}% LOADED</span>
             <span>SPATIAL AUDIO: ARMED</span>
           </div>
+          {healthLine && (
+            <div
+              role="status"
+              aria-live="polite"
+              data-testid="boot-health-line"
+              className="w-full mt-2 font-mono text-[10px] text-[#9AFFE0] text-center"
+            >
+              {healthLine}
+            </div>
+          )}
         </div>
       </div>
 

@@ -15,6 +15,16 @@ import {
 } from './data/sourceData';
 import { BrandLockup } from './components/BrandLockup';
 import { BootLoader } from './components/BootLoader';
+import { SystemStatusLayer } from './components/SystemStatusLayer';
+import {
+  readSessionSnapshot,
+  writeSessionSnapshot,
+  hydrationSequence,
+} from './state/cerebroSessionStore';
+import {
+  SCENE_SR_LABELS,
+  formatKeyboardHelp,
+} from './a11y/workspaceKeyboardMap';
 import {
   ExperienceCanvas,
   CameraCommandPayload,
@@ -253,9 +263,15 @@ export default function App() {
   );
 
   // 2. Dual-Sphere, Unobstructed Sphere by Default (activePanel = null), Navigation History Stack & Persisted State
-  const [activeSphere, setActiveSphere] = useState<'hq' | 'cde'>('hq');
+  // Hydration: session snapshot restores panels/sphere; tour always starts inactive (cerebroSessionStore).
+  const [activeSphere, setActiveSphere] = useState<'hq' | 'cde'>(() => {
+    const snap = readSessionSnapshot();
+    return snap.activeSphere === 'cde' ? 'cde' : 'hq';
+  });
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
-  const [openPanels, setOpenPanels] = useState<string[]>([]);
+  const [openPanels, setOpenPanels] = useState<string[]>(() => readSessionSnapshot().openPanels);
+  const [elevenLabsAuthFailed, setElevenLabsAuthFailed] = useState(false);
+  const [hydrationPhase, setHydrationPhase] = useState(() => hydrationSequence()[0]);
   const activePanel: string | null = openPanels.length > 0 ? openPanels[openPanels.length - 1] : null;
   const [minimisedChips, setMinimisedChips] = useState<MinimisedChip[]>([]);
   const [panelScrollById, setPanelScrollById] = useState<Record<string, number>>({});
@@ -427,7 +443,10 @@ export default function App() {
 
   // 6. Voice State, Audience & Compose Task State
   const [voiceState, setVoiceState] = useState<VoiceState>('Ready');
-  const [activePocket, setActivePocket] = useState<VoicePocket>('tap-to-talk');
+  const [activePocket, setActivePocket] = useState<VoicePocket>(() => {
+    const pocket = readSessionSnapshot().activePocket;
+    return pocket === 'hands' || pocket === 'compose' ? pocket : 'tap-to-talk';
+  });
   const [audienceLevel, setAudienceLevel] = useState<AudienceLevel>('Owner only');
   const isOwnerOnly = audienceLevel === 'Owner only';
   const [ambienceMuted, setAmbienceMuted] = useState<boolean>(() => soundEngine.isMuted());
@@ -487,6 +506,34 @@ export default function App() {
       currentTimeSec: 0,
       durationSec: targetReel?.durationSec || 140,
     });
+  }, []);
+
+  // Session ownership: finish hydration sequence; never resume tour mid-flight after reload.
+  useEffect(() => {
+    const phases = hydrationSequence();
+    setHydrationPhase(phases[1]);
+    const snap = readSessionSnapshot();
+    setHydrationPhase(phases[2]);
+    setOpenPanels(snap.openPanels);
+    setHydrationPhase(phases[3]);
+    setVoiceState('Ready');
+    setTourState((prev) => ({ ...prev, active: false, paused: false, step: 0 }));
+    setHydrationPhase(phases[4]);
+  }, []);
+
+  useEffect(() => {
+    writeSessionSnapshot({
+      activeSphere,
+      openPanels,
+      activePocket,
+      selectedProjectId: selectedProjectId ?? null,
+    });
+  }, [activeSphere, openPanels, activePocket, selectedProjectId]);
+
+  useEffect(() => {
+    const onVoiceAuth = () => setElevenLabsAuthFailed(true);
+    window.addEventListener('cerebro:voice-auth-failed', onVoiceAuth);
+    return () => window.removeEventListener('cerebro:voice-auth-failed', onVoiceAuth);
   }, []);
 
   // Load persisted custom tasks from server on mount
@@ -2290,6 +2337,10 @@ export default function App() {
           setShowDeveloperDrawer(false);
           return;
         }
+        if (tourState.active) {
+          handleStopTourImmediately?.();
+          return;
+        }
         if (openPanels.length > 0) {
           setOpenPanels((prev) => prev.slice(0, -1));
         }
@@ -2298,6 +2349,46 @@ export default function App() {
 
       // Never trigger 3D camera shortcuts while typing inside an input/textarea
       if (isEditable) return;
+
+      if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+        e.preventDefault();
+        window.alert(formatKeyboardHelp());
+        return;
+      }
+      if (e.key.toLowerCase() === 'm' && !e.metaKey && !e.ctrlKey) {
+        const muteBtn = document.querySelector(
+          '[data-testid="voice-mute"]'
+        ) as HTMLButtonElement | null;
+        muteBtn?.click();
+        return;
+      }
+      if (e.key.toLowerCase() === 'x' && !e.metaKey && !e.ctrlKey) {
+        const stopBtn = document.querySelector(
+          '[data-testid="voice-stop"]'
+        ) as HTMLButtonElement | null;
+        stopBtn?.click();
+        return;
+      }
+      if (e.key === '[') {
+        e.preventDefault();
+        setActiveSphere('hq');
+        return;
+      }
+      if (e.key === ']') {
+        e.preventDefault();
+        setActiveSphere('cde');
+        return;
+      }
+      if (e.key.toLowerCase() === 'v' && !e.metaKey && !e.ctrlKey) {
+        const voice = document.querySelector(
+          '[data-testid="voice-card"]'
+        ) as HTMLElement | null;
+        voice?.focus?.();
+        (
+          document.querySelector('[data-testid="voice-connect"], [data-testid="voice-orb-button"]') as HTMLElement | null
+        )?.focus?.();
+        return;
+      }
 
       if (e.key.toLowerCase() === 'f' && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
@@ -2322,7 +2413,13 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [dispatchCamera, fullscreenMedia, openPanels.length, showDeveloperDrawer]);
+  }, [
+    dispatchCamera,
+    fullscreenMedia,
+    openPanels.length,
+    showDeveloperDrawer,
+    tourState.active,
+  ]);
 
   // All 12 ?view=... URL State Inspectors + Morning Briefing 06:00–10:30 Africa/Cairo Auto-Window
   useEffect(() => {
@@ -3977,7 +4074,22 @@ export default function App() {
 
 
 
-      {/* 7. Draggable, Collision-Managed, Resizable Voice Card */}
+      {/* 7. C06 Voice capsule + C07 listening rings */}
+      <SystemStatusLayer
+        webglUnavailable={false}
+        elevenLabsAuthFailed={elevenLabsAuthFailed}
+        projectCount={PROJECTS_DATA.length}
+        onRetryVoice={() => {
+          setElevenLabsAuthFailed(false);
+          setOpenAgentModalTrigger((n) => (n || 0) + 1);
+        }}
+        onRetryWebgl={() => window.location.reload()}
+      />
+      <div className="sr-only" aria-live="polite" data-testid="a11y-hydration">
+        {hydrationPhase === 'ready'
+          ? SCENE_SR_LABELS.canvas
+          : `Hydrating workspace phase ${hydrationPhase}`}
+      </div>
       <VoiceCard
         voiceState={voiceState}
         activePocket={activePocket}

@@ -639,6 +639,13 @@ export class ElevenLabsConvaiBridge {
               'Error',
               'ElevenLabs WebSocket unreachable. Check agent ID or API key in Voice Settings.'
             );
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(
+                new CustomEvent('cerebro:voice-auth-failed', {
+                  detail: { code: 'auth', reason: 'websocket-unreachable' },
+                })
+              );
+            }
           }
         }
       };

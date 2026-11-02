@@ -157,14 +157,17 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
       passed:
         layout2.panelSlots.length === 2 &&
         layout4.panelSlots.length === 4 &&
-        layout2.voiceRect.w === 460 &&
+        layout2.voiceRect.w >= 220 &&
+        layout2.voiceRect.w <= 256 &&
+        layout2.voiceRect.h >= 48 &&
+        layout2.voiceRect.h <= 56 &&
         overlap2.passed &&
         overlap4.passed,
-      detail: `slots2=${layout2.panelSlots.length}, slots4=${layout4.panelSlots.length}, voiceW=${layout2.voiceRect.w}, overlapPassed=${overlap2.passed && overlap4.passed}`,
+      detail: `slots2=${layout2.panelSlots.length}, slots4=${layout4.panelSlots.length}, voiceW=${layout2.voiceRect.w}, voiceH=${layout2.voiceRect.h}, overlapPassed=${overlap2.passed && overlap4.passed}`,
     });
   }
 
-  // 4. Wide 1920x1080 — 400px left/right slots, 480px voice, >= 960px center unobstructed width
+  // 4. Wide 1920x1080 — 400px left/right slots, C06 capsule voice, >= 960px center unobstructed width
   {
     const layout = computeGuiLayout({
       width: 1920,
@@ -178,15 +181,47 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
     );
 
     results.push({
-      name: 'wide_1920x1080: 400px slots, 480px voice, >=960px centerSafe',
+      name: 'wide_1920x1080: 400px slots, C06 capsule voice, >=960px centerSafe',
       viewport: '1920x1080',
       passed:
         layout.panelSlots.length === 2 &&
         layout.panelSlots[0].rect.w === 400 &&
-        layout.voiceRect.w === 480 &&
+        layout.voiceRect.w >= 220 &&
+        layout.voiceRect.w <= 256 &&
         layout.centerSafeRect.w >= 960 &&
         overlap.passed,
-      detail: `centerSafeW=${layout.centerSafeRect.w}px, overlapPassed=${overlap.passed}`,
+      detail: `voiceW=${layout.voiceRect.w}px, centerSafeW=${layout.centerSafeRect.w}px, overlapPassed=${overlap.passed}`,
+    });
+  }
+
+  // 4B. C06 capsule geometry across breakpoints + keyboard inset
+  {
+    const phoneKb = computeGuiLayout({
+      width: 390,
+      height: 844,
+      openPanels: [],
+      keyboardInsetBottom: 280,
+    });
+    const phoneSheet = computeGuiLayout({
+      width: 390,
+      height: 844,
+      openPanels: ['overview'],
+      phoneSheetState: 'expanded',
+    });
+    const capsuleOk =
+      phoneKb.voiceRect.w >= 220 &&
+      phoneKb.voiceRect.w <= 256 &&
+      phoneKb.voiceRect.h >= 48 &&
+      phoneKb.voiceRect.h <= 56 &&
+      phoneKb.voiceRect.y + phoneKb.voiceRect.h <= 844 - 280 &&
+      phoneSheet.voiceCompactedForSheet &&
+      phoneSheet.zeroOverlapPassed;
+
+    results.push({
+      name: 'c06_capsule: size + keyboard inset + sheet zero-overlap',
+      viewport: '390x844',
+      passed: capsuleOk,
+      detail: `w=${phoneKb.voiceRect.w} h=${phoneKb.voiceRect.h} y=${phoneKb.voiceRect.y} compacted=${phoneSheet.voiceCompactedForSheet} zeroOverlap=${phoneSheet.zeroOverlapPassed}`,
     });
   }
 

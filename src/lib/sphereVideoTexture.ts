@@ -139,6 +139,34 @@ export function createPortalDiskGeometry(
   return geo;
 }
 
+/** Ice plate used when Drive/local video 404s or texImage2D fails — never leave empty shells. */
+export const SPHERE_MEDIA_FALLBACK_PLATE =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+      <defs>
+        <radialGradient id="g" cx="50%" cy="42%" r="62%">
+          <stop offset="0%" stop-color="#243848"/>
+          <stop offset="55%" stop-color="#142632"/>
+          <stop offset="100%" stop-color="#05090E"/>
+        </radialGradient>
+      </defs>
+      <rect width="1280" height="720" fill="url(#g)"/>
+      <circle cx="640" cy="360" r="210" fill="none" stroke="#B4DDFF" stroke-opacity="0.28" stroke-width="2"/>
+      <circle cx="640" cy="360" r="140" fill="none" stroke="#9AFFE0" stroke-opacity="0.22" stroke-width="1.5"/>
+    </svg>`
+  );
+
+function createFallbackTexture(): THREE.Texture {
+  const loader = new THREE.TextureLoader();
+  const texture = loader.load(SPHERE_MEDIA_FALLBACK_PLATE);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = false;
+  return texture;
+}
+
 function createVideoElement(src: string): HTMLVideoElement {
   const video = document.createElement('video');
   // Muted + playsInline + loop is required for autoplay without a user gesture.
@@ -244,14 +272,62 @@ export function mountSphereVideoTexture(options: {
   shellBandMesh.renderOrder = 2;
   options.parent.add(shellBandMesh);
 
+  let fallbackTexture: THREE.Texture | null = null;
+  let usingFallback = false;
+
+  const applyFallbackPlate = (reason: string) => {
+    if (usingFallback) return;
+    usingFallback = true;
+    console.warn(`[sphereVideoTexture] ${prefix}: ${reason} — applying ice fallback plate`);
+    fallbackTexture = createFallbackTexture();
+    wrapMat.map = fallbackTexture;
+    bandMat.map = fallbackTexture;
+    wrapMat.needsUpdate = true;
+    bandMat.needsUpdate = true;
+    window.dispatchEvent(
+      new CustomEvent('cerebro:media-404', {
+        detail: { sphere: prefix, source: initialUrl, reason },
+      })
+    );
+  };
+
   const tryPlay = () => {
+    if (usingFallback) return;
     video.muted = true;
     const playPromise = video.play();
     if (playPromise && typeof playPromise.catch === 'function') {
-      playPromise.catch(() => {});
+      playPromise.catch(() => {
+        applyFallbackPlate('autoplay/play rejected');
+      });
     }
   };
   attachVideoKeepAlive(video, tryPlay);
+
+  video.addEventListener('error', () => {
+    applyFallbackPlate('video element error (Drive/local 404 or decode failure)');
+  });
+  video.addEventListener('stalled', () => {
+    // Soft signal only; keepAlive will retry. Empty shell never preferred.
+  });
+
+  // Detect WebGL texImage2D upload failures after first frames.
+  const texGuard = window.setInterval(() => {
+    if (usingFallback) {
+      window.clearInterval(texGuard);
+      return;
+    }
+    if (video.readyState >= 2 && texture.image) {
+      try {
+        // Force a needsUpdate; if the video frame is unusable, fall back.
+        texture.needsUpdate = true;
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          applyFallbackPlate('texImage2D source has zero dimensions');
+        }
+      } catch {
+        applyFallbackPlate('texImage2D upload failure');
+      }
+    }
+  }, 2000);
 
   return {
     video,
@@ -260,12 +336,25 @@ export function mountSphereVideoTexture(options: {
     shellBandMesh,
     wrapMesh,
     setSourceUrl: (url: string) => {
+      if (usingFallback) {
+        // Retry live media after a prior 404.
+        usingFallback = false;
+        if (fallbackTexture) {
+          fallbackTexture.dispose();
+          fallbackTexture = null;
+        }
+        wrapMat.map = texture;
+        bandMat.map = texture;
+        wrapMat.needsUpdate = true;
+        bandMat.needsUpdate = true;
+      }
       if (video.src.endsWith(url) || video.getAttribute('src') === url) return;
       video.src = url;
       video.load();
       tryPlay();
     },
     dispose: () => {
+      window.clearInterval(texGuard);
       const keepAlive = (video as HTMLVideoElement & { __sphereKeepAlive?: number })
         .__sphereKeepAlive;
       if (keepAlive) window.clearInterval(keepAlive);
@@ -273,6 +362,7 @@ export function mountSphereVideoTexture(options: {
       video.removeAttribute('src');
       video.load();
       texture.dispose();
+      fallbackTexture?.dispose();
       wrapGeo.dispose();
       wrapMat.dispose();
       portalGeo.dispose();

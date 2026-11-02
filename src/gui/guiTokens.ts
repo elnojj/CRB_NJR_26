@@ -54,8 +54,12 @@ export const GUI_PALETTE_ROLES = {
   focusCobalt: '#65ACFF',
   highlight: '#FFF4D0',
 
+  /** C07 listening / voice orb — teal wins; gold is 3D focus only, never voice UI. */
   listeningRing: '#9AFFE0',
-  voiceOrb: '#D4AF37',
+  listeningRingMid: '#78D3B2',
+  voiceOrb: '#9AFFE0',
+  voiceOrbMid: '#78D3B2',
+  voiceOrbDeep: '#0f3d34',
 
   tasks: '#C5CCD6',
   people: '#FFF4D0',

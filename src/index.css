@@ -28,9 +28,10 @@
     --station-people: var(--cj-gold-sheen);
     --station-files: var(--cj-silver-metal);
     --station-media: var(--cj-gold-primary);
-    --voice-orb-mint: var(--cj-gold-primary);
-    --voice-orb-teal: #E6CA65;
-    --voice-orb-deep: #685218;
+    /* C07 — teal listening orb (not gold UI chrome) */
+    --voice-orb-mint: var(--c-voice, #9AFFE0);
+    --voice-orb-teal: var(--c-voice-state, #78D3B2);
+    --voice-orb-deep: #0f3d34;
     --sphere-wireframe: var(--cj-gold-sheen);
     --ease-cerebro: var(--motion-ease);
   }
@@ -256,10 +257,10 @@ canvas {
 .cj-voice-shell[data-voice-live='true'] {
   opacity: var(--token-active-opacity);
   filter: none;
-  border-color: color-mix(in srgb, var(--token-active-gold) 55%, transparent);
+  border-color: color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 55%, transparent);
   box-shadow:
     var(--shadow-hud),
-    0 0 0 1px color-mix(in srgb, var(--token-active-gold) 22%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 22%, transparent);
 }
 
 .cj-voice-shell[data-voice-live='false'][data-chrome-state='cold'] {
@@ -287,41 +288,263 @@ canvas {
 @media (max-width: 720px) {
   body[data-sheet-open='true'] [data-testid="voice-card"],
   [data-testid="voice-card"][data-compacted='true'] {
-    bottom: max(12px, env(safe-area-inset-bottom)) !important;
-    max-height: 52px !important;
-    padding-top: 2px !important;
-    padding-bottom: 2px !important;
+    /* C06 capsule stays pill-sized; never expand into full-width card under sheet */
+    max-width: 256px !important;
+    max-height: 56px !important;
+    min-height: 48px !important;
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
     z-index: 100 !important;
   }
 }
 
-/* Voice Pilot Orb — Metallic Gold & Specular Sheen */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.cerebro-system-status {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(520px, calc(100vw - 24px));
+  pointer-events: none;
+}
+
+.cerebro-status-banner {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(197, 204, 214, 0.22);
+  background: rgba(16, 22, 34, 0.92);
+  color: #F2F6F8;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.cerebro-status-banner__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cerebro-status-banner__action {
+  flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 40%, transparent);
+  background: transparent;
+  color: #F2F6F8;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.cerebro-status-banner--error {
+  border-color: color-mix(in srgb, #FF5666 55%, transparent);
+}
+
+.cerebro-status-banner--warn {
+  border-color: color-mix(in srgb, #9AFFE0 40%, transparent);
+}
+
+.cerebro-status-banner--info {
+  border-color: color-mix(in srgb, #65ACFF 40%, transparent);
+}
+
+/* Canvas focus ring — gold focus chrome (not voice teal) */
+[data-testid="cosmograph-canvas"]:focus-visible,
+.source-world:focus-visible,
+.cerebro-voice-capsule:focus-within {
+  outline: 2px solid var(--cj-gold-primary, #D4AF37);
+  outline-offset: 2px;
+}
+
+/* C07 Voice orb — teal listening stack (#9AFFE0 / #78D3B2), max scale delta 0.04 */
 .voice-orb-gradient {
   background: radial-gradient(
     circle at 34% 30%,
-    var(--cj-gold-sheen) 0%,
-    var(--cj-gold-primary) 56%,
-    #685218 100%
+    var(--voice-orb-mint, #9AFFE0) 0%,
+    var(--voice-orb-teal, #78D3B2) 56%,
+    var(--voice-orb-deep, #0f3d34) 100%
   );
   box-shadow:
-    0 0 28px var(--cj-glow-accent),
-    inset 0 1px 2px rgba(255, 244, 208, 0.55);
+    0 0 18px color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 45%, transparent),
+    inset 0 1px 2px rgba(154, 255, 224, 0.45);
 }
 
 @keyframes orbPulse {
   0%,
   100% {
     transform: scale(1);
-    box-shadow: 0 0 24px var(--cj-glow-accent);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 40%, transparent);
   }
   50% {
-    transform: scale(1.06);
-    box-shadow: 0 0 38px rgba(212, 175, 55, 0.6);
+    transform: scale(1.04);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 55%, transparent);
   }
 }
 
 .voice-orb-speaking {
   animation: orbPulse 2.2s var(--ease-cerebro) infinite;
+}
+
+/* C06 Voice capsule — 220–256 × 48–56, bottom-centered ~.88H */
+.cerebro-voice-capsule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  min-width: 220px;
+  max-width: 256px;
+  min-height: 48px;
+  max-height: 56px;
+  padding: 4px 10px 4px 6px;
+  border-radius: var(--pill-radius, 999px);
+  background: var(--token-glass-fill, rgba(27, 34, 48, 0.88));
+  border: 1px solid var(--token-glass-border, rgba(197, 204, 214, 0.22));
+  backdrop-filter: blur(var(--blur-glass, 14px));
+  -webkit-backdrop-filter: blur(var(--blur-glass, 14px));
+  color: var(--token-text-primary, #F2F6F8);
+  pointer-events: auto;
+}
+
+.cerebro-voice-orb-hit {
+  position: relative;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.cerebro-voice-rings {
+  position: absolute;
+  inset: -16px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms var(--motion-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform 80ms linear;
+}
+
+.cerebro-voice-rings[data-visible='true'] {
+  opacity: 1;
+  transition: opacity 180ms var(--motion-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform 80ms linear;
+}
+
+.cerebro-voice-orb {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(
+    circle at 34% 30%,
+    var(--voice-orb-mint, #9AFFE0) 0%,
+    var(--voice-orb-teal, #78D3B2) 60%,
+    var(--voice-orb-deep, #0f3d34) 100%
+  );
+  box-shadow: inset 0 1px 2px rgba(242, 246, 248, 0.35);
+}
+
+.cerebro-voice-orb[data-live='false'] {
+  background: radial-gradient(circle at 34% 30%, #d0dce3 0%, #142632 70%, #05090e 100%);
+}
+
+.cerebro-voice-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cerebro-voice-status {
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--token-text-primary, #F2F6F8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cerebro-voice-tour {
+  font-size: 11px;
+  color: var(--token-text-secondary, #D0DCE3);
+}
+
+.cerebro-voice-actions {
+  display: flex;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.cerebro-voice-action {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--pill-radius, 999px);
+  background: transparent;
+  color: var(--token-text-primary, #F2F6F8);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.cerebro-voice-action:hover,
+.cerebro-voice-action:focus-visible {
+  background: color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 16%, transparent);
+  outline: none;
+}
+
+.cerebro-voice-action-stop {
+  color: var(--c-voice-state, #78D3B2);
+}
+
+.cerebro-voice-caption {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: max(72px, calc(12% + 56px + env(safe-area-inset-bottom, 0px)));
+  z-index: 99;
+  max-width: min(420px, 88vw);
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(5, 9, 14, 0.72);
+  border: 1px solid rgba(180, 221, 255, 0.28);
+  color: var(--token-text-primary, #F2F6F8);
+  font-size: 13px;
+  line-height: 1.35;
+  pointer-events: none;
 }
 
 @keyframes shimmerSweep {

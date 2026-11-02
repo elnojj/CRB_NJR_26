@@ -60,10 +60,14 @@
   --token-focus-glow:     var(--c-gold-sheen);
   --token-focus-cobalt:   var(--c-cobalt);
 
-  --token-voice-orb:      var(--c-gold);
-  --token-voice-orb-mid:  #E6CA65;
-  --token-voice-orb-deep: #685218;
-  --token-listening-ring: var(--c-teal);
+  /* C07 listening rings — design_tokens / component-registry (#9AFFE0 / #78D3B2) */
+  --c-voice:              var(--c-teal); /* #9AFFE0 */
+  --c-voice-state:        #78D3B2;
+  --token-voice-orb:      var(--c-voice);
+  --token-voice-orb-mid:  var(--c-voice-state);
+  --token-voice-orb-deep: #0f3d34;
+  --token-listening-ring: var(--c-voice);
+  --token-listening-ring-mid: var(--c-voice-state);
 
   --token-tracking-valid: var(--c-green);
   --token-system-error:   var(--c-red);
@@ -511,9 +515,9 @@
 
 
 --token-highlight:           var(--token-focus-glow);
---token-voice-orb:           var(--token-accent-gold);
---token-voice-orb-mid:       #E6CA65;
---token-voice-orb-deep:      #685218;
+--token-voice-orb:           var(--c-voice);
+--token-voice-orb-mid:       var(--c-voice-state);
+--token-voice-orb-deep:      #0f3d34;
 
 
 --token-hud-outer-bg:        var(--token-glass-fill);

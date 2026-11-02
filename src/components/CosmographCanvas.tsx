@@ -39,6 +39,7 @@ import {
   IDLE_MS,
 } from '../three/spatialNavigation';
 import { mountSphereVideoTexture, type SphereVideoHandle } from '../lib/sphereVideoTexture';
+import { createMatLiquidGlassShell } from '../materials/matLiquidGlassShell';
 import { getSphereTextureAsset } from '../data/driveMediaCatalog';
 import { introBridge } from '../intro/bridge';
 import {
@@ -1642,13 +1643,33 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const handleContextLost = (e: Event) => {
       e.preventDefault();
       setWebglStatus('CONTEXT_LOST');
-      setWebglReason('WebGL context lost — Reduced-graphics spatial view active.');
+      setWebglReason(
+        'WebGL context lost — Reduced-graphics spatial view active. Retry restores the liquid-glass scene.'
+      );
+      window.dispatchEvent(
+        new CustomEvent('cerebro:webgl-status', {
+          detail: { status: 'CONTEXT_LOST', softwareGl: isSoftwareGl },
+        })
+      );
     };
 
     const handleContextRestored = () => {
       setWebglStatus('ACTIVE');
       setWebglReason('');
+      window.dispatchEvent(
+        new CustomEvent('cerebro:webgl-status', {
+          detail: { status: 'ACTIVE', softwareGl: isSoftwareGl },
+        })
+      );
     };
+
+    if (isSoftwareGl) {
+      window.dispatchEvent(
+        new CustomEvent('cerebro:webgl-status', {
+          detail: { status: 'SOFTWARE_GL', softwareGl: true },
+        })
+      );
+    }
 
     domEl.addEventListener('webglcontextlost', handleContextLost, false);
     domEl.addEventListener('webglcontextrestored', handleContextRestored, false);
@@ -1875,62 +1896,23 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     extraDisposables.push(sharedCoolIceNodeMat);
 
     // 6. Refractive Liquid Glass Sub-Sphere Material (design_tokens.json liquidGlass)
-    const sharedCrystalGlassBubbleMat = new THREE.MeshPhysicalMaterial({
-      color: 0x142632,
-      metalness: 0,
-      roughness: 0.04,
-      ior: 1.52,
-      transmission: isSoftwareGl ? 0 : 0.96,
-      thickness: 2.8,
-      attenuationColor: new THREE.Color(0x101D27),
-      attenuationDistance: 3.4,
-      specularIntensity: 1.0,
-      specularColor: new THREE.Color(0xB4DDFF),
-      clearcoat: 0.9,
-      clearcoatRoughness: 0.06,
-      transparent: true,
-      opacity: isSoftwareGl ? 0.28 : 0.88,
+    // Sub-sphere glass must match MAT_LIQUID_GLASS_SHELL (no alternate opacity recipe).
+    const sharedCrystalGlassBubbleMat = createMatLiquidGlassShell({
+      softwareGl: isSoftwareGl,
+      face: 'front',
     });
     extraDisposables.push(sharedCrystalGlassBubbleMat);
 
     // 7. Outer Refractive Liquid Glass Shell (Master Containment Sphere r = 1.0R = 6.2u)
     // Source: design_tokens.json liquidGlass & Document 01 material.shell.*
-    const sharedOpticalGlassMat = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(0x0A1218),
-      metalness: 0,
-      roughness: 0.04,
-      ior: 1.52,
-      transmission: isSoftwareGl ? 0 : 0.96,
-      thickness: 2.8,
-      attenuationColor: new THREE.Color(0x101D27),
-      attenuationDistance: 3.4,
-       clearcoat: 0.9,
-      clearcoatRoughness: 0.06,
-      specularIntensity: 1.0,
-      specularColor: new THREE.Color(0xB4DDFF),
-      transparent: true,
-      opacity: isSoftwareGl ? 0.18 : 0.46,
-      side: THREE.FrontSide,
-      depthWrite: false,
+    // MAT_LIQUID_GLASS_SHELL — one fluid translucent recipe for every sphere shell.
+    const sharedOpticalGlassMat = createMatLiquidGlassShell({
+      softwareGl: isSoftwareGl,
+      face: 'front',
     });
-
-    const sharedBackOpticalGlassMat = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(0x101D27),
-      metalness: 0,
-      roughness: 0.04,
-      ior: 1.52,
-      transmission: isSoftwareGl ? 0 : 0.96,
-      thickness: 2.8,
-      attenuationColor: new THREE.Color(0x05090E),
-      attenuationDistance: 3.4,
-      clearcoat: 0.9,
-      clearcoatRoughness: 0.06,
-      specularIntensity: 1.0,
-      specularColor: new THREE.Color(0xB4DDFF),
-      transparent: true,
-      opacity: isSoftwareGl ? 0.12 : 0.26,
-      side: THREE.BackSide,
-      depthWrite: false,
+    const sharedBackOpticalGlassMat = createMatLiquidGlassShell({
+      softwareGl: isSoftwareGl,
+      face: 'back',
     });
 
     // Shared Titanium / Silver Material (silver nodes & portal rim)
@@ -2796,9 +2778,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     const hqAssembly = buildSphereAssembly(HQ_CENTER, 'hq', COLOUR_TOKENS.cobaltAccent);
 
-    // Always-on inner media for every connected sphere. HQ still yields the
-    // chapter-driven plate to introBridge while the 180s intro owns the camera,
-    // but CDE + satellites keep looping media so no shell reads as empty glass.
+    // Always-on inner media for every connected sphere (HQ, CDE, Campaign OS, About Us).
+    // Intro HQ chapter plates may override via introBridge, but the shell never
+    // mounts empty — mountAlwaysOnMedia always attaches a looping plate first.
     const ALWAYS_ON_SPHERE_MEDIA: Record<string, string> = {
       hq: '/media/sphere-showreel-fallback.mp4',
       cde: '/assets/media/young-human.mp4',
@@ -2810,8 +2792,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       sphereId: string,
       shellBandRadius: number
     ) => {
-      // During intro, HQ media is driven by introBridge chapter playback.
-      if (sphereId === 'hq' && introBridge.enabled) return;
       try {
         const handle = mountSphereVideoTexture({
           parent,
@@ -2829,6 +2809,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         });
       } catch (err) {
         console.warn(`[CosmographCanvas] ${sphereId} sphere video failed to mount`, err);
+        // Ice fallback plate is applied inside mountSphereVideoTexture on media errors;
+        // if mount itself throws, leave glass shell — never invent alternate materials.
       }
     };
     mountAlwaysOnMedia(hqAssembly.shellGroup, 'hq', 5.92);
@@ -4378,9 +4360,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       <div
         ref={mountRef}
         className="source-world"
+        data-testid="cosmograph-canvas"
         data-webgl-status={webglStatus}
         data-webgl-reason={webglReason}
-        aria-label="Cerebro WebGL spatial scene"
+        role="img"
+        tabIndex={0}
+        aria-label="Cerebro WebGL spatial scene. HQ and CDE dual-sphere intro."
       />
     );
   }
@@ -4393,6 +4378,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       {/* WebGL Canvas Mount */}
       <div
         ref={mountRef}
+        data-testid="cosmograph-canvas"
+        role="img"
+        tabIndex={0}
+        aria-label={
+          activeSphere === 'hq'
+            ? 'HQ containment sphere with stations and projects.'
+            : 'CDE containment sphere with culture and design dimensions.'
+        }
         className={`w-full h-full touch-none ${showReducedGraphicsFallback ? 'opacity-15 pointer-events-none' : ''}`}
       />
 
@@ -4419,10 +4412,32 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                 <h2 className="font-display text-sm md:text-base font-semibold text-[#F2F6F8] truncate">
                   {activeSphere === 'hq' ? 'HQ Spatial Map' : 'CDE Universe Map'}
                 </h2>
+                <p className="font-mono text-[11px] text-[#BDCBD3] mt-1" role="status">
+                  {webglStatus === 'CONTEXT_LOST'
+                    ? 'WebGL unavailable after context loss. Spatial map stays usable; retry restores glass spheres.'
+                    : webglReason ||
+                      'WebGL unavailable on this device. Use the 2D spatial map below.'}
+                </p>
               </div>
-              <span className="font-mono text-[12px] px-2 py-0.5 rounded bg-[#101622] border border-[color:var(--token-divider)] text-[#C5CCD6] shrink-0">
-                {webglReason || '2D Spatial Navigation Active'}
-              </span>
+              <div className="flex flex-col items-end gap-2 shrink-0">
+                <span className="font-mono text-[12px] px-2 py-0.5 rounded bg-[#101622] border border-[color:var(--token-divider)] text-[#C5CCD6]">
+                  {webglReason || '2D Spatial Navigation Active'}
+                </span>
+                <button
+                  type="button"
+                  data-testid="webgl-retry"
+                  className="min-h-[44px] min-w-[44px] px-3 rounded-xl border font-mono text-[11px] text-[#F2F6F8] hover:border-[#9AFFE0] cursor-pointer"
+                  style={{
+                    backgroundColor: '#101622',
+                    borderColor: 'rgba(154,255,224,0.35)',
+                  }}
+                  onClick={() => {
+                    window.location.reload();
+                  }}
+                >
+                  Retry WebGL
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
