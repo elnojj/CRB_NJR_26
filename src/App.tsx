@@ -420,7 +420,8 @@ export default function App() {
   const [handMode, setHandMode] = useState<HandDetectionMode>('right-only');
   const [activeGesture, setActiveGesture] = useState<HandGestureType>('pinch-orbit');
   // Spatial Health desk AR / wall calendar / node-chips (mounted in workspace chrome)
-  const [spatialHealthOpen, setSpatialHealthOpen] = useState<boolean>(true);
+  // Cover-post default: sphere is the hero; desk AR / calendar stay cold until opened.
+  const [spatialHealthOpen, setSpatialHealthOpen] = useState<boolean>(false);
   const [spatialHealthMode, setSpatialHealthMode] = useState<'dashboard' | 'project'>('dashboard');
 
   // 6. Voice State, Audience & Compose Task State
@@ -3991,13 +3992,14 @@ export default function App() {
               setShowCameraTray((v) => !v);
               if (showGuiQaHud) setShowGuiQaHud(false);
             }}
+            data-chrome-state={showCameraTray || showGuiQaHud ? 'active' : 'cold'}
             className={`cj-glass-card min-h-[40px] px-3 py-1.5 rounded-full font-mono text-[13px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
               showCameraTray || showGuiQaHud
-                ? 'border-[#D4AF37] text-[#FFF4D0] bg-[#D4AF37]/20'
-                : 'text-[#F2F6F8] hover:border-[#D4AF37]'
+                ? 'border-[color:var(--token-active-gold)] text-[#FFF4D0] bg-[color-mix(in_srgb,var(--token-active-gold)_20%,transparent)]'
+                : 'text-[color:var(--token-cold-text)] hover:border-[color:var(--token-active-gold)]'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-[#D4AF37]" />
+            <span className="w-2 h-2 rounded-full bg-[color:var(--token-active-gold)]" />
             <span>Camera</span>
             <span className="text-[12px] text-[#C5CCD6] font-normal">
               {telemetry.focalLengthMm ?? 35}mm
@@ -4228,17 +4230,20 @@ export default function App() {
               data-testid="browser-fullscreen-utility"
               data-cta-id="browser-fullscreen"
               onClick={() => void toggleBrowserFullscreen()}
+              data-chrome-state={browserFullscreen ? 'active' : 'cold'}
               className={`cj-glass-card min-h-[40px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full font-mono text-[13px] font-medium transition-colors cursor-pointer shrink-0 ${
                 browserFullscreen
-                  ? 'border-[#D4AF37] text-[#FFF4D0] bg-[#D4AF37]/20'
-                  : 'text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37]'
+                  ? 'border-[color:var(--token-active-gold)] text-[#FFF4D0] bg-[color-mix(in_srgb,var(--token-active-gold)_20%,transparent)]'
+                  : 'text-[color:var(--token-cold-text)] hover:text-[color:var(--token-text-primary)] hover:border-[color:var(--token-active-gold)]'
               }`}
               title={browserFullscreen ? 'Exit browser fullscreen (F)' : 'Enter browser fullscreen (F)'}
               aria-pressed={browserFullscreen}
             >
               <span
                 className={`w-2 h-2 rounded-full shrink-0 ${
-                  browserFullscreen ? 'bg-[#D4AF37]' : 'bg-white/30'
+                  browserFullscreen
+                    ? 'bg-[color:var(--token-active-gold)]'
+                    : 'bg-[color:var(--token-cold-border)]'
                 }`}
               />
               <span className="hidden sm:inline">
@@ -4253,12 +4258,15 @@ export default function App() {
             data-testid="ambience-mute-toggle"
             data-cta-id="ambience-toggle"
             onClick={handleToggleAmbience}
-            className="cj-glass-card min-h-[40px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full font-mono text-[13px] font-medium text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] transition-colors cursor-pointer shrink-0"
+            data-chrome-state={ambienceMuted ? 'cold' : 'active'}
+            className="cj-glass-card min-h-[40px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full font-mono text-[13px] font-medium text-[color:var(--token-cold-text)] hover:text-[color:var(--token-text-primary)] hover:border-[color:var(--token-active-gold)] transition-colors cursor-pointer shrink-0"
             title="Toggle ambient background soundscape"
           >
             <span
               className={`w-2 h-2 rounded-full transition-colors shrink-0 ${
-                ambienceMuted ? 'bg-white/30' : 'bg-[#D4AF37] animate-pulse'
+                ambienceMuted
+                  ? 'bg-[color:var(--token-cold-border)]'
+                  : 'bg-[color:var(--token-active-gold)] animate-pulse'
               }`}
             />
             <span className="hidden sm:inline">Ambience {ambienceMuted ? 'Off' : 'On'}</span>

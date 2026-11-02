@@ -4336,14 +4336,17 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         <div className="cerebro-infograph-layer fixed inset-0 pointer-events-none z-10">
           <svg className="fixed inset-0 w-full h-full pointer-events-none" aria-hidden="true">
             {labels2D.map((item, idx) => {
-              const viewportW =
-                typeof window !== 'undefined' ? window.innerWidth : 1280;
-              const showProjectsAlways = viewportW >= 1100;
+              // Cover-post density: stations/core only by default; projects only when
+              // focused or attention (At risk / Blocked) — never flood desktop with all chips.
+              const isAttentionProject =
+                item.nodeType === 'project' &&
+                !!item.sublabel &&
+                /At risk|Blocked/i.test(item.sublabel);
               const isPrimaryStation =
                 item.nodeType === 'station' ||
                 item.nodeType === 'dimension' ||
                 item.nodeType === 'core' ||
-                (item.nodeType === 'project' && showProjectsAlways);
+                (item.nodeType === 'project' && (item.isFocused || isAttentionProject));
               if (
                 (!item.isFocused && !isPrimaryStation) ||
                 item.anchorX === undefined ||
@@ -4353,14 +4356,18 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               }
               const badgeAnchorX = item.x + 14;
               const badgeAnchorY = item.y + 19;
-              const strokeCol = item.isFocused ? '#D4AF37' : 'rgba(180, 221, 255, 0.42)';
-              const dotCol = item.isFocused ? '#D4AF37' : '#B4DDFF';
+              const strokeCol = item.isFocused
+                ? 'var(--token-active-gold)'
+                : 'color-mix(in srgb, var(--token-active-ice) 42%, transparent)';
+              const dotCol = item.isFocused
+                ? 'var(--token-active-gold)'
+                : 'var(--token-active-ice)';
               const midX = (item.anchorX + badgeAnchorX) * 0.5;
               const midY = (item.anchorY + badgeAnchorY) * 0.5 - 10;
               return (
                 <g
                   key={`tether-${activeSphere}-${item.id}-${item.nodeType}`}
-                  opacity={item.isFocused ? 0.98 : 0.58}
+                  opacity={item.isFocused ? 0.98 : 'var(--token-cold-opacity)'}
                   style={{ animationDelay: `${(idx % 8) * 60}ms` }}
                 >
                   <path
@@ -4391,18 +4398,19 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           </svg>
 
           {labels2D.map((item, idx) => {
-            const viewportW =
-              typeof window !== 'undefined' ? window.innerWidth : 1280;
-            const showProjectsAlways = viewportW >= 1100;
+            const isAttentionProject =
+              item.nodeType === 'project' &&
+              !!item.sublabel &&
+              /At risk|Blocked/i.test(item.sublabel);
             const isPrimaryStation =
               item.nodeType === 'station' ||
               item.nodeType === 'dimension' ||
               item.nodeType === 'core' ||
-              (item.nodeType === 'project' && showProjectsAlways);
+              (item.nodeType === 'project' && (item.isFocused || isAttentionProject));
             const x = Math.round(item.x);
             const y = Math.round(item.y);
-            // Skip rendering non-primary chips on phone/tablet — keeps motion-graph readable
-            if (!item.isFocused && !isPrimaryStation && viewportW < 1100) {
+            // Cover-post: hide cold project chips; keep stations + attention only
+            if (!item.isFocused && !isPrimaryStation) {
               return null;
             }
             return (
@@ -4411,6 +4419,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                 type="button"
                 data-testid={`sphere-label-${item.id}`}
                 data-object-code={item.objectCode}
+                data-chrome-state={item.isFocused ? 'active' : 'cold'}
                 onPointerDown={(e) => e.stopPropagation()}
                 onPointerEnter={() => {
                   stateRef.current.HoveredNodeId = item.id;
@@ -4433,15 +4442,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                 style={{
                   transform: `translate3d(${x}px, ${y}px, 0)`,
                   borderColor: item.isFocused
-                    ? '#D4AF37'
-                    : 'rgba(180, 221, 255, 0.36)',
+                    ? 'var(--token-active-gold)'
+                    : 'color-mix(in srgb, var(--token-active-ice) 36%, transparent)',
                 }}
-                className={`cerebro-focus-label cerebro-infograph-label fixed top-0 left-0 min-h-[38px] pointer-events-auto cursor-pointer px-3.5 py-1.5 rounded-full border flex items-center gap-2.5 text-left group hover:border-[#D4AF37] ${
+                className={`cerebro-focus-label cerebro-infograph-label fixed top-0 left-0 min-h-[38px] pointer-events-auto cursor-pointer px-3.5 py-1.5 rounded-full border flex items-center gap-2.5 text-left group hover:border-[color:var(--token-active-gold)] ${
                   item.isFocused
-                    ? 'is-focused opacity-100 shadow-[0_0_24px_rgba(212,175,55,0.24)]'
-                    : isPrimaryStation
-                    ? 'opacity-95 hover:opacity-100 focus:opacity-100'
-                    : 'opacity-0 hover:opacity-100 focus:opacity-100'
+                    ? 'is-focused opacity-100'
+                    : isAttentionProject
+                    ? 'opacity-90 hover:opacity-100 focus:opacity-100'
+                    : 'opacity-[var(--token-cold-opacity)] hover:opacity-100 focus:opacity-100'
                 }`}
               >
                 <span className="ig-pulse" aria-hidden="true" />
