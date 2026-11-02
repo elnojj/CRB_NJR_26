@@ -148,6 +148,8 @@ interface ExperienceCanvasProps {
   onOpenMediaTubeFullView?: (tileOrIndex: number | ProjectMediaTubeItem, tile?: ProjectMediaTubeItem) => void;
   onCloseMediaTube?: () => void;
   gestureTrackingActive?: boolean;
+  projectWorldId?: string | null;
+  projectWorldState?: 'entry' | 'active' | 'suspended' | 'exiting' | 'unavailable' | null;
 }
 
 export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
@@ -176,6 +178,8 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
   onOpenMediaTubeFullView,
   onCloseMediaTube,
   gestureTrackingActive = true,
+  projectWorldId = null,
+  projectWorldState = null,
 }) => {
   const osReducedMotion = useReducedMotion();
   const effectiveReducedMotion = Boolean(reducedMotion || osReducedMotion);
@@ -206,6 +210,8 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
         onOpenMediaTubeFullView={onOpenMediaTubeFullView}
         onCloseMediaTube={onCloseMediaTube}
         gestureTrackingActive={gestureTrackingActive}
+        projectWorldId={projectWorldId}
+        projectWorldState={projectWorldState}
       />
 
       {/* Reduced-Motion / Fallback Rest Sphere + Interactive 2D SVG Orbital Station Pins */}

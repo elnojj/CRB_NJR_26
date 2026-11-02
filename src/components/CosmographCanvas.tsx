@@ -47,6 +47,10 @@ import {
   buildMasterProjectPortals,
   projectPortalCountLabel,
 } from '../three/masterSphere';
+import {
+  mountUnavailableProjectWorld,
+  type ProjectWorldHostHandle,
+} from '../three/projectWorldHost';
 import { getSphereTextureAsset } from '../data/driveMediaCatalog';
 import { introBridge } from '../intro/bridge';
 import {
@@ -372,6 +376,8 @@ export interface AnchoredLabel2D {
 
 export interface CameraCommandPayload {
   id: number;
+  /** L06 — navigation generation; stale completions must ignore older generations. */
+  generation?: number;
   verb:
     | 'arrival'
     | 'switch_sphere'
@@ -602,6 +608,9 @@ export interface CosmographCanvasProps {
   onSceneReady?: (scene: THREE.Scene) => void;
   /** When hand tracking is lost, settle residual gesture velocity without teleport. */
   gestureTrackingActive?: boolean;
+  /** Active project-world portal id — mounts/disposes a scoped host under master. */
+  projectWorldId?: string | null;
+  projectWorldState?: 'entry' | 'active' | 'suspended' | 'exiting' | 'unavailable' | null;
 }
 
 export const HQ_CENTER = sphereCenterVec('hq');
@@ -867,8 +876,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   onCloseMediaTube,
   onSceneReady,
   gestureTrackingActive = true,
+  projectWorldId = null,
+  projectWorldState = null,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
+  const masterRootRef = useRef<THREE.Object3D | null>(null);
+  const projectWorldHostRef = useRef<ProjectWorldHostHandle | null>(null);
   const [labels2D, setLabels2D] = useState<AnchoredLabel2D[]>([]);
   const [webglStatus, setWebglStatus] = useState<'ACTIVE' | 'CONTEXT_LOST' | 'FALLBACK'>('ACTIVE');
   const [webglReason, setWebglReason] = useState<string>('');
@@ -2796,6 +2809,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       masterRadius: MASTER_SPHERE.radius,
       portalCountLabel: projectPortalCountLabel(PROJECTS_DATA.length),
     };
+    masterRootRef.current = hqAssembly.root;
 
     // Master-sphere inner project portals — count derived from source data (not "6 Suns").
     {
@@ -4432,10 +4446,42 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       sharedPlanetBeadGeo.dispose();
       sharedSatBeadGeo.dispose();
       extraDisposables.forEach((d) => d.dispose());
+      projectWorldHostRef.current?.dispose();
+      projectWorldHostRef.current = null;
+      masterRootRef.current = null;
       introBridge.detach();
       renderer.dispose();
     };
   }, [customDomains.length, sphereMaterials.hq, sphereMaterials.cde]);
+
+  // L03: mount/dispose project-world host under master without a second renderer.
+  useEffect(() => {
+    const parent = masterRootRef.current;
+    if (!parent) return;
+    if (!projectWorldId || projectWorldState === 'exiting') {
+      projectWorldHostRef.current?.dispose();
+      projectWorldHostRef.current = null;
+      return;
+    }
+    if (projectWorldHostRef.current?.projectId === projectWorldId) {
+      if (projectWorldState === 'suspended') projectWorldHostRef.current.suspend();
+      else if (projectWorldState === 'active' || projectWorldState === 'entry') {
+        projectWorldHostRef.current.resume();
+      }
+      return;
+    }
+    projectWorldHostRef.current?.dispose();
+    const proj = PROJECTS_DATA.find((p) => p.id === projectWorldId);
+    projectWorldHostRef.current = mountUnavailableProjectWorld({
+      parent,
+      projectId: projectWorldId,
+      title: proj?.name || projectWorldId,
+    });
+    if (projectWorldState === 'suspended') projectWorldHostRef.current.suspend();
+    return () => {
+      /* host lives until id changes or scene teardown */
+    };
+  }, [projectWorldId, projectWorldState]);
 
   if (introBridge.enabled) {
     return (

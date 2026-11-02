@@ -333,6 +333,8 @@ export default function App() {
   const [voiceExpanded, setVoiceExpanded] = useState<boolean>(false);
   const [voiceSheetExpanded, setVoiceSheetExpanded] = useState<boolean>(false);
   const [projectWorld, setProjectWorld] = useState<ProjectWorldRuntime>(IDLE_PROJECT_WORLD);
+  /** L06 — bump on every accepted navigation so stale tour/voice/gesture completions abort. */
+  const navGenerationRef = useRef(0);
   const [voiceDragDelta, setVoiceDragDelta] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [projectedTarget, setProjectedTarget] = useState<ProjectedTargetScreenCoords | null>(null);
@@ -639,9 +641,11 @@ export default function App() {
       }
     ) => {
       cmdCounterRef.current += 1;
+      navGenerationRef.current += 1;
       setCameraCommand({
         id: cmdCounterRef.current,
         verb,
+        generation: navGenerationRef.current,
         ...options,
       });
     },
@@ -3579,6 +3583,8 @@ export default function App() {
         customDomains={customDomains}
         sphereMaterials={sphereMaterials}
         selectedBlueprintTaskId={selectedBlueprintTaskId}
+        projectWorldId={projectWorld.projectId}
+        projectWorldState={projectWorld.projectId ? projectWorld.state : null}
         onSelectNode={handleSelectNode}
         onSelectPortalStation={(st) => {
           setSelectedBlueprintTaskId(st.linkedTaskId);
