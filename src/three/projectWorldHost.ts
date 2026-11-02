@@ -4,6 +4,7 @@
  * without creating a second renderer or camera owner.
  */
 import * as THREE from 'three';
+import { createMatLiquidGlassShell } from '../materials/matLiquidGlassShell';
 
 export type ProjectWorldHostHandle = {
   root: THREE.Group;
@@ -15,7 +16,7 @@ export type ProjectWorldHostHandle = {
 
 /**
  * Mount a minimal unavailable/placeholder world under the master sphere.
- * Does not invent playable media — uses ice plate material only.
+ * Does not invent playable media — ice caption plate + MAT_LIQUID_GLASS_SHELL only.
  */
 export function mountUnavailableProjectWorld(options: {
   parent: THREE.Object3D;
@@ -31,16 +32,8 @@ export function mountUnavailableProjectWorld(options: {
   };
 
   const geo = new THREE.SphereGeometry(2.2, 32, 24);
-  const mat = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color('#0A1218'),
-    metalness: 0,
-    roughness: 0.2,
-    transmission: 0.6,
-    thickness: 1.2,
-    transparent: true,
-    opacity: 0.85,
-    depthWrite: false,
-  });
+  // Named registry shell — do not invent an alternate transmission recipe.
+  const mat = createMatLiquidGlassShell({ face: 'front' });
   const shell = new THREE.Mesh(geo, mat);
   shell.name = `project-world-shell-${options.projectId}`;
   root.add(shell);
