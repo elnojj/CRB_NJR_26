@@ -59,6 +59,8 @@ export function Explainer60Player({ onEnterWorkspace, lang = 'en' }: Props) {
   const [playing, setPlaying] = useState(false);
   const [copy, setCopy] = useState({ en: '', ar: '', focus: '' });
   const [frame, setFrame] = useState(0);
+  const [wordCount, setWordCount] = useState(0);
+  const [activeLang, setActiveLang] = useState<'en' | 'ar'>(lang);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -91,6 +93,10 @@ export function Explainer60Player({ onEnterWorkspace, lang = 'en' }: Props) {
         const sampled = sampleExplainer60Pose(cfg, t);
         setFrame(sampled.frame);
         if (sampled.beat) {
+          const elapsed = Math.max(0, sampled.frame - sampled.beat.frames[0]);
+          const progress = Math.min(1, elapsed / Math.max(1, sampled.beat.frames[1] - sampled.beat.frames[0]));
+          const activeText = activeLang === 'ar' ? sampled.beat.copyAr : sampled.beat.copyEn;
+          setWordCount(Math.max(1, Math.ceil(activeText.trim().split(/\s+/).length * Math.min(1, progress * 1.8))));
           setCopy({
             en: sampled.beat.copyEn,
             ar: sampled.beat.copyAr,
@@ -137,7 +143,9 @@ export function Explainer60Player({ onEnterWorkspace, lang = 'en' }: Props) {
     onEnterWorkspace?.();
   };
 
-  const dir = lang === 'ar' ? 'rtl' : 'ltr';
+  const dir = activeLang === 'ar' ? 'rtl' : 'ltr';
+  const activeCopy = activeLang === 'ar' ? copy.ar : copy.en;
+  const visibleWords = activeCopy.trim().split(/\s+/).slice(0, wordCount).join(' ');
 
   return (
     <main className="intro-shell chrome-visible" data-edition="explainer-60" data-testid="explainer-60">
@@ -176,16 +184,14 @@ export function Explainer60Player({ onEnterWorkspace, lang = 'en' }: Props) {
             Enter Cerebro <span aria-hidden="true">↗</span>
           </button>
         </div>
-        <section className="editorial editorial-live" dir={dir} lang={lang === 'ar' ? 'ar' : 'en'}>
+        <section className="editorial editorial-live" dir={dir} lang={activeLang}>
           <div className="eyebrow">{copy.focus}</div>
-          <h1>{lang === 'ar' ? copy.ar : copy.en}</h1>
-          <p className="subline" dir={lang === 'ar' ? 'ltr' : 'rtl'} lang={lang === 'ar' ? 'en' : 'ar'}>
-            {lang === 'ar' ? copy.en : copy.ar}
+          <h1>{visibleWords}</h1>
+          <p className="subline" dir={activeLang === 'ar' ? 'ltr' : 'rtl'} lang={activeLang === 'ar' ? 'en' : 'ar'}>
+            {activeLang === 'ar' ? copy.en : copy.ar}
           </p>
         </section>
-        <p className="captions" dir={dir}>
-          {lang === 'ar' ? copy.ar : copy.en}
-        </p>
+        <p className="captions" dir={dir}>{visibleWords}</p>
         <div className="chrome-layer is-visible">
           <footer className="transport" aria-label="Explainer playback">
             <button
@@ -203,9 +209,12 @@ export function Explainer60Player({ onEnterWorkspace, lang = 'en' }: Props) {
             >
               {playing ? 'Pause' : 'Play'}
             </button>
+            <button type="button" aria-pressed={activeLang === 'en'} onClick={() => setActiveLang('en')}>EN</button>
+            <button type="button" aria-pressed={activeLang === 'ar'} onClick={() => setActiveLang('ar')}>عربي</button>
             <span data-testid="explainer60-frame">
               f{frame} / 3600 · {Math.floor(playerRef.current.time())}s
             </span>
+            <span className="audio-status" role="status">Voice alignment unavailable · visual timing is unverified</span>
             {error ? <span role="alert">{error}</span> : null}
           </footer>
         </div>

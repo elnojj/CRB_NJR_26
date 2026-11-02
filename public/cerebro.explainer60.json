@@ -21,21 +21,13 @@
     "arabicFont": "assets/fonts/arabic.ttf"
   },
   "beats": [
-    { "frames": [0, 240], "focus": "NOJARA / Cerebro", "copyEn": "Culture. Designed to move.", "copyAr": "ثقافة. مصمَّمة لتتحرّك." },
-    { "frames": [240, 480], "focus": "HQ operating sphere", "copyEn": "Work, connected.", "copyAr": "عمل متّصل." },
-    { "frames": [480, 720], "focus": "Verified project core", "copyEn": "Decisions meet delivery.", "copyAr": "القرارات تلتقي بالتسليم." },
-    { "frames": [720, 960], "focus": "Projects", "copyEn": "One visible system.", "copyAr": "نظام واحد ظاهر." },
-    { "frames": [960, 1200], "focus": "People / Tarek chapter", "mediaId": "tarek", "copyEn": "Built from the work.", "copyAr": "مبني من العمل." },
-    { "frames": [1200, 1440], "focus": "Young & Human", "copyEn": "Creators make culture.", "copyAr": "المبدعون يصنعون الثقافة." },
-    { "frames": [1440, 1680], "focus": "Verified Young & Human media", "copyEn": "Show the work.", "copyAr": "أظهر العمل." },
-    { "frames": [1680, 1920], "focus": "CDE sphere", "copyEn": "Research shapes design.", "copyAr": "البحث يشكّل التصميم." },
-    { "frames": [1920, 2160], "focus": "CDE dimensions", "copyEn": "Four connected lenses.", "copyAr": "أربع عدسات متّصلة." },
-    { "frames": [2160, 2400], "focus": "Campaign OS", "copyEn": "From brief to evidence.", "copyAr": "من الموجز إلى الدليل." },
-    { "frames": [2400, 2640], "focus": "About Us", "copyEn": "People make systems.", "copyAr": "الناس يصنعون الأنظمة." },
-    { "frames": [2640, 2880], "focus": "Industry threshold", "copyEn": "Making has a method.", "copyAr": "للصنع منهج.", "assetGate": "PROPOSED" },
-    { "frames": [2880, 3120], "focus": "إصطمبة procedural proof", "copyEn": "Form follows process.", "copyAr": "الشكل يتبع العملية.", "assetGate": "PROPOSED" },
-    { "frames": [3120, 3360], "focus": "Connected sphere network", "copyEn": "One creative ecosystem.", "copyAr": "منظومة إبداع واحدة." },
-    { "frames": [3360, 3600], "focus": "HQ arrival and Enter control", "copyEn": "Enter Cerebro.", "copyAr": "ادخل سيريبو." }
+    { "frames": [0, 480], "focus": "THE CLIENT", "copyEn": "Your client is generating. Do they still need a production house?", "copyAr": "عميلك بقى بيولّد محتوى. لسه محتاج بيت إنتاج؟" },
+    { "frames": [480, 1020], "focus": "THE CONTENT PIPELINE", "copyEn": "One idea. A hundred formats. Who’s building the content pipeline?", "copyAr": "فكرة واحدة. مئة شكل. مين بيبني خط إنتاج المحتوى؟" },
+    { "frames": [1020, 1560], "focus": "PRODUCTION OPERATIONS", "copyEn": "Your supplier has AI. But who’s running the production?", "copyAr": "موردك عنده ذكاء اصطناعي. بس مين بيدير الإنتاج؟" },
+    { "frames": [1560, 2100], "focus": "TALENT", "copyEn": "The next star might be synthetic. Who’s sourcing and verifying talent?", "copyAr": "النجم الجاي ممكن يكون اصطناعي. مين بيجيب المواهب وبيتحقق منها؟" },
+    { "frames": [2100, 2640], "focus": "DISTRIBUTION", "copyEn": "Every platform wants content. Who’s building the audience?", "copyAr": "كل منصة عايزة محتوى. مين بيبني الجمهور؟" },
+    { "frames": [2640, 3120], "focus": "OPERATIONS", "copyEn": "More content. More complexity. Who’s operating the whole thing?", "copyAr": "محتوى أكتر. تعقيد أكتر. مين بيدير المنظومة كلها؟" },
+    { "frames": [3120, 3600], "focus": "THE REVEAL", "copyEn": "Content is everywhere. The real business is the system behind it.", "copyAr": "المحتوى في كل مكان. البيزنس الحقيقي هو النظام اللي وراه." }
   ],
   "cameraKeys": [
     { "frame": 0, "position": [0, 4.2, 22], "target": [0, 0, 0], "focalMm": 35 },
