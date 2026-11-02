@@ -2,6 +2,11 @@
 
 Spatial dual-sphere project orchestration for NOJARA Studios, plus the **180s JSON-driven introduction** (`CerebroIntro`).
 
+## Screen & Action Map
+
+- **v0.1 PDF** = historical code inventory at `51be7ca` — **not** a validated live map or QA sign-off. See `docs/screen-action-map/`.
+- **v0.2** = matrix scaffold on current `main`; fill click/WebGL evidence before acceptance.
+
 ## AI Studio Git sync
 
 Google AI Studio pulls from **GitHub** `main` (`elnojj/CRB_NJR_26`), not Cursor Origin.

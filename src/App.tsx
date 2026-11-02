@@ -4288,7 +4288,7 @@ export default function App() {
         onClose={() => setShowDownloadModal(false)}
       />
 
-      {/* 9. Authenticated Developer View Modal (Diagnostics, Camera Telemetry, Phase 0 Audit, Source ZIP, 18-Tool Audit & 16-Point Self-Test Suite) */}
+      {/* 9. Authenticated Developer View Modal (Diagnostics, Camera Telemetry, Phase 0 Audit, Source ZIP, tool audit & 21-Point Self-Test Suite) */}
       {showDeveloperDrawer && (
         <div
           onPointerDown={(e) => e.stopPropagation()}

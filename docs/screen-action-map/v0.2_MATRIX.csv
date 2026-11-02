@@ -1,0 +1,9 @@
+id,type,url_or_trigger,component_chain,state_keys,mount_condition,close_path,expected_result,actual_click_result,mobile_result,permission,evidence,commit
+E01,entry_mode,"first visit / no ?view=",CerebroIntro>CosmographCanvas,intro clock,no explicit workspace view,Enter Cerebro / intro end,180s intro plays,unverified,unverified,public,unverified,35d1d08
+E02,entry_mode,"?view=hq / arrival / aliases",App>ExperienceCanvas>DualSphereCanvas>CosmographCanvas,"view, sphere",explicit workspace view,n/a (workspace),skips intro into HQ spatial,unverified,unverified,public,unverified,35d1d08
+E03,entry_mode,"?view=dashboard / pockets",App>ExperienceCanvas chain,dashboard collapsed flag,alias in route effect,expand/collapse control,collapses dashboard — not a distinct screen,unverified,unverified,public,unverified,35d1d08
+S01,spatial_layer,default after boot,ExperienceCanvas>DualSphereCanvas>CosmographCanvas,"webglStatus, sphere",workspace mounted,n/a,dual-sphere WebGL stage,unverified,unverified,public,unverified,35d1d08
+P01,panel,focus project / plan CTA,SpatialHealthLayout>InteractiveProjectPlan,"map|list, filters, pan, zoom, history, selection",project focus + plan open,plan close / dismiss,interactive plan with linked node actions,unverified,unverified,per audience,unverified — missing from v0.1,35d1d08
+P02,panel,spatial health / desk AR,DiskArHealthDashboard / calendar,health overlays,HQ health mode; hidden during tour,mode exit,desk-AR health metrics,unverified,unverified,per audience,unverified,35d1d08
+M01,modal,owner developer,App developer drawer,"showDeveloperDrawer, selfTest*",owner-only,close control,diagnostics + 21 self-test assertions,unverified,unverified,owner only,unverified,35d1d08
+D01,dock,voice capsule,VoiceCard,"transcript, call state",workspace chrome,minimize / end,voice dock without clipping,unverified,unverified,per audience,unverified,35d1d08
