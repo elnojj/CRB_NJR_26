@@ -141,10 +141,18 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
       h: Math.max(120, safeBottom - safeTop),
     };
 
+    // L05 — include bottom utility strip in collision checks (not only header/panel/voice).
+    const utilityRect: GuiRect = {
+      x: padX,
+      y: Math.max(voiceRect.y + voiceRect.h + 4, height - 56 - kbInset),
+      w: colW,
+      h: 48,
+    };
     const allInteractiveRects = [
       headerRect,
       ...panelSlots.map((s) => s.rect),
       voiceRect,
+      utilityRect,
     ];
     const check = verifyZeroOverlap(allInteractiveRects, GUI_TOUCH_TOKENS.panelCollisionMarginPx);
 
