@@ -1,12 +1,17 @@
 @import "tailwindcss";
 @import "./styles/cerebro.tokens.css";
 
+/* Film-reference display face only — not the locked app default stack. */
 @font-face {
   font-family: 'JaapokkiSubtract';
   src: local('Jaapokki Subtract'), local('JaapokkiSubtract-Regular'), local('Jaapokki'), local('Sora');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
+}
+
+.font-film-display {
+  font-family: var(--font-film-display);
 }
 
 @layer base {

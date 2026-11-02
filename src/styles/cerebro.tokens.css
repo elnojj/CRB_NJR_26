@@ -100,13 +100,16 @@
 
   /* ------------------------------------------------------------------------
      5. TYPOGRAPHY
-        Locked font stack from app token system; film display reserve kept.
+        Locked app scope (cerebro.config visualAuthority.lockedDecisions.fonts):
+        Sora titles · Inter body · JetBrains Mono data · Noto Kufi Arabic.
+        Jaapokki / film display is scoped to --font-film-display only.
      ------------------------------------------------------------------------ */
-  /* Jaapokki Subtract is the approved English display face when the licensed file is present. */
-  --font-display: 'JaapokkiSubtract', 'Jaapokki', 'Sora', system-ui, sans-serif;
-  --font-sans:    'Sora', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif;
+  --font-display: 'Sora', system-ui, sans-serif;
+  --font-sans:    'Inter', system-ui, -apple-system, sans-serif;
   --font-mono:    'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
-  --font-arabic:  'Cairo', 'Tajawal', 'IBM Plex Sans Arabic', 'Sora', system-ui, sans-serif;
+  --font-arabic:  'Noto Kufi Arabic', 'Noto Sans Arabic', sans-serif;
+  /* Film-reference variant only (sehly-180s-film-reference) — pending owner decision */
+  --font-film-display: 'JaapokkiSubtract', 'Jaapokki', 'Sora', system-ui, sans-serif;
 
   /* ------------------------------------------------------------------------
      6. GEOMETRY & MOTION

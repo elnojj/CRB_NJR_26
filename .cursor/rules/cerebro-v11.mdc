@@ -1,0 +1,52 @@
+---
+description: Cerebro 39 / Sehly Master v2.0 design lock — configuration authority and scoped variants
+alwaysApply: true
+---
+
+# Cerebro v11 design lock
+
+## 1. Configuration authority
+
+- `docs/design-system/config/cerebro.config.json` (453 declared leaves) and `sourceLock` `1f78a1295d4dd36a11320995c1e14bf17788ac25` are the configuration authority.
+- Keep `public/design-system/cerebro.config.json` as a published mirror of the docs authority.
+- Do **not** silently change tokens with status `locked` or `source`.
+- Prefer extending via `extension` status or project panels; never invent a second conflicting token authority.
+
+## 2. Locked app vs Sehly film-reference variant
+
+Locked **app** typography (default UI):
+
+- Titles: **Sora**
+- Body: **Inter**
+- Data: **JetBrains Mono**
+- Arabic: **Noto Kufi Arabic** (no letter-spacing on Arabic)
+
+**Film-reference only** (`sehly-180s-film-reference`, pending owner decision):
+
+- Jaapokki Subtract display
+- Physical gold / bronze rails
+- Selective bloom
+
+Do not apply film-only treatments as global app chrome.
+
+## 3. Panel and spatial ownership
+
+- Extend project panels through `src/components/WireframesV11Panels.tsx` and `src/components/PanelsOverlay.tsx`.
+- Preserve: single WebGL renderer, one camera owner (`CosmographCanvas` / spatial navigation), `sceneSafeRect` layout, existing actions, reversible navigation.
+- Do not add React Three Fiber or a competing animation loop.
+
+## 4. Materials
+
+- Use named material definitions from `public/design-system/material-registry.json` (e.g. `MAT_LIQUID_GLASS_SHELL`, `MAT_SILVER_CORE`, `MAT_BRONZE_GOLD_RAILS`, `MAT_D0_GOLD_RIBBED`).
+- Do **not** apply one transmission, IOR, `depthWrite`, bloom, or CSS `perspective` / `rotateX`/`rotateY` transform to every component.
+
+## 5. Brand, a11y, fallback
+
+- Preserve the original NOJARA logo image asset (not a typed wordmark substitute).
+- Accurate Arabic / RTL; minimum **44px** interactive targets; readable captions; reduced motion; 2D / reduced-graphics fallback.
+
+## 6. Editions remain separate
+
+- Preserve the **180-second** intro (`10800` frames).
+- Preserve the **18-screen** interactive tour.
+- Keep the **60-second** executive / explainer edition separately selectable (`?explainer=60`). Do not shorten or overwrite the 180s timeline.

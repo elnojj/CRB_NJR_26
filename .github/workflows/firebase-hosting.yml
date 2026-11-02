@@ -24,16 +24,18 @@ jobs:
           cache: npm
       - name: Install
         run: npm ci
+      - name: Validate design lock
+        run: npm run validate:design
       - name: Lint
         run: npm run lint
       - name: Typecheck intro
         run: npm run typecheck:intro
       - name: QA spheres
         run: npm run qa:spheres
-      - name: QA intro
-        run: npm run qa:intro
       - name: QA remediation contract
         run: npm run qa:remediation
+      - name: QA intro
+        run: npm run qa:intro
       - name: Build
         run: npm run build
       - name: Deploy Hosting
