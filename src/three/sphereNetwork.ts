@@ -18,7 +18,11 @@ export type SphereNetworkNode = {
   status: 'live' | 'connected' | 'proposed';
 };
 
-/** All four peer spheres are live in the workspace. Fifth remains proposed. */
+/**
+ * Compact diamond so all four live shells read in one constellation overview
+ * (default ~24–35mm pullback). Far legacy coords ([38,4,-22] etc.) hid peers
+ * outside the first viewport and looked like a dual-sphere scene.
+ */
 export const SPHERE_NETWORK: readonly SphereNetworkNode[] = [
   {
     id: 'hq',
@@ -33,7 +37,7 @@ export const SPHERE_NETWORK: readonly SphereNetworkNode[] = [
     id: 'cde',
     labelEn: 'CDE Universe',
     labelAr: 'عالم التصميم',
-    center: [38, 4, -22],
+    center: [14, 2.5, -8],
     radius: 6.2,
     materialPreset: 'cde-amber-crystal',
     status: 'live',
@@ -42,7 +46,7 @@ export const SPHERE_NETWORK: readonly SphereNetworkNode[] = [
     id: 'campaign-os',
     labelEn: 'Campaign OS',
     labelAr: 'نظام الحملات',
-    center: [-34, 3, -18],
+    center: [-13, 2, -7],
     radius: 5.4,
     materialPreset: 'campaign-ice',
     status: 'live',
@@ -51,12 +55,23 @@ export const SPHERE_NETWORK: readonly SphereNetworkNode[] = [
     id: 'about-us',
     labelEn: 'About Us',
     labelAr: 'من نحن',
-    center: [22, 2, 28],
+    center: [8, 1.5, 12],
     radius: 5.0,
     materialPreset: 'about-gold-glass',
     status: 'live',
   },
 ] as const;
+
+/** World-space look-at for the four-sphere constellation overview. */
+export function sphereNetworkCentroid(): THREE.Vector3 {
+  const acc = new THREE.Vector3();
+  for (const node of SPHERE_NETWORK) {
+    acc.x += node.center[0];
+    acc.y += node.center[1];
+    acc.z += node.center[2];
+  }
+  return acc.multiplyScalar(1 / SPHERE_NETWORK.length);
+}
 
 export const LIVE_SPHERE_IDS: readonly ConnectedSphereId[] = SPHERE_NETWORK.map((s) => s.id);
 

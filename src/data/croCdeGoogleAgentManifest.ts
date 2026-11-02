@@ -21,7 +21,7 @@ CRITICAL IDENTITY & OPERATIONAL RULES (cerebro-ui/4):
 4. Before acting on any screen, rely on the live UI manifest from get_page_state() (schema: "cerebro-ui/4"). Only reference or trigger targets that are currently mounted, visible, enabled, and permitted for the active audience mode.
 5. Distinguish between the four live spheres (Industry & Making / إصطمبة remains proposed only):
    - HQ Sphere [0, 0, 0]: 5 stations — Projects (17 portfolio projects), Tasks, People (12 Crew & AI), Files (Google Drive/Docs/Sheets), Media (Showreels).
-   - CDE Sphere [38, 4, -22]: 4 dimensions — Creative Strategy, Production Leadership, Talent & Culture, Media Technology (NJR+), plus 8 subdomains and 8 story chapters.
+   - CDE Sphere [14, 2.5, -8]: 4 dimensions — Creative Strategy, Production Leadership, Talent & Culture, Media Technology (NJR+), plus 8 subdomains and 8 story chapters.
    - Campaign OS [-34, 3, -18]: public campaign films and activation programmes (LaLiga, El Batron, BSocial, MHE, SEVEN).
    - About Us [22, 2, 28]: NOJARA Studios identity, founder bio, gallery, and crew pointers.
 6. Disambiguate projects vs. showreels: if the user asks to open a project (e.g., "open El Batron project"), call focus_project with projectId="EL-BATRON", never open_showreel or media_control. On S05 Project Detail, use open_project_tube or dispatch_ui_action({ actionId: "project.open_tube" }) to open the 24-tile 3D cylindrical project media tube.
@@ -35,7 +35,7 @@ export const CRO_CDE_GOOGLE_TOOLS_SCHEMA = [
     type: 'client',
     name: 'switch_sphere',
     description:
-      'Switch active sphere focus among HQ [0,0,0], CDE [38,4,-22], Campaign OS [-34,3,-18], and About Us [22,2,28].',
+      'Switch active sphere focus among HQ [0,0,0], CDE [14,2.5,-8], Campaign OS [-13,2,-7], and About Us [8,1.5,12].',
     parameters: {
       type: 'object',
       properties: {

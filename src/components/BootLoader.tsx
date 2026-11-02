@@ -12,7 +12,7 @@ interface BootLoaderProps {
 }
 
 const STATUS_LINES = [
-  'Preparing HQ [0,0,0] and CDE [38,4,-22] dual-sphere spatial workspace',
+  'Preparing four-sphere constellation: HQ · CDE · Campaign OS · About Us',
   'Loading 17 Wireframes v1.1 panels, 5 HQ stations, and 4 CDE dimensions',
   'Reading NOJARA project register snapshot (23 Oct 2026 · 52 records · 17 projects)',
   'Initializing 22-tool Cro-cde-google voice bridge and camera controls',
@@ -267,7 +267,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
   const isExiting = progressRatio >= 0.96;
 
   const KINETIC_SUPERS = [
-    { title: 'INITIALIZING SPATIAL WORKSPACE', subtitle: 'HQ [0,0,0] & CDE [38,4,-22] dual-sphere core' },
+    { title: 'INITIALIZING SPATIAL WORKSPACE', subtitle: 'HQ · CDE · Campaign OS · About Us constellation' },
     { title: 'CALIBRATING DUAL-SPHERE OPTICS', subtitle: 'Refractive liquid glass & 35mm Master Prime standard' },
     { title: 'ALIGNING NEURAL PROJECT GRAPHS', subtitle: '52 verified records · 17 projects snapshot' },
     { title: 'CEREBRO ACTIVE · WELCOME 39', subtitle: 'Founder and Culture & Design Engineering' },
@@ -340,7 +340,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
             CEREBRO · SPATIAL KINEMATIC BOOT
           </span>
           <span className="hidden sm:inline font-mono text-[10px] text-[#C5CCD6] px-2 py-0.5 rounded border border-white/10 bg-[#101622]/60">
-            HQ [0,0,0] · CDE [38,4,-22]
+            HQ · CDE · Campaign OS · About Us
           </span>
         </div>
 

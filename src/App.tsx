@@ -3703,7 +3703,7 @@ export default function App() {
         />
       )}
 
-      {/* 3. Main 3D WebGL ExperienceCanvas / DualSphereCanvas (Sphere 01 HQ [0,0,0] & Sphere 02 CDE [38,4,-22]) */}
+      {/* 3. Main 3D WebGL ExperienceCanvas — four live spheres (HQ, CDE, Campaign OS, About Us) */}
       <ExperienceCanvas
         activeSphere={activeSphere}
         focusedNodeId={focusedNodeId}

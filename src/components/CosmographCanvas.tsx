@@ -75,6 +75,7 @@ import {
   type ConnectedSphereId,
   SPHERE_NETWORK,
   sphereCenterVec,
+  sphereNetworkCentroid,
 } from '../three/sphereNetwork';
 import {
   ABOUT_US_NODES,
@@ -966,21 +967,22 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     reducedMotion,
     audioRms: 0,
     lastUserInputTime: 0,
-    targetCenter: new THREE.Vector3(0, 0, 0),
-    currentCenter: new THREE.Vector3(0, 0, 0),
-    azimuth: -0.18,
-    polar: 1.48,
-    radius: 17.5,
-    targetAzimuth: 0.04,
-    targetPolar: 1.50,
-    targetRadius: 15.6,
+    // Constellation overview — pull back wide enough that HQ/CDE/Campaign/About all read.
+    targetCenter: sphereNetworkCentroid(),
+    currentCenter: sphereNetworkCentroid(),
+    azimuth: -0.42,
+    polar: 1.28,
+    radius: 34,
+    targetAzimuth: -0.28,
+    targetPolar: 1.32,
+    targetRadius: 30,
     panOffset: new THREE.Vector3(0, 0, 0),
     targetPanOffset: new THREE.Vector3(0, 0, 0),
-    focalLengthMm: 35,
-    targetFocalLengthMm: 35,
+    focalLengthMm: 24,
+    targetFocalLengthMm: 24,
     cameraRollDeg: 0,
     targetRollDeg: 0,
-    activeLensId: '35mm' as CinemaLensId,
+    activeLensId: '24mm' as CinemaLensId,
     activeAnglePreset: null as CameraAnglePresetId | null,
     activeLoopMode: 'off' as CameraLoopMode,
     autoOrbit: false,
@@ -1190,9 +1192,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       );
 
       if (isInterSphere) {
-        // 4-Phase Inter-World Travel (HQ [0,0,0] <-> CDE [38,4,-22]):
-        // 5-control-point CatmullRomCurve3 (Start -> Pull-back crane rise -> Bridge apex (19, 7.2, -4.5) -> Destination approach -> Settle)
-        const bridgeApex = new THREE.Vector3(19.0, 7.2, -4.5);
+        // 4-Phase Inter-World Travel between live sphere centers (diamond constellation).
+        const bridgeApex = s.currentCenter
+          .clone()
+          .lerp(destCenter, 0.5)
+          .add(new THREE.Vector3(0, 6.4, 0));
         const cranePullback = startCam
           .clone()
           .lerp(bridgeApex, 0.34)
@@ -1213,8 +1217,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         // Separate 4-point CatmullRomCurve3 for lookAt target
         const startLookAt = s.currentCenter.clone().add(s.panOffset);
         const endLookAt = destCenter.clone().add(s.targetPanOffset);
-        const lookMid1 = startLookAt.clone().lerp(new THREE.Vector3(19.0, 2.2, -11.0), 0.48);
-        const lookMid2 = new THREE.Vector3(19.0, 2.0, -11.0).lerp(endLookAt, 0.52);
+        const lookBridge = startLookAt.clone().lerp(endLookAt, 0.5);
+        const lookMid1 = startLookAt.clone().lerp(lookBridge, 0.48);
+        const lookMid2 = lookBridge.clone().lerp(endLookAt, 0.52);
         s.flightLookAtCurve = new THREE.CatmullRomCurve3([
           startLookAt,
           lookMid1,
@@ -3263,8 +3268,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         offset: peerId === 'campaign-os' ? 0.15 : 0.42,
       });
     }
-    void peerAssemblies;
-
     // Procedural إصطمبة mould proof — reconstruction only; parent HQ sphere stays intact.
     let istanbaProof: IstanbaProofHandle | null = null;
     try {
@@ -3375,11 +3378,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       });
     });
 
-    // Inter-Sphere CatmullRomCurve3 Cardiac Spline connecting HQ [0,0,0] and CDE [38,4,-22]
+    // Inter-Sphere CatmullRomCurve3 Cardiac Spline connecting HQ and CDE cores
+    const hqCdeMid = HQ_CENTER.clone().lerp(CDE_CENTER, 0.5).add(new THREE.Vector3(0, 4.2, 0));
     const bridgeCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(6.2, 0.8, -2.5),
-      new THREE.Vector3(19.0, 5.8, -11.0),
-      new THREE.Vector3(31.8, 3.2, -19.5),
+      HQ_CENTER.clone().lerp(CDE_CENTER, 0.16).add(new THREE.Vector3(0, 0.8, 0)),
+      hqCdeMid,
+      HQ_CENTER.clone().lerp(CDE_CENTER, 0.84).add(new THREE.Vector3(0, 0.6, 0)),
     ]);
     const bridgeTube = createCardiacConnectorTube({
       curve: bridgeCurve,
@@ -4221,12 +4225,18 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           focalDist = camera.position.distanceTo(targetEntry.worldPos);
         }
       }
-      hqAssembly.galaxy.uniforms.uTime.value = s.reducedMotion ? 0 : elapsedTotal;
-      hqAssembly.galaxy.uniforms.uFocalDistance.value = focalDist;
-      hqAssembly.galaxy.uniforms.uAudioRms.value = liveRms;
-      cdeAssembly.galaxy.uniforms.uTime.value = s.reducedMotion ? 0 : elapsedTotal;
-      cdeAssembly.galaxy.uniforms.uFocalDistance.value = focalDist;
-      cdeAssembly.galaxy.uniforms.uAudioRms.value = liveRms;
+      const galaxyAssemblies = [
+        hqAssembly,
+        cdeAssembly,
+        peerAssemblies['campaign-os'],
+        peerAssemblies['about-us'],
+      ];
+      for (const assembly of galaxyAssemblies) {
+        if (!assembly) continue;
+        assembly.galaxy.uniforms.uTime.value = s.reducedMotion ? 0 : elapsedTotal;
+        assembly.galaxy.uniforms.uFocalDistance.value = focalDist;
+        assembly.galaxy.uniforms.uAudioRms.value = liveRms;
+      }
 
       // Blueprint V2.0 v2 Fix #3 & #7: Bounded non-accumulating particle drift with per-frame reducedMotion
       updateBoundedParticleDrift(

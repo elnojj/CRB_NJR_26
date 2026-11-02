@@ -4,6 +4,7 @@ import {
   createPortalDiskGeometry,
   createSphericalVideoShellGeometry,
 } from '../lib/sphereVideoTexture';
+import { sphereCenterVec } from '../three/sphereNetwork';
 
 export const FPS = 60;
 export const clamp = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -74,8 +75,8 @@ type InnerSphereMedia = {
   parent: THREE.Object3D;
 };
 
-const HQ_CENTER = new THREE.Vector3(0, 0, 0);
-const CDE_CENTER = new THREE.Vector3(38, 4, -22);
+const HQ_CENTER = sphereCenterVec('hq');
+const CDE_CENTER = sphereCenterVec('cde');
 const SHELL_RADIUS = 5.92;
 const WRAP_RADIUS = 5.9;
 const PORTAL_RADIUS = 5.05;
