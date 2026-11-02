@@ -504,20 +504,30 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         </div>
       )}
 
-      {(liveCaption || lastLine || bridgeStatus === 'Error' || offline) && (
-        <div
-          className="cerebro-voice-caption"
-          role="status"
-          aria-live="polite"
-          data-testid="voice-live-caption"
-        >
-          {offline
-            ? 'Offline — voice bridge paused'
-            : bridgeStatus === 'Error'
-              ? bridgeDetail || 'Voice connection failed'
-              : liveCaption || (lastLine ? `${lastLine.speaker}: ${lastLine.text}` : '')}
-        </div>
-      )}
+      {(() => {
+        // Avoid duplicating the docked intro copy card when VoiceCard would echo the same greet.
+        const introCopyActive =
+          Boolean(liveCaption) &&
+          /welcome back, sir/i.test(liveCaption || '');
+        const captionText = offline
+          ? 'Offline — voice bridge paused'
+          : bridgeStatus === 'Error'
+            ? bridgeDetail || 'Voice connection failed'
+            : introCopyActive
+              ? null
+              : liveCaption || (lastLine ? `${lastLine.speaker}: ${lastLine.text}` : '');
+        if (!captionText) return null;
+        return (
+          <div
+            className="cerebro-voice-caption"
+            role="status"
+            aria-live="polite"
+            data-testid="voice-live-caption"
+          >
+            {captionText}
+          </div>
+        );
+      })()}
     </>
   );
 };

@@ -39,7 +39,11 @@ import {
   IDLE_MS,
 } from '../three/spatialNavigation';
 import { mountSphereVideoTexture, type SphereVideoHandle } from '../lib/sphereVideoTexture';
-import { createMatLiquidGlassShell } from '../materials/matLiquidGlassShell';
+import {
+  createMatLiquidGlassShell,
+  MAT_GOLD_SHEEN,
+  MAT_LIQUID_GLASS_SHELL,
+} from '../materials/matLiquidGlassShell';
 import {
   createCardiacConnectorTube,
   type CardiacConnectorUniforms,
@@ -133,24 +137,27 @@ export function getD0Materials(): D0Materials {
       clearcoat: 0.4,
       clearcoatRoughness: 0.15,
       reflectivity: 1.0,
-      sheen: 0.35,
-      sheenColor: new THREE.Color('#FFF4D0'),
+      sheen: MAT_GOLD_SHEEN.sheen,
+      sheenRoughness: MAT_GOLD_SHEEN.sheenRoughness,
+      sheenColor: new THREE.Color(MAT_GOLD_SHEEN.sheenColor),
       bumpMap: stripeBump,
       bumpScale: 0.035,
     }),
     opticalGlass: new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color('#FFFFFF'),
-      metalness: 0.0,
-      roughness: 0.04,
-      transmission: 0.96,
-      ior: 1.52,
-      thickness: 1.4,
-      clearcoat: 0.9,
-      clearcoatRoughness: 0.06,
+      color: new THREE.Color(MAT_LIQUID_GLASS_SHELL.color),
+      metalness: MAT_LIQUID_GLASS_SHELL.metalness,
+      roughness: MAT_LIQUID_GLASS_SHELL.roughness,
+      transmission: MAT_LIQUID_GLASS_SHELL.transmission,
+      ior: MAT_LIQUID_GLASS_SHELL.ior,
+      thickness: MAT_LIQUID_GLASS_SHELL.thickness,
+      clearcoat: MAT_LIQUID_GLASS_SHELL.clearcoat,
+      clearcoatRoughness: MAT_LIQUID_GLASS_SHELL.clearcoatRoughness,
+      sheen: MAT_LIQUID_GLASS_SHELL.sheen,
+      sheenRoughness: MAT_LIQUID_GLASS_SHELL.sheenRoughness,
       specularIntensity: 1.0,
-      specularColor: new THREE.Color('#EAF2FF'),
-      attenuationColor: new THREE.Color('#A4CBFF'),
-      attenuationDistance: 4.5,
+      specularColor: new THREE.Color(MAT_LIQUID_GLASS_SHELL.specularColor),
+      attenuationColor: new THREE.Color(MAT_LIQUID_GLASS_SHELL.attenuationColor),
+      attenuationDistance: MAT_LIQUID_GLASS_SHELL.attenuationDistance,
       transparent: true,
       depthWrite: false,
     }),
@@ -1869,9 +1876,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       roughness: 0.18,
       clearcoat: 0.35,
       clearcoatRoughness: 0.1,
-      sheen: 0.45,
-      sheenRoughness: 0.25,
-      sheenColor: new THREE.Color(0xD4AF37),
+      sheen: MAT_GOLD_SHEEN.sheen,
+      sheenRoughness: MAT_GOLD_SHEEN.sheenRoughness,
+      sheenColor: new THREE.Color(MAT_GOLD_SHEEN.sheenColor),
       bumpMap: goldRibbedBumpMap,
       bumpScale: 0.015,
     });
@@ -1885,8 +1892,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       roughness: 0.14,
       clearcoat: 0.45,
       clearcoatRoughness: 0.08,
-      sheen: 0.5,
-      sheenColor: new THREE.Color(0xFFF4D0),
+      sheen: MAT_GOLD_SHEEN.sheen,
+      sheenRoughness: MAT_GOLD_SHEEN.sheenRoughness,
+      sheenColor: new THREE.Color(MAT_GOLD_SHEEN.sheenColor),
     });
     extraDisposables.push(sharedPolishedGoldMat);
 
@@ -1897,37 +1905,45 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       roughness: 0.28,
       clearcoat: 0.25,
       clearcoatRoughness: 0.14,
-      sheen: 0.35,
-      sheenRoughness: 0.25,
-      sheenColor: new THREE.Color(0xB4DDFF),
+      // Silver family: no gold sheen — keep ice specular only (matches MAT_SILVER_CORE)
+      sheen: 0,
+      sheenRoughness: 1,
       bumpMap: goldRibbedBumpMap,
       bumpScale: 0.012,
     });
     extraDisposables.push(sharedBrushedSilverCoreMat);
 
     // Translucent Inner Brushed Silver Core Shell (r = 0.82R = 5.084u in regenerate_starter_meshes.py)
-    // Allows inner stations/projects to remain visible while providing the exact Sehly brushed-silver core silhouette
+    // Keep translucent enough that the recessed media sieve / video wrap remains readable.
     const sharedInnerSilverEnvelopeMat = new THREE.MeshPhysicalMaterial({
       color: 0xBCC9D4,
       metalness: 0.94,
       roughness: 0.28,
       clearcoat: 0.3,
       clearcoatRoughness: 0.12,
+      sheen: 0,
       transparent: true,
-      opacity: isSoftwareGl ? 0.08 : 0.16,
+      opacity: isSoftwareGl ? 0.05 : 0.08,
       side: THREE.FrontSide,
       depthWrite: false,
     });
     extraDisposables.push(sharedInnerSilverEnvelopeMat);
 
-    // 4. Portrait Medallion / Optical Portal Dark Glass Material (regenerate_starter_meshes.py: #182834, metalness: 0.2, roughness: 0.22)
+    // 4. Portrait Medallion / Optical Portal Dark Glass — same IOR family as liquid glass shell
     const sharedPortalDarkGlassMat = new THREE.MeshPhysicalMaterial({
       color: 0x182834,
-      metalness: 0.2,
-      roughness: 0.22,
-      clearcoat: 0.65,
-      clearcoatRoughness: 0.08,
-      specularColor: new THREE.Color(0xB4DDFF),
+      metalness: 0.05,
+      roughness: 0.12,
+      ior: MAT_LIQUID_GLASS_SHELL.ior,
+      transmission: isSoftwareGl ? 0 : 0.55,
+      thickness: 1.2,
+      clearcoat: MAT_LIQUID_GLASS_SHELL.clearcoat,
+      clearcoatRoughness: MAT_LIQUID_GLASS_SHELL.clearcoatRoughness,
+      sheen: 0,
+      specularColor: new THREE.Color(MAT_LIQUID_GLASS_SHELL.specularColor),
+      transparent: true,
+      opacity: isSoftwareGl ? 0.55 : 0.92,
+      depthWrite: false,
     });
     extraDisposables.push(sharedPortalDarkGlassMat);
 
@@ -2127,28 +2143,63 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       return tex;
     };
 
+    // Prefer same-origin posters so the inner media sieve never waits on remote CORS.
     const hqMediaDiscTexture = createLiveMediaScreenTexture(
       PUBLIC_BRAND_MEDIA.showreel2023.title,
-      PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
+      '/media/riyadh-season-launch-still.jpg',
       '#D4AF37'
     );
     extraDisposables.push(hqMediaDiscTexture);
 
+    const mediaStationDiscTexture = createLiveMediaScreenTexture(
+      PUBLIC_BRAND_MEDIA.elBatron.title,
+      '/assets/media/el-batron.jpg',
+      '#F2B66D'
+    );
+    extraDisposables.push(mediaStationDiscTexture);
+
+    // Media sieve / lens — same IOR family as MAT_LIQUID_GLASS_SHELL (no gold sheen).
     const sharedMediaScreenMat = new THREE.MeshPhysicalMaterial({
       map: hqMediaDiscTexture,
-      emissive: new THREE.Color(0xFFF4D0),
+      emissive: new THREE.Color(0x142632),
       emissiveMap: hqMediaDiscTexture,
-      emissiveIntensity: 0.42,
-      roughness: 0.16,
-      metalness: 0.15,
-      clearcoat: 0.7,
-      clearcoatRoughness: 0.08,
+      emissiveIntensity: 0.55,
+      roughness: 0.08,
+      metalness: 0,
+      ior: MAT_LIQUID_GLASS_SHELL.ior,
+      transmission: isSoftwareGl ? 0 : 0.22,
+      thickness: 0.6,
+      clearcoat: MAT_LIQUID_GLASS_SHELL.clearcoat,
+      clearcoatRoughness: MAT_LIQUID_GLASS_SHELL.clearcoatRoughness,
+      sheen: 0,
+      specularColor: new THREE.Color(MAT_LIQUID_GLASS_SHELL.specularColor),
       transparent: true,
-      opacity: 0.94,
+      opacity: 0.98,
       side: THREE.DoubleSide,
       depthWrite: false,
     });
     extraDisposables.push(sharedMediaScreenMat);
+
+    const mediaStationScreenMat = new THREE.MeshPhysicalMaterial({
+      map: mediaStationDiscTexture,
+      emissive: new THREE.Color(0x142632),
+      emissiveMap: mediaStationDiscTexture,
+      emissiveIntensity: 0.55,
+      roughness: 0.08,
+      metalness: 0,
+      ior: MAT_LIQUID_GLASS_SHELL.ior,
+      transmission: isSoftwareGl ? 0 : 0.18,
+      thickness: 0.45,
+      clearcoat: MAT_LIQUID_GLASS_SHELL.clearcoat,
+      clearcoatRoughness: MAT_LIQUID_GLASS_SHELL.clearcoatRoughness,
+      sheen: 0,
+      specularColor: new THREE.Color(MAT_LIQUID_GLASS_SHELL.specularColor),
+      transparent: true,
+      opacity: 0.98,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    extraDisposables.push(mediaStationScreenMat);
 
     const pulseBeads: {
       mesh: THREE.Mesh;
@@ -2202,11 +2253,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       portalRimMesh.rotation.set(0.18, -0.24, 0.08);
       shellGroup.add(portalRimMesh);
 
-      const mediaLensGeo = new THREE.CircleGeometry(6.2 * 0.84, 64);
-      const mediaLensMesh = new THREE.Mesh(mediaLensGeo, sharedMediaScreenMat);
+      const mediaLensGeo = new THREE.CircleGeometry(6.2 * 0.72, 64);
+      const mediaLensMesh = new THREE.Mesh(
+        mediaLensGeo,
+        sphereTag === 'hq' ? sharedMediaScreenMat : mediaStationScreenMat
+      );
       mediaLensMesh.name = `${sphereTag}-media-lens`;
       mediaLensMesh.rotation.set(0.18, -0.24, 0.08);
       mediaLensMesh.renderOrder = 3;
+      mediaLensMesh.userData = { mediaSieve: true, sphereTag };
       shellGroup.add(mediaLensMesh);
 
       const frontShellMesh = new THREE.Mesh(sharedShellGeo, frontShellMat);
@@ -2426,6 +2481,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         spiralPosAttr,
         spiralBasePos,
         spiralPhases,
+        mediaLensMesh,
       };
     };
 
@@ -2508,11 +2564,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         portalGlassCore.renderOrder = 1;
         group.add(portalGlassCore);
 
-        // Internal media surface disk inside the media station portal
+        // Internal media sieve disk — local El Batron plate (never empty / remote-only).
         const nodeMediaDisc = new THREE.Mesh(
           new THREE.CircleGeometry(0.54, 32),
-          sharedMediaScreenMat
+          mediaStationScreenMat
         );
+        nodeMediaDisc.name = 'media-station-sieve';
         nodeMediaDisc.rotation.set(0.18, -0.22, 0.12);
         nodeMediaDisc.renderOrder = 2;
         group.add(nodeMediaDisc);
@@ -2893,7 +2950,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const mountAlwaysOnMedia = (
       parent: THREE.Object3D,
       sphereId: string,
-      shellBandRadius: number
+      shellBandRadius: number,
+      mediaLensMat?: THREE.MeshPhysicalMaterial
     ) => {
       try {
         const hqAsset = sphereId === 'hq' ? getSphereTextureAsset() : undefined;
@@ -2903,12 +2961,17 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           sourceUrl: ALWAYS_ON_SPHERE_MEDIA[sphereId],
           posterUrl:
             hqAsset?.poster ||
-            (sphereId === 'hq' ? '/media/riyadh-season-launch-still.jpg' : null),
+            (sphereId === 'hq'
+              ? '/media/riyadh-season-launch-still.jpg'
+              : '/assets/media/young-human.jpg'),
           portalRadius: shellBandRadius * 0.85,
           shellBandRadius,
           wrapRadius: shellBandRadius * 1.002,
           namePrefix: `${sphereId}-always`,
         });
+        if (mediaLensMat) {
+          handle.bindMaterial(mediaLensMat);
+        }
         extraDisposables.push({
           dispose: () => {
             handle.dispose();
@@ -2920,7 +2983,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         // if mount itself throws, leave glass shell — never invent alternate materials.
       }
     };
-    mountAlwaysOnMedia(hqAssembly.shellGroup, 'hq', 5.92);
+    mountAlwaysOnMedia(
+      hqAssembly.shellGroup,
+      'hq',
+      5.92,
+      sharedMediaScreenMat
+    );
 
     const allProjectIds = PROJECTS_DATA.map((p) => p.id);
     CEREBRO_STATIONS.forEach((st, idx) => {
@@ -2971,7 +3039,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     });
 
     const cdeAssembly = buildSphereAssembly(CDE_CENTER, 'cde', COLOUR_TOKENS.stationMedia);
-    mountAlwaysOnMedia(cdeAssembly.shellGroup, 'cde', 5.92);
+    mountAlwaysOnMedia(cdeAssembly.shellGroup, 'cde', 5.92, mediaStationScreenMat);
     CDE_DIMENSIONS.forEach((dim, idx) => {
       const subIds = dim.subdomains.map((s) => s.id);
       buildNodeWithSignal(
@@ -4901,7 +4969,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
           {captionBubble && (
             <div
-              className="cerebro-infograph-caption fixed left-1/2 top-[16%] -translate-x-1/2 z-20 px-4 py-2.5 rounded-2xl pointer-events-none"
+              className="cerebro-infograph-caption cerebro-intro-copy fixed left-1/2 bottom-[max(5.5rem,12%)] -translate-x-1/2 z-20 px-4 py-2.5 pointer-events-none"
               role="status"
               aria-live="polite"
               data-testid="caption-bubble"
@@ -4909,14 +4977,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               <div className="ig-shell">
                 <div className="flex items-center gap-2 mb-0.5">
                   <span
-                    className="w-2 h-2 rounded-full"
+                    className="w-1.5 h-1.5 rounded-full"
                     style={{ backgroundColor: '#D4AF37' }}
                   />
-                  <span className="font-mono text-[12px] uppercase tracking-wider text-[#B4DDFF]">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#B4DDFF]">
                     Cerebro
                   </span>
                 </div>
-                <p className="font-sans text-xs md:text-sm text-[#F2F6F8] leading-snug">
+                <p className="font-sans text-sm md:text-[0.95rem] text-[#F2F6F8] leading-snug text-balance">
                   {captionBubble}
                 </p>
               </div>

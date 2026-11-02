@@ -21,7 +21,18 @@ export const MAT_LIQUID_GLASS_SHELL = {
   attenuationColor: '#101D27',
   attenuationDistance: 3.4,
   specularColor: '#B4DDFF',
+  /** Registry glass has no sheen — keep 0 so shells match each other. */
+  sheen: 0,
+  sheenRoughness: 1,
+  sheenColor: '#B4DDFF',
   transparent: true,
+} as const;
+
+/** Locked metal sheen from MAT_D0_GOLD_RIBBED / bronze rails — one recipe for gold family. */
+export const MAT_GOLD_SHEEN = {
+  sheen: 0.35,
+  sheenRoughness: 0.25,
+  sheenColor: '#FFF4D0',
 } as const;
 
 export type LiquidGlassShellOptions = {
@@ -58,6 +69,9 @@ export function createMatLiquidGlassShell(
     attenuationDistance: MAT_LIQUID_GLASS_SHELL.attenuationDistance,
     clearcoat: MAT_LIQUID_GLASS_SHELL.clearcoat,
     clearcoatRoughness: MAT_LIQUID_GLASS_SHELL.clearcoatRoughness,
+    sheen: MAT_LIQUID_GLASS_SHELL.sheen,
+    sheenRoughness: MAT_LIQUID_GLASS_SHELL.sheenRoughness,
+    sheenColor: new THREE.Color(MAT_LIQUID_GLASS_SHELL.sheenColor),
     specularIntensity: 1.0,
     specularColor: new THREE.Color(MAT_LIQUID_GLASS_SHELL.specularColor),
     transparent: true,

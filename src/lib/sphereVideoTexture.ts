@@ -15,6 +15,7 @@ export type SphereVideoHandle = {
   wrapMesh?: THREE.Mesh;
   dispose: () => void;
   setSourceUrl: (url: string) => void;
+  bindMaterial: (mat: THREE.MeshBasicMaterial | THREE.MeshPhysicalMaterial) => void;
 };
 
 /**
@@ -318,6 +319,32 @@ export function mountSphereVideoTexture(options: {
   let fallbackTexture: THREE.Texture | null = null;
   let usingFallback = false;
   let playRejectStreak = 0;
+  let softPosterMounted = false;
+  const boundMaterials: Array<THREE.MeshBasicMaterial | THREE.MeshPhysicalMaterial> = [];
+
+  const applyMapToShells = (map: THREE.Texture) => {
+    wrapMat.map = map;
+    bandMat.map = map;
+    wrapMat.needsUpdate = true;
+    bandMat.needsUpdate = true;
+    for (const mat of boundMaterials) {
+      mat.map = map;
+      if (mat instanceof THREE.MeshPhysicalMaterial) {
+        mat.emissiveMap = map;
+      }
+      mat.needsUpdate = true;
+    }
+  };
+
+  const mountSoftPoster = () => {
+    if (softPosterMounted || usingFallback || options.iceOnly) return;
+    const localPoster =
+      (posterUrl && !posterUrl.endsWith('.mp4') ? posterUrl : null) ||
+      '/media/riyadh-season-launch-still.jpg';
+    softPosterMounted = true;
+    fallbackTexture = createFallbackTexture(localPoster);
+    applyMapToShells(fallbackTexture);
+  };
 
   const applyFallbackPlate = (reason: string, softPoster = false) => {
     if (usingFallback) return;
@@ -325,19 +352,25 @@ export function mountSphereVideoTexture(options: {
     const plateUrl =
       softPoster && posterUrl && !posterUrl.endsWith('.mp4')
         ? posterUrl
-        : SPHERE_MEDIA_FALLBACK_PLATE;
+        : softPoster
+          ? '/media/riyadh-season-launch-still.jpg'
+          : SPHERE_MEDIA_FALLBACK_PLATE;
     console.warn(
       `[sphereVideoTexture] ${prefix}: ${reason} — applying ${
         plateUrl === SPHERE_MEDIA_FALLBACK_PLATE ? 'ice' : 'poster'
       } fallback plate`
     );
+    if (fallbackTexture) {
+      fallbackTexture.dispose();
+      fallbackTexture = null;
+    }
     fallbackTexture = createFallbackTexture(plateUrl);
-    wrapMat.map = fallbackTexture;
-    bandMat.map = fallbackTexture;
-    wrapMat.needsUpdate = true;
-    bandMat.needsUpdate = true;
-    // Only toast hard failures (missing/decode). Transient autoplay must not alarm the desk.
-    if (!softPoster || plateUrl === SPHERE_MEDIA_FALLBACK_PLATE) {
+    applyMapToShells(fallbackTexture);
+    // Only toast hard missing/decode failures — never autoplay/play rejects.
+    const isAutoplayNoise = /autoplay|play rejected|NotAllowed|AbortError|never became ready/i.test(
+      reason
+    );
+    if (!isAutoplayNoise && (!softPoster || plateUrl === SPHERE_MEDIA_FALLBACK_PLATE)) {
       window.dispatchEvent(
         new CustomEvent('cerebro:media-404', {
           detail: { sphere: prefix, source: initialUrl, reason },
@@ -356,7 +389,8 @@ export function mountSphereVideoTexture(options: {
       playPromise.catch((err: unknown) => {
         if (isTransientPlayRejection(err)) {
           playRejectStreak += 1;
-          // Keep retrying via keepAlive / user gesture — do NOT ice the shell.
+          // Keep the soft poster visible; retry via keepAlive / gesture — do NOT ice.
+          mountSoftPoster();
           if (playRejectStreak >= 12 && video.readyState < 2) {
             applyFallbackPlate('video never became ready after repeated play rejects', true);
           }
@@ -372,9 +406,20 @@ export function mountSphereVideoTexture(options: {
   if (options.iceOnly) {
     applyFallbackPlate('iceOnly — no verified sphere footage bound');
   } else {
+    // Seed the inner sieve with a poster immediately so glass never reads empty
+    // while muted autoplay negotiates on iPad / AI Studio.
+    mountSoftPoster();
     attachVideoKeepAlive(video, tryPlay);
     video.addEventListener('playing', () => {
       playRejectStreak = 0;
+      if (!usingFallback) {
+        applyMapToShells(texture);
+      }
+    });
+    video.addEventListener('loadeddata', () => {
+      if (!usingFallback && video.readyState >= 2) {
+        applyMapToShells(texture);
+      }
     });
     video.addEventListener('error', () => {
       applyFallbackPlate('video element error (Drive/local 404 or decode failure)', true);
@@ -409,6 +454,17 @@ export function mountSphereVideoTexture(options: {
     portalMesh,
     shellBandMesh,
     wrapMesh,
+    /** Bind an additional mesh material (e.g. recessed media-lens sieve) to the same plate. */
+    bindMaterial: (mat: THREE.MeshBasicMaterial | THREE.MeshPhysicalMaterial) => {
+      boundMaterials.push(mat);
+      const current =
+        (usingFallback || softPosterMounted) && fallbackTexture ? fallbackTexture : texture;
+      mat.map = current;
+      if (mat instanceof THREE.MeshPhysicalMaterial) {
+        mat.emissiveMap = current;
+      }
+      mat.needsUpdate = true;
+    },
     setSourceUrl: (url: string) => {
       if (usingFallback) {
         // Retry live media after a prior 404.
@@ -417,10 +473,8 @@ export function mountSphereVideoTexture(options: {
           fallbackTexture.dispose();
           fallbackTexture = null;
         }
-        wrapMat.map = texture;
-        bandMat.map = texture;
-        wrapMat.needsUpdate = true;
-        bandMat.needsUpdate = true;
+        softPosterMounted = false;
+        applyMapToShells(texture);
       }
       if (video.src.endsWith(url) || video.getAttribute('src') === url) return;
       video.src = url;
@@ -446,6 +500,7 @@ export function mountSphereVideoTexture(options: {
       bandGeo.dispose();
       portalMat.dispose();
       bandMat.dispose();
+      boundMaterials.length = 0;
       options.parent.remove(wrapMesh);
       options.parent.remove(shellBandMesh);
     },

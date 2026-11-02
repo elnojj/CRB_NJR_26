@@ -444,17 +444,18 @@
 }
 
 .cerebro-infograph-caption {
-  background: rgba(12, 18, 28, 0.55);
+  /* Dock as a bottom title card above the voice capsule — not a mid-sphere overlay. */
+  background: rgba(12, 18, 28, 0.62);
   backdrop-filter: blur(var(--blur-glass)) saturate(1.1);
   -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(1.1);
   border: 1px solid rgba(180, 221, 255, 0.28);
-  max-width: min(92vw, 28rem);
+  border-left: 2px solid rgba(212, 175, 55, 0.65);
+  max-width: min(92vw, 26rem);
+  border-radius: 0.75rem !important;
 }
 
 .cerebro-infograph-caption .ig-shell {
-  animation:
-    cerebro-infograph-land 860ms cubic-bezier(0.22, 1, 0.36, 1) both,
-    cerebro-infograph-float 5.2s ease-in-out 860ms infinite;
+  animation: cerebro-infograph-land 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (max-width: 1100px) {
@@ -483,9 +484,11 @@
   }
 
   .cerebro-infograph-caption {
-    top: max(10%, calc(env(safe-area-inset-top, 0px) + 3.25rem)) !important;
+    top: auto !important;
+    bottom: max(5.75rem, calc(env(safe-area-inset-bottom, 0px) + 4.85rem)) !important;
     left: 50% !important;
     right: auto !important;
+    transform: translateX(-50%) !important;
     width: min(94vw, 22rem);
     max-width: min(94vw, 22rem);
     padding: 0.55rem 0.85rem;
