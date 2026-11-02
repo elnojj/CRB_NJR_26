@@ -1,5 +1,6 @@
 # Canonical production publish: Firebase Hosting (AI Studio project).
-# Requires repo secret FIREBASE_TOKEN (firebase login:ci).
+# Deploy needs repo secret FIREBASE_TOKEN (firebase login:ci).
+# Quality gates always run; missing token skips deploy without failing the merge.
 name: Deploy Firebase Hosting
 
 on:
@@ -12,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  quality:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -38,15 +39,33 @@ jobs:
         run: npm run qa:intro
       - name: Build
         run: npm run build
+      - name: Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: hosting-dist
+          path: dist
+          retention-days: 3
+
+  deploy:
+    needs: quality
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: hosting-dist
+          path: dist
       - name: Deploy Hosting
-        if: ${{ secrets.FIREBASE_TOKEN != '' }}
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        if: ${{ env.FIREBASE_TOKEN != '' }}
         run: npx firebase-tools@latest deploy --only hosting --project advance-copilot-489023-c3 --non-interactive
-      - name: Missing token
-        if: ${{ secrets.FIREBASE_TOKEN == '' }}
+      - name: Skip deploy (no FIREBASE_TOKEN)
+        if: ${{ env.FIREBASE_TOKEN == '' }}
         run: |
-          echo "FIREBASE_TOKEN secret is not set — skipped deploy."
+          echo "::warning::FIREBASE_TOKEN secret is not set — quality gates passed; deploy skipped."
           echo "Create a token with: npx firebase-tools login:ci"
-          echo "Then add it as the FIREBASE_TOKEN repository secret."
-          exit 1
+          echo "Then add it as the FIREBASE_TOKEN repository secret on elnojj/CRB_NJR_26."
