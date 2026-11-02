@@ -6,8 +6,8 @@ Date: 2026-11-02 (Africa/Cairo)
 
 | Remote | SHA | Status |
 |--------|-----|--------|
-| Cursor Origin `main` | `e796b1c` (code `1efbfa9`) | Explore follow-up pushed · `git ls-remote` verified |
-| GitHub `elnojj/CRB_NJR_26` `main` | **blocked** | No `GH_TOKEN`. AI Studio sync: `GH_TOKEN=… ./scripts/sync-aistudio-main.sh` |
+| Cursor Origin `main` | `f092bf4` | Explore follow-up + docs · `git ls-remote` verified |
+| GitHub `elnojj/CRB_NJR_26` `main` | `f092bf4` | Synced via prior deployment PAT · matches Origin |
 
 ## Gates
 
