@@ -2228,6 +2228,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       offset: number;
     }[] = [];
 
+    const mediaPortalMeshes: Array<{ mesh: THREE.Mesh; spin: THREE.Vector3 }> = [];
+
     const cardiacTubes: {
       uniforms: CardiacConnectorUniforms;
       nodeA: string;
@@ -2949,7 +2951,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const portals = buildMasterProjectPortals(PROJECTS_DATA);
       const portalGeo = new THREE.SphereGeometry(1, 24, 16);
       extraDisposables.push(portalGeo);
-      portals.forEach((portal) => {
+      portals.forEach((portal, index) => {
+        const playbackUrl =
+          resolveProjectMediaSrc(portal.projectId) || resolveShotMedia(portal.projectId)?.videoUrl;
+        if (!playbackUrl) return;
+
         const mat = createMatLiquidGlassShell({ softwareGl: isSoftwareGl });
         const mesh = new THREE.Mesh(portalGeo, mat);
         mesh.name = `master-portal-${portal.projectId}`;
@@ -2969,6 +2975,26 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         };
         hqAssembly.shellGroup.add(mesh);
         extraDisposables.push(mat);
+
+        try {
+          const portalMedia = mountProjectNodeVideoShell({
+            parent: mesh,
+            projectId: portal.projectId,
+            radius: 0.82,
+            name: `${portal.projectId}-playback-sphere`,
+          });
+          extraDisposables.push({ dispose: portalMedia.dispose });
+          mediaPortalMeshes.push({
+            mesh,
+            spin: new THREE.Vector3(
+              0.16 + (index % 3) * 0.07,
+              0.24 + (index % 4) * 0.08,
+              0.12 + (index % 2) * 0.06
+            ),
+          });
+        } catch (err) {
+          console.warn(`[CosmographCanvas] portal video failed for ${portal.projectId}`, err);
+        }
       });
 
       // CDE as discoverable domain + Campaign/About as explicit destinations (inside master).
@@ -3056,13 +3082,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         // if mount itself throws, leave glass shell — never invent alternate materials.
       }
     };
-    mountAlwaysOnMedia(
-      hqAssembly.shellGroup,
-      'hq',
-      5.92,
-      sharedMediaScreenMat
-    );
-
     const allProjectIds = PROJECTS_DATA.map((p) => p.id);
     CEREBRO_STATIONS.forEach((st, idx) => {
       buildNodeWithSignal(
@@ -3112,7 +3131,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     });
 
     const cdeAssembly = buildSphereAssembly(CDE_CENTER, 'cde', COLOUR_TOKENS.stationMedia);
-    mountAlwaysOnMedia(cdeAssembly.shellGroup, 'cde', 5.92, mediaStationScreenMat);
     CDE_DIMENSIONS.forEach((dim, idx) => {
       const subIds = dim.subdomains.map((s) => s.id);
       buildNodeWithSignal(
@@ -3194,12 +3212,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         peerId === 'campaign-os' ? COLOUR_TOKENS.cobaltAccent : COLOUR_TOKENS.stationPeople;
       const peerAssembly = buildSphereAssembly(peerCenter, peerId, peerColour);
       peerAssemblies[peerId] = peerAssembly;
-      mountAlwaysOnMedia(
-        peerAssembly.shellGroup,
-        peerId,
-        Math.min(5.92, node.radius * 0.95),
-        mediaStationScreenMat
-      );
 
       const specs = peerNodeSpecs[peerId];
       specs.forEach((spec, idx) => {
@@ -4253,6 +4265,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         elapsedTotal,
         s.reducedMotion
       );
+
+      if (!s.reducedMotion) {
+        for (const { mesh, spin } of mediaPortalMeshes) {
+          mesh.rotation.x += spin.x * dt;
+          mesh.rotation.y += spin.y * dt;
+          mesh.rotation.z += spin.z * dt;
+        }
+      }
 
       // v4.0 3D Cylindrical Project Media Tube update & enclosing shell dimming
       const tubeProp = mediaTubeStateRef.current;
