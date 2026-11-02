@@ -468,16 +468,15 @@ export function resolveDriveStreamPath(driveFileId: string): string {
 /**
  * Playback URL priority for reliable WebGL / HTML5 mounts:
  * 1) Distinct local master
- * 2) Shared local ambient plate (keeps shells lit offline)
- * 3) Public Wix URL
- * 4) Drive stream
+ * 2) Public browser-ready source for the actual asset
+ * 3) Drive stream when available
+ * 4) Shared local ambient plate only as the last fallback
  */
 export function resolveAssetPlaybackUrl(asset: DriveMediaAsset): string {
   if (asset.localFallback && !asset.localFallbackIsSharedPlate) return asset.localFallback;
-  if (asset.localFallback) return asset.localFallback;
   if (asset.publicUrl) return asset.publicUrl;
   if (asset.driveFileId) return resolveDriveStreamPath(asset.driveFileId);
-  return SHARED_SHOWREEL_FALLBACK;
+  return asset.localFallback || SHARED_SHOWREEL_FALLBACK;
 }
 
 /** Prefer public / stream when the caller can handle remote CORS (flat HTML5 players). */

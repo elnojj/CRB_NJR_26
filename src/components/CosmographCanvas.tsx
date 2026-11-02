@@ -2938,14 +2938,24 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       }
     }
 
-    // Always-on ambient plates keep every connected shell lit.
-    // These local paths are shared ambient plates (same bytes historically) — not
-    // project-credit masters. Verified project bindings live in projectWorldManifest.
-    const ALWAYS_ON_SPHERE_MEDIA: Record<string, string> = {
-      hq: '/media/sphere-showreel-fallback.mp4',
-      cde: '/assets/media/young-human.mp4',
-      'campaign-os': '/assets/media/laliga.mp4',
-      'about-us': '/assets/media/showreel.mp4',
+    // Studio films are broad-sphere ambience; project-world credits are resolved separately.
+    const ALWAYS_ON_SPHERE_MEDIA: Record<string, { url: string; poster: string }> = {
+      hq: {
+        url: PUBLIC_BRAND_MEDIA.showreel2023.url,
+        poster: PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
+      },
+      cde: {
+        url: PUBLIC_BRAND_MEDIA.showreel2023.url,
+        poster: PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
+      },
+      'campaign-os': {
+        url: PUBLIC_BRAND_MEDIA.laligaFilm.url,
+        poster: PUBLIC_BRAND_MEDIA.laligaFilm.posterUrl,
+      },
+      'about-us': {
+        url: PUBLIC_BRAND_MEDIA.showreel2023.url,
+        poster: PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
+      },
     };
     const mountAlwaysOnMedia = (
       parent: THREE.Object3D,
@@ -2958,12 +2968,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         const handle = mountSphereVideoTexture({
           parent,
           asset: hqAsset,
-          sourceUrl: ALWAYS_ON_SPHERE_MEDIA[sphereId],
-          posterUrl:
-            hqAsset?.poster ||
-            (sphereId === 'hq'
-              ? '/media/riyadh-season-launch-still.jpg'
-              : '/assets/media/young-human.jpg'),
+          sourceUrl: ALWAYS_ON_SPHERE_MEDIA[sphereId]?.url,
+          posterUrl: ALWAYS_ON_SPHERE_MEDIA[sphereId]?.poster,
           portalRadius: shellBandRadius * 0.85,
           shellBandRadius,
           wrapRadius: shellBandRadius * 1.002,
