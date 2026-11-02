@@ -3005,45 +3005,47 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       );
     });
 
-    // Connected Campaign OS + About Us satellites — same liquid-glass recipe as HQ/CDE
-    // (sharedOpticalGlassMat), with always-on inner media. Not the proposed fifth sphere.
-    for (const node of SPHERE_NETWORK) {
-      if (node.id === 'hq' || node.id === 'cde') continue;
-      const sat = new THREE.Group();
-      sat.name = `sphere-${node.id}`;
-      sat.position.set(node.center[0], node.center[1], node.center[2]);
-      const satShell = new THREE.Group();
-      satShell.name = `${node.id}-shell`;
-      const satGeo = new THREE.SphereGeometry(node.radius, 48, 32);
-      const backShell = new THREE.Mesh(satGeo, sharedBackOpticalGlassMat);
-      backShell.renderOrder = 2;
-      satShell.add(backShell);
-      const frontShell = new THREE.Mesh(satGeo, sharedOpticalGlassMat);
-      frontShell.renderOrder = 4;
-      satShell.add(frontShell);
-      sat.add(satShell);
-      scene.add(sat);
-      extraDisposables.push(satGeo);
-      mountAlwaysOnMedia(satShell, node.id, node.radius * 0.95);
-      // Cardiac bridge from HQ to connected satellite (authored path, not repulsion physics).
-      const satBridge = new THREE.CatmullRomCurve3([
-        HQ_CENTER.clone(),
-        new THREE.Vector3(
-          node.center[0] * 0.45,
-          node.center[1] + 4.5,
-          node.center[2] * 0.45
-        ),
-        new THREE.Vector3(node.center[0], node.center[1], node.center[2]),
-      ]);
-      const bridgeGeo = new THREE.TubeGeometry(satBridge, 48, 0.045, 6, false);
-      const bridgeMat = new THREE.MeshBasicMaterial({
-        color: 0x65acff,
-        transparent: true,
-        opacity: 0.42,
-        depthWrite: false,
-      });
-      scene.add(new THREE.Mesh(bridgeGeo, bridgeMat));
-      extraDisposables.push(bridgeGeo, bridgeMat);
+    // Peer Campaign OS / About Us full spheres are migration inputs only.
+    // Workspace navigation uses master-sphere destinations (MASTER_DESTINATIONS).
+    // Intro film may still present the legacy dual/peer layout.
+    if (introBridge.enabled) {
+      for (const node of SPHERE_NETWORK) {
+        if (node.id === 'hq' || node.id === 'cde') continue;
+        const sat = new THREE.Group();
+        sat.name = `sphere-${node.id}`;
+        sat.position.set(node.center[0], node.center[1], node.center[2]);
+        const satShell = new THREE.Group();
+        satShell.name = `${node.id}-shell`;
+        const satGeo = new THREE.SphereGeometry(node.radius, 48, 32);
+        const backShell = new THREE.Mesh(satGeo, sharedBackOpticalGlassMat);
+        backShell.renderOrder = 2;
+        satShell.add(backShell);
+        const frontShell = new THREE.Mesh(satGeo, sharedOpticalGlassMat);
+        frontShell.renderOrder = 4;
+        satShell.add(frontShell);
+        sat.add(satShell);
+        scene.add(sat);
+        extraDisposables.push(satGeo);
+        mountAlwaysOnMedia(satShell, node.id, node.radius * 0.95);
+        const satBridge = new THREE.CatmullRomCurve3([
+          HQ_CENTER.clone(),
+          new THREE.Vector3(
+            node.center[0] * 0.45,
+            node.center[1] + 4.5,
+            node.center[2] * 0.45
+          ),
+          new THREE.Vector3(node.center[0], node.center[1], node.center[2]),
+        ]);
+        const bridgeGeo = new THREE.TubeGeometry(satBridge, 48, 0.045, 6, false);
+        const bridgeMat = new THREE.MeshBasicMaterial({
+          color: 0x65acff,
+          transparent: true,
+          opacity: 0.42,
+          depthWrite: false,
+        });
+        scene.add(new THREE.Mesh(bridgeGeo, bridgeMat));
+        extraDisposables.push(bridgeGeo, bridgeMat);
+      }
     }
 
     // Procedural إصطمبة mould proof — reconstruction only; parent HQ sphere stays intact.
