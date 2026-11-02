@@ -278,10 +278,11 @@ export function mountSphereVideoTexture(options: {
   );
   const wrapMat = new THREE.MeshBasicMaterial({
     map: texture,
+    color: new THREE.Color(1.08, 1.08, 1.08),
     side: THREE.BackSide,
-    transparent: true,
-    opacity: 0.88,
-    depthWrite: false,
+    transparent: false,
+    opacity: 1,
+    depthWrite: true,
     toneMapped: false,
   });
   const wrapMesh = new THREE.Mesh(wrapGeo, wrapMat);
@@ -307,7 +308,7 @@ export function mountSphereVideoTexture(options: {
     map: texture,
     side: THREE.BackSide,
     transparent: true,
-    opacity: 0.28,
+    opacity: 0.06,
     depthWrite: false,
     toneMapped: false,
   });

@@ -40,7 +40,6 @@ import {
 } from '../three/spatialNavigation';
 import {
   mountProjectNodeVideoShell,
-  mountSphereVideoTexture,
   resolveProjectMediaSrc,
   type SphereVideoHandle,
 } from '../lib/sphereVideoTexture';
@@ -1955,14 +1954,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       metalness: 0.05,
       roughness: 0.12,
       ior: MAT_LIQUID_GLASS_SHELL.ior,
-      transmission: isSoftwareGl ? 0 : 0.55,
-      thickness: 1.2,
-      clearcoat: MAT_LIQUID_GLASS_SHELL.clearcoat,
-      clearcoatRoughness: MAT_LIQUID_GLASS_SHELL.clearcoatRoughness,
+      transmission: isSoftwareGl ? 0 : 0.35,
+      thickness: 0.78,
+      clearcoat: 0.18,
+      clearcoatRoughness: 0.2,
       sheen: 0,
       specularColor: new THREE.Color(MAT_LIQUID_GLASS_SHELL.specularColor),
       transparent: true,
-      opacity: isSoftwareGl ? 0.55 : 0.92,
+      opacity: isSoftwareGl ? 0.18 : 0.42,
       depthWrite: false,
     });
     extraDisposables.push(sharedPortalDarkGlassMat);
@@ -3041,57 +3040,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       }
     }
 
-    // Local edited-second cutdowns fill every sphere sieve (distinct shots, same-origin).
-    const ALWAYS_ON_SPHERE_MEDIA: Record<string, { url: string; poster: string }> = {
-      hq: {
-        url: SPHERE_SHOTS.hq?.videoPath || PUBLIC_BRAND_MEDIA.showreel2023.url,
-        poster: SPHERE_SHOTS.hq?.posterPath || PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
-      },
-      cde: {
-        url: SPHERE_SHOTS.cde?.videoPath || PUBLIC_BRAND_MEDIA.showreel2023.url,
-        poster: SPHERE_SHOTS.cde?.posterPath || PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
-      },
-      'campaign-os': {
-        url: SPHERE_SHOTS['campaign-os']?.videoPath || PUBLIC_BRAND_MEDIA.laligaFilm.url,
-        poster: SPHERE_SHOTS['campaign-os']?.posterPath || PUBLIC_BRAND_MEDIA.laligaFilm.posterUrl,
-      },
-      'about-us': {
-        url: SPHERE_SHOTS['about-us']?.videoPath || PUBLIC_BRAND_MEDIA.elBatron.url,
-        poster: SPHERE_SHOTS['about-us']?.posterPath || PUBLIC_BRAND_MEDIA.elBatron.posterUrl,
-      },
-    };
-    const mountAlwaysOnMedia = (
-      parent: THREE.Object3D,
-      sphereId: string,
-      shellBandRadius: number,
-      mediaLensMat?: THREE.MeshPhysicalMaterial
-    ) => {
-      try {
-        const hqAsset = sphereId === 'hq' ? getSphereTextureAsset() : undefined;
-        const handle = mountSphereVideoTexture({
-          parent,
-          asset: hqAsset,
-          sourceUrl: ALWAYS_ON_SPHERE_MEDIA[sphereId]?.url,
-          posterUrl: ALWAYS_ON_SPHERE_MEDIA[sphereId]?.poster,
-          portalRadius: shellBandRadius * 0.85,
-          shellBandRadius,
-          wrapRadius: shellBandRadius * 1.002,
-          namePrefix: `${sphereId}-always`,
-        });
-        if (mediaLensMat) {
-          handle.bindMaterial(mediaLensMat);
-        }
-        extraDisposables.push({
-          dispose: () => {
-            handle.dispose();
-          },
-        });
-      } catch (err) {
-        console.warn(`[CosmographCanvas] ${sphereId} sphere video failed to mount`, err);
-        // Ice fallback plate is applied inside mountSphereVideoTexture on media errors;
-        // if mount itself throws, leave glass shell — never invent alternate materials.
-      }
-    };
     const allProjectIds = PROJECTS_DATA.map((p) => p.id);
     CEREBRO_STATIONS.forEach((st, idx) => {
       buildNodeWithSignal(
