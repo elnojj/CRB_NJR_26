@@ -1,0 +1,21 @@
+{
+  "schema": "nojara.cerebro.qa-spheres/1",
+  "status": "PASS",
+  "checks": [
+    {
+      "id": "sphere-network-contract",
+      "status": "PASS",
+      "detail": "Four connected spheres + proposed fifth; R01 motion targets present."
+    },
+    {
+      "id": "camera-wiring",
+      "status": "PASS",
+      "detail": "CosmographCanvas imports sphere network and keeps frame-rate-independent damping."
+    },
+    {
+      "id": "layout-scene-safe-rect",
+      "status": "PASS",
+      "detail": "App feeds sceneSafeRect to WebGL; phone header height 52 present in layout engine."
+    }
+  ]
+}

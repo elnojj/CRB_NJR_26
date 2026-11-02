@@ -46,10 +46,17 @@ npm install   # or: bun install
 PORT=3847 npm run dev
 ```
 
-- Default entry opens the cinematic intro (`/?intro=1`)
+- Default entry opens the cinematic **180s** intro (`/?intro=1`)
+- Optional **60s** explainer edition: `/?explainer=60` (does not shorten the 180s timeline)
 - Skip to workspace: `/?intro=0&view=hq`
 - Proof shot index: `/proofs.html`
-- Timeline config: `public/cerebro.intro.json`
+- Timeline configs: `public/cerebro.intro.json`, `public/cerebro.explainer60.json`
+
+### Remediation QA gates
+
+```bash
+npm run qa:gates   # lint + typecheck:intro + qa:spheres + qa:intro + qa:remediation + build
+```
 
 ## Intro notes
 

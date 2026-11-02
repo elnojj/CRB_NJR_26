@@ -1,0 +1,55 @@
+{
+  "schema": "nojara.cerebro.explainer60/1",
+  "version": "0.1.0",
+  "status": "optional-edition-not-replacing-180",
+  "relationshipToIntro180": "Distinct 60-second edition. Does not shorten or overwrite the 180-second intro, its 10800-frame timeline, or the 18-screen interactive tour.",
+  "meta": {
+    "title": "Cerebro — 60-second explainer",
+    "durationSeconds": 60,
+    "timelineFps": 60,
+    "totalFrames": 3600,
+    "beatCount": 15,
+    "framesPerBeat": 240,
+    "aspect": [16, 9],
+    "cameraRule": "One continuous authored trajectory evaluated from the current frame.",
+    "executiveRule": "Within frames 0–600, show what Cerebro is, whom it helps, and one verified example of the work.",
+    "voiceNarration": "Optional and not claimed synchronized until agent/client-tool contract passes."
+  },
+  "brand": {
+    "logo": "assets/brand/nojara-logo-white.png",
+    "englishFont": "assets/fonts/JaapokkiSubtract-Regular.ttf",
+    "arabicFont": "assets/fonts/arabic.ttf"
+  },
+  "beats": [
+    { "frames": [0, 240], "focus": "NOJARA / Cerebro", "copyEn": "Culture. Designed to move.", "copyAr": "ثقافة. مصمَّمة لتتحرّك." },
+    { "frames": [240, 480], "focus": "HQ operating sphere", "copyEn": "Work, connected.", "copyAr": "عمل متّصل." },
+    { "frames": [480, 720], "focus": "Verified project core", "copyEn": "Decisions meet delivery.", "copyAr": "القرارات تلتقي بالتسليم." },
+    { "frames": [720, 960], "focus": "Projects", "copyEn": "One visible system.", "copyAr": "نظام واحد ظاهر." },
+    { "frames": [960, 1200], "focus": "People / Tarek chapter", "mediaId": "tarek", "copyEn": "Built from the work.", "copyAr": "مبني من العمل." },
+    { "frames": [1200, 1440], "focus": "Young & Human", "copyEn": "Creators make culture.", "copyAr": "المبدعون يصنعون الثقافة." },
+    { "frames": [1440, 1680], "focus": "Verified Young & Human media", "copyEn": "Show the work.", "copyAr": "أظهر العمل." },
+    { "frames": [1680, 1920], "focus": "CDE sphere", "copyEn": "Research shapes design.", "copyAr": "البحث يشكّل التصميم." },
+    { "frames": [1920, 2160], "focus": "CDE dimensions", "copyEn": "Four connected lenses.", "copyAr": "أربع عدسات متّصلة." },
+    { "frames": [2160, 2400], "focus": "Campaign OS", "copyEn": "From brief to evidence.", "copyAr": "من الموجز إلى الدليل." },
+    { "frames": [2400, 2640], "focus": "About Us", "copyEn": "People make systems.", "copyAr": "الناس يصنعون الأنظمة." },
+    { "frames": [2640, 2880], "focus": "Industry threshold", "copyEn": "Making has a method.", "copyAr": "للصنع منهج.", "assetGate": "PROPOSED" },
+    { "frames": [2880, 3120], "focus": "إصطمبة procedural proof", "copyEn": "Form follows process.", "copyAr": "الشكل يتبع العملية.", "assetGate": "PROPOSED" },
+    { "frames": [3120, 3360], "focus": "Connected sphere network", "copyEn": "One creative ecosystem.", "copyAr": "منظومة إبداع واحدة." },
+    { "frames": [3360, 3600], "focus": "HQ arrival and Enter control", "copyEn": "Enter Cerebro.", "copyAr": "ادخل سيريبو." }
+  ],
+  "cameraKeys": [
+    { "frame": 0, "position": [0, 4.2, 22], "target": [0, 0, 0], "focalMm": 35 },
+    { "frame": 600, "position": [6, 3.4, 16], "target": [0, 0.2, 0], "focalMm": 32 },
+    { "frame": 1200, "position": [4, 2.8, 12], "target": [1.2, 0.4, 0.6], "focalMm": 40 },
+    { "frame": 1800, "position": [30, 5, -10], "target": [38, 4, -22], "focalMm": 35 },
+    { "frame": 2400, "position": [-20, 4, -8], "target": [-34, 3, -18], "focalMm": 35 },
+    { "frame": 2880, "position": [0, 2.2, 10], "target": [0, 0, 0], "focalMm": 40 },
+    { "frame": 3360, "position": [2, 3.6, 18], "target": [0, 0, 0], "focalMm": 35 },
+    { "frame": 3599, "position": [0.8, 3.2, 19], "target": [0, 0, 0], "focalMm": 35 }
+  ],
+  "gates": {
+    "proposedBeatsRequireProceduralOnly": true,
+    "skipExitsToHqWorkspace": true,
+    "voiceNotSynchronizedClaim": true
+  }
+}

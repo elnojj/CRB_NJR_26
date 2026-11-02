@@ -1,0 +1,50 @@
+{
+  "schema": "nojara.cerebro.remediation-contract/1",
+  "status": "PASS_WITH_OPEN_GATES",
+  "checks": [
+    {
+      "id": "r06-explainer60-contract",
+      "status": "PASS",
+      "detail": "60s edition is distinct; 180s intro timeline untouched at 10800 frames."
+    },
+    {
+      "id": "r05-project-world-contract",
+      "status": "PASS",
+      "detail": "Istanba mould proof is procedural reconstruction with required state order."
+    },
+    {
+      "id": "r01-motion-targets",
+      "status": "PASS",
+      "detail": {
+        "sphereTravelMs": {
+          "min": 1400,
+          "max": 2200,
+          "default": 1900
+        },
+        "nodeFocusMs": {
+          "min": 700,
+          "max": 1100,
+          "default": 900
+        },
+        "panelTransitionMs": 320,
+        "gestureLossSettleMsMax": 400
+      }
+    },
+    {
+      "id": "r07-tool-parity-surface",
+      "status": "PASS",
+      "detail": "Frontend accepts place/name_or_code/back aliases and exposes truthful capability flags. Live ElevenLabs agent sync remains an unresolved gate."
+    },
+    {
+      "id": "release-scripts",
+      "status": "PASS",
+      "detail": "qa:spheres and qa:remediation registered in package scripts."
+    }
+  ],
+  "openGates": [
+    "R07 live ElevenLabs agent version + KB sync not verified against deployed client in this run",
+    "tarek_portrait_aperture blocked pending approved source/rights",
+    "fifth_sphere Industry & Making proposed only",
+    "checkpoints 8b70e08 / 2d68907 absent from this checkout and remotes"
+  ]
+}

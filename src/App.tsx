@@ -416,6 +416,7 @@ export default function App() {
 
   // 5. Hands Overlay State
   const [handsActive, setHandsActive] = useState<boolean>(false);
+  const [gestureTrackingActive, setGestureTrackingActive] = useState<boolean>(true);
   // Always start one-hand; two-hands only when the user picks the 2× control.
   const [handMode, setHandMode] = useState<HandDetectionMode>('right-only');
   const [activeGesture, setActiveGesture] = useState<HandGestureType>('pinch-orbit');
@@ -1850,11 +1851,43 @@ export default function App() {
               voiceAgent: 'live_verified',
             },
           });
+          const editionParams = new URLSearchParams(
+            typeof window !== 'undefined' ? window.location.search : ''
+          );
+          const activeEdition =
+            editionParams.get('explainer') === '60' || editionParams.get('edition') === '60'
+              ? 'explainer-60'
+              : editionParams.get('intro') === '1' || editionParams.get('edition') === '180'
+                ? 'intro-180'
+                : tourState.active
+                  ? 'tour-18'
+                  : 'workspace';
+          // Truthful capability flags — do not advertise features this client cannot evidence.
+          const capabilities = {
+            voiceTourAuto: Boolean(tourState.active && tourState.autoAdvance),
+            spatialWorld: !forceWebglFallback,
+            mediaControls: true,
+            presentation: audienceLevel === 'Public',
+            sessionCapture: false,
+            explainer60: true,
+            intro180: true,
+            projectWorldIstanba: true,
+            tarekPortraitAperture: false,
+            fifthSphereIndustryMaking: false,
+            liveAgentToolParityVerified: false,
+          };
           return {
             ok: true,
             action: 'get_page_state',
             target: manifestV4.activeScreenId,
-            resultingState: manifestV4 as unknown as Record<string, unknown>,
+            resultingState: {
+              ...(manifestV4 as unknown as Record<string, unknown>),
+              activeEdition,
+              capabilities,
+              sceneSafeRect: computedLayout.sceneSafeRect,
+              connectedSpheres: ['hq', 'cde', 'campaign-os', 'about-us'],
+              proposedSpheres: ['industry-making'],
+            },
             operationId: opId,
           };
         }
@@ -3324,6 +3357,8 @@ export default function App() {
         onChangeHandMode={setHandMode}
         onTriggerGesture={handleTriggerHandGesture}
         onCloseHands={() => setHandsActive(false)}
+        onTrackingLost={() => setGestureTrackingActive(false)}
+        onTrackingAcquired={() => setGestureTrackingActive(true)}
       />
 
       {/* 2B. Desk AR health + angled wall calendar + project plan.
@@ -3406,7 +3441,7 @@ export default function App() {
         onUserTouchPauseTour={handleUserTouchPauseTour}
         onTelemetryChange={handleTelemetryChange}
         onCameraSettled={handleCameraSettled}
-        unobstructedRect={guiLayout.centerSafeRect}
+        unobstructedRect={guiLayout.sceneSafeRect}
         guiCameraPreset={guiCameraPreset}
         onProjectedTargetChange={setProjectedTarget}
         onHoverNodeChange={setHoveredNodeId}
@@ -3443,6 +3478,7 @@ export default function App() {
             'tube_close'
           )
         }
+        gestureTrackingActive={gestureTrackingActive}
       />
 
       {/* 3A. Z-35 Focus Pointer, Projected 3D Target Ring, S04 Flight Route & GUI v3.0 QA Inspector */}
@@ -3453,7 +3489,7 @@ export default function App() {
         breakpoint={viewport.breakpoint}
         viewportW={viewport.width}
         viewportH={viewport.height}
-        centerSafeRect={guiLayout.centerSafeRect}
+        centerSafeRect={guiLayout.sceneSafeRect}
         projectedTarget={projectedTarget}
         isCameraInFlight={telemetry.isMoving}
         flightDestinationTitle={focusedNodeId || (activeSphere === 'cde' ? 'CDE Universe' : 'CEREBRO HQ')}

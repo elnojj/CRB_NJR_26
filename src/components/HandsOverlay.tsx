@@ -74,6 +74,10 @@ interface HandsOverlayProps {
   onChangeHandMode: (mode: HandDetectionMode) => void;
   onTriggerGesture: (gesture: HandGestureType) => void;
   onCloseHands: () => void;
+  /** Fired when landmarks disappear after a live track (R01 gesture-loss settle). */
+  onTrackingLost?: () => void;
+  /** Fired when landmarks reappear after a loss. */
+  onTrackingAcquired?: () => void;
 }
 
 const BASE_LEFT_LANDMARKS: [number, number][] = [
@@ -104,6 +108,8 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
   onChangeHandMode,
   onTriggerGesture,
   onCloseHands,
+  onTrackingLost,
+  onTrackingAcquired,
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const filterXRef = useRef(new OneEuroFilter(60, 1.4, 0.05));
@@ -126,6 +132,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
   const frameSkipRef = useRef(0);
   const lastUiPushRef = useRef(0);
   const handModeRef = useRef(handMode);
+  const hadLiveTrackRef = useRef(false);
   const wantedHands = handMode === 'two-hands' ? 2 : 1;
 
   useEffect(() => {
@@ -231,6 +238,10 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
             const now = performance.now();
             const res = landmarker.detectForVideo(v, now);
             if (res.landmarks && res.landmarks.length > 0) {
+              if (!hadLiveTrackRef.current) {
+                hadLiveTrackRef.current = true;
+                onTrackingAcquired?.();
+              }
               const mode = handModeRef.current;
               const maxHands = mode === 'two-hands' ? 2 : 1;
               const hands = res.landmarks.slice(0, maxHands);
@@ -332,6 +343,10 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
             } else if (performance.now() - lastUiPushRef.current > 120) {
               lastUiPushRef.current = performance.now();
               setLiveLandmarks(null);
+              if (hadLiveTrackRef.current) {
+                hadLiveTrackRef.current = false;
+                onTrackingLost?.();
+              }
             }
           }
           rafId = requestAnimationFrame(detectFrame);
@@ -341,6 +356,10 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
         if (!cancelled) {
           setCvStatusLabel('Camera active · Touch/mouse gesture fallback');
           setLiveLandmarks(null);
+          if (hadLiveTrackRef.current) {
+            hadLiveTrackRef.current = false;
+            onTrackingLost?.();
+          }
         }
       }
     }
@@ -363,8 +382,12 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           // ignore
         }
       }
+      if (hadLiveTrackRef.current) {
+        hadLiveTrackRef.current = false;
+        onTrackingLost?.();
+      }
     };
-  }, [active, wantedHands, onTriggerGesture]);
+  }, [active, wantedHands, onTriggerGesture, onTrackingLost, onTrackingAcquired]);
 
   useEffect(() => {
     if (!active) return;

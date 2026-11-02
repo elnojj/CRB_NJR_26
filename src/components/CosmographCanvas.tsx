@@ -41,6 +41,14 @@ import {
 import { mountSphereVideoTexture, type SphereVideoHandle } from '../lib/sphereVideoTexture';
 import { getSphereTextureAsset } from '../data/driveMediaCatalog';
 import { introBridge } from '../intro/bridge';
+import {
+  CAMERA_MOTION_TARGETS,
+  clampNodeFocusMs,
+  clampSphereTravelMs,
+  SPHERE_NETWORK,
+  sphereCenterVec,
+} from '../three/sphereNetwork';
+import { createIstanbaMouldProof, type IstanbaProofHandle } from '../three/istanbaMouldProof';
 
 const sceneRandom = () => (introBridge.enabled ? introBridge.random() : Math.random());
 
@@ -117,14 +125,17 @@ export function getD0Materials(): D0Materials {
       color: new THREE.Color('#FFFFFF'),
       metalness: 0.0,
       roughness: 0.04,
-      transmission: 0.98,
+      transmission: 0.96,
       ior: 1.52,
       thickness: 1.4,
+      clearcoat: 0.9,
+      clearcoatRoughness: 0.06,
       specularIntensity: 1.0,
       specularColor: new THREE.Color('#EAF2FF'),
       attenuationColor: new THREE.Color('#A4CBFF'),
       attenuationDistance: 4.5,
       transparent: true,
+      depthWrite: false,
     }),
     titanium: new THREE.MeshPhysicalMaterial({
       color: new THREE.Color('#C5CCD6'),
@@ -579,10 +590,20 @@ export interface CosmographCanvasProps {
   onSelectMediaTubeTile?: (tileIndex: number, tile: ProjectMediaTubeItem) => void;
   onOpenMediaTubeFullView?: (tileOrIndex: ProjectMediaTubeItem | number, tile?: ProjectMediaTubeItem) => void;
   onCloseMediaTube?: () => void;
+  /** Optional hook after the Three.js scene is mounted (project-world proofs, QA). */
+  onSceneReady?: (scene: THREE.Scene) => void;
+  /** When hand tracking is lost, settle residual gesture velocity without teleport. */
+  gestureTrackingActive?: boolean;
 }
 
-export const HQ_CENTER = new THREE.Vector3(0, 0, 0);
-export const CDE_CENTER = new THREE.Vector3(38, 4, -22);
+export const HQ_CENTER = sphereCenterVec('hq');
+export const CDE_CENTER = sphereCenterVec('cde');
+
+function resolveSphereCenter(id: string | null | undefined): THREE.Vector3 {
+  if (id === 'cde') return CDE_CENTER;
+  if (id === 'campaign-os' || id === 'about-us') return sphereCenterVec(id);
+  return HQ_CENTER;
+}
 
 function unifiedEaseOut(t: number): number {
   return quinticSmootherstep(t);
@@ -836,6 +857,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   onSelectMediaTubeTile,
   onOpenMediaTubeFullView,
   onCloseMediaTube,
+  onSceneReady,
+  gestureTrackingActive = true,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const [labels2D, setLabels2D] = useState<AnchoredLabel2D[]>([]);
@@ -923,7 +946,40 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     tubeRotationY: 0,
     tubeAngularVel: 0.025,
     tubeHoveredTileIdx: null as number | null,
+    gestureAccepting: true,
+    gestureResidualAzVel: 0,
+    gestureLossSettleUntil: 0,
+    lastCameraCommandLog: null as null | {
+      commandId: number;
+      verb: string;
+      target: [number, number, number];
+      pose: [number, number, number];
+      phase: string;
+      dtMs: number;
+      sceneSafeRect: GuiRect | null;
+    },
   });
+
+  const gestureTrackingRef = useRef(gestureTrackingActive);
+  useEffect(() => {
+    const wasActive = gestureTrackingRef.current;
+    gestureTrackingRef.current = gestureTrackingActive;
+    const s = stateRef.current;
+    if (wasActive && !gestureTrackingActive) {
+      // Tracking lost: stop receiving gesture targets; settle residual velocity ≤400ms; no teleport.
+      s.gestureAccepting = false;
+      s.gestureLossSettleUntil =
+        performance.now() + CAMERA_MOTION_TARGETS.gestureLossSettleMsMax;
+      s.currentAngularVel = Math.min(
+        s.currentAngularVel,
+        Math.abs(s.gestureResidualAzVel) || s.currentAngularVel
+      );
+    } else if (gestureTrackingActive) {
+      s.gestureAccepting = true;
+      s.gestureLossSettleUntil = 0;
+      s.gestureResidualAzVel = 0;
+    }
+  }, [gestureTrackingActive]);
 
   stateRef.current.activeSphere = activeSphere;
   stateRef.current.focusedNodeId = focusedNodeId;
@@ -1127,34 +1183,60 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     if (verb === 'switch_sphere') {
       const destSphere = targetSphere || s.activeSphere;
-      const center = destSphere === 'cde' ? CDE_CENTER : HQ_CENTER;
+      const center = resolveSphereCenter(destSphere);
+      const travelMs = clampSphereTravelMs(center.distanceTo(s.currentCenter));
       s.activeLoopMode = 'off';
       s.targetRollDeg = 0;
       s.activeLensId = '35mm';
       s.targetPanOffset.set(0, 0, 0);
-      triggerCometFlight(center, 0.18, 1.38, 19.0, 3800, true, 35);
+      // Interrupt prior flight by replacing curve — no snap when reducedMotion is false.
+      triggerCometFlight(center, 0.18, 1.38, 19.0, travelMs, true, 35);
+      s.lastCameraCommandLog = {
+        commandId: id,
+        verb,
+        target: [center.x, center.y, center.z],
+        pose: [s.currentCenter.x, s.currentCenter.y, s.currentCenter.z],
+        phase: 'switch_sphere_flight',
+        dtMs: travelMs,
+        sceneSafeRect: unobstructedRectRef.current
+          ? { ...unobstructedRectRef.current }
+          : null,
+      };
     } else if (verb === 'focus_node' && targetNodeId) {
       const sphereHint = targetSphere || s.activeSphere;
       const node = resolveNodeEntry(targetNodeId, sphereHint);
       if (node) {
-        const sphereCenter = node.sphere === 'cde' ? CDE_CENTER : HQ_CENTER;
+        const sphereCenter = resolveSphereCenter(node.sphere);
         const localVec = node.worldPos.clone().sub(sphereCenter);
         const r = Math.max(0.1, localVec.length());
         const pol = Math.acos(THREE.MathUtils.clamp(localVec.y / r, -1, 1));
         const az = Math.atan2(localVec.x, localVec.z);
         s.targetPanOffset.copy(localVec).multiplyScalar(0.22);
         const isCrossingSpheres = sphereCenter.distanceTo(s.currentCenter) > 10;
-        triggerCometFlight(sphereCenter, az, pol, 12.8, isCrossingSpheres ? 3200 : 2200, isCrossingSpheres);
+        const focusMs = clampNodeFocusMs(isCrossingSpheres);
+        triggerCometFlight(sphereCenter, az, pol, 12.8, focusMs, isCrossingSpheres);
+        s.lastCameraCommandLog = {
+          commandId: id,
+          verb,
+          target: [sphereCenter.x, sphereCenter.y, sphereCenter.z],
+          pose: [s.currentCenter.x, s.currentCenter.y, s.currentCenter.z],
+          phase: isCrossingSpheres ? 'cross_sphere_focus' : 'node_focus',
+          dtMs: focusMs,
+          sceneSafeRect: unobstructedRectRef.current
+            ? { ...unobstructedRectRef.current }
+            : null,
+        };
       }
     } else if (verb === 'center' || verb === 'arrival') {
-      const center = (targetSphere || s.activeSphere) === 'cde' ? CDE_CENTER : HQ_CENTER;
+      const center = resolveSphereCenter(targetSphere || s.activeSphere);
+      const travelMs = clampSphereTravelMs(center.distanceTo(s.currentCenter));
       s.activeLoopMode = 'off';
       s.activeAnglePreset = null;
       s.targetRollDeg = 0;
       s.activeLensId = '35mm';
       s.targetFocalLengthMm = 35;
       s.targetPanOffset.set(0, 0, 0);
-      triggerCometFlight(center, 0.12, 1.42, 19.0, 2600);
+      triggerCometFlight(center, 0.12, 1.42, 19.0, travelMs);
     } else if (verb === 'set_lens') {
       s.stoppedExplicitly = false;
       s.flightActive = false;
@@ -1304,10 +1386,16 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         soundEngine.triggerFlightWhoosh(720, 0);
       }
     } else if (verb === 'orbit') {
+      if (!s.gestureAccepting && !gestureTrackingRef.current) {
+        // Tracking lost — ignore new gesture targets; residual settle runs in the frame loop.
+        return;
+      }
       s.stoppedExplicitly = false;
       s.flightActive = false;
       s.activeLoopMode = 'off';
-      s.targetAzimuth += deltaAzimuth ?? 0.55;
+      const dAz = deltaAzimuth ?? 0.55;
+      s.targetAzimuth += dAz;
+      s.gestureResidualAzVel = dAz * 0.35;
       if (deltaPolar !== undefined) {
         s.targetPolar = THREE.MathUtils.clamp(
           s.targetPolar + deltaPolar,
@@ -2844,6 +2932,79 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       );
     });
 
+    // Connected Campaign OS + About Us satellite spheres (distinct material presets; not the proposed fifth).
+    for (const node of SPHERE_NETWORK) {
+      if (node.id === 'hq' || node.id === 'cde') continue;
+      const sat = new THREE.Group();
+      sat.name = `sphere-${node.id}`;
+      sat.position.set(node.center[0], node.center[1], node.center[2]);
+      const satMat =
+        node.materialPreset === 'campaign-ice'
+          ? new THREE.MeshPhysicalMaterial({
+              color: new THREE.Color('#B4DDFF'),
+              metalness: 0.12,
+              roughness: 0.18,
+              transmission: isSoftwareGl ? 0 : 0.55,
+              ior: 1.45,
+              thickness: 1.2,
+              clearcoat: 0.7,
+              transparent: true,
+              opacity: 0.72,
+              depthWrite: false,
+            })
+          : new THREE.MeshPhysicalMaterial({
+              color: new THREE.Color('#D4AF37'),
+              metalness: 0.55,
+              roughness: 0.22,
+              transmission: isSoftwareGl ? 0 : 0.35,
+              ior: 1.5,
+              thickness: 1.4,
+              clearcoat: 0.85,
+              transparent: true,
+              opacity: 0.78,
+              depthWrite: false,
+            });
+      sat.add(new THREE.Mesh(new THREE.SphereGeometry(node.radius, 40, 28), satMat));
+      scene.add(sat);
+      extraDisposables.push(satMat);
+      // Cardiac bridge from HQ to connected satellite (authored path, not repulsion physics).
+      const satBridge = new THREE.CatmullRomCurve3([
+        HQ_CENTER.clone(),
+        new THREE.Vector3(
+          node.center[0] * 0.45,
+          node.center[1] + 4.5,
+          node.center[2] * 0.45
+        ),
+        new THREE.Vector3(node.center[0], node.center[1], node.center[2]),
+      ]);
+      const bridgeGeo = new THREE.TubeGeometry(satBridge, 48, 0.045, 6, false);
+      const bridgeMat = new THREE.MeshBasicMaterial({
+        color: node.materialPreset === 'campaign-ice' ? 0xb4ddff : 0xd4af37,
+        transparent: true,
+        opacity: 0.42,
+        depthWrite: false,
+      });
+      scene.add(new THREE.Mesh(bridgeGeo, bridgeMat));
+      extraDisposables.push(bridgeGeo, bridgeMat);
+    }
+
+    // Procedural إصطمبة mould proof — reconstruction only; parent HQ sphere stays intact.
+    let istanbaProof: IstanbaProofHandle | null = null;
+    try {
+      istanbaProof = createIstanbaMouldProof(hqAssembly.root);
+      istanbaProof.setState('parent_sphere', 0);
+      extraDisposables.push({
+        dispose: () => {
+          istanbaProof?.dispose();
+          istanbaProof = null;
+        },
+      });
+    } catch (err) {
+      console.warn('[CosmographCanvas] Istanba mould proof failed to mount', err);
+    }
+
+    onSceneReady?.(scene);
+
     // Spawn Sphere 03+ (Voice-spawned domains like MISSION LOTUS OPS via `create_domain`):
     // Mint Plasma Membrane (#7CE0B8, rim #5CC8D7, r = 4.4u), connected to its parent sphere with an
     // arched CatmullRomCurve3 cardiac tube (#65ACFF, opacity: 0.55) carrying a synchronized #FFF1D4 traveling light pulse bead.
@@ -3526,9 +3687,23 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       hqAssembly.coreCrystalMat.emissiveIntensity = coreEmissive;
       cdeAssembly.coreCrystalMat.emissiveIntensity = coreEmissive;
 
+      // Gesture-loss settle: drain residual azimuth velocity within 400ms, never teleport.
+      if (s.gestureLossSettleUntil > 0) {
+        const remain = s.gestureLossSettleUntil - now;
+        if (remain <= 0) {
+          s.gestureResidualAzVel = 0;
+          s.gestureLossSettleUntil = 0;
+        } else {
+          const settleT = 1 - remain / CAMERA_MOTION_TARGETS.gestureLossSettleMsMax;
+          s.gestureResidualAzVel = THREE.MathUtils.damp(s.gestureResidualAzVel, 0, 14, dt);
+          s.targetAzimuth += s.gestureResidualAzVel * dt * (1 - settleT);
+        }
+      }
+
       // If explicitly stopped, velocity stays strictly 0 with zero drift
       if (s.stoppedExplicitly) {
         s.currentAngularVel = 0;
+        s.gestureResidualAzVel = 0;
       } else {
         const baseSphereRate = GUI_WORLD_MOTION_TOKENS.rates.sphereRadPerSec; // 0.02992 rad/s (210s period)
         const isUserIdle = (now - s.lastUserInputTime) >= IDLE_MS;

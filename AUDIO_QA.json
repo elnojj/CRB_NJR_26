@@ -1,0 +1,9 @@
+{
+  "status": "DECLARED_LOCAL_MASTERS",
+  "voiceEnabled": false,
+  "masterSrc": "assets/audio/intro-music-sfx.m4a",
+  "notes": [
+    "Music/SFX only — no spoken voice track claimed synchronized.",
+    "Optional 60s explainer does not add or replace a voice asset in this remediation."
+  ]
+}

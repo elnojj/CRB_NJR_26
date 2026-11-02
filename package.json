@@ -11,8 +11,11 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "typecheck:intro": "tsc --noEmit -p tsconfig.intro.json",
-    "qa:intro": "node --experimental-strip-types qa.mjs",
-    "intro": "echo \"Open /?intro=1 (default on movie branch)\"",
+    "qa:intro": "bun qa.mjs",
+    "qa:spheres": "bun qa-spheres.mjs",
+    "qa:remediation": "bun qa-remediation.mjs",
+    "qa:gates": "npm run lint && npm run typecheck:intro && npm run qa:spheres && npm run qa:intro && npm run qa:remediation && npm run build",
+    "intro": "echo \"Open /?intro=1 (default on movie branch); /?explainer=60 for 60s edition\"",
     "firebase": "firebase",
     "deploy": "npm run build && firebase deploy --only hosting --project advance-copilot-489023-c3",
     "deploy:hosting": "npm run deploy"

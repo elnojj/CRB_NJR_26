@@ -346,13 +346,14 @@ export const GUI_TOUCH_TOKENS = {
   minTargetPx: 44,
   preferredTargetPx: 48,
   minControlGapPx: 8,
-  minGapPx: 16,
-  panelCollisionMarginPx: 16,
+  minGapPx: 12,
+  /** Remediation lock: minimum collision gap 12px between interactive regions. */
+  panelCollisionMarginPx: 12,
   sphereSafePaddingPx: 24,
 
   proposedMinTargetPx: 44,
   proposedMinControlGapPx: 8,
-  proposedPanelCollisionMarginPx: 16,
+  proposedPanelCollisionMarginPx: 12,
   proposedSphereSafePaddingPx: 24,
 } as const;
 

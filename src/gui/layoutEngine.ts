@@ -82,7 +82,7 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
   if (breakpoint === 'phone') {
     const padX = 12;
     const colW = Math.max(296, width - padX * 2);
-    const headerRect: GuiRect = { x: padX, y: 12, w: colW, h: 48 };
+    const headerRect: GuiRect = { x: padX, y: 12, w: colW, h: 52 };
     const minimizedChipsRect: GuiRect = { x: padX, y: 388, w: colW, h: 36 };
 
     const isSheetOpen = openPanels.length > 0;

@@ -354,10 +354,12 @@ export function parseStructuredToolCall(
     }
 
     case 'open_station': {
-      const st = String(params.station || params.stationId || '').toLowerCase() as StationId;
+      const st = String(
+        params.station || params.stationId || params.place || ''
+      ).toLowerCase() as StationId;
       const valid = CEREBRO_STATIONS.some((s) => s.id === st);
       if (!valid) {
-        return { ok: false, error: `Unknown station: ${st}` };
+        return { ok: false, error: `Unknown station/place: ${st || '(empty)'}` };
       }
       return { ok: true, action: { type: 'open_station', station: st } };
     }
@@ -365,9 +367,16 @@ export function parseStructuredToolCall(
     case 'focus_project':
     case 'open_project':
     case 'get_project': {
-      const resolved = resolveProjectId(String(params.projectId || params.project || ''));
+      const resolved = resolveProjectId(
+        String(params.projectId || params.project || params.name_or_code || params.name || '')
+      );
       if (!resolved) {
-        return { ok: false, error: `Unknown projectId: ${String(params.projectId || params.project)}` };
+        return {
+          ok: false,
+          error: `Unknown projectId/name_or_code: ${String(
+            params.projectId || params.project || params.name_or_code || params.name || ''
+          )}`,
+        };
       }
       const rawTab = String(params.tab || '').toLowerCase();
       const tabAlias: Record<string, ProjectWorkspaceTab> = {
@@ -501,7 +510,23 @@ export function parseStructuredToolCall(
     case 'start_tour':
     case 'stop_tour': {
       const defaultAct = name === 'start_tour' ? 'start' : name === 'stop_tour' ? 'stop' : 'start';
-      const act = String(params.action || defaultAct).toLowerCase() as TourActionType;
+      const rawAct = String(params.action || defaultAct).toLowerCase();
+      // Agent may send tour_control(back); map to prev without inventing a different action.
+      const normalizedAct = rawAct === 'back' ? 'prev' : rawAct;
+      const validTourActs: TourActionType[] = [
+        'start',
+        'pause',
+        'resume',
+        'next',
+        'prev',
+        'stop',
+        'mode_auto',
+        'mode_manual',
+      ];
+      if (!validTourActs.includes(normalizedAct as TourActionType)) {
+        return { ok: false, error: `Unsupported tour_control action: ${rawAct}` };
+      }
+      const act = normalizedAct as TourActionType;
       const rawMode = String(params.mode || '').toLowerCase();
       const validModes: TourMode[] = ['full-18-screen', 'hq-ops', 'cde-bio', 'executive-fast'];
       const mode: TourMode | undefined = validModes.includes(rawMode as TourMode)

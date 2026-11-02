@@ -147,6 +147,7 @@ interface ExperienceCanvasProps {
   onSelectMediaTubeTile?: (tileIndex: number, item: ProjectMediaTubeItem) => void;
   onOpenMediaTubeFullView?: (tileOrIndex: number | ProjectMediaTubeItem, tile?: ProjectMediaTubeItem) => void;
   onCloseMediaTube?: () => void;
+  gestureTrackingActive?: boolean;
 }
 
 export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
@@ -174,6 +175,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
   onSelectMediaTubeTile,
   onOpenMediaTubeFullView,
   onCloseMediaTube,
+  gestureTrackingActive = true,
 }) => {
   const osReducedMotion = useReducedMotion();
   const effectiveReducedMotion = Boolean(reducedMotion || osReducedMotion);
@@ -203,6 +205,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
         onSelectMediaTubeTile={onSelectMediaTubeTile}
         onOpenMediaTubeFullView={onOpenMediaTubeFullView}
         onCloseMediaTube={onCloseMediaTube}
+        gestureTrackingActive={gestureTrackingActive}
       />
 
       {/* Reduced-Motion / Fallback Rest Sphere + Interactive 2D SVG Orbital Station Pins */}
