@@ -186,20 +186,20 @@ export function resolveOpenPanelAccent(openIndex: number): {
  * Font-file availability still needs verification in the target project.
  */
 export const GUI_TYPOGRAPHY_TOKENS = {
-  display:
+  /** Default-app display — Sora. Jaapokki stays film-scoped via filmDisplay. */
+  display: "'Sora', system-ui, sans-serif",
+  filmDisplay:
     "'JaapokkiSubtract', 'Jaapokki', 'Sora', system-ui, sans-serif",
 
-  sans:
-    "'Sora', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif",
+  sans: "'Inter', system-ui, -apple-system, sans-serif",
 
-  arabic:
-    "'Cairo', 'Tajawal', 'IBM Plex Sans Arabic', 'Sora', system-ui, sans-serif",
+  arabic: "'Noto Kufi Arabic', 'Noto Sans Arabic', sans-serif",
 
-  mono:
-    "'JetBrains Mono', ui-monospace, SFMono-Regular, monospace",
+  mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, monospace",
 
   css: {
     display: 'var(--font-display)',
+    filmDisplay: 'var(--font-film-display)',
     sans: 'var(--font-sans)',
     arabic: 'var(--font-arabic)',
     mono: 'var(--font-mono)',

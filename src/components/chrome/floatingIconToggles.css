@@ -48,19 +48,19 @@
 .floating-icon-toggle.is-active,
 .floating-icon-toggle.is-open {
   color: var(--c-canvas-d0, #101622);
-  background: var(--token-active-gold, #d4af37);
-  border-color: var(--token-active-gold, #d4af37);
+  background: var(--token-focus, #65ACFF);
+  border-color: var(--token-focus, #65ACFF);
   opacity: 1;
   filter: none;
   box-shadow:
-    0 0 0 1px rgba(212, 175, 55, 0.35),
+    0 0 0 1px color-mix(in srgb, var(--token-focus, #65ACFF) 35%, transparent),
     0 10px 28px rgba(0, 0, 0, 0.35);
 }
 
-/* Sphere-role accents — HQ gold vs CDE cobalt when active */
+/* Sphere-role accents — HQ cobalt (default app) vs CDE ice when active */
 .floating-icon-toggle[data-toggle-id='hq'].is-active {
-  background: var(--token-active-gold, #d4af37);
-  border-color: var(--token-active-gold, #d4af37);
+  background: var(--token-focus, #65ACFF);
+  border-color: var(--token-focus, #65ACFF);
   color: var(--c-canvas-d0, #101622);
 }
 
@@ -120,7 +120,7 @@
   font-size: var(--type-meta, 0.75rem);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--token-active-gold, #d4af37);
+  color: var(--token-focus, #65ACFF);
 }
 
 .floating-icon-more-menu .fim-item {

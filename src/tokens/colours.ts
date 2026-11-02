@@ -143,12 +143,13 @@ export const COLOUR_TOKENS = {
   focusRing: '#65ACFF',
   sphereWireframe: '#B4DDFF',
   highlight: '#B4DDFF',
+  // Locked station hex from cerebro.config.json (never gold-aliased)
   stationProjects: '#65ACFF',
   stationProjectDetail: '#65ACFF',
-  stationTasks: '#C5CCD6',
-  stationPeople: '#B4DDFF',
-  stationFiles: '#C5CCD6',
-  stationMedia: '#B4DDFF',
+  stationTasks: '#FFF1D4',
+  stationPeople: '#E6A2B4',
+  stationFiles: '#B4DDFF',
+  stationMedia: '#F2B66D',
 
   // Semantic Reservations — C07 voice orb (teal wins; gold never for voice UI)
   voiceOrbMint: '#9AFFE0',

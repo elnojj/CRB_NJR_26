@@ -96,12 +96,13 @@
   --status-held:         #3A516E;
 
   /* ------------------------------------------------------------------------
-     4. STATION COLORS
+     4. STATION COLORS — locked hex from cerebro.config (never gold-aliased)
      ------------------------------------------------------------------------ */
-  --token-station-tasks:  var(--c-silver);
-  --token-station-people: var(--c-gold-sheen);
-  --token-station-files:  var(--c-silver);
-  --token-station-media:  var(--c-gold);
+  --token-station-projects: #65ACFF;
+  --token-station-tasks:    #FFF1D4;
+  --token-station-people:   #E6A2B4;
+  --token-station-files:    #B4DDFF;
+  --token-station-media:    #F2B66D;
 
   /* ------------------------------------------------------------------------
      5. TYPOGRAPHY
@@ -406,19 +407,18 @@
 }
 
 .cerebro-infograph-label.is-focused .ig-pulse {
-  border-color: rgba(212, 175, 55, 0.45);
-  box-shadow: 0 0 18px rgba(212, 175, 55, 0.22);
+  border-color: color-mix(in srgb, var(--token-focus, #65ACFF) 55%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--token-focus, #65ACFF) 28%, transparent);
 }
 
 @keyframes cerebro-infograph-land {
+  /* L02 — do not animate backdrop/filter blur; opacity + transform only */
   from {
     opacity: 0;
-    filter: blur(6px);
     transform: translate3d(0, 16px, 0) scale(0.92);
   }
   to {
     opacity: 1;
-    filter: blur(0);
     transform: translate3d(0, 0, 0) scale(1);
   }
 }

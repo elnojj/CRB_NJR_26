@@ -1,20 +1,20 @@
 /* Spatial Health shell — desk AR + recessed wall calendar + node-chip chart.
-   Brand: ink void, ice glass, gold focus. No purple glow stack. */
+   Brand: ink void, ice glass, cobalt focus. Gold stays film/3D rails only. */
 
 .spatial-health-shell {
   position: fixed;
   inset: 0;
-  z-index: 22;
+  z-index: var(--z-health, 30);
   pointer-events: none;
   overflow: hidden;
   --sh-ice: var(--token-accent-ice, #b4ddff);
-  --sh-gold: var(--token-focus, #d4af37);
-  --sh-sheen: var(--token-focus-glow, #fff4d0);
+  --sh-gold: var(--token-focus, #65ACFF);
+  --sh-sheen: var(--token-focus-glow, #b4ddff);
   --sh-ink: var(--token-bg-void, #03060c);
   --sh-glass: var(--token-glass-fill, rgba(16, 24, 36, 0.55));
   --sh-glass-strong: rgba(12, 18, 28, 0.78);
   --sh-border: var(--token-glass-border, rgba(180, 221, 255, 0.28));
-  font-family: var(--font-sans, Sora, 'IBM Plex Sans Arabic', Cairo, sans-serif);
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
   color: var(--token-text-primary, #f2f6f8);
 }
 

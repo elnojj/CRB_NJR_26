@@ -2434,12 +2434,40 @@ export default function App() {
         Boolean(target?.isContentEditable);
 
       if (e.key === 'Escape') {
+        // L11 — close top contextual surface before navigating back.
         if (fullscreenMedia) {
           setFullscreenMedia(null);
           return;
         }
         if (showDeveloperDrawer) {
           setShowDeveloperDrawer(false);
+          return;
+        }
+        if (showDownloadModal) {
+          setShowDownloadModal(false);
+          return;
+        }
+        if (voiceSheetExpanded) {
+          setVoiceSheetExpanded(false);
+          return;
+        }
+        if (voiceExpanded) {
+          setVoiceExpanded(false);
+          return;
+        }
+        if (mediaTubeState.active) {
+          executeTypedAction(
+            {
+              type: 'project_media_tube',
+              action: 'close',
+              projectId: mediaTubeState.projectId,
+            },
+            'escape_tube'
+          );
+          return;
+        }
+        if (projectWorld.projectId) {
+          setProjectWorld((prev) => settleMasterWorld(exitProjectWorld(prev)));
           return;
         }
         if (tourState.active) {
@@ -2520,10 +2548,17 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
     dispatchCamera,
+    executeTypedAction,
     fullscreenMedia,
+    mediaTubeState.active,
+    mediaTubeState.projectId,
     openPanels.length,
+    projectWorld.projectId,
     showDeveloperDrawer,
+    showDownloadModal,
     tourState.active,
+    voiceExpanded,
+    voiceSheetExpanded,
   ]);
 
   // All 12 ?view=... URL State Inspectors + Morning Briefing 06:00–10:30 Africa/Cairo Auto-Window

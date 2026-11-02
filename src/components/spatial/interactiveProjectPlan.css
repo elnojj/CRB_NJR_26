@@ -124,8 +124,8 @@
 
 .ipp-switcher-item.is-active,
 .ipp-switcher-item:hover {
-  border-color: var(--token-focus, #d4af37);
-  background: rgba(212, 175, 55, 0.12);
+  border-color: var(--token-focus, #65ACFF);
+  background: color-mix(in srgb, var(--token-focus, #65ACFF) 16%, transparent);
 }
 
 .ipp-views {
@@ -153,9 +153,9 @@
 
 .ipp-view-btn.is-active,
 .ipp-chip-btn.is-close:hover {
-  background: var(--token-focus, #d4af37);
+  background: var(--token-focus, #65ACFF);
   color: #101622;
-  border-color: var(--token-focus-glow, #fff4d0);
+  border-color: var(--token-focus-glow, #B4DDFF);
   font-weight: 600;
 }
 

@@ -1,8 +1,9 @@
 /**
- * Nested project-world contract (R05).
+ * Nested project-world contract (R05 / L03).
  * Parent sphere stays intact; inner object may assemble inside a threshold.
  * Procedural geometry is labelled reconstruction — never invents missing assets.
  */
+import { PROJECTS_DATA } from './sourceData';
 
 export type ProjectWorldInteractionState =
   | 'parent_sphere'
@@ -241,11 +242,32 @@ export function manifestFromProjectRecord(project: {
 
 export function getProjectWorldManifest(id: string): ProjectWorldManifest | null {
   if (PROJECT_WORLD_MANIFESTS[id]) return PROJECT_WORLD_MANIFESTS[id];
+  const projectId = id.startsWith('world-') ? id.slice('world-'.length) : id;
+  const fromSource = PROJECTS_DATA.find((p) => p.id === projectId);
+  if (fromSource) {
+    return manifestFromProjectRecord({
+      id: fromSource.id,
+      name: fromSource.name,
+      code: fromSource.code,
+      description: fromSource.description,
+    });
+  }
   if (id.startsWith('world-')) {
-    const projectId = id.slice('world-'.length);
     return manifestFromProjectRecord({ id: projectId, name: projectId });
   }
   return null;
+}
+
+/** All source-derived project worlds (unavailable plates until assets verified). */
+export function listSourceProjectWorldManifests(): ProjectWorldManifest[] {
+  return PROJECTS_DATA.map((p) =>
+    manifestFromProjectRecord({
+      id: p.id,
+      name: p.name,
+      code: p.code,
+      description: p.description,
+    })
+  );
 }
 
 export const PROJECT_WORLD_STATE_ORDER: ProjectWorldInteractionState[] = [

@@ -4698,10 +4698,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               const badgeAnchorX = item.x + 14;
               const badgeAnchorY = item.y + 19;
               const strokeCol = item.isFocused
-                ? 'var(--token-active-gold)'
+                ? 'var(--token-focus, #65ACFF)'
                 : 'color-mix(in srgb, var(--token-active-ice) 42%, transparent)';
               const dotCol = item.isFocused
-                ? 'var(--token-active-gold)'
+                ? 'var(--token-focus, #65ACFF)'
                 : 'var(--token-active-ice)';
               const midX = (item.anchorX + badgeAnchorX) * 0.5;
               const midY = (item.anchorY + badgeAnchorY) * 0.5 - 10;
@@ -4761,6 +4761,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                 data-testid={`sphere-label-${item.id}`}
                 data-object-code={item.objectCode}
                 data-chrome-state={item.isFocused ? 'active' : 'cold'}
+                aria-label={`${item.label}${item.sublabel ? `, ${item.sublabel}` : ''} · ${item.nodeType}`}
+                aria-pressed={item.isFocused}
                 onPointerDown={(e) => e.stopPropagation()}
                 onPointerEnter={() => {
                   stateRef.current.HoveredNodeId = item.id;
@@ -4780,13 +4782,20 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                   soundEngine.playNodeSelect(panX);
                   onSelectNode(item.id, item.nodeType, activeSphere);
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onSelectNode(item.id, item.nodeType, activeSphere);
+                  }
+                }}
                 style={{
                   transform: `translate3d(${x}px, ${y}px, 0)`,
                   borderColor: item.isFocused
-                    ? 'var(--token-active-gold)'
+                    ? 'var(--token-focus, #65ACFF)'
                     : 'color-mix(in srgb, var(--token-active-ice) 36%, transparent)',
                 }}
-                className={`cerebro-focus-label cerebro-infograph-label fixed top-0 left-0 min-h-[38px] pointer-events-auto cursor-pointer px-3.5 py-1.5 rounded-full border flex items-center gap-2.5 text-left group hover:border-[color:var(--token-active-gold)] ${
+                className={`cerebro-focus-label cerebro-infograph-label fixed top-0 left-0 min-h-[44px] pointer-events-auto cursor-pointer px-3.5 py-1.5 rounded-full border flex items-center gap-2.5 text-left group hover:border-[color:var(--token-focus,#65ACFF)] ${
                   item.isFocused
                     ? 'is-focused opacity-100'
                     : isAttentionProject

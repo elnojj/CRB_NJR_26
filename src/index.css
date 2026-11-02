@@ -24,7 +24,11 @@
     /* L01 — default app: cobalt/ice/teal roles. Gold is film-scope only. */
     --accent-cobalt: var(--c-cobalt, #65ACFF);
     --focus-ring: var(--c-cobalt, #65ACFF);
-    --station-projects: var(--c-cobalt, #65ACFF);
+    --station-projects: var(--token-station-projects, #65ACFF);
+    --station-tasks: var(--token-station-tasks, #FFF1D4);
+    --station-people: var(--token-station-people, #E6A2B4);
+    --station-files: var(--token-station-files, #B4DDFF);
+    --station-media: var(--token-station-media, #F2B66D);
     --station-tasks: var(--c-silver, #C5CCD6);
     --station-people: var(--c-ice, #B4DDFF);
     --station-files: var(--c-silver, #C5CCD6);

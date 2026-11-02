@@ -196,8 +196,8 @@ export const CEREBRO_STATIONS: StationNode[] = [
     labelAr: 'المشاريع',
     colour: COLOUR_TOKENS.stationProjects,
     position: [-1.65, 1.55, 1.15],
-    summary: '4 Register Projects (SEVEN, YAH, MHE, BSOCIAL) + 4 Portfolio Programmes [SAMPLE]',
-    badgeCount: '6 Suns · 4 Real',
+    summary: 'Register + portfolio programmes from source data (count derived at runtime).',
+    badgeCount: 'programmes · source',
   },
   {
     id: 'tasks',
@@ -770,6 +770,17 @@ export const PROJECTS_DATA: ProjectSummary[] = [
     sunPositionCde: [2.85, -2.85, -0.95],
   },
 ];
+
+/** Contract: never use legacy "6 Suns · 4 Real" — derive count from source. */
+{
+  const projectsStation = CEREBRO_STATIONS.find((s) => s.id === 'projects');
+  if (projectsStation) {
+    const real = PROJECTS_DATA.filter((p) => !p.isSample).length;
+    const sample = PROJECTS_DATA.filter((p) => p.isSample).length;
+    projectsStation.badgeCount = `${PROJECTS_DATA.length} programmes · ${real} verified · ${sample} sample`;
+    projectsStation.summary = `${PROJECTS_DATA.length} programmes from source register (${real} verified, ${sample} sample).`;
+  }
+}
 
 export interface PersonRecord {
   id: string;
