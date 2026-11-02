@@ -582,48 +582,48 @@ class IntroBridge {
       this.mediaGroup.root.position.copy(fallback);
     }
 
-    const show = !!media && p > 0.001;
-    // Showreel / primary plates: curved wrap is the hero. Flat portal stays off so it never flattens the read.
-    const useFullWrap = !!id && WRAP_MEDIA_IDS.has(id);
-    this.mediaGroup.wrap.visible = show && useFullWrap;
-    this.mediaGroup.band.visible = show;
-    this.mediaGroup.portal.visible = show && !useFullWrap;
+    // Always keep a curved media plate visible inside the active shell.
+    // Prefer the chapter/manual asset; otherwise fall back to looping showreel.
+    const alwaysId = id || 'showreel';
+    const alwaysMedia = media || this.getAsset(alwaysId);
+    const alwaysP = media && p > 0.001 ? Math.max(p, 0.55) : 0.62;
+    const useFullWrap = WRAP_MEDIA_IDS.has(alwaysId);
+    this.mediaGroup.wrap.visible = !!alwaysMedia && useFullWrap;
+    this.mediaGroup.band.visible = !!alwaysMedia;
+    this.mediaGroup.portal.visible = !!alwaysMedia && !useFullWrap;
 
-    if (media && show) {
-      const alpha = smoother(Math.max(p, 0.5) * 2);
+    if (alwaysMedia) {
+      const alpha = smoother(alwaysP);
       this.mediaGroup.wrap.scale.setScalar(0.998);
       this.mediaGroup.band.scale.setScalar(0.995);
       this.mediaGroup.portal.scale.setScalar(1);
 
-      this.mediaGroup.wrapMat.uniforms.map.value = media.texture;
-      this.mediaGroup.wrapMat.uniforms.alpha.value = alpha * (id === 'showreel' ? 0.92 : 0.82);
-      this.mediaGroup.bandMat.uniforms.map.value = media.texture;
+      this.mediaGroup.wrapMat.uniforms.map.value = alwaysMedia.texture;
+      this.mediaGroup.wrapMat.uniforms.alpha.value =
+        alpha * (alwaysId === 'showreel' ? 0.92 : 0.82);
+      this.mediaGroup.bandMat.uniforms.map.value = alwaysMedia.texture;
       this.mediaGroup.bandMat.uniforms.alpha.value = alpha * (useFullWrap ? 0.35 : 0.72);
-      this.mediaGroup.portalMat.uniforms.map.value = media.texture;
+      this.mediaGroup.portalMat.uniforms.map.value = alwaysMedia.texture;
       this.mediaGroup.portalMat.uniforms.alpha.value = alpha * 0.55;
 
-      media.texture.needsUpdate = true;
-      if (media.el && media.el.paused) {
-        media.el.muted = true;
-        media.el.play().catch(() => {});
+      alwaysMedia.texture.needsUpdate = true;
+      if (alwaysMedia.el) {
+        alwaysMedia.el.muted = true;
+        if (!id) alwaysMedia.el.loop = true;
+        if (alwaysMedia.el.paused) alwaysMedia.el.play().catch(() => {});
       }
-    } else {
-      this.mediaGroup.wrap.visible = false;
-      this.mediaGroup.band.visible = false;
-      this.mediaGroup.portal.visible = false;
     }
 
-    // Drive each interactive inner sphere with its own video plate.
+    // Drive each interactive inner sphere with its own video plate — always visible.
     for (const inner of this.innerSpheres) {
-      const m = this.getAsset(inner.mediaId);
+      const m = this.getAsset(inner.mediaId) || this.getAsset('showreel');
       const active = this.manualId === inner.mediaId || id === inner.mediaId;
       if (!m) {
-        inner.mesh.visible = false;
         continue;
       }
       inner.mesh.visible = true;
       inner.mat.uniforms.map.value = m.texture;
-      inner.mat.uniforms.alpha.value = active ? 0.95 : 0.55;
+      inner.mat.uniforms.alpha.value = active ? 0.95 : 0.62;
       m.texture.needsUpdate = true;
       if (m.el) {
         m.el.muted = true;

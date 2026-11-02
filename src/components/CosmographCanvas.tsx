@@ -2796,27 +2796,42 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     const hqAssembly = buildSphereAssembly(HQ_CENTER, 'hq', COLOUR_TOKENS.cobaltAccent);
 
-    // Drive-backed showreel VideoTexture on HQ sphere (workspace only).
-    // During intro, introBridge owns the one-pass scripted video sequence on the sphere.
-    let hqSphereVideo: SphereVideoHandle | null = null;
-    if (!introBridge.enabled) {
+    // Always-on inner media for every connected sphere. HQ still yields the
+    // chapter-driven plate to introBridge while the 180s intro owns the camera,
+    // but CDE + satellites keep looping media so no shell reads as empty glass.
+    const ALWAYS_ON_SPHERE_MEDIA: Record<string, string> = {
+      hq: '/media/sphere-showreel-fallback.mp4',
+      cde: '/assets/media/young-human.mp4',
+      'campaign-os': '/assets/media/laliga.mp4',
+      'about-us': '/assets/media/showreel.mp4',
+    };
+    const mountAlwaysOnMedia = (
+      parent: THREE.Object3D,
+      sphereId: string,
+      shellBandRadius: number
+    ) => {
+      // During intro, HQ media is driven by introBridge chapter playback.
+      if (sphereId === 'hq' && introBridge.enabled) return;
       try {
-        hqSphereVideo = mountSphereVideoTexture({
-          parent: hqAssembly.shellGroup,
-          asset: getSphereTextureAsset(),
-          portalRadius: 5.05,
-          shellBandRadius: 5.92,
+        const handle = mountSphereVideoTexture({
+          parent,
+          asset: sphereId === 'hq' ? getSphereTextureAsset() : undefined,
+          sourceUrl: ALWAYS_ON_SPHERE_MEDIA[sphereId],
+          portalRadius: shellBandRadius * 0.85,
+          shellBandRadius,
+          wrapRadius: shellBandRadius * 1.002,
+          namePrefix: `${sphereId}-always`,
         });
         extraDisposables.push({
           dispose: () => {
-            hqSphereVideo?.dispose();
-            hqSphereVideo = null;
+            handle.dispose();
           },
         });
       } catch (err) {
-        console.warn('[CosmographCanvas] Sphere video texture failed to mount', err);
+        console.warn(`[CosmographCanvas] ${sphereId} sphere video failed to mount`, err);
       }
-    }
+    };
+    mountAlwaysOnMedia(hqAssembly.shellGroup, 'hq', 5.92);
 
     const allProjectIds = PROJECTS_DATA.map((p) => p.id);
     CEREBRO_STATIONS.forEach((st, idx) => {
@@ -2867,6 +2882,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     });
 
     const cdeAssembly = buildSphereAssembly(CDE_CENTER, 'cde', COLOUR_TOKENS.stationMedia);
+    mountAlwaysOnMedia(cdeAssembly.shellGroup, 'cde', 5.92);
     CDE_DIMENSIONS.forEach((dim, idx) => {
       const subIds = dim.subdomains.map((s) => s.id);
       buildNodeWithSignal(
@@ -2932,41 +2948,26 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       );
     });
 
-    // Connected Campaign OS + About Us satellite spheres (distinct material presets; not the proposed fifth).
+    // Connected Campaign OS + About Us satellites — same liquid-glass recipe as HQ/CDE
+    // (sharedOpticalGlassMat), with always-on inner media. Not the proposed fifth sphere.
     for (const node of SPHERE_NETWORK) {
       if (node.id === 'hq' || node.id === 'cde') continue;
       const sat = new THREE.Group();
       sat.name = `sphere-${node.id}`;
       sat.position.set(node.center[0], node.center[1], node.center[2]);
-      const satMat =
-        node.materialPreset === 'campaign-ice'
-          ? new THREE.MeshPhysicalMaterial({
-              color: new THREE.Color('#B4DDFF'),
-              metalness: 0.12,
-              roughness: 0.18,
-              transmission: isSoftwareGl ? 0 : 0.55,
-              ior: 1.45,
-              thickness: 1.2,
-              clearcoat: 0.7,
-              transparent: true,
-              opacity: 0.72,
-              depthWrite: false,
-            })
-          : new THREE.MeshPhysicalMaterial({
-              color: new THREE.Color('#D4AF37'),
-              metalness: 0.55,
-              roughness: 0.22,
-              transmission: isSoftwareGl ? 0 : 0.35,
-              ior: 1.5,
-              thickness: 1.4,
-              clearcoat: 0.85,
-              transparent: true,
-              opacity: 0.78,
-              depthWrite: false,
-            });
-      sat.add(new THREE.Mesh(new THREE.SphereGeometry(node.radius, 40, 28), satMat));
+      const satShell = new THREE.Group();
+      satShell.name = `${node.id}-shell`;
+      const satGeo = new THREE.SphereGeometry(node.radius, 48, 32);
+      const backShell = new THREE.Mesh(satGeo, sharedBackOpticalGlassMat);
+      backShell.renderOrder = 2;
+      satShell.add(backShell);
+      const frontShell = new THREE.Mesh(satGeo, sharedOpticalGlassMat);
+      frontShell.renderOrder = 4;
+      satShell.add(frontShell);
+      sat.add(satShell);
       scene.add(sat);
-      extraDisposables.push(satMat);
+      extraDisposables.push(satGeo);
+      mountAlwaysOnMedia(satShell, node.id, node.radius * 0.95);
       // Cardiac bridge from HQ to connected satellite (authored path, not repulsion physics).
       const satBridge = new THREE.CatmullRomCurve3([
         HQ_CENTER.clone(),
@@ -2979,7 +2980,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       ]);
       const bridgeGeo = new THREE.TubeGeometry(satBridge, 48, 0.045, 6, false);
       const bridgeMat = new THREE.MeshBasicMaterial({
-        color: node.materialPreset === 'campaign-ice' ? 0xb4ddff : 0xd4af37,
+        color: 0x65acff,
         transparent: true,
         opacity: 0.42,
         depthWrite: false,

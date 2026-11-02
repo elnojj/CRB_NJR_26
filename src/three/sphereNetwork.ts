@@ -1,6 +1,8 @@
 /**
  * Authoritative connected-sphere network for Cerebro spatial navigation.
  * Industry & Making / إصطمبة remains proposed — not a live destination here.
+ * All live/connected shells share one transparent optical-glass recipe; each
+ * keeps always-on inner media (see CosmographCanvas mountAlwaysOnMedia).
  */
 import * as THREE from 'three';
 
@@ -12,6 +14,7 @@ export type SphereNetworkNode = {
   labelAr: string;
   center: [number, number, number];
   radius: number;
+  /** Identity label only — runtime shell uses the shared optical-glass recipe on every sphere. */
   materialPreset: 'hq-cobalt-glass' | 'cde-amber-crystal' | 'campaign-ice' | 'about-gold-glass';
   status: 'live' | 'connected' | 'proposed';
 };
