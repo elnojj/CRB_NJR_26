@@ -51,7 +51,7 @@ const stubConfig = {
   brand: { logo: 'assets/brand/nojara-logo-white.png' },
 };
 
-export function Explainer60Player({ onEnterWorkspace, lang = 'en' }: Props) {
+export function Explainer60Player({ onEnterWorkspace }: Props) {
   const playerRef = useRef(new ExplainerPlayer());
   const configRef = useRef<Explainer60Config | null>(null);
   const istanbaRef = useRef<IstanbaProofHandle | null>(null);
@@ -60,7 +60,6 @@ export function Explainer60Player({ onEnterWorkspace, lang = 'en' }: Props) {
   const [copy, setCopy] = useState({ en: '', ar: '', focus: '' });
   const [frame, setFrame] = useState(0);
   const [wordCount, setWordCount] = useState(0);
-  const [activeLang, setActiveLang] = useState<'en' | 'ar'>(lang);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -95,7 +94,7 @@ export function Explainer60Player({ onEnterWorkspace, lang = 'en' }: Props) {
         if (sampled.beat) {
           const elapsed = Math.max(0, sampled.frame - sampled.beat.frames[0]);
           const progress = Math.min(1, elapsed / Math.max(1, sampled.beat.frames[1] - sampled.beat.frames[0]));
-          const activeText = activeLang === 'ar' ? sampled.beat.copyAr : sampled.beat.copyEn;
+          const activeText = sampled.beat.copyEn;
           setWordCount(Math.max(1, Math.ceil(activeText.trim().split(/\s+/).length * Math.min(1, progress * 1.8))));
           setCopy({
             en: sampled.beat.copyEn,
@@ -143,8 +142,8 @@ export function Explainer60Player({ onEnterWorkspace, lang = 'en' }: Props) {
     onEnterWorkspace?.();
   };
 
-  const dir = activeLang === 'ar' ? 'rtl' : 'ltr';
-  const activeCopy = activeLang === 'ar' ? copy.ar : copy.en;
+  const dir = 'ltr';
+  const activeCopy = copy.en;
   const visibleWords = activeCopy.trim().split(/\s+/).slice(0, wordCount).join(' ');
 
   return (
@@ -172,7 +171,7 @@ export function Explainer60Player({ onEnterWorkspace, lang = 'en' }: Props) {
         <header className="identity" aria-label="NOJARA Studios">
           <img
             src={new URL(stubConfig.brand.logo, document.baseURI).href}
-            alt="NOJARA Studios — نُچارة"
+            alt="NOJARA Studios"
           />
           <span>60S EXPLAINER{ready ? '' : ' · LOADING'}</span>
         </header>
@@ -184,12 +183,9 @@ export function Explainer60Player({ onEnterWorkspace, lang = 'en' }: Props) {
             Enter Cerebro <span aria-hidden="true">↗</span>
           </button>
         </div>
-        <section className="editorial editorial-live" dir={dir} lang={activeLang}>
+        <section className="editorial editorial-live" dir={dir} lang="en">
           <div className="eyebrow">{copy.focus}</div>
           <h1>{visibleWords}</h1>
-          <p className="subline" dir={activeLang === 'ar' ? 'ltr' : 'rtl'} lang={activeLang === 'ar' ? 'en' : 'ar'}>
-            {activeLang === 'ar' ? copy.en : copy.ar}
-          </p>
         </section>
         <p className="captions" dir={dir}>{visibleWords}</p>
         <div className="chrome-layer is-visible">
@@ -209,8 +205,7 @@ export function Explainer60Player({ onEnterWorkspace, lang = 'en' }: Props) {
             >
               {playing ? 'Pause' : 'Play'}
             </button>
-            <button type="button" aria-pressed={activeLang === 'en'} onClick={() => setActiveLang('en')}>EN</button>
-            <button type="button" aria-pressed={activeLang === 'ar'} onClick={() => setActiveLang('ar')}>عربي</button>
+            <span className="language-label">ENGLISH</span>
             <span data-testid="explainer60-frame">
               f{frame} / 3600 · {Math.floor(playerRef.current.time())}s
             </span>
