@@ -525,12 +525,15 @@ export function mountProjectNodeVideoShell(options: {
 
   const radius = options.radius ?? 0.62;
   const geo = createSphericalVideoShellGeometry(radius, 16 / 9, 48, 32);
+  // The playback surface is the only material on a media sphere. An opaque,
+  // depth-writing surface prevents the transparent shell family from washing
+  // out the video and keeps the inner image legible while spheres overlap.
   const mat = new THREE.MeshBasicMaterial({
     map: fallbackTexture ?? texture,
     side: THREE.FrontSide,
-    transparent: true,
-    opacity: 0.92,
-    depthWrite: false,
+    transparent: false,
+    opacity: 1,
+    depthWrite: true,
     toneMapped: false,
   });
   const mesh = new THREE.Mesh(geo, mat);

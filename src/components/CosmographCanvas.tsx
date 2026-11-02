@@ -1998,8 +1998,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       softwareGl: isSoftwareGl,
       face: 'back',
     });
-    // MAT owns shell opacity — tick must not invent a competing 0.42 recipe.
-    const shellFrontBaseOpacity = sharedOpticalGlassMat.opacity;
+    // Keep the containment shell readable but subordinate to the media spheres.
+    // The playback surfaces carry the image; the outer glass should not compete.
+    const shellFrontBaseOpacity = sharedOpticalGlassMat.opacity * 0.72;
+    sharedOpticalGlassMat.opacity = shellFrontBaseOpacity;
+    sharedBackOpticalGlassMat.opacity *= 0.72;
 
     // Shared Titanium / Silver Material (silver nodes & portal rim)
     const sharedTitaniumMat = new THREE.MeshPhysicalMaterial({
@@ -4038,7 +4041,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           : s.flightActive
           ? baseSphereRate * GUI_TIMING_TOKENS.travelMotionAttenuation
           : baseSphereRate;
-        s.currentAngularVel = THREE.MathUtils.damp(s.currentAngularVel, desiredVel, 3.8, dt);
+        s.currentAngularVel = THREE.MathUtils.damp(s.currentAngularVel, desiredVel, 5.2, dt);
 
         if (
           !s.flightActive &&
@@ -4209,11 +4212,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         camera.fov = focalLengthToVFov(s.focalLengthMm);
         camera.updateProjectionMatrix();
 
-        camera.position.set(
+        _scratchVec2.set(
           s.currentCenter.x + s.panOffset.x + s.radius * Math.sin(s.polar) * Math.sin(s.azimuth),
           s.currentCenter.y + s.panOffset.y + s.radius * Math.cos(s.polar),
           s.currentCenter.z + s.panOffset.z + s.radius * Math.sin(s.polar) * Math.cos(s.azimuth)
         );
+        // Ease toward the orbit target instead of snapping the camera every
+        // frame; this removes micro-jitter during drag release and focus changes.
+        camera.position.lerp(_scratchVec2, 1 - Math.exp(-12 * dt));
         camera.lookAt(_scratchVec.copy(s.currentCenter).add(s.panOffset));
       }
 
