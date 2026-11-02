@@ -124,11 +124,11 @@ export const GUI_GLASS_TOKENS = {
   hudBorder: '1px solid var(--token-divider)',
   coldBorder: '1px solid var(--token-cold-border)',
 
-  blurPx: 14,
-  blurDesktopPx: 14,
-  blurMobilePx: 14,
-  backdropFilter: 'blur(var(--blur-glass))',
-  backdropFilterMobile: 'blur(var(--blur-glass))',
+  blurPx: 12,
+  blurDesktopPx: 12,
+  blurMobilePx: 12,
+  backdropFilter: 'blur(var(--blur-glass-max, 12px))',
+  backdropFilterMobile: 'blur(var(--blur-glass-max, 12px))',
 
   saturate: 1.08,
 

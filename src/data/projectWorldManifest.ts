@@ -39,11 +39,21 @@ export type ProjectWorldObjectPart = {
 
 export type ProjectWorldManifest = {
   id: string;
-  parentSphere: 'hq' | 'cde' | 'campaign-os' | 'about-us';
+  /** Contract fields — every world declares these explicitly. */
+  projectId: string | null;
+  entryNodeId: string;
+  worldType: 'procedural-proof' | 'project-dimension' | 'unavailable';
+  themeId: 'default-app' | 'film-sehly' | 'project-scoped';
+  parentSphere: 'hq' | 'cde' | 'campaign-os' | 'about-us' | 'master';
   parentProjectId: string | null;
   titleEn: string;
   titleAr: string;
   rightsState: ProjectWorldRightsState;
+  assetRefs: string[];
+  provenance: string;
+  interactionSteps: string[];
+  exitRoute: 'return-master' | 'return-parent-project';
+  fallback: 'unavailable-plate' | 'master-world';
   chapters: ProjectWorldChapter[];
   objectParts: ProjectWorldObjectPart[];
   entryPose: {
@@ -64,11 +74,20 @@ export type ProjectWorldManifest = {
 /** Initial إصطمبة mould proof — procedural reconstruction only. */
 export const ISTANBA_MOULD_PROOF: ProjectWorldManifest = {
   id: 'istanba-mould-proof',
+  projectId: null,
+  entryNodeId: 'istanba-entry',
+  worldType: 'procedural-proof',
+  themeId: 'project-scoped',
   parentSphere: 'hq',
   parentProjectId: null,
   titleEn: 'Istanba mould proof (procedural)',
   titleAr: 'برهان قالب الإصطمبة (إجرائي)',
   rightsState: 'proposed_procedural',
+  assetRefs: [],
+  provenance: 'Procedural reconstruction in-repo; not ABINFER_MOULD.',
+  interactionSteps: ['approach', 'die-opening', 'impression', 'sourced-media-slot', 'reassembly', 'return'],
+  exitRoute: 'return-master',
+  fallback: 'master-world',
   chapters: [
     {
       id: 'approach',
@@ -172,11 +191,20 @@ export function manifestFromProjectRecord(project: {
 }): ProjectWorldManifest {
   return {
     id: `world-${project.id}`,
-    parentSphere: 'hq',
+    projectId: project.id,
+    entryNodeId: `entry-${project.id}`,
+    worldType: 'unavailable',
+    themeId: 'default-app',
+    parentSphere: 'master',
     parentProjectId: project.id,
     titleEn: project.name,
     titleAr: project.code || project.id,
     rightsState: 'restricted',
+    assetRefs: [],
+    provenance: 'Generated from project register; no invented playable media.',
+    interactionSteps: ['entry', 'exit'],
+    exitRoute: 'return-master',
+    fallback: 'unavailable-plate',
     chapters: [
       {
         id: 'entry',

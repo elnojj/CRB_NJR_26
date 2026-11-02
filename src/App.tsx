@@ -22,6 +22,15 @@ import {
   hydrationSequence,
 } from './state/cerebroSessionStore';
 import {
+  IDLE_PROJECT_WORLD,
+  enterProjectWorld,
+  activateProjectWorld,
+  exitProjectWorld,
+  settleMasterWorld,
+  ProjectWorldRuntime,
+} from './state/projectWorldRuntime';
+import { getProjectWorldManifest } from './data/projectWorldManifest';
+import {
   SCENE_SR_LABELS,
   formatKeyboardHelp,
 } from './a11y/workspaceKeyboardMap';
@@ -323,6 +332,7 @@ export default function App() {
   const [phoneSheetState, setPhoneSheetState] = useState<PhoneSheetExpansion>('default');
   const [voiceExpanded, setVoiceExpanded] = useState<boolean>(false);
   const [voiceSheetExpanded, setVoiceSheetExpanded] = useState<boolean>(false);
+  const [projectWorld, setProjectWorld] = useState<ProjectWorldRuntime>(IDLE_PROJECT_WORLD);
   const [voiceDragDelta, setVoiceDragDelta] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [projectedTarget, setProjectedTarget] = useState<ProjectedTargetScreenCoords | null>(null);
@@ -1240,6 +1250,15 @@ export default function App() {
             PROJECTS_DATA[0];
           setSelectedProjectId(proj.id);
           setFocusedNodeId(proj.id);
+          const worldManifest =
+            getProjectWorldManifest(`world-${proj.id}`) ||
+            getProjectWorldManifest(proj.id);
+          const available =
+            Boolean(worldManifest) && worldManifest?.worldType !== 'unavailable';
+          setProjectWorld((prev) => {
+            const entered = enterProjectWorld(prev, proj.id, available);
+            return available ? activateProjectWorld(entered) : entered;
+          });
           const nextTab = action.tab || projectTabsById[proj.id] || 'overview';
           setProjectTabsById((prev) => ({ ...prev, [proj.id]: nextTab }));
           // Spatial interactive plan is the primary project workspace; detail sheet opens on demand.
@@ -4106,6 +4125,47 @@ export default function App() {
         }}
         onRetryWebgl={() => window.location.reload()}
       />
+      {projectWorld.projectId && (
+        <div
+          className="cerebro-status-banner cerebro-status-banner--info"
+          data-testid="project-world-runtime"
+          role="status"
+          style={{
+            position: 'fixed',
+            top: 'max(64px, env(safe-area-inset-top))',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 'var(--z-ambient-status, 20)',
+            width: 'min(480px, calc(100vw - 24px))',
+            pointerEvents: 'auto',
+          }}
+        >
+          <div className="cerebro-status-banner__copy">
+            <strong>
+              {projectWorld.state === 'unavailable'
+                ? 'Project world unavailable'
+                : `Project world · ${projectWorld.state}`}
+            </strong>
+            <span>
+              {projectWorld.reason ||
+                `${projectWorld.projectId} — return restores master-sphere pose.`}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="cerebro-status-banner__action"
+            data-testid="return-master-world"
+            onClick={() => {
+              setProjectWorld((prev) => settleMasterWorld(exitProjectWorld(prev)));
+              setSpatialHealthOpen(false);
+              setFocusedNodeId(null);
+              dispatchCamera('center', { targetSphere: 'hq' });
+            }}
+          >
+            Return to master
+          </button>
+        </div>
+      )}
       <div className="sr-only" aria-live="polite" data-testid="a11y-hydration">
         {hydrationPhase === 'ready'
           ? SCENE_SR_LABELS.canvas

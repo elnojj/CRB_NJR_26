@@ -36,7 +36,7 @@
   --token-bg-surface:     var(--c-surface);
   --token-bg-elevated:    var(--c-surface-d0);
 
-  /* Approved D0 glass: void-navy at 0.88 · hairline silver · blur 14px */
+  /* Approved D0 glass: void-navy at 0.88 · hairline silver · blur 12px (config lock) */
   --token-glass-fill:     rgba(27, 34, 48, 0.88);
   --token-glass-solid:    var(--c-surface-d0);
   --token-glass-subtle:   rgba(16, 22, 34, 0.88);
@@ -126,6 +126,21 @@
   --control-radius: 12px;
   --pocket-radius: 10px;
   --pill-radius:   999px;
+
+  /* L02 elevation order (config): scene → HUD → status → health → dock → inspector → menu → dialog → critical */
+  --z-scene:              0;
+  --z-projected-hud:      10;
+  --z-ambient-status:     20;
+  --z-health:             30;
+  --z-dock:               40;
+  --z-inspector:          50;
+  --z-menu:               60;
+  --z-dialog:             70;
+  --z-critical-feedback:  80;
+  --z-voice-capsule:      100;
+
+  /* Locked blur budget: max 12px app chrome; ≤2 simultaneous blurred surfaces */
+  --blur-glass-max: 12px;
   --touch-min:     44px;
   --chrome-gap:    12px;
   --chrome-pad:    16px;
@@ -172,9 +187,9 @@
     0 8px 24px rgba(5, 9, 14, 0.32);
 
   /* ------------------------------------------------------------------------
-     8. BACKDROP BLUR — approved glass blur 14px
+     8. BACKDROP BLUR — config-locked glass blur 12px
      ------------------------------------------------------------------------ */
-  --blur-glass: 14px;
+  --blur-glass: 12px;
 }
 
 /* ==========================================================================
@@ -235,8 +250,8 @@
   color: var(--token-text-primary);
 }
 
-/* Feature queries need a literal length — keep in sync with --blur-glass (14px). */
-@supports not ((backdrop-filter: blur(14px)) or (-webkit-backdrop-filter: blur(14px))) {
+/* Feature queries need a literal length — keep in sync with --blur-glass (12px). */
+@supports not ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
   .cj-glass-card,
   .cerebro-hud-panel,
   .optical-hud-panel,

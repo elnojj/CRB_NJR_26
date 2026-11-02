@@ -127,7 +127,7 @@ canvas {
   min-height: 280px !important;
 }
 
-/* Unified glass — tokens own fill / blur 14 / hairline / panelRadius 20. No hex overrides. */
+/* Unified glass — tokens own fill / blur 12 / hairline / panelRadius 20. No hex overrides. */
 .cj-glass-card,
 .glass-panel,
 .cerebro-glass-panel,
@@ -144,8 +144,8 @@ canvas {
   box-shadow: var(--shadow-hud);
 }
 
-/* Feature queries need a literal length — keep in sync with --blur-glass (14px). */
-@supports not ((backdrop-filter: blur(14px)) or (-webkit-backdrop-filter: blur(14px))) {
+/* Feature queries need a literal length — keep in sync with --blur-glass (12px). */
+@supports not ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
   .cj-glass-card,
   .glass-panel,
   .cerebro-glass-panel,
@@ -422,8 +422,8 @@ canvas {
   border-radius: var(--pill-radius, 999px);
   background: var(--token-glass-fill, rgba(27, 34, 48, 0.88));
   border: 1px solid var(--token-glass-border, rgba(197, 204, 214, 0.22));
-  backdrop-filter: blur(var(--blur-glass, 14px));
-  -webkit-backdrop-filter: blur(var(--blur-glass, 14px));
+  backdrop-filter: blur(var(--blur-glass, 12px));
+  -webkit-backdrop-filter: blur(var(--blur-glass, 12px));
   color: var(--token-text-primary, #F2F6F8);
   pointer-events: auto;
 }
