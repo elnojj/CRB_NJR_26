@@ -6,8 +6,8 @@ Date: 2026-11-02 (Africa/Cairo)
 
 | Remote | SHA | Status |
 |--------|-----|--------|
-| Cursor Origin `main` | `f092bf4` | Explore follow-up + docs · `git ls-remote` verified |
-| GitHub `elnojj/CRB_NJR_26` `main` | `f092bf4` | Synced via prior deployment PAT · matches Origin |
+| Cursor Origin `main` | pending WebGL rebuild push | Explore follow-up + context rebuild |
+| GitHub `elnojj/CRB_NJR_26` `main` | pending same tip | Synced via prior deployment PAT |
 
 ## Gates
 

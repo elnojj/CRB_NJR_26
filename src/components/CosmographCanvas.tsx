@@ -885,6 +885,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   const [labels2D, setLabels2D] = useState<AnchoredLabel2D[]>([]);
   const [webglStatus, setWebglStatus] = useState<'ACTIVE' | 'CONTEXT_LOST' | 'FALLBACK'>('ACTIVE');
   const [webglReason, setWebglReason] = useState<string>('');
+  /** Bump to tear down and recreate the WebGL renderer after context loss/restore. */
+  const [webglRebuildKey, setWebglRebuildKey] = useState(0);
   const [touchIndicator, setTouchIndicator] = useState<{
     active: boolean;
     x: number;
@@ -1678,12 +1680,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     };
 
     const handleContextRestored = () => {
-      contextLost = false;
-      setWebglStatus('ACTIVE');
+      // Keep the old tick paused; remount recreates GPU resources once and
+      // restores ACTIVE with the preserved stateRef camera/world selection.
+      contextLost = true;
       setWebglReason('');
+      setWebglRebuildKey((key) => key + 1);
       window.dispatchEvent(
         new CustomEvent('cerebro:webgl-status', {
-          detail: { status: 'ACTIVE', softwareGl: isSoftwareGl },
+          detail: { status: 'REBUILDING', softwareGl: isSoftwareGl },
         })
       );
     };
@@ -4459,7 +4463,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       introBridge.detach();
       renderer.dispose();
     };
-  }, [customDomains.length, sphereMaterials.hq, sphereMaterials.cde]);
+  }, [customDomains.length, sphereMaterials.hq, sphereMaterials.cde, webglRebuildKey]);
 
   // L03: mount/dispose project-world host under master without a second renderer.
   useEffect(() => {
@@ -4567,7 +4571,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                     borderColor: 'rgba(154,255,224,0.35)',
                   }}
                   onClick={() => {
-                    window.location.reload();
+                    setWebglReason('');
+                    setWebglRebuildKey((key) => key + 1);
                   }}
                 >
                   Retry WebGL

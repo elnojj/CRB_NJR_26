@@ -63,6 +63,8 @@ export const SystemStatusLayer: React.FC<SystemStatusLayerProps> = ({
             ? 'Software WebGL detected — translucent glass fallback engaged.'
             : 'WebGL context lost — reduced-graphics map active.'
         );
+      } else if (detail.status === 'REBUILDING') {
+        setWebglEvent('WebGL context restored — rebuilding liquid-glass scene.');
       } else if (detail.status === 'ACTIVE') {
         setWebglEvent(null);
       }
