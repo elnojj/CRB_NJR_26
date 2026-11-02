@@ -14,7 +14,7 @@ export interface DecisionResolvedEventEnvelope {
   eventType: 'decision.resolved';
   decisionId: string;
   resolution: 'APPROVED' | 'HELD' | 'REVISION_REQUESTED';
-  resolvedBy: '39 (Tarek Nojara)';
+  resolvedBy: '39 (Tarek Mojara)';
   checkpointId: string;
   timestampIso: string;
 }

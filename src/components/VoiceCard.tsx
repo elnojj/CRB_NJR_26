@@ -593,7 +593,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         ...prev,
         {
           id: receiptId,
-          sender: '39 (Tarek Nojara)',
+          sender: '39 (Tarek Mojara)',
           text: textVal,
           channel: 'Notes',
           timestamp: new Date().toTimeString().slice(0, 8),

@@ -34,7 +34,11 @@ import {
   PhoneSheetExpansion,
   computeGuiLayout,
 } from '../gui/layoutEngine';
-import { GUI_GLASS_TOKENS, GUI_Z_LAYERS } from '../gui/guiTokens';
+import {
+  GUI_GLASS_TOKENS,
+  GUI_Z_LAYERS,
+  resolveOpenPanelAccent,
+} from '../gui/guiTokens';
 import { PublicShowreelPlayer } from './PublicShowreelPlayer';
 import { PUBLIC_BRAND_MEDIA } from '../data/publicBrandMedia';
 
@@ -166,7 +170,7 @@ const KNOWN_RECIPIENT_ALIASES: Record<string, string> = {
   me: 'me@nojara.com',
   self: 'me@nojara.com',
   tarek: 'me@nojara.com',
-  'tarek nojara': 'me@nojara.com',
+  'tarek mojara': 'me@nojara.com',
   'me@nojara.com': 'me@nojara.com',
   shweekar: 'shweekar@nojara.com',
   khalid: 'khalid@nojara.com',
@@ -469,7 +473,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           'Idempotency-Key': optimisticId,
         },
         body: JSON.stringify({
-          sender: '39 (Tarek Nojara)',
+          sender: '39 (Tarek Mojara)',
           text,
           channel: activeChannel,
           projectCode: selectedProjectId,
@@ -481,7 +485,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
         const newMsg: TeamRoomMessage = {
           id: data.receipt.id,
           channel: activeChannel,
-          sender: '39 (Tarek Nojara)',
+          sender: '39 (Tarek Mojara)',
           role: 'Founder and Culture and Design Engineer',
           text,
           timestamp: new Date().toTimeString().slice(0, 5),
@@ -875,16 +879,28 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
   ) => {
     const { panelNum, honestyBadge } = resolvePanelNumberAndHonesty(panelId, kicker);
     const { rect, tabPanelIds, slotId } = slot;
+    const openIndex = Math.max(0, openPanels.indexOf(panelId));
+    const accent = resolveOpenPanelAccent(openIndex >= 0 ? openIndex : 0);
+    const edgeColour =
+      topEdgeColour === COLOUR_TOKENS.stationProjects ||
+      topEdgeColour === COLOUR_TOKENS.focusRing ||
+      !topEdgeColour
+        ? accent.hex
+        : topEdgeColour;
     return (
       <section
         key={`${slotId}-${panelId}`}
         data-panel-id={panelId}
         data-slot-id={slotId}
+        data-accent={accent.id}
+        data-chrome-state="active"
         aria-label={title}
         dir={languageRtl === 'ar' ? 'rtl' : 'ltr'}
         onPointerDown={(e) => e.stopPropagation()}
         onWheel={(e) => e.stopPropagation()}
-        className="fixed pointer-events-auto flex flex-col overflow-hidden neural-reveal cj-glass-card cerebro-stellar-glass transition-opacity duration-200"
+        className={`fixed pointer-events-auto flex flex-col overflow-hidden neural-reveal cj-glass-card cerebro-stellar-glass cj-panel-shell transition-opacity duration-200${
+          isCameraInFlight ? ' is-camera-flight' : ''
+        }`}
         style={{
           left: `${rect.x}px`,
           top: `${rect.y}px`,
@@ -893,10 +909,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           backgroundColor: GUI_GLASS_TOKENS.background,
           backdropFilter: GUI_GLASS_TOKENS.backdropFilter,
           WebkitBackdropFilter: GUI_GLASS_TOKENS.backdropFilter,
-          border: GUI_GLASS_TOKENS.border,
-          borderRadius: `${GUI_GLASS_TOKENS.radiusPx}px`,
-          boxShadow: GUI_GLASS_TOKENS.shadow,
-          opacity: isCameraInFlight ? 0.62 : 1,
+          borderRadius: `${GUI_GLASS_TOKENS.panelRadiusPx}px`,
           zIndex: GUI_Z_LAYERS.panels,
         }}
       >
@@ -948,9 +961,10 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             <div className="flex items-center gap-2">
               <span
                 className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ backgroundColor: topEdgeColour }}
+                style={{ backgroundColor: edgeColour }}
+                aria-hidden
               />
-              <h2 className="font-display font-semibold text-[15px] md:text-[17px] tracking-[0.04em] uppercase text-[#F2F6F8] truncate">
+              <h2 className="font-display font-semibold text-[17px] tracking-[0.04em] uppercase text-[#F2F6F8] truncate">
                 {panelNum} · {title}
               </h2>
             </div>
@@ -960,17 +974,17 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <span
-              className="font-mono tabular-nums text-[11px] px-2 py-0.5 rounded border"
+              className="font-mono tabular-nums text-[12px] px-2 py-0.5 rounded border"
               style={{
                 backgroundColor: '#101622',
                 borderColor: 'rgba(197, 204, 214, 0.22)',
                 color:
                   honestyBadge === 'LIVE'
-                    ? '#5CE0A0'
+                    ? '#36E88D'
                     : honestyBadge === 'DRAFT ONLY'
                     ? '#D4AF37'
                     : honestyBadge === 'PROPOSED'
-                    ? '#FFF4D0'
+                    ? '#65ACFF'
                     : '#C5CCD6',
               }}
             >
@@ -985,7 +999,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                   setPhoneSheetSnap92(nextSnap);
                   onChangePhoneSheetState?.(nextSnap ? 'expanded' : 'default');
                 }}
-                className="min-h-[38px] px-2.5 py-1 rounded-xl font-mono tabular-nums text-[10px] bg-[#D4AF37]/20 border border-[#D4AF37] text-[#FFF4D0] font-semibold shrink-0 cursor-pointer"
+                className="min-h-[44px] px-3 py-1 rounded-xl font-mono tabular-nums text-[12px] bg-[#D4AF37]/20 border border-[#D4AF37] text-[#FFF4D0] font-semibold shrink-0 cursor-pointer"
               >
                 {effectivePhoneSheetState === 'expanded' ? 'Default ▾' : 'Expand ▴'}
               </button>
@@ -1001,7 +1015,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 }}
                 aria-label={`Minimise ${title} panel`}
                 title="Minimise to dock (preserves project, tab, scroll & unsent draft)"
-                className="min-w-[40px] min-h-[40px] rounded-xl border border-[rgba(197,204,214,0.22)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] flex items-center justify-center font-mono text-sm cursor-pointer"
+                className="min-w-[44px] min-h-[44px] rounded-xl border border-[rgba(197,204,214,0.22)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] flex items-center justify-center font-mono text-sm cursor-pointer"
               >
                 –
               </button>
@@ -1011,14 +1025,14 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               data-testid={`close-${panelId}`}
               onClick={() => onClosePanel(panelId)}
               aria-label={`Close ${title} panel`}
-              className="min-w-[40px] min-h-[40px] rounded-xl border border-[rgba(197,204,214,0.22)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] flex items-center justify-center font-mono text-sm cursor-pointer"
+              className="min-w-[44px] min-h-[44px] rounded-xl border border-[rgba(197,204,214,0.22)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] flex items-center justify-center font-mono text-sm cursor-pointer"
             >
               ×
             </button>
           </div>
         </div>
 
-        {/* Independent Scrollable Glass Body (16px padding, >=14px body text) */}
+        {/* Independent Scrollable Glass Body (16px padding, ≥14px supporting / 16px body) */}
         <div
           ref={(el) => {
             scrollContainerRefs.current[panelId] = el;
@@ -1032,7 +1046,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             }
           }}
           onScroll={(e) => onPanelScrollChange?.(panelId, e.currentTarget.scrollTop)}
-          className="p-4 overflow-y-auto overscroll-contain flex-1 space-y-3 text-[14px]"
+          className="p-4 overflow-y-auto overscroll-contain flex-1 space-y-3 text-[14px] cj-type-support"
         >
           {children}
         </div>

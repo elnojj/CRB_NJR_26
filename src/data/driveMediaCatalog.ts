@@ -66,7 +66,7 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
   {
     id: 'about-tarek-portrait',
     driveFileId: '1BBf1Jo1MZrztEIJj8ig0D5GQ_vyXi-Mq',
-    title: 'Tarek Nojara — AFRIMA Summit 2022',
+    title: 'Tarek Mojara — AFRIMA Summit 2022',
     kind: 'image',
     mimeType: 'image/jpeg',
     role: 'about-portrait',
@@ -101,8 +101,8 @@ export const ABOUT_US_BIOS: AboutUsBio[] = [
     mediaAssetIds: ['njr-showreel-2023', 'sphere-primary', 'laliga-reel'],
   },
   {
-    id: 'tarek-nojara',
-    name: 'Tarek Nojara (39)',
+    id: 'tarek-mojara',
+    name: 'Tarek Mojara (39)',
     role: 'Founder and Culture and Design Engineer',
     summary:
       'Founder and Culture and Design Engineer of NOJARA Studios — never titled CEO. Presented as founder, creative producer, and strategist orchestrating multidisciplinary teams and AI crew systems across Cairo and Riyadh.',

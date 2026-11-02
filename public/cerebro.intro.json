@@ -11288,11 +11288,11 @@
     "tarek": {
       "type": "video",
       "src": "assets/media/tarek.mp4",
-      "label": "Tarek Nojara / Traverse Talks",
+      "label": "Tarek Mojara / Traverse Talks",
       "source": "Drive 10wkMG1uToiOzivulOf6z_p929HfnHuS0",
       "sourceIn": 43,
       "sourceOut": 61,
-      "person": "Tarek Nojara",
+      "person": "Tarek Mojara",
       "portraitSrc": "assets/media/tarek-portrait.jpg",
       "posterSrc": "assets/media/tarek.jpg",
       "loop": false,
@@ -11394,7 +11394,7 @@
       "textStartFrame": 750,
       "showTell": "Show attributable material first; explain only the supported relationship.",
       "credit": "Actual archive source; no invented metrics.",
-      "editorialIntent": "Tarek Nojara founded Nojara Studios. His work moves between creative thinking and production. The interesting part is what happens in between: people, time, logistics, decisions, and the small matter of actually making the thing.",
+      "editorialIntent": "Tarek Mojara founded Nojara Studios. His work moves between creative thinking and production. The interesting part is what happens in between: people, time, logistics, decisions, and the small matter of actually making the thing.",
       "sphereVideo": "tarek"
     },
     {

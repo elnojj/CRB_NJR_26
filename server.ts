@@ -290,7 +290,7 @@ const KNOWN_RECIPIENT_ALIASES: Record<string, string> = {
   me: 'me@nojara.com',
   self: 'me@nojara.com',
   tarek: 'me@nojara.com',
-  'tarek nojara': 'me@nojara.com',
+  'tarek mojara': 'me@nojara.com',
   owner: 'me@nojara.com',
   shweekar: 'shweekar@nojara.com',
   khalid: 'khalid@nojara.com',
@@ -796,7 +796,7 @@ async function startServer() {
   const handlePostMessage = (req: express.Request, res: express.Response) => {
     const {
       opId,
-      sender = '39 (Tarek Nojara)',
+      sender = '39 (Tarek Mojara)',
       authorId = 'p-39',
       projectId = 'SEVEN',
       projectCode,
@@ -971,7 +971,7 @@ async function startServer() {
       title,
       projectCode = 'SEVEN',
       projectId,
-      owner = '39 (Tarek Nojara) — Founder and Culture and Design Engineer',
+      owner = '39 (Tarek Mojara) — Founder and Culture and Design Engineer',
       priority = 'HIGH',
       status = 'IN_PROGRESS',
       attachmentName,
@@ -1062,7 +1062,7 @@ async function startServer() {
       projectId = 'SEVEN',
       action,
       decision,
-      actor = '39 (Tarek Nojara)',
+      actor = '39 (Tarek Mojara)',
       note,
       comment,
       isTest = false,
@@ -1362,7 +1362,7 @@ async function startServer() {
           apiKey: geminiKey,
           httpOptions: { headers: { 'User-Agent': 'aistudio-build' } },
         });
-        const prompt = `You are the CEREBRO + CDE Spatial OS Orchestrator for Owner 39 (Tarek Nojara — Founder and Culture and Design Engineer).
+        const prompt = `You are the CEREBRO + CDE Spatial OS Orchestrator for Owner 39 (Tarek Mojara — Founder and Culture and Design Engineer).
 Current page state JSON: ${JSON.stringify(pageState)}
 Available 22 tools: ${CRO_CDE_GOOGLE_TOOLS_SCHEMA.map((t) => t.name).join(', ')}.
 User command: "${userCommand}"

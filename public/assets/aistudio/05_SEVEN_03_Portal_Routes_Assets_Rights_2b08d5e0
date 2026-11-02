@@ -8,7 +8,7 @@ User-facing hash routes:
 - #gallery - Our work.
 - #proposal - SEVEN proposal.
 - #studio - NOJARA Studios.
-- #tarek - Tarek Nojara.
+- #tarek - Tarek Mojara.
 - #hamdan - Abu Hamdan / Mohammed Alhamdan.
 - #activations - destination activations.
 - #proposal-downloads - proposal download area, reached through client aliases.
@@ -32,8 +32,8 @@ Some aliases group distinct entities under one visible route. That is an impleme
 CONFIRMED PUBLISHED DOWNLOAD MAPPING
 - proposal -> SEVEN_Full_Creative_Proposal_v03.pdf.
 - company -> NOJARA_Full_Company_Profile_v04.pdf.
-- consultant -> Tarek_Nojara_Full_Consultant_Profile_v04.pdf.
-- biography -> Tarek_Nojara_Full_Visual_Bio_v04.pdf.
+- consultant -> Tarek_Mojara_Full_Consultant_Profile_v04.pdf.
+- biography -> Tarek_Mojara_Full_Visual_Bio_v04.pdf.
 - hamdan -> Mohammed_Alhamdan_Profile_and_Involvement_v04.pdf.
 - All five URLs responded successfully as application/pdf on 13 October 2026.
 

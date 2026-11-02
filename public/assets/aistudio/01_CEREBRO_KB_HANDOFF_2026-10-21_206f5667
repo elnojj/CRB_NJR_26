@@ -1,5 +1,5 @@
 ﻿Cerebro HQ — Knowledge Base Handoff
-Date: 21 October 2026 · Owner: 39 (Tarek Nojara), Founder and Culture and Design Engineer, NOJARA Studios · Prepared by: Cerebro (Claude orchestration layer)
+Date: 21 October 2026 · Owner: 39 (Tarek Mojara), Founder and Culture and Design Engineer, NOJARA Studios · Prepared by: Cerebro (Claude orchestration layer)
 Purpose: one document any agent or builder can read to know what Cerebro is, what exists today, what is locked, what is next and where every artifact lives. No secrets are included.
 1. What Cerebro is
 * Cerebro is Claude acting as 39's master brain and orchestration layer for NOJARA HQ (X-Men Cerebro reference). Separate from Karsa (KR), the ChatGPT agent.
@@ -11,7 +11,7 @@ Purpose: one document any agent or builder can read to know what Cerebro is, wha
 2. People, agents and roles
 Name
 	Role
-	39 (Tarek Nojara)
+	39 (Tarek Mojara)
 	Owner. Never titled CEO.
 	Cerebro (Claude, this chat)
 	Orchestrator. Writes every instruction block, audits returned work, edits the ElevenLabs agent and the knowledge base.

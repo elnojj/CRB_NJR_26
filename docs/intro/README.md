@@ -2,7 +2,7 @@
 
 **Review build. Music and sound design only. No spoken voice. No full video render.**
 
-A runnable, 180-second Three.js/React introduction driven by JSON. English headlines carry the story of NOJARA, Tarek Nojara, Shweekar Ahmed, Khaled El Shaalan, Young & Human and El Batron: difficult production work → creative ecosystem → Cerebro. The dry humour stays with the work; no award, private incident or personal credit is invented.
+A runnable, 180-second Three.js/React introduction driven by JSON. English headlines carry the story of NOJARA, Tarek Mojara, Shweekar Ahmed, Khaled El Shaalan, Young & Human and El Batron: difficult production work → creative ecosystem → Cerebro. The dry humour stays with the work; no award, private incident or personal credit is invented.
 
 ## Files
 
