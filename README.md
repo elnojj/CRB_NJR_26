@@ -53,10 +53,13 @@ PORT=3847 npm run dev
 
 ## Intro notes
 
+- Every full reload restarts the ~3:00 intro from first motion. **Skip** stays visible on every reflection; `/?intro=0&view=hq` jumps straight to workspace.
+- Word-synced chapter headlines stay on the film; transport chrome idles until touch.
 - Music/SFX only (no spoken voice). Silent local masters ship until the review mix package is restored.
 - Chapter media currently remaps to local Hotspot_26 showreel / About Us portrait fallbacks.
 - Confirmed portraits for Shweekar Ahmed and Khaled El Shaalan remain missing (no invented faces).
-- `Enter Cerebro` hands off to the live workspace and disables `introBridge` camera ownership.
+- `Enter Cerebro` / **Skip** hands off to the live workspace and disables `introBridge` camera ownership.
+- Phone HQ: more negative space, compact health/calendar chrome, cinematic **Open plan** launch into Interactive Project Plan (Map / Timeline / Tasks / People).
 
 ## Subz fixes retained
 

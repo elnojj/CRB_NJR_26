@@ -3301,6 +3301,9 @@ export default function App() {
           mode={spatialHealthMode}
           selectedProjectId={selectedProjectId}
           onSelectProject={(pid) => {
+            setOpenPanels((prev) => prev.filter((p) => p !== 'project-detail'));
+            setSpatialHealthOpen(true);
+            setSpatialHealthMode('project');
             executeTypedAction({ type: 'focus_project', projectId: pid }, 'spatial');
           }}
           onCloseProject={() => {
@@ -3312,6 +3315,9 @@ export default function App() {
           onCloseCalendar={() => setSpatialHealthOpen(false)}
           onOpenFilteredProjects={(filter, projectId) => {
             if (projectId) {
+              setOpenPanels((prev) => prev.filter((p) => p !== 'project-detail'));
+              setSpatialHealthOpen(true);
+              setSpatialHealthMode('project');
               executeTypedAction({ type: 'focus_project', projectId }, 'spatial');
               return;
             }

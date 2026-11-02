@@ -9,14 +9,16 @@ function shouldStartInIntro(): boolean {
   const params = new URLSearchParams(window.location.search);
   if (params.get('intro') === '0') return false;
   if (params.get('movie') === '0') return false;
-  // Explicit workspace deep-links skip the cinematic entry.
   const view = params.get('view');
-  if (view && view !== 'intro' && view !== 'movie') return false;
   if (params.get('intro') === '1' || params.get('movie') === '1' || view === 'intro' || view === 'movie') {
     return true;
   }
-  if (sessionStorage.getItem('cerebro-entered') === '1') return false;
-  // Movie branch default: open on the 180s introduction.
+  // Deep links into a specific station/panel skip the film.
+  // Default hq/cde destinations (set after Enter) must NOT skip — every reload
+  // restarts the ~3:00 intro from first motion, with Skip always available.
+  if (view && view !== 'intro' && view !== 'movie' && view !== 'hq' && view !== 'cde') {
+    return false;
+  }
   return true;
 }
 
@@ -31,7 +33,8 @@ function Root() {
     introBridge.enabled = false;
     introBridge.hostPoseSampler = null;
     introBridge.inspectPose = null;
-    sessionStorage.setItem('cerebro-entered', '1');
+    // Clear any legacy skip flag so the next reload can show the intro again.
+    sessionStorage.removeItem('cerebro-entered');
     const url = new URL(window.location.href);
     url.searchParams.delete('intro');
     url.searchParams.delete('movie');

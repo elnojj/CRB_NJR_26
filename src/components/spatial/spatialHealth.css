@@ -7,15 +7,15 @@
   z-index: 22;
   pointer-events: none;
   overflow: hidden;
-  --sh-ice: #b4ddff;
-  --sh-gold: #d4af37;
-  --sh-sheen: #fff4d0;
-  --sh-ink: #03060c;
-  --sh-glass: rgba(16, 24, 36, 0.55);
+  --sh-ice: var(--token-accent-ice, #b4ddff);
+  --sh-gold: var(--token-focus, #d4af37);
+  --sh-sheen: var(--token-focus-glow, #fff4d0);
+  --sh-ink: var(--token-bg-void, #03060c);
+  --sh-glass: var(--token-glass-fill, rgba(16, 24, 36, 0.55));
   --sh-glass-strong: rgba(12, 18, 28, 0.78);
-  --sh-border: rgba(180, 221, 255, 0.28);
-  font-family: Sora, 'IBM Plex Sans Arabic', Cairo, sans-serif;
-  color: #f2f6f8;
+  --sh-border: var(--token-glass-border, rgba(180, 221, 255, 0.28));
+  font-family: var(--font-sans, Sora, 'IBM Plex Sans Arabic', Cairo, sans-serif);
+  color: var(--token-text-primary, #f2f6f8);
 }
 
 .spatial-health-shell * {
@@ -25,6 +25,103 @@
 /* Project plan must sit above the workspace header hit-layer (z-30) so Close/Back receive clicks. */
 .spatial-health-shell[data-mode='project'] {
   z-index: 36;
+}
+
+.spatial-health-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(55% 45% at 48% 42%, rgba(180, 221, 255, 0.08), transparent 70%),
+    linear-gradient(180deg, rgba(3, 6, 12, 0.12), transparent 38%, rgba(3, 6, 12, 0.35));
+  opacity: 0;
+  transition: opacity 0.32s ease;
+}
+
+.spatial-health-shell.is-out .spatial-health-veil {
+  opacity: 1;
+}
+
+.spatial-health-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: sh-layer-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.spatial-health-shell.is-out .spatial-health-layer {
+  animation: sh-layer-out 280ms ease both;
+}
+
+@keyframes sh-layer-in {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(12px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+
+@keyframes sh-layer-out {
+  from {
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(-8px) scale(1.01);
+  }
+}
+
+.spatial-plan-launch {
+  pointer-events: auto;
+  position: absolute;
+  left: 50%;
+  bottom: max(7.5rem, calc(env(safe-area-inset-bottom, 0px) + 6.75rem));
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  min-height: 44px;
+  padding: 0.65rem 1.1rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--sh-border);
+  background: var(--sh-glass-strong);
+  color: inherit;
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  animation: sh-infograph-land 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 180ms;
+}
+
+.spatial-plan-launch:hover,
+.spatial-plan-launch:focus-visible {
+  border-color: rgba(212, 175, 55, 0.55);
+  outline: none;
+}
+
+.spatial-plan-launch-kicker {
+  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #bdcbd3;
+}
+
+.spatial-plan-launch-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--sh-sheen);
 }
 
 /* —— Desk AR health field —— */
@@ -567,16 +664,16 @@
   }
 }
 
-/* Phone ~390px — keep center clear for sphere motion-graph; compact top strip */
+/* Phone ~390px — more negative space; sphere-first; tools appear on demand */
 @media (max-width: 767px) {
   .spatial-health-shell {
     --sh-dock-clear: max(7.25rem, calc(env(safe-area-inset-bottom, 0px) + 6.5rem));
   }
 
   .disk-ar-stage {
-    inset: max(3.5rem, env(safe-area-inset-top, 0px) + 2.5rem) 1.5% auto 1.5%;
+    inset: max(3.35rem, env(safe-area-inset-top, 0px) + 2.35rem) 4% auto 4%;
     height: auto;
-    max-height: 28vh;
+    max-height: none;
     perspective: none;
     z-index: 2;
   }
@@ -585,9 +682,9 @@
     transform: none;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.4rem;
+    gap: 0.55rem;
     align-content: start;
-    padding: 0.2rem;
+    padding: 0;
   }
 
   .disk-ar-desk,
@@ -602,8 +699,9 @@
     left: auto !important;
     width: 100% !important;
     transform: none !important;
-    padding: 0.45rem 0.55rem;
-    border-radius: 0.75rem;
+    padding: 0.7rem 0.75rem;
+    border-radius: 0.95rem;
+    min-height: 5.25rem;
   }
 
   /* Keep only priority health cards on phone — leave sphere readable */
@@ -612,31 +710,33 @@
   }
 
   .disk-ar-metric {
-    font-size: 1.05rem;
+    font-size: 1.35rem;
+    margin-top: 0.4rem;
   }
 
   .disk-ar-sub {
-    font-size: 0.58rem;
-    max-width: none;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    display: none;
   }
 
   .disk-ar-title {
     font-size: 0.78rem;
+    margin-top: 0.2rem;
   }
 
-  /* Phone defaults to agenda strip above dock — month grid on demand */
+  .disk-ar-kicker {
+    font-size: 0.55rem;
+  }
+
+  /* Compact agenda chip — not a second dashboard slab */
   .wall-cal-stage {
     display: block;
     top: auto;
-    left: 0.5rem;
-    right: 0.5rem;
+    left: auto;
+    right: 0.85rem;
     bottom: var(--sh-dock-clear);
+    width: min(46vw, 11.5rem);
     height: auto;
-    max-height: 28vh;
+    max-height: 22vh;
     perspective: none;
     z-index: 3;
   }
@@ -644,23 +744,53 @@
   .wall-cal-recess {
     transform: none;
     max-height: 100%;
-    overflow: auto;
+    overflow: hidden;
+    padding: 0.35rem;
   }
 
   .wall-cal-face {
     min-height: 0;
-    padding: 0.65rem;
+    padding: 0.55rem 0.6rem;
   }
 
-  .wall-cal-grid {
+  .wall-cal-grid,
+  .wall-cal-mode,
+  .wall-cal-footnote,
+  .wall-cal-event-source {
     display: none;
+  }
+
+  .wall-cal-agenda {
+    max-height: none;
+    gap: 0.3rem;
+  }
+
+  .wall-cal-event {
+    padding: 0.4rem 0.5rem;
+    min-height: 40px;
+  }
+
+  .wall-cal-event-title {
+    font-size: 0.72rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .wall-cal-done {
     left: auto;
-    right: 0.5rem;
-    top: -0.45rem;
+    right: 0.15rem;
+    top: -0.55rem;
     transform: none;
+  }
+
+  .spatial-plan-launch {
+    left: 0.85rem;
+    right: auto;
+    transform: none;
+    bottom: var(--sh-dock-clear);
+    padding: 0.55rem 0.85rem;
   }
 
   .node-chips-stage {
@@ -675,12 +805,18 @@
   }
 
   .node-chips-legend {
-    font-size: 0.58rem;
+    display: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .disk-ar-card {
+  .disk-ar-card,
+  .spatial-health-layer,
+  .spatial-plan-launch {
     animation: none !important;
+  }
+
+  .spatial-health-veil {
+    transition: none !important;
   }
 }

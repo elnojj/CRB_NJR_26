@@ -433,20 +433,54 @@ export function CerebroIntro({
           {showChrome && <span>NOJARA PRESENTS</span>}
         </header>
 
-        <div className={`chrome-layer ${showChrome ? 'is-visible' : ''}`} aria-hidden={!showChrome}>
-          <section className="editorial" aria-live="off">
-            <div className="eyebrow" ref={kicker} />
-            <h1 ref={headline} />
-            <p className="subline" ref={body} />
-            <img ref={brand} className="subbrand" hidden alt="" />
-          </section>
-          <div className="media-credit" ref={credit} />
-          <p className="captions" ref={caption} />
-          {begun && !exploring && (
-            <button className="enter" onClick={enter}>
-              Enter Cerebro <span aria-hidden="true">↗</span>
+        {/* Always available on every reload — skip from first motion without opening chrome. */}
+        {!exploring && !record && !proof && (
+          <div
+            className="intro-skip-rail"
+            role="group"
+            aria-label="Introduction shortcuts"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="intro-skip"
+              data-testid="intro-skip"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                enter();
+              }}
+            >
+              Skip
             </button>
-          )}
+            {begun && (
+              <button
+                type="button"
+                className="intro-enter-quiet"
+                data-testid="intro-enter"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  enter();
+                }}
+              >
+                Enter Cerebro <span aria-hidden="true">↗</span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Word-synced chapter text stays visible with the film; transport chrome idles until touch. */}
+        <section className="editorial editorial-live" aria-live="off">
+          <div className="eyebrow" ref={kicker} />
+          <h1 ref={headline} />
+          <p className="subline" ref={body} />
+          <img ref={brand} className="subbrand" hidden alt="" />
+        </section>
+        <div className="media-credit" ref={credit} />
+        <p className="captions" ref={caption} />
+
+        <div className={`chrome-layer ${showChrome ? 'is-visible' : ''}`} aria-hidden={!showChrome}>
           <footer className="transport" aria-label="Introduction playback">
             <button onClick={toggle} aria-label={playing ? 'Pause introduction' : 'Play introduction'}>
               {playing ? 'Pause' : 'Play'}
