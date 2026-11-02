@@ -1,7 +1,8 @@
 # Cerebro conversational agent — Google AI Studio pack
 
 Source of truth: `src/data/croCdeGoogleAgentManifest.ts`  
-Live ElevenLabs agent id: `agent_7201m53ed3kred6ba17rvzmyv9q4`  
+Primary provider: `google-ai-studio` (ElevenLabs ConvAI disconnected from live VoiceCard)  
+Agent: `Cro-cde-google`  
 Tools: **27** client tools
 
 ## First message
@@ -27,6 +28,11 @@ CRITICAL IDENTITY & OPERATIONAL RULES (cerebro-ui/4):
 9. open_station accepts station or place; get_project accepts projectId or name_or_code; tour_control(back) maps to previous stop. Never claim ok for a no-op. Read capabilities.* from get_page_state before advertising features.
 10. Design KB documents dated 21 October that refer to the older Cerebro-core repository or feat/ds-v1-1 branch are outdated for this client — prefer live get_page_state and this repository's design-system registries.
 ```
+
+## Client controls
+- Connect / Mute / Stop on the Cerebro voice capsule
+- Contextual updates: cerebro-ui/4 manifest snapshots
+- Tool executor: `handleExecuteToolCall → parseStructuredToolCall → executeTypedAction`
 
 ## Tools (27)
 Register as Gemini **functionDeclarations**. The Cerebro web client executes them as client tools and returns ActionReceipts — they are not standalone Google server tools.
@@ -58,5 +64,10 @@ Register as Gemini **functionDeclarations**. The Cerebro web client executes the
 - `workspace_sync`
 - `open_project_tube`
 - `dispatch_ui_action`
+
+## Runtime
+- Browser: Google Voice (SpeechRecognition) → `POST /api/gemini/voice-turn` → speechSynthesis
+- Status: `GET /api/gemini/voice-status`
+- Full pack: `GET /api/google-ai-studio/manifest`
 
 Machine-readable pack: [`google-ai-studio-cerebro-agent.json`](./google-ai-studio-cerebro-agent.json)

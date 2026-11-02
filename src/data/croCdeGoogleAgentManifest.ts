@@ -1,10 +1,16 @@
 /**
- * CRO-CDE-GOOGLE ElevenLabs Conversational AI Agent Manifest (22 Client Tools)
+ * CRO-CDE-GOOGLE Cerebro voice agent manifest (27 client tools).
+ * Primary runtime: Google AI Studio / Gemini voice bridge.
+ * ElevenLabs payload retained for legacy export only — not the live primary path.
  * Grounded in 01_CEREBRO_KB_HANDOFF_2026-10-21_206f5667 & Master PRD v1.1
  */
 
 export const CRO_CDE_GOOGLE_AGENT_NAME = 'Cro-cde-google';
+/** Legacy ElevenLabs agent id — disconnected from the live VoiceCard primary path. */
 export const DEFAULT_INTERNAL_AGENT_ID = 'agent_7201m53ed3kred6ba17rvzmyv9q4';
+export const CRO_CDE_GOOGLE_FIRST_MESSAGE = 'Welcome back, sir. Anyone with you?';
+/** Active voice provider for the Cerebro capsule. */
+export const CEREBRO_VOICE_PROVIDER = 'google-ai-studio' as const;
 
 export const CRO_CDE_GOOGLE_SYSTEM_PROMPT = `You are CEREBRO (Cro-cde-google), the voice and spatial operating assistant for Tarek Mojara (internal shorthand "39", Founder and Culture and Design Engineer of NOJARA Studios, est. 2016, Cairo–Riyadh).
 
@@ -635,13 +641,48 @@ export const CRO_CDE_GOOGLE_TOOLS_SCHEMA = [
   },
 ] as const;
 
+export function buildGoogleAiStudioFunctionDeclarations() {
+  return CRO_CDE_GOOGLE_TOOLS_SCHEMA.map((tool) => ({
+    name: tool.name,
+    description: tool.description,
+    parameters: tool.parameters,
+  }));
+}
+
+/** Google AI Studio / Gemini import pack — system prompt, greeting, and all client tools. */
+export function buildGoogleAiStudioAgentPayload() {
+  return {
+    name: CRO_CDE_GOOGLE_AGENT_NAME,
+    provider: CEREBRO_VOICE_PROVIDER,
+    firstMessage: CRO_CDE_GOOGLE_FIRST_MESSAGE,
+    systemInstruction: CRO_CDE_GOOGLE_SYSTEM_PROMPT,
+    modelHint: 'gemini-2.5-flash',
+    temperature: 0.35,
+    functionDeclarations: buildGoogleAiStudioFunctionDeclarations(),
+    clientControls: {
+      connect: true,
+      mute: true,
+      stop: true,
+      contextualUpdate: 'cerebro-ui/4',
+      toolExecutor: 'handleExecuteToolCall → parseStructuredToolCall → executeTypedAction',
+    },
+    notes: [
+      'Tools are client-executed inside Cerebro OS; Gemini proposes function calls only.',
+      'ElevenLabs ConvAI is disconnected from the primary VoiceCard path.',
+      'Paste systemInstruction + functionDeclarations into Google AI Studio / Gemini.',
+    ],
+  };
+}
+
+/** @deprecated Legacy ElevenLabs export — not used by the live VoiceCard. */
 export function buildElevenLabsAgentPayload(voiceId?: string) {
   return {
     name: CRO_CDE_GOOGLE_AGENT_NAME,
     default_agent_id: DEFAULT_INTERNAL_AGENT_ID,
+    status: 'disconnected_from_primary_voice_path',
     conversation_config: {
       agent: {
-        first_message: 'Welcome back, sir. Anyone with you?',
+        first_message: CRO_CDE_GOOGLE_FIRST_MESSAGE,
         language: 'en',
         prompt: {
           prompt: CRO_CDE_GOOGLE_SYSTEM_PROMPT,
@@ -666,4 +707,4 @@ export function buildElevenLabsAgentPayload(voiceId?: string) {
   };
 }
 
-export const CRO_CDE_GOOGLE_AGENT_MANIFEST = buildElevenLabsAgentPayload();
+export const CRO_CDE_GOOGLE_AGENT_MANIFEST = buildGoogleAiStudioAgentPayload();

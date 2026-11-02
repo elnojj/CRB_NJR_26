@@ -11,10 +11,10 @@ import {
   STORY_CHAPTERS,
 } from '../data/sourceData';
 import {
+  CEREBRO_VOICE_PROVIDER,
   CRO_CDE_GOOGLE_AGENT_NAME,
-  CRO_CDE_GOOGLE_SYSTEM_PROMPT,
   CRO_CDE_GOOGLE_TOOLS_SCHEMA,
-  buildElevenLabsAgentPayload,
+  buildGoogleAiStudioAgentPayload,
 } from '../data/croCdeGoogleAgentManifest';
 
 interface ProjectDownloadModalProps {
@@ -77,9 +77,9 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
         } catch {}
       }
 
-      // Add README & ElevenLabs Manifest
-      collected['Cro-cde-google_ElevenLabs_Agent_Manifest.json'] = JSON.stringify(
-        buildElevenLabsAgentPayload(),
+      // Add README & Google AI Studio Cerebro agent pack
+      collected['Cro-cde-google_Google_AI_Studio_Agent_Manifest.json'] = JSON.stringify(
+        buildGoogleAiStudioAgentPayload(),
         null,
         2
       );
@@ -108,8 +108,8 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
         zip.file(relPath, content);
       }
       zip.file(
-        'Cro-cde-google_ElevenLabs_Agent_Manifest.json',
-        JSON.stringify(buildElevenLabsAgentPayload(), null, 2)
+        'Cro-cde-google_Google_AI_Studio_Agent_Manifest.json',
+        JSON.stringify(buildGoogleAiStudioAgentPayload(), null, 2)
       );
       zip.file(
         'NOJARA_HQ_26_Source_And_Register_Snapshot.json',
@@ -181,7 +181,7 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
               </h2>
             </div>
             <div className="font-mono tabular-nums text-[12px] text-[#C5CCD6] pl-4 mt-0.5">
-              NOJARA STUDIOS · FULL SOURCE ARCHIVE & ELEVENLABS BUNDLE
+              NOJARA STUDIOS · FULL SOURCE ARCHIVE & GOOGLE AI STUDIO VOICE PACK
             </div>
           </div>
           <button
@@ -221,35 +221,32 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
               </button>
             </div>
 
-            {/* 2. ElevenLabs Cro-cde-google Manifest */}
+            {/* 2. Google AI Studio Cro-cde-google Manifest */}
             <div className="cj-glass-card rounded-lg p-4 flex flex-col justify-between gap-3">
               <div className="space-y-1">
                 <span className="font-mono text-[12px] text-[#C5CCD6]">
-                  ELEVENLABS AGENT MANIFEST (.JSON)
+                  GOOGLE AI STUDIO AGENT PACK (.JSON)
                 </span>
                 <h3 className="font-display text-sm font-semibold text-[#F2F6F8]">
-                  Agent: {CRO_CDE_GOOGLE_AGENT_NAME} (18 Tools)
+                  Agent: {CRO_CDE_GOOGLE_AGENT_NAME} ({CRO_CDE_GOOGLE_TOOLS_SCHEMA.length} Tools)
                 </h3>
                 <p className="font-sans text-xs text-[#C5CCD6]">
-                  Complete system prompt, locked greeting, and all 18 client tool schemas ready for ElevenLabs ConvAI import.
+                  Full Cerebro system prompt, locked greeting, client controls, and all{' '}
+                  {CRO_CDE_GOOGLE_TOOLS_SCHEMA.length} tools for Google AI Studio / Gemini (
+                  {CEREBRO_VOICE_PROVIDER}).
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() =>
                   handleDownloadJson(
-                    'Cro-cde-google_ElevenLabs_Agent_18_Tools.json',
-                    {
-                      agentName: CRO_CDE_GOOGLE_AGENT_NAME,
-                      systemPrompt: CRO_CDE_GOOGLE_SYSTEM_PROMPT,
-                      tools: CRO_CDE_GOOGLE_TOOLS_SCHEMA,
-                      createPayload: buildElevenLabsAgentPayload(),
-                    }
+                    'Cro-cde-google_Google_AI_Studio_27_Tools.json',
+                    buildGoogleAiStudioAgentPayload()
                   )
                 }
                 className="w-full min-h-[42px] px-4 py-2 rounded-lg font-mono text-xs font-semibold bg-[#C5CCD6] text-[#101622] hover:opacity-95 cursor-pointer"
               >
-                Download 18-Tool Agent (.JSON)
+                Download {CRO_CDE_GOOGLE_TOOLS_SCHEMA.length}-Tool Agent (.JSON)
               </button>
             </div>
 

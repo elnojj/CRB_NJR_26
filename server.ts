@@ -4,10 +4,16 @@ import fs from 'fs';
 import crypto from 'crypto';
 import { GoogleGenAI } from '@google/genai';
 import {
+  CEREBRO_VOICE_PROVIDER,
   CRO_CDE_GOOGLE_AGENT_MANIFEST,
+  CRO_CDE_GOOGLE_AGENT_NAME,
+  CRO_CDE_GOOGLE_FIRST_MESSAGE,
+  CRO_CDE_GOOGLE_SYSTEM_PROMPT,
   CRO_CDE_GOOGLE_TOOLS_SCHEMA,
   DEFAULT_INTERNAL_AGENT_ID,
   buildElevenLabsAgentPayload,
+  buildGoogleAiStudioAgentPayload,
+  buildGoogleAiStudioFunctionDeclarations,
 } from './src/data/croCdeGoogleAgentManifest.ts';
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -598,16 +604,39 @@ async function startServer() {
     });
   });
 
-  // 3. ElevenLabs Agent Status & Provisioning
+  // 3. Primary voice: Google AI Studio / Gemini. ElevenLabs routes retained as legacy only.
   let cachedAgentId: string = process.env.ELEVENLABS_AGENT_ID || DEFAULT_INTERNAL_AGENT_ID;
+
+  const handleGoogleVoiceStatus = (_req: express.Request, res: express.Response) => {
+    res.json({
+      ok: true,
+      provider: CEREBRO_VOICE_PROVIDER,
+      agentName: CRO_CDE_GOOGLE_AGENT_NAME,
+      firstMessage: CRO_CDE_GOOGLE_FIRST_MESSAGE,
+      toolCount: CRO_CDE_GOOGLE_TOOLS_SCHEMA.length,
+      hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+      modelHint: CRO_CDE_GOOGLE_AGENT_MANIFEST.modelHint,
+      primary: true,
+      elevenLabsDisconnected: true,
+      legacyElevenLabsAgentId: DEFAULT_INTERNAL_AGENT_ID,
+    });
+  };
+  app.get('/api/gemini/voice-status', handleGoogleVoiceStatus);
+  app.get('/api/google-ai-studio/agent', handleGoogleVoiceStatus);
+  app.get('/api/google-ai-studio/manifest', (_req, res) => {
+    res.json({ ok: true, ...buildGoogleAiStudioAgentPayload() });
+  });
 
   const handleAgentStatus = (_req: express.Request, res: express.Response) => {
     res.json({
       ok: true,
+      disconnectedFromPrimary: true,
+      primaryProvider: CEREBRO_VOICE_PROVIDER,
       agentId: cachedAgentId || DEFAULT_INTERNAL_AGENT_ID,
       defaultAgentId: DEFAULT_INTERNAL_AGENT_ID,
       hasApiKey: Boolean(process.env.ELEVENLABS_API_KEY),
       manifestName: CRO_CDE_GOOGLE_AGENT_MANIFEST.name,
+      message: 'ElevenLabs is disconnected from the primary Cerebro VoiceCard path. Use /api/gemini/voice-status.',
     });
   };
   app.get('/api/elevenlabs/agent', handleAgentStatus);
@@ -1276,6 +1305,192 @@ async function startServer() {
 
   app.get('/api/download-source', requireInternalAccess, (_req, res) => {
     res.redirect('/api/project/files');
+  });
+
+  // 8b. Google AI Studio voice turn — full Cerebro system prompt + 27 client tools
+  const parseVoiceHeuristic = (
+    message: string
+  ): { spokenReply: string; toolCalls: Array<{ toolName: string; parameters: Record<string, unknown> }> } => {
+    const lower = message.toLowerCase();
+    const toolCalls: Array<{ toolName: string; parameters: Record<string, unknown> }> = [];
+
+    if (/\b(cde|culture|design engineer)\b/.test(lower) && /\b(open|go|switch|show)\b/.test(lower)) {
+      toolCalls.push({ toolName: 'switch_sphere', parameters: { sphere: 'cde' } });
+    } else if (/\b(hq|headquarters|home|portfolio)\b/.test(lower) && /\b(open|go|switch|show|back)\b/.test(lower)) {
+      toolCalls.push({ toolName: 'switch_sphere', parameters: { sphere: 'hq' } });
+    }
+
+    const stationMatch = lower.match(
+      /\b(?:open|show|go to)\s+(projects?|tasks?|people|files?|media|showreels?)\b/
+    );
+    if (stationMatch) {
+      const raw = stationMatch[1];
+      const station =
+        raw.startsWith('project')
+          ? 'projects'
+          : raw.startsWith('task')
+            ? 'tasks'
+            : raw.startsWith('file')
+              ? 'files'
+              : raw.startsWith('showreel') || raw === 'media'
+                ? 'media'
+                : 'people';
+      toolCalls.push({ toolName: 'open_station', parameters: { station } });
+    }
+
+    const projectHints: Array<[RegExp, string]> = [
+      [/\bel\s*batron\b/, 'EL-BATRON'],
+      [/\bseven\b/, 'SEVEN'],
+      [/\byah\b|\byoung\s*(and|&)\s*human\b/, 'YAH'],
+      [/\bmhe\b/, 'MHE'],
+      [/\bbsocial\b/, 'BSOCIAL'],
+      [/\bal[\s-]?ahram\b/, 'AL-AHRAM'],
+      [/\bgondwana\b/, 'GONDWANA'],
+      [/\bdrafteers\b/, 'DRAFTEERS'],
+      [/\bnjr\+?\b|\bnjr\s*plus\b/, 'NJR-PLUS'],
+      [/\bmission\s*lotus\b/, 'MISSION-LOTUS'],
+      [/\blaliga\b/, 'LALIGA-MENA'],
+      [/\briyadh\s*metro\b/, 'RIYADH-METRO-ART'],
+      [/\bcairo\s*design\b/, 'CAIRO-DESIGN-WEEK'],
+      [/\bdiriyah\b/, 'DIRIYAH-SOUQ'],
+      [/\bsound\s*of\s*(the\s*)?nile\b/, 'SOUND-OF-NILE'],
+      [/\bred\s*sea\b/, 'RED-SEA-PAVILION'],
+      [/\bmuseum\s*of\s*almost\b/, 'MUSEUM-OF-ALMOST'],
+    ];
+    if (/\b(open|show|focus|go to)\b/.test(lower) && /\bproject\b/.test(lower)) {
+      for (const [re, id] of projectHints) {
+        if (re.test(lower)) {
+          toolCalls.push({ toolName: 'focus_project', parameters: { projectId: id } });
+          break;
+        }
+      }
+    }
+
+    if (/\b(start|begin)\b.*\btour\b|\btour\b.*\b(start|begin)\b/.test(lower)) {
+      toolCalls.push({ toolName: 'start_tour', parameters: { mode: 'full-18-screen' } });
+    } else if (/\b(stop|end)\b.*\btour\b|\btour\b.*\b(stop|end)\b/.test(lower)) {
+      toolCalls.push({ toolName: 'tour_control', parameters: { action: 'stop' } });
+    } else if (/\b(next|continue)\b.*\btour\b|\btour\b.*\bnext\b/.test(lower)) {
+      toolCalls.push({ toolName: 'step_tour', parameters: { directionOrScreen: 'next' } });
+    } else if (/\b(prev|previous|back)\b.*\btour\b|\btour\b.*\b(prev|back)\b/.test(lower)) {
+      toolCalls.push({ toolName: 'step_tour', parameters: { directionOrScreen: 'prev' } });
+    }
+
+    if (/\b(briefing|brief me|executive summary)\b/.test(lower)) {
+      toolCalls.push({ toolName: 'get_briefing', parameters: {} });
+    }
+    if (/\b(page state|what('?s| is) on screen|where am i)\b/.test(lower)) {
+      toolCalls.push({ toolName: 'get_page_state', parameters: {} });
+    }
+    if (/\b(stop camera|camera stop|hold camera)\b/.test(lower)) {
+      toolCalls.push({ toolName: 'camera', parameters: { verb: 'stop' } });
+    } else if (/\b(orbit|spin)\b/.test(lower)) {
+      toolCalls.push({
+        toolName: 'camera',
+        parameters: { verb: 'orbit', direction: lower.includes('left') ? 'left' : 'right' },
+      });
+    }
+
+    const spokenReply =
+      toolCalls.length > 0
+        ? `On it — ${toolCalls.map((t) => t.toolName.replace(/_/g, ' ')).join(', ')}.`
+        : 'Listening. Ask me to open a station, project, sphere, or start the tour.';
+    return { spokenReply, toolCalls };
+  };
+
+  app.post('/api/gemini/voice-turn', async (req, res) => {
+    const message = String(req.body?.message || '').trim();
+    const history = Array.isArray(req.body?.history) ? req.body.history : [];
+    const contextualUpdate =
+      typeof req.body?.contextualUpdate === 'string' ? req.body.contextualUpdate : null;
+
+    if (!message) {
+      return res.status(400).json({ ok: false, error: 'message is required' });
+    }
+
+    const heuristic = parseVoiceHeuristic(message);
+    const geminiKey = process.env.GEMINI_API_KEY;
+    const toolNames = CRO_CDE_GOOGLE_TOOLS_SCHEMA.map((t) => t.name);
+
+    if (geminiKey) {
+      try {
+        const ai = new GoogleGenAI({
+          apiKey: geminiKey,
+          httpOptions: { headers: { 'User-Agent': 'aistudio-build' } },
+        });
+        const historyBlock = history
+          .slice(-12)
+          .map((h: { role?: string; text?: string }) => `${h.role === 'model' ? 'Cerebro' : 'User'}: ${h.text || ''}`)
+          .join('\n');
+        const prompt = `${CRO_CDE_GOOGLE_SYSTEM_PROMPT}
+
+AGENT: ${CRO_CDE_GOOGLE_AGENT_NAME}
+PROVIDER: ${CEREBRO_VOICE_PROVIDER}
+FIRST_MESSAGE_LOCK: ${CRO_CDE_GOOGLE_FIRST_MESSAGE}
+CLIENT_CONTROLS: connect, mute, stop, contextualUpdate(cerebro-ui/4), toolExecutor=handleExecuteToolCall
+AVAILABLE_CLIENT_TOOLS (${toolNames.length}): ${toolNames.join(', ')}
+FUNCTION_DECLARATIONS_JSON: ${JSON.stringify(buildGoogleAiStudioFunctionDeclarations())}
+LIVE_UI_CONTEXT: ${contextualUpdate || '(none)'}
+RECENT_TURNS:
+${historyBlock || '(none)'}
+
+User just said: "${message}"
+
+Return ONLY a JSON object with:
+- "spokenReply": short natural speech in English or Egyptian Arabic (never read tool names or raw IDs aloud)
+- "toolCalls": array of { "toolName": string, "parameters": object } using only the tools listed above`;
+
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+          config: {
+            responseMimeType: 'application/json',
+            temperature: 0.35,
+          },
+        });
+        const rawText = response.text || '';
+        const parsed = JSON.parse(rawText) as {
+          spokenReply?: string;
+          toolCalls?: Array<{ toolName: string; parameters: Record<string, unknown> }>;
+        };
+        const allowed = new Set<string>(toolNames);
+        const resolvedCalls = (
+          Array.isArray(parsed.toolCalls) && parsed.toolCalls.length > 0
+            ? parsed.toolCalls
+            : heuristic.toolCalls
+        ).filter((c) => Boolean(c?.toolName) && allowed.has(c.toolName));
+
+        return res.json({
+          ok: true,
+          provider: CEREBRO_VOICE_PROVIDER,
+          agentName: CRO_CDE_GOOGLE_AGENT_NAME,
+          spokenReply: (parsed.spokenReply || '').trim() || heuristic.spokenReply,
+          toolCalls: resolvedCalls,
+          source: 'gemini',
+        });
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        // Fall through to heuristic; surface soft auth signal when key/auth related
+        if (/api key|permission|401|403|unauth|invalid/i.test(msg)) {
+          return res.status(401).json({
+            ok: false,
+            error: msg,
+            provider: CEREBRO_VOICE_PROVIDER,
+            toolCalls: heuristic.toolCalls,
+            spokenReply: heuristic.spokenReply,
+          });
+        }
+      }
+    }
+
+    return res.json({
+      ok: true,
+      provider: CEREBRO_VOICE_PROVIDER,
+      agentName: CRO_CDE_GOOGLE_AGENT_NAME,
+      spokenReply: heuristic.spokenReply,
+      toolCalls: heuristic.toolCalls,
+      source: geminiKey ? 'heuristic-fallback' : 'heuristic-no-key',
+    });
   });
 
   // 9. Gemini Live Screen & 3D Domain Orchestrator (`POST /api/gemini/orchestrate`)

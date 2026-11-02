@@ -5,11 +5,15 @@
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AudienceLevel } from './PanelsOverlay';
-import { DEFAULT_INTERNAL_AGENT_ID } from '../data/croCdeGoogleAgentManifest';
 import {
-  ElevenLabsConvaiBridge,
-  VoiceBridgeState,
-} from '../utils/elevenLabsBridge';
+  CEREBRO_VOICE_PROVIDER,
+  CRO_CDE_GOOGLE_AGENT_NAME,
+} from '../data/croCdeGoogleAgentManifest';
+import {
+  GoogleAiStudioVoiceBridge,
+  googleVoiceToolCount,
+  type VoiceBridgeState,
+} from '../utils/googleAiStudioVoiceBridge';
 import { ComputedGuiLayout } from '../gui/layoutEngine';
 
 export type VoiceState =
@@ -99,10 +103,8 @@ interface VoiceCardProps {
   contextualUpdateJson?: string;
 }
 
-const STORAGE_KEY_AGENT_ID = 'cro_cde_google_agent_id';
-
 /** C07: scale = 1 + 0.04 * level; attack 80ms / release 240ms */
-function voiceRingScale(level: number, rising: boolean): number {
+function voiceRingScale(level: number, _rising: boolean): number {
   const clamped = Math.max(0, Math.min(1, level));
   return 1 + 0.04 * clamped;
 }
@@ -139,19 +141,14 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     onVoiceDragDeltaChange?.({ x: 0, y: 0 });
   }, [onVoiceExpandedChange, onVoiceDragDeltaChange]);
 
-  const [agentId] = useState(() => {
-    try {
-      return localStorage.getItem(STORAGE_KEY_AGENT_ID) || DEFAULT_INTERNAL_AGENT_ID;
-    } catch {
-      return DEFAULT_INTERNAL_AGENT_ID;
-    }
-  });
   const [bridgeStatus, setBridgeStatus] = useState<VoiceBridgeState>('Ready');
-  const [bridgeDetail, setBridgeDetail] = useState('Ready');
+  const [bridgeDetail, setBridgeDetail] = useState(
+    `Ready · ${CRO_CDE_GOOGLE_AGENT_NAME} · ${CEREBRO_VOICE_PROVIDER}`
+  );
   const [muted, setMuted] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const expandTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const bridgeRef = useRef<ElevenLabsConvaiBridge | null>(null);
+  const bridgeRef = useRef<GoogleAiStudioVoiceBridge | null>(null);
   const offline = typeof navigator !== 'undefined' ? !navigator.onLine : false;
 
   useEffect(() => {
@@ -159,15 +156,16 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   }, [sheetOpen, onVoiceSheetExpandedChange]);
 
   useEffect(() => {
-    const bridge = new ElevenLabsConvaiBridge({
+    // Primary voice path: Google AI Studio / Gemini. ElevenLabs ConvAI is not mounted.
+    const bridge = new GoogleAiStudioVoiceBridge({
       onStatusChange: (status, detail) => {
         setBridgeStatus(status);
         if (detail) setBridgeDetail(detail);
       },
       onTranscript: (role, text) => {
         if (role === 'user') {
-          const isLiveWs = bridgeRef.current?.isLiveWebSocketOpen?.() ?? false;
-          onSimulateCommand(isLiveWs ? `__user_voice_live__:${text}` : `__user_voice__:${text}`);
+          const isLive = bridgeRef.current?.isLiveWebSocketOpen?.() ?? false;
+          onSimulateCommand(isLive ? `__user_voice_live__:${text}` : `__user_voice__:${text}`);
         } else {
           onSimulateCommand(`__agent_reply__:${text}`);
         }
@@ -199,8 +197,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       },
       onTranscript: (role, text) => {
         if (role === 'user') {
-          const isLiveWs = bridgeRef.current?.isLiveWebSocketOpen?.() ?? false;
-          onSimulateCommand(isLiveWs ? `__user_voice_live__:${text}` : `__user_voice__:${text}`);
+          const isLive = bridgeRef.current?.isLiveWebSocketOpen?.() ?? false;
+          onSimulateCommand(isLive ? `__user_voice_live__:${text}` : `__user_voice__:${text}`);
         } else {
           onSimulateCommand(`__agent_reply__:${text}`);
         }
@@ -257,14 +255,9 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   }, [bridgeStatus, voiceState, muted]);
 
   const handleConnect = useCallback(async () => {
-    try {
-      localStorage.setItem(STORAGE_KEY_AGENT_ID, agentId);
-    } catch {
-      /* ignore */
-    }
     setMuted(false);
-    await bridgeRef.current?.connect(agentId);
-  }, [agentId]);
+    await bridgeRef.current?.connect();
+  }, []);
 
   useEffect(() => {
     if (openAgentModalTrigger && openAgentModalTrigger > 0) {
@@ -275,6 +268,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const handleMuteToggle = () => {
     const next = !muted;
     setMuted(next);
+    bridgeRef.current?.setMuted(next);
     if (next) {
       bridgeRef.current?.stopOutputAudioImmediately();
     }
@@ -479,7 +473,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               ? 'Network offline — capsule stays usable; reconnect when online.'
               : bridgeStatus === 'Error'
                 ? bridgeDetail || 'Voice authentication or network failed.'
-                : `State: ${statusLabel}. Agent ${agentId.slice(0, 12)}…`}
+                : `State: ${statusLabel}. ${CRO_CDE_GOOGLE_AGENT_NAME} · ${CEREBRO_VOICE_PROVIDER} · ${googleVoiceToolCount()} tools`}
           </p>
           {(bridgeStatus === 'Error' || offline) && (
             <button

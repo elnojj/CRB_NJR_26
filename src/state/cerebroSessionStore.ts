@@ -5,7 +5,7 @@
  * 1. URL search params (viewport, force flags) — ephemeral overrides
  * 2. cerebro.session.v1 localStorage blob — panels, audience, pocket, snap, nav
  * 3. App React state — live authority while mounted
- * 4. ElevenLabs bridge + tour timers — never persisted mid-flight; reset to Ready
+ * 4. Google AI Studio voice bridge + tour timers — never persisted mid-flight; reset to Ready
  *
  * Race policy: voice tour and panels both hydrate, but tour always starts
  * inactive after reload. Panels restore first; voice capsule connects only

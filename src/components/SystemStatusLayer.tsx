@@ -8,13 +8,16 @@ export type SystemStatusKind =
   | 'offline'
   | 'webgl'
   | 'drive-404'
-  | 'elevenlabs-auth'
+  | 'voice-auth'
   | 'empty-projects'
   | null;
 
 export interface SystemStatusLayerProps {
   webglUnavailable?: boolean;
   webglReason?: string;
+  /** Google AI Studio / Gemini voice auth or key failure */
+  voiceAuthFailed?: boolean;
+  /** @deprecated Use voiceAuthFailed */
   elevenLabsAuthFailed?: boolean;
   projectCount?: number;
   onRetryWebgl?: () => void;
@@ -25,12 +28,14 @@ export interface SystemStatusLayerProps {
 export const SystemStatusLayer: React.FC<SystemStatusLayerProps> = ({
   webglUnavailable = false,
   webglReason,
+  voiceAuthFailed = false,
   elevenLabsAuthFailed = false,
   projectCount = 1,
   onRetryWebgl,
   onRetryVoice,
   onRetryDrive,
 }) => {
+  const voiceFailed = voiceAuthFailed || elevenLabsAuthFailed;
   const [offline, setOffline] = useState(
     typeof navigator !== 'undefined' ? !navigator.onLine : false
   );
@@ -119,12 +124,12 @@ export const SystemStatusLayer: React.FC<SystemStatusLayerProps> = ({
     });
   }
 
-  if (elevenLabsAuthFailed) {
+  if (voiceFailed) {
     banners.push({
-      id: 'elevenlabs',
+      id: 'voice-auth',
       tone: 'error',
-      title: 'Voice bridge authentication failed',
-      body: 'ElevenLabs rejected the session. Check the agent key, then reconnect the capsule.',
+      title: 'Google Voice bridge failed',
+      body: 'Google AI Studio / Gemini rejected the session. Check GEMINI_API_KEY, then reconnect the capsule.',
       actionLabel: 'Retry voice',
       onAction: onRetryVoice,
     });

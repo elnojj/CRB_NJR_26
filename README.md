@@ -37,7 +37,9 @@ npm run deploy             # vite build + firebase deploy --only hosting
 
 GitHub Actions: `.github/workflows/firebase-hosting.yml` deploys `main` on push when `FIREBASE_TOKEN` is set as a repo secret.
 
-Note: Hosting serves the static Vite build (intro + client workspace). Express `/api/*` routes from `server.ts` are not on Hosting; add Cloud Functions later if production needs Drive / ElevenLabs server APIs.
+Note: Hosting serves the static Vite build (intro + client workspace). Express `/api/*` routes from `server.ts` are not on Hosting; add Cloud Functions later if production needs Drive / Gemini voice server APIs.
+
+Voice: primary path is **Google AI Studio / Gemini** (`google-ai-studio`) via `POST /api/gemini/voice-turn` with the full Cerebro system prompt and 27 client tools. ElevenLabs ConvAI is disconnected from the live VoiceCard.
 
 ## Run locally
 

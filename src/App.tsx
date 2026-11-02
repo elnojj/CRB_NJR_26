@@ -104,7 +104,12 @@ import {
   auditToolRegistry,
   buildNodeSelectionAction,
 } from './utils/actionDispatcher';
-import { DEFAULT_INTERNAL_AGENT_ID } from './data/croCdeGoogleAgentManifest';
+import {
+  CEREBRO_VOICE_PROVIDER,
+  CRO_CDE_GOOGLE_AGENT_NAME,
+  CRO_CDE_GOOGLE_TOOLS_SCHEMA,
+  DEFAULT_INTERNAL_AGENT_ID,
+} from './data/croCdeGoogleAgentManifest';
 import { CEREBRO_17_PROJECTS, CEREBRO_18_SCREENS } from './data/cerebroData';
 import {
   CustomDomain3D,
@@ -279,7 +284,7 @@ export default function App() {
   });
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [openPanels, setOpenPanels] = useState<string[]>(() => readSessionSnapshot().openPanels);
-  const [elevenLabsAuthFailed, setElevenLabsAuthFailed] = useState(false);
+  const [voiceAuthFailed, setVoiceAuthFailed] = useState(false);
   const [hydrationPhase, setHydrationPhase] = useState(() => hydrationSequence()[0]);
   const activePanel: string | null = openPanels.length > 0 ? openPanels[openPanels.length - 1] : null;
   const [minimisedChips, setMinimisedChips] = useState<MinimisedChip[]>([]);
@@ -571,7 +576,7 @@ export default function App() {
   ]);
 
   useEffect(() => {
-    const onVoiceAuth = () => setElevenLabsAuthFailed(true);
+    const onVoiceAuth = () => setVoiceAuthFailed(true);
     window.addEventListener('cerebro:voice-auth-failed', onVoiceAuth);
     return () => window.removeEventListener('cerebro:voice-auth-failed', onVoiceAuth);
   }, []);
@@ -1906,7 +1911,7 @@ export default function App() {
             keyboardInsetBottom: viewport.keyboardInsetBottom,
           });
           const manifestV4 = runtimeUIRegistry.buildManifestSnapshot({
-            agentIdResolved: DEFAULT_INTERNAL_AGENT_ID,
+            agentIdResolved: `${CEREBRO_VOICE_PROVIDER}:${CRO_CDE_GOOGLE_AGENT_NAME}`,
             providerConnection: {
               status:
                 voiceState === 'Listening' || voiceState === 'Speaking' || voiceState === 'Thinking'
@@ -2311,7 +2316,7 @@ export default function App() {
     ]
   );
 
-  // Structured Client Tool Executor for ElevenLabsConvaiBridge (Never flattens named parameters!)
+  // Structured Client Tool Executor for GoogleAiStudioVoiceBridge (Never flattens named parameters!)
   const handleExecuteToolCall = useCallback(
     (toolName: string, parameters: Record<string, unknown>): string => {
       const parsed = parseStructuredToolCall(toolName, parameters);
@@ -2356,9 +2361,9 @@ export default function App() {
         return;
       }
 
-      // Live WebSocket transcript separation (rawTranscriptExecutesCommands: false):
-      // When the live ElevenLabs ConvAI WebSocket is open, user transcripts update conversation history ONLY
-      // while live client_tool_call frames execute actions, preventing duplicate local command execution.
+      // Live Google Voice transcript separation (rawTranscriptExecutesCommands: false):
+      // When the Google AI Studio voice session is live, user transcripts update conversation history ONLY
+      // while Gemini-proposed client tool calls execute actions, preventing duplicate local command execution.
       if (text.startsWith('__user_voice_live__:')) {
         const liveSpeech = text.replace('__user_voice_live__:', '').trim();
         if (liveSpeech) {
@@ -2682,8 +2687,10 @@ export default function App() {
   const pageStateSnapshot: Record<string, unknown> = {
     schema: CEREBRO_UI_SCHEMA_V4,
     version: BUILD_VERSION,
-    agent: 'Cro-cde-google',
-    defaultAgentId: DEFAULT_INTERNAL_AGENT_ID,
+    agent: CRO_CDE_GOOGLE_AGENT_NAME,
+    voiceProvider: CEREBRO_VOICE_PROVIDER,
+    toolCount: CRO_CDE_GOOGLE_TOOLS_SCHEMA.length,
+    legacyElevenLabsAgentId: DEFAULT_INTERNAL_AGENT_ID,
     owner: '39 (Tarek Mojara) — Founder and Culture and Design Engineer',
     activeSphere,
     focusedNodeId,
@@ -2724,14 +2731,14 @@ export default function App() {
     totalPortfolioProjects: CEREBRO_17_PROJECTS.length,
   };
 
-  // Debounced (250ms, max 4Hz) cerebro-ui/4 contextual updates to active ElevenLabs session
+  // Debounced (250ms, max 4Hz) cerebro-ui/4 contextual updates to active Google AI Studio voice session
   useEffect(() => {
     runtimeUIRegistry.scheduleContextualUpdate(
       'navigation',
       () =>
         JSON.stringify(
           runtimeUIRegistry.buildManifestSnapshot({
-            agentIdResolved: DEFAULT_INTERNAL_AGENT_ID,
+            agentIdResolved: `${CEREBRO_VOICE_PROVIDER}:${CRO_CDE_GOOGLE_AGENT_NAME}`,
             providerConnection: {
               status: 'connected',
               liveWebSocketOpen:
@@ -4240,10 +4247,10 @@ export default function App() {
       {/* 7. C06 Voice capsule + C07 listening rings */}
       <SystemStatusLayer
         webglUnavailable={false}
-        elevenLabsAuthFailed={elevenLabsAuthFailed}
+        voiceAuthFailed={voiceAuthFailed}
         projectCount={PROJECTS_DATA.length}
         onRetryVoice={() => {
-          setElevenLabsAuthFailed(false);
+          setVoiceAuthFailed(false);
           setOpenAgentModalTrigger((n) => (n || 0) + 1);
         }}
         onRetryWebgl={() => window.location.reload()}
@@ -4738,7 +4745,7 @@ export default function App() {
                     }}
                     className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#1B2230] border border-[#D4AF37]/50 text-[#FFF4D0] cursor-pointer"
                   >
-                    Voice Agent ID & 18-Tool Provisioning
+                    Connect Google AI Studio Voice ({CRO_CDE_GOOGLE_TOOLS_SCHEMA.length} Tools)
                   </button>
                   <button
                     type="button"
@@ -4761,14 +4768,18 @@ export default function App() {
                   </div>
                   <div className="p-3 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] font-mono tabular-nums text-xs space-y-1">
                     <div className="text-[#C5CCD6] font-semibold">VOICE AGENT & TOOL REGISTRY AUDIT</div>
-                    <div>Default Agent ID: {DEFAULT_INTERNAL_AGENT_ID}</div>
+                    <div>
+                      Provider: {CEREBRO_VOICE_PROVIDER} · Agent: {CRO_CDE_GOOGLE_AGENT_NAME}
+                    </div>
                     <div>
                       Advertised Tools: {toolAuditEntries.length} · Implemented:{' '}
                       {toolAuditEntries.filter((e) => e.handlerImplemented).length}
                     </div>
                     <div>
                       Unmapped Tools:{' '}
-                      {unmappedTools.length === 0 ? '0 (All 18 verified)' : unmappedTools.join(', ')}
+                      {unmappedTools.length === 0
+                        ? `0 (All ${CRO_CDE_GOOGLE_TOOLS_SCHEMA.length} verified)`
+                        : unmappedTools.join(', ')}
                     </div>
                     <div>WebGL Active: {telemetryReceived ? String(telemetry.webglActive ?? 'unknown') : 'waiting for telemetry'}</div>
                   </div>

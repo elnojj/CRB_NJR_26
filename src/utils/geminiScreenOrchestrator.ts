@@ -106,9 +106,10 @@ export function getDomainMaterialColors(preset: DomainMaterialPreset): {
 }
 
 /**
- * Bridges ElevenLabs (`Cro-cde-google`) & natural-language spatial commands to the
- * server-side Gemini Live Screen Orchestrator (`/api/gemini/orchestrate`), returning
- * structured 22-tool invocations grounded in `get_page_state()`.
+ * Bridges Google AI Studio voice (`Cro-cde-google`) & natural-language spatial
+ * commands to the server-side Gemini Live Screen Orchestrator
+ * (`/api/gemini/orchestrate`), returning structured Cerebro client-tool
+ * invocations grounded in `get_page_state()`.
  */
 export async function orchestrateScreenCommandWithGemini(
   commandText: string,
