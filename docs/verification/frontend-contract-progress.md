@@ -6,8 +6,8 @@ Date: 2026-11-02 (Africa/Cairo)
 
 | Remote | SHA | Status |
 |--------|-----|--------|
-| Cursor Origin `main` | see latest `git rev-parse HEAD` after push | Pushed |
-| GitHub `elnojj/CRB_NJR_26` `main` | blocked | No `GH_TOKEN` in this environment — AI Studio sync requires PAT |
+| Cursor Origin `main` | `7ec9ab091896bc073f4f0edf2d4546b8b61e0ffc` (+ later commits) | Pushed |
+| GitHub `elnojj/CRB_NJR_26` `main` | blocked | No `GH_TOKEN` — run `GH_TOKEN=… ./scripts/sync-aistudio-main.sh` |
 
 ## Layer status (honest)
 

@@ -1742,7 +1742,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     const camera = new THREE.PerspectiveCamera(46, initW / initH, 0.1, 200);
 
-    // Post-Processing Cinema Pipeline (EffectComposer + RenderPass + UnrealBloomPass + Custom FilmGrain/CA/Vignette ShaderPass)
+    // Post-Processing: default app bans bloom/glow (L10). Film bloom stays intro-scoped only.
     let composer: EffectComposer | null = null;
     let bloomPass: UnrealBloomPass | null = null;
     let cinemaPass: ShaderPass | null = null;
@@ -1751,18 +1751,23 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const renderPass = new RenderPass(scene, camera);
       composer.addPass(renderPass);
 
-      // Selective high-threshold bloom (v4.0: strength: 0.24, radius: 0.35, threshold: 0.9)
-      bloomPass = new UnrealBloomPass(
-        new THREE.Vector2(initW, initH),
-        0.24,
-        0.35,
-        0.9
-      );
-      composer.addPass(bloomPass);
+      if (introBridge.enabled) {
+        // Selective high-threshold bloom — Sehly 180s film scope only
+        bloomPass = new UnrealBloomPass(
+          new THREE.Vector2(initW, initH),
+          0.24,
+          0.35,
+          0.9
+        );
+        composer.addPass(bloomPass);
 
-      cinemaPass = new ShaderPass(CinemaFilmGrainVignetteShader);
-      cinemaPass.renderToScreen = true;
-      composer.addPass(cinemaPass);
+        cinemaPass = new ShaderPass(CinemaFilmGrainVignetteShader);
+        cinemaPass.renderToScreen = true;
+        composer.addPass(cinemaPass);
+      } else {
+        // Workspace / master sphere — clean pass, no UnrealBloomPass
+        renderPass.renderToScreen = true;
+      }
     }
 
     // Sehly / Cerebro 39 Master Lighting Rig (Sehly_Cerebro_Master_Guidelines.pdf Page 5):
