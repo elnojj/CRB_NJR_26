@@ -160,8 +160,64 @@ export const PROJECT_WORLD_MANIFESTS: Record<string, ProjectWorldManifest> = {
   [ISTANBA_MOULD_PROOF.id]: ISTANBA_MOULD_PROOF,
 };
 
+/**
+ * Build a minimal project-world manifest from a source project record.
+ * Does not invent playable media — marks media as unavailable until bound.
+ */
+export function manifestFromProjectRecord(project: {
+  id: string;
+  name: string;
+  code?: string;
+  description?: string;
+}): ProjectWorldManifest {
+  return {
+    id: `world-${project.id}`,
+    parentSphere: 'hq',
+    parentProjectId: project.id,
+    titleEn: project.name,
+    titleAr: project.code || project.id,
+    rightsState: 'restricted',
+    chapters: [
+      {
+        id: 'entry',
+        titleEn: 'Enter project world',
+        titleAr: 'دخول عالم المشروع',
+        copyEn: project.description || `Enter ${project.name}.`,
+        copyAr: project.name,
+      },
+      {
+        id: 'exit',
+        titleEn: 'Return to master',
+        titleAr: 'العودة للعالم الرئيسي',
+        copyEn: 'Return restores the master-sphere pose and selection.',
+        copyAr: 'العودة تستعيد وضع الكرة الرئيسية.',
+      },
+    ],
+    objectParts: [
+      {
+        id: 'entry-node',
+        label: 'Entry node',
+        kind: 'placeholder',
+        rights: 'unavailable',
+        sourceNote: 'Scoped visual system pending verified assets for this project.',
+      },
+    ],
+    entryPose: { azimuth: 0.2, polar: 1.35, radius: 8.5, focalMm: 35 },
+    returnPose: { azimuth: 0.12, polar: 1.42, radius: 19.0, focalMm: 35 },
+    notes: [
+      'Generated from source project register — not a fabricated world.',
+      'Do not invent footage or rights claims for this portal.',
+    ],
+  };
+}
+
 export function getProjectWorldManifest(id: string): ProjectWorldManifest | null {
-  return PROJECT_WORLD_MANIFESTS[id] ?? null;
+  if (PROJECT_WORLD_MANIFESTS[id]) return PROJECT_WORLD_MANIFESTS[id];
+  if (id.startsWith('world-')) {
+    const projectId = id.slice('world-'.length);
+    return manifestFromProjectRecord({ id: projectId, name: projectId });
+  }
+  return null;
 }
 
 export const PROJECT_WORLD_STATE_ORDER: ProjectWorldInteractionState[] = [

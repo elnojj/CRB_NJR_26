@@ -21,18 +21,19 @@
     --bg-glass-rgba: var(--cj-glass-panel);
     --text-primary: var(--cj-text-primary);
     --text-secondary: var(--cj-silver-metal);
-    --accent-cobalt: var(--cj-gold-primary);
-    --focus-ring: var(--cj-gold-primary);
-    --station-projects: var(--cj-gold-primary);
-    --station-tasks: var(--cj-silver-metal);
-    --station-people: var(--cj-gold-sheen);
-    --station-files: var(--cj-silver-metal);
-    --station-media: var(--cj-gold-primary);
+    /* L01 — default app: cobalt/ice/teal roles. Gold is film-scope only. */
+    --accent-cobalt: var(--c-cobalt, #65ACFF);
+    --focus-ring: var(--c-cobalt, #65ACFF);
+    --station-projects: var(--c-cobalt, #65ACFF);
+    --station-tasks: var(--c-silver, #C5CCD6);
+    --station-people: var(--c-ice, #B4DDFF);
+    --station-files: var(--c-silver, #C5CCD6);
+    --station-media: var(--c-ice, #B4DDFF);
     /* C07 — teal listening orb (not gold UI chrome) */
     --voice-orb-mint: var(--c-voice, #9AFFE0);
     --voice-orb-teal: var(--c-voice-state, #78D3B2);
     --voice-orb-deep: #0f3d34;
-    --sphere-wireframe: var(--cj-gold-sheen);
+    --sphere-wireframe: var(--c-ice, #B4DDFF);
     --ease-cerebro: var(--motion-ease);
   }
 
@@ -43,10 +44,10 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    /* Deep ink atmospheric field — void #05090E family, ice + gold blooms. */
+    /* Deep ink atmospheric field — void #05090E family, ice + cobalt blooms (no gold UI wash). */
     background:
       radial-gradient(95% 70% at 22% 18%, rgba(180, 221, 255, 0.22) 0%, transparent 48%),
-      radial-gradient(85% 65% at 78% 88%, rgba(212, 175, 55, 0.12) 0%, transparent 50%),
+      radial-gradient(85% 65% at 78% 88%, rgba(101, 172, 255, 0.14) 0%, transparent 50%),
       radial-gradient(120% 90% at 50% 48%, rgba(36, 56, 72, 0.55) 0%, transparent 55%),
       linear-gradient(168deg, #02050a 0%, var(--c-void) 38%, #0a1520 68%, #03060c 100%);
     background-color: var(--c-void);
@@ -61,9 +62,9 @@
     user-select: none;
   }
 
-  /* Focus ring locked to gold #D4AF37 — visible on every interactive control */
+  /* Default-app focus: cobalt #65ACFF (gold reserved for film / 3D rails) */
   *:focus-visible {
-    outline: 2px solid var(--cj-gold-primary);
+    outline: 2px solid var(--focus-ring, #65ACFF);
     outline-offset: 2px;
   }
 }
@@ -370,11 +371,11 @@ canvas {
   border-color: color-mix(in srgb, #65ACFF 40%, transparent);
 }
 
-/* Canvas focus ring — gold focus chrome (not voice teal) */
+/* Canvas focus ring — default-app cobalt */
 [data-testid="cosmograph-canvas"]:focus-visible,
 .source-world:focus-visible,
 .cerebro-voice-capsule:focus-within {
-  outline: 2px solid var(--cj-gold-primary, #D4AF37);
+  outline: 2px solid var(--focus-ring, #65ACFF);
   outline-offset: 2px;
 }
 
@@ -545,6 +546,80 @@ canvas {
   font-size: 13px;
   line-height: 1.35;
   pointer-events: none;
+}
+
+.cerebro-voice-sheet {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 101;
+  width: min(420px, calc(100vw - 24px));
+  max-height: min(52vh, 420px);
+  overflow: auto;
+  padding: 12px;
+  border-radius: 20px;
+  background: var(--token-glass-fill, rgba(27, 34, 48, 0.94));
+  border: 1px solid var(--token-glass-border, rgba(197, 204, 214, 0.22));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--token-text-primary, #F2F6F8);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cerebro-voice-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cerebro-voice-sheet__meta {
+  margin: 0;
+  font-size: 12px;
+  color: var(--token-text-secondary, #D0DCE3);
+}
+
+.cerebro-voice-sheet__retry {
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 45%, transparent);
+  background: transparent;
+  color: #F2F6F8;
+  cursor: pointer;
+}
+
+.cerebro-voice-sheet__transcript {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.cerebro-voice-sheet__transcript li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(197, 204, 214, 0.12);
+}
+
+.cerebro-voice-sheet__transcript li span:first-child {
+  font-size: 11px;
+  color: var(--c-cobalt, #65ACFF);
+}
+
+.cerebro-voice-sheet__empty {
+  color: var(--token-text-muted, #BDCBD3);
+}
+
+.cerebro-voice-sheet__foot {
+  font-size: 11px;
+  color: var(--token-text-muted, #BDCBD3);
 }
 
 @keyframes shimmerSweep {

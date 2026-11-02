@@ -147,7 +147,10 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const [bridgeStatus, setBridgeStatus] = useState<VoiceBridgeState>('Ready');
   const [bridgeDetail, setBridgeDetail] = useState('Ready');
   const [muted, setMuted] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const expandTriggerRef = useRef<HTMLButtonElement | null>(null);
   const bridgeRef = useRef<ElevenLabsConvaiBridge | null>(null);
+  const offline = typeof navigator !== 'undefined' ? !navigator.onLine : false;
 
   useEffect(() => {
     const bridge = new ElevenLabsConvaiBridge({
@@ -273,11 +276,18 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
 
   const handleInstantStop = () => {
     bridgeRef.current?.stopOutputAudioImmediately();
+    bridgeRef.current?.disconnect();
+    setMuted(false);
     if (tourState.active) {
       onStopTour?.();
       onSimulateCommand('stop tour');
     }
     onSimulateCommand('camera(stop)');
+  };
+
+  const closeSheet = () => {
+    setSheetOpen(false);
+    window.setTimeout(() => expandTriggerRef.current?.focus(), 0);
   };
 
   const live =
@@ -288,17 +298,21 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     voiceState === 'Speaking' ||
     voiceState === 'Connecting';
 
-  const statusLabel = muted
-    ? 'Muted'
-    : bridgeStatus === 'Listening' || voiceState === 'Listening'
-      ? 'Listening'
-      : bridgeStatus === 'Speaking' || voiceState === 'Speaking'
-        ? 'Speaking'
-        : bridgeStatus === 'Connecting' || voiceState === 'Connecting'
-          ? 'Connecting'
-          : bridgeStatus === 'Error'
-            ? 'Error'
-            : 'Talk to Cerebro';
+  const statusLabel = offline
+    ? 'Offline'
+    : muted
+      ? 'Muted'
+      : bridgeStatus === 'Listening' || voiceState === 'Listening'
+        ? 'Listening'
+        : bridgeStatus === 'Speaking' || voiceState === 'Speaking'
+          ? 'Speaking'
+          : bridgeStatus === 'Connecting' || voiceState === 'Connecting'
+            ? 'Connecting'
+            : bridgeStatus === 'Error'
+              ? 'Error'
+              : bridgeStatus === 'Disconnected'
+                ? 'Disconnected'
+                : 'Talk to Cerebro';
 
   const ringScale = voiceRingScale(ringLevel, true);
   const showRings =
@@ -384,6 +398,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               className="cerebro-voice-action"
               data-testid="voice-connect"
               aria-label="Connect live voice"
+              disabled={offline}
               onClick={() => void handleConnect()}
             >
               Connect
@@ -411,19 +426,96 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               </button>
             </>
           )}
+          <button
+            ref={expandTriggerRef}
+            type="button"
+            className="cerebro-voice-action"
+            data-testid="voice-expand"
+            aria-expanded={sheetOpen}
+            aria-controls="cerebro-voice-sheet"
+            aria-label={sheetOpen ? 'Close voice sheet' : 'Open voice sheet'}
+            onClick={() => (sheetOpen ? closeSheet() : setSheetOpen(true))}
+          >
+            {sheetOpen ? 'Close' : 'More'}
+          </button>
         </div>
       </div>
 
-      {(liveCaption || lastLine || bridgeStatus === 'Error') && (
+      {sheetOpen && (
+        <div
+          id="cerebro-voice-sheet"
+          className="cerebro-voice-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Voice transcript and settings"
+          data-testid="voice-expanded-sheet"
+          style={{
+            bottom: layoutRect
+              ? `calc(100% - ${layoutRect.y}px + 12px)`
+              : 'max(80px, calc(12% + 64px + env(safe-area-inset-bottom, 0px)))',
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <header className="cerebro-voice-sheet__head">
+            <strong>Voice sheet</strong>
+            <button
+              type="button"
+              className="cerebro-voice-action"
+              data-testid="voice-sheet-close"
+              aria-label="Close voice sheet"
+              onClick={closeSheet}
+            >
+              Close
+            </button>
+          </header>
+          <p className="cerebro-voice-sheet__meta" aria-live="polite">
+            {offline
+              ? 'Network offline — capsule stays usable; reconnect when online.'
+              : bridgeStatus === 'Error'
+                ? bridgeDetail || 'Voice authentication or network failed.'
+                : `State: ${statusLabel}. Agent ${agentId.slice(0, 12)}…`}
+          </p>
+          {(bridgeStatus === 'Error' || offline) && (
+            <button
+              type="button"
+              className="cerebro-voice-sheet__retry"
+              data-testid="voice-retry"
+              disabled={offline}
+              onClick={() => void handleConnect()}
+            >
+              Retry voice
+            </button>
+          )}
+          <ol className="cerebro-voice-sheet__transcript" aria-label="Transcript history">
+            {transcripts.length === 0 ? (
+              <li className="cerebro-voice-sheet__empty">No transcript yet. Connect to begin.</li>
+            ) : (
+              transcripts.slice(-12).map((line) => (
+                <li key={line.id}>
+                  <span>{line.speaker}</span>
+                  <span>{line.text}</span>
+                </li>
+              ))
+            )}
+          </ol>
+          <footer className="cerebro-voice-sheet__foot">
+            Shortcuts: V focus · M mute · X stop · ? help. Privacy: local bridge only; no cloud transcript store.
+          </footer>
+        </div>
+      )}
+
+      {(liveCaption || lastLine || bridgeStatus === 'Error' || offline) && (
         <div
           className="cerebro-voice-caption"
           role="status"
           aria-live="polite"
           data-testid="voice-live-caption"
         >
-          {bridgeStatus === 'Error'
-            ? bridgeDetail || 'Voice connection failed'
-            : liveCaption || (lastLine ? `${lastLine.speaker}: ${lastLine.text}` : '')}
+          {offline
+            ? 'Offline — voice bridge paused'
+            : bridgeStatus === 'Error'
+              ? bridgeDetail || 'Voice connection failed'
+              : liveCaption || (lastLine ? `${lastLine.speaker}: ${lastLine.text}` : '')}
         </div>
       )}
     </>

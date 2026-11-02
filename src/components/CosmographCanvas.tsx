@@ -40,6 +40,13 @@ import {
 } from '../three/spatialNavigation';
 import { mountSphereVideoTexture, type SphereVideoHandle } from '../lib/sphereVideoTexture';
 import { createMatLiquidGlassShell } from '../materials/matLiquidGlassShell';
+import {
+  MASTER_SPHERE,
+  DOMAIN_CDE,
+  MASTER_DESTINATIONS,
+  buildMasterProjectPortals,
+  projectPortalCountLabel,
+} from '../three/masterSphere';
 import { getSphereTextureAsset } from '../data/driveMediaCatalog';
 import { introBridge } from '../intro/bridge';
 import {
@@ -2777,6 +2784,74 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     nodeRegistryRef.current.clear();
 
     const hqAssembly = buildSphereAssembly(HQ_CENTER, 'hq', COLOUR_TOKENS.cobaltAccent);
+    hqAssembly.root.name = 'master-sphere';
+    hqAssembly.root.userData = {
+      ...(hqAssembly.root.userData || {}),
+      masterSphere: true,
+      masterRadius: MASTER_SPHERE.radius,
+      portalCountLabel: projectPortalCountLabel(PROJECTS_DATA.length),
+    };
+
+    // Master-sphere inner project portals — count derived from source data (not "6 Suns").
+    {
+      const portals = buildMasterProjectPortals(PROJECTS_DATA);
+      const portalGeo = new THREE.SphereGeometry(1, 24, 16);
+      extraDisposables.push(portalGeo);
+      portals.forEach((portal) => {
+        const mat = createMatLiquidGlassShell({ softwareGl: isSoftwareGl });
+        const mesh = new THREE.Mesh(portalGeo, mat);
+        mesh.name = `master-portal-${portal.projectId}`;
+        mesh.scale.setScalar(portal.radius);
+        mesh.position.set(
+          portal.localOffset[0],
+          portal.localOffset[1],
+          portal.localOffset[2]
+        );
+        mesh.userData = {
+          introInteractive: true,
+          projectId: portal.projectId,
+          nodeId: portal.projectId,
+          sphereTag: 'hq',
+          masterPortal: true,
+          labelEn: portal.titleEn,
+        };
+        hqAssembly.shellGroup.add(mesh);
+        extraDisposables.push(mat);
+      });
+
+      // CDE as discoverable domain + Campaign/About as explicit destinations (inside master).
+      const domainMat = createMatLiquidGlassShell({ softwareGl: isSoftwareGl });
+      const domainMesh = new THREE.Mesh(portalGeo, domainMat);
+      domainMesh.name = 'master-domain-cde';
+      domainMesh.scale.setScalar(DOMAIN_CDE.radius);
+      domainMesh.position.set(...DOMAIN_CDE.localOffset);
+      domainMesh.userData = {
+        introInteractive: true,
+        nodeId: 'cde',
+        sphereTag: 'cde',
+        masterDomain: true,
+        labelEn: DOMAIN_CDE.labelEn,
+      };
+      hqAssembly.shellGroup.add(domainMesh);
+      extraDisposables.push(domainMat);
+
+      for (const dest of MASTER_DESTINATIONS) {
+        const dMat = createMatLiquidGlassShell({ softwareGl: isSoftwareGl });
+        const dMesh = new THREE.Mesh(portalGeo, dMat);
+        dMesh.name = `master-dest-${dest.id}`;
+        dMesh.scale.setScalar(dest.radius);
+        dMesh.position.set(...dest.localOffset);
+        dMesh.userData = {
+          introInteractive: true,
+          nodeId: dest.fromPeer,
+          sphereTag: dest.fromPeer,
+          masterDestination: true,
+          labelEn: dest.labelEn,
+        };
+        hqAssembly.shellGroup.add(dMesh);
+        extraDisposables.push(dMat);
+      }
+    }
 
     // Always-on inner media for every connected sphere (HQ, CDE, Campaign OS, About Us).
     // Intro HQ chapter plates may override via introBridge, but the shell never

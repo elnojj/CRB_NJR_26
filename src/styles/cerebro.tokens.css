@@ -56,8 +56,9 @@
   --token-accent-teal:    var(--c-teal);
   --token-accent-green:   var(--c-green);
 
-  --token-focus:          var(--c-gold);
-  --token-focus-glow:     var(--c-gold-sheen);
+  /* Default app focus = cobalt; gold/sheen remain film-scoped primitives only */
+  --token-focus:          var(--c-cobalt);
+  --token-focus-glow:     var(--c-ice);
   --token-focus-cobalt:   var(--c-cobalt);
 
   /* C07 listening rings — design_tokens / component-registry (#9AFFE0 / #78D3B2) */

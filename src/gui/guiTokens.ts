@@ -49,12 +49,13 @@ export const GUI_PALETTE_ROLES = {
   goldSheen: '#FFF4D0',
   amber: '#E8C361',
 
-  focus: '#D4AF37',
-  focusGlow: '#FFF4D0',
+  /** Default-app focus is cobalt; gold sheen stays film/3D-rail scoped. */
+  focus: '#65ACFF',
+  focusGlow: '#B4DDFF',
   focusCobalt: '#65ACFF',
-  highlight: '#FFF4D0',
+  highlight: '#B4DDFF',
 
-  /** C07 listening / voice orb — teal wins; gold is 3D focus only, never voice UI. */
+  /** C07 listening / voice orb — teal wins; gold is never voice UI. */
   listeningRing: '#9AFFE0',
   listeningRingMid: '#78D3B2',
   voiceOrb: '#9AFFE0',

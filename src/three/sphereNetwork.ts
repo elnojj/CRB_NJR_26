@@ -1,8 +1,9 @@
 /**
- * Authoritative connected-sphere network for Cerebro spatial navigation.
- * Industry & Making / إصطمبة remains proposed — not a live destination here.
- * All live/connected shells share one transparent optical-glass recipe; each
- * keeps always-on inner media (see CosmographCanvas mountAlwaysOnMedia).
+ * MIGRATION INPUT — former peer-sphere placement (HQ / CDE / Campaign OS / About Us).
+ * Primary navigation is now the master-sphere model in `src/three/masterSphere.ts`.
+ * Do not treat these as the primary metaphor; map content into master / domain /
+ * destination portals. Industry & Making / إصطمبة remains proposed.
+ * Shells that still render share MAT_LIQUID_GLASS_SHELL + always-on inner media.
  */
 import * as THREE from 'three';
 

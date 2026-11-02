@@ -527,8 +527,26 @@ export default function App() {
       openPanels,
       activePocket,
       selectedProjectId: selectedProjectId ?? null,
+      navigation: {
+        worldId: 'master',
+        projectId: selectedProjectId ?? null,
+        selectedNodeId: focusedNodeId,
+        contextualSurfaceId: openPanels[openPanels.length - 1] ?? null,
+        projectTab: projectTabsById[selectedProjectId] || 'tasks',
+        cameraBookmarkId: null,
+        language: languageRtl === 'ar' ? 'ar' : 'en',
+        introOrTourMode: 'none',
+      },
     });
-  }, [activeSphere, openPanels, activePocket, selectedProjectId]);
+  }, [
+    activeSphere,
+    openPanels,
+    activePocket,
+    selectedProjectId,
+    focusedNodeId,
+    projectTabsById,
+    languageRtl,
+  ]);
 
   useEffect(() => {
     const onVoiceAuth = () => setElevenLabsAuthFailed(true);
