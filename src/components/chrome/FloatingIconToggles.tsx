@@ -4,6 +4,8 @@ import './floatingIconToggles.css';
 export type FloatingToggleId =
   | 'hq'
   | 'cde'
+  | 'campaign-os'
+  | 'about-us'
   | 'more'
   | 'overview'
   | 'tour'
@@ -44,6 +46,35 @@ function Glyph({ id }: { id: FloatingToggleId }) {
             stroke="currentColor"
             strokeWidth="1.6"
             strokeLinejoin="round"
+          />
+        </svg>
+      );
+    case 'campaign-os':
+      return (
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <rect
+            x="4.5"
+            y="6"
+            width="15"
+            height="12"
+            rx="2"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+          />
+          <path d="M8 10h8M8 14h5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+      );
+    case 'about-us':
+      return (
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <circle cx="12" cy="8.5" r="3" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <path
+            d="M5.5 19c1.4-3.2 3.6-4.8 6.5-4.8S17.1 15.8 18.5 19"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
           />
         </svg>
       );

@@ -176,7 +176,7 @@ export interface RuntimeManifestV4 {
   };
   activeScreenId: string;
   substate: {
-    activeSphere: 'hq' | 'cde';
+    activeSphere: 'hq' | 'cde' | 'campaign-os' | 'about-us';
     activeProjectTab: string;
     peopleSubTab: string;
     selectedDimensionId: string;

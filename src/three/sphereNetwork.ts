@@ -1,9 +1,7 @@
 /**
- * MIGRATION INPUT — former peer-sphere placement (HQ / CDE / Campaign OS / About Us).
- * Primary navigation is now the master-sphere model in `src/three/masterSphere.ts`.
- * Do not treat these as the primary metaphor; map content into master / domain /
- * destination portals. Industry & Making / إصطمبة remains proposed.
- * Shells that still render share MAT_LIQUID_GLASS_SHELL + always-on inner media.
+ * Four live navigable spheres: HQ, CDE, Campaign OS, About Us.
+ * Industry & Making / إصطمبة remains proposed (not navigable).
+ * All live shells share MAT_LIQUID_GLASS_SHELL + always-on inner media cutdowns.
  */
 import * as THREE from 'three';
 
@@ -20,7 +18,7 @@ export type SphereNetworkNode = {
   status: 'live' | 'connected' | 'proposed';
 };
 
-/** Live / connected destinations only — fifth sphere is proposed elsewhere. */
+/** All four peer spheres are live in the workspace. Fifth remains proposed. */
 export const SPHERE_NETWORK: readonly SphereNetworkNode[] = [
   {
     id: 'hq',
@@ -47,7 +45,7 @@ export const SPHERE_NETWORK: readonly SphereNetworkNode[] = [
     center: [-34, 3, -18],
     radius: 5.4,
     materialPreset: 'campaign-ice',
-    status: 'connected',
+    status: 'live',
   },
   {
     id: 'about-us',
@@ -56,9 +54,11 @@ export const SPHERE_NETWORK: readonly SphereNetworkNode[] = [
     center: [22, 2, 28],
     radius: 5.0,
     materialPreset: 'about-gold-glass',
-    status: 'connected',
+    status: 'live',
   },
 ] as const;
+
+export const LIVE_SPHERE_IDS: readonly ConnectedSphereId[] = SPHERE_NETWORK.map((s) => s.id);
 
 export const PROPOSED_FIFTH_SPHERE = {
   id: 'industry-making',

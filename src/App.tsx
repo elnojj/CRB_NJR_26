@@ -47,6 +47,11 @@ import {
   ProjectMediaTubeItem,
   buildProjectMediaTubeItems,
 } from './three/ExperienceCanvas';
+import {
+  isConnectedSphereId,
+  type ConnectedSphereId,
+} from './three/sphereNetwork';
+import { SPHERE_CAPTION } from './data/peerSphereContent';
 import { cerebroToolBridge } from './three/toolBridge';
 import { TrackerMotionProvider } from './components/TrackerMotionProvider';
 import {
@@ -174,7 +179,7 @@ export interface SelfTestCheckResult {
 }
 
 interface NavigationSnapshot {
-  sphere: 'hq' | 'cde';
+  sphere: ConnectedSphereId;
   focusedNodeId: string | null;
   openPanels: string[];
   selectedProjectId: string;
@@ -278,9 +283,9 @@ export default function App() {
 
   // 2. Dual-Sphere, Unobstructed Sphere by Default (activePanel = null), Navigation History Stack & Persisted State
   // Hydration: session snapshot restores panels/sphere; tour always starts inactive (cerebroSessionStore).
-  const [activeSphere, setActiveSphere] = useState<'hq' | 'cde'>(() => {
+  const [activeSphere, setActiveSphere] = useState<ConnectedSphereId>(() => {
     const snap = readSessionSnapshot();
-    return snap.activeSphere === 'cde' ? 'cde' : 'hq';
+    return isConnectedSphereId(snap.activeSphere) ? snap.activeSphere : 'hq';
   });
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [openPanels, setOpenPanels] = useState<string[]>(() => readSessionSnapshot().openPanels);
@@ -633,7 +638,7 @@ export default function App() {
     (
       verb: CameraCommandPayload['verb'],
       options?: {
-        targetSphere?: 'hq' | 'cde';
+        targetSphere?: ConnectedSphereId;
         targetNodeId?: string | null;
         deltaAzimuth?: number;
         deltaPolar?: number;
@@ -1211,7 +1216,7 @@ export default function App() {
             targetSphere: action.sphere,
             targetNodeId: null,
           });
-          setCaptionBubble(action.sphere === 'cde' ? 'CDE Universe' : 'Cerebro HQ');
+          setCaptionBubble(SPHERE_CAPTION[action.sphere] || action.sphere);
           return {
             ok: true,
             action: 'switch_sphere',
@@ -2137,21 +2142,23 @@ export default function App() {
 
         case 'create_domain': {
           const domId = `dom-${action.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+          // Voice-spawned domains attach to HQ/CDE containment only.
+          const hostSphere: 'hq' | 'cde' = action.sphere === 'cde' ? 'cde' : 'hq';
           const newDomain: CustomDomain3D = {
             id: domId,
             name: action.name,
-            sphere: action.sphere,
+            sphere: hostSphere,
             colour: action.colour,
             parentNodeId: action.parentNodeId,
-            position: computeNewDomainPosition(customDomains.length, action.sphere),
-            materialPreset: action.sphere === 'cde' ? 'amber-crystal' : 'cobalt-glass',
+            position: computeNewDomainPosition(customDomains.length, hostSphere),
+            materialPreset: hostSphere === 'cde' ? 'amber-crystal' : 'cobalt-glass',
             createdAt: new Date().toISOString(),
           };
           setCustomDomains((prev) => [...prev.filter((d) => d.id !== newDomain.id), newDomain]);
-          setActiveSphere(action.sphere);
+          setActiveSphere(hostSphere);
           setFocusedNodeId(newDomain.id);
           dispatchCamera('focus_node', {
-            targetSphere: action.sphere,
+            targetSphere: hostSphere,
             targetNodeId: newDomain.id,
           });
           setCaptionBubble(`Spawned 3D Domain · ${newDomain.name} (${newDomain.sphere.toUpperCase()})`);
@@ -2626,6 +2633,16 @@ export default function App() {
       setActiveSphere('cde');
       setOpenPanels(['cde-explorer']);
       dispatchCamera('switch_sphere', { targetSphere: 'cde' });
+    } else if (view === 'campaign' || view === 'campaign-os' || view === 'campaigns') {
+      setActiveSphere('campaign-os');
+      setOpenPanels([]);
+      setCaptionBubble(SPHERE_CAPTION['campaign-os']);
+      dispatchCamera('switch_sphere', { targetSphere: 'campaign-os' });
+    } else if (view === 'about' || view === 'about-us') {
+      setActiveSphere('about-us');
+      setOpenPanels([]);
+      setCaptionBubble(SPHERE_CAPTION['about-us']);
+      dispatchCamera('switch_sphere', { targetSphere: 'about-us' });
     } else if (view === 'dashboard' || view === 'pockets') {
       setDashboardCollapsed(true);
     } else if (view === 'showreel' || view === 'media') {
@@ -2668,7 +2685,7 @@ export default function App() {
 
   // Handle 3D node or floating label click from CosmographCanvas — flies camera & dispatches actionDispatcher action
   const handleSelectNode = useCallback(
-    (id: string, nodeType: AnchoredLabel2D['nodeType'], sphere: 'hq' | 'cde') => {
+    (id: string, nodeType: AnchoredLabel2D['nodeType'], sphere: ConnectedSphereId) => {
       handleUserTouchPauseTour();
       if (nodeType === 'core') {
         pushNavSnapshot();
@@ -4003,6 +4020,25 @@ export default function App() {
               testId: 'switch-sphere-cde',
               onClick: () =>
                 executeTypedAction({ type: 'switch_sphere', sphere: 'cde' }, 'header'),
+            },
+            {
+              id: 'campaign-os',
+              label: 'Campaign',
+              active: activeSphere === 'campaign-os',
+              testId: 'switch-sphere-campaign-os',
+              onClick: () =>
+                executeTypedAction(
+                  { type: 'switch_sphere', sphere: 'campaign-os' },
+                  'header'
+                ),
+            },
+            {
+              id: 'about-us',
+              label: 'About',
+              active: activeSphere === 'about-us',
+              testId: 'switch-sphere-about-us',
+              onClick: () =>
+                executeTypedAction({ type: 'switch_sphere', sphere: 'about-us' }, 'header'),
             },
             {
               id: 'overview',

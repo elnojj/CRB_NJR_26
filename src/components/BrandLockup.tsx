@@ -3,8 +3,8 @@ import { PUBLIC_BRAND_MEDIA } from '../data/publicBrandMedia';
 
 type Props = {
   mode: 'loader' | 'header';
-  activeSphere?: 'hq' | 'cde';
-  onSwitchSphere?: (sphere: 'hq' | 'cde') => void;
+  activeSphere?: 'hq' | 'cde' | 'campaign-os' | 'about-us';
+  onSwitchSphere?: (sphere: 'hq' | 'cde' | 'campaign-os' | 'about-us') => void;
 };
 
 export const BrandLockup: React.FC<Props> = ({ mode }) => {

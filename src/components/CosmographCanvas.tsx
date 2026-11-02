@@ -72,9 +72,15 @@ import {
   CAMERA_MOTION_TARGETS,
   clampNodeFocusMs,
   clampSphereTravelMs,
+  type ConnectedSphereId,
   SPHERE_NETWORK,
   sphereCenterVec,
 } from '../three/sphereNetwork';
+import {
+  ABOUT_US_NODES,
+  CAMPAIGN_OS_NODES,
+  SPHERE_CAPTION,
+} from '../data/peerSphereContent';
 import { createIstanbaMouldProof, type IstanbaProofHandle } from '../three/istanbaMouldProof';
 
 const sceneRandom = () => (introBridge.enabled ? introBridge.random() : Math.random());
@@ -356,7 +362,7 @@ export const CINEMA_LENS_PRESETS: Record<CinemaLensId, CinemaLensPreset> = {
 };
 
 export interface CameraTelemetry {
-  sphere: 'hq' | 'cde';
+  sphere: ConnectedSphereId;
   focusedNodeId: string | null;
   distance: number;
   azimuthDeg: number;
@@ -417,7 +423,7 @@ export interface CameraCommandPayload {
     | 'set_lens'
     | 'set_angle'
     | 'set_loop';
-  targetSphere?: 'hq' | 'cde';
+  targetSphere?: ConnectedSphereId;
   targetNodeId?: string | null;
   deltaAzimuth?: number;
   deltaPolar?: number;
@@ -600,7 +606,7 @@ export interface MediaTubeStateProp {
 }
 
 export interface CosmographCanvasProps {
-  activeSphere: 'hq' | 'cde';
+  activeSphere: ConnectedSphereId;
   focusedNodeId: string | null;
   tourHighlightId: string | null;
   captionBubble: string | null;
@@ -610,7 +616,7 @@ export interface CosmographCanvasProps {
   cameraCommand: CameraCommandPayload | null;
   customDomains?: CustomDomain3D[];
   sphereMaterials?: { hq: DomainMaterialPreset; cde: DomainMaterialPreset };
-  onSelectNode: (id: string, nodeType: AnchoredLabel2D['nodeType'], sphere: 'hq' | 'cde') => void;
+  onSelectNode: (id: string, nodeType: AnchoredLabel2D['nodeType'], sphere: ConnectedSphereId) => void;
   onUserTouchPauseTour: () => void;
   onTelemetryChange: (telemetry: CameraTelemetry) => void;
   onCameraSettled?: (commandId: number, telemetry: CameraTelemetry) => void;
@@ -638,10 +644,13 @@ export interface CosmographCanvasProps {
 
 export const HQ_CENTER = sphereCenterVec('hq');
 export const CDE_CENTER = sphereCenterVec('cde');
+export const CAMPAIGN_OS_CENTER = sphereCenterVec('campaign-os');
+export const ABOUT_US_CENTER = sphereCenterVec('about-us');
 
 function resolveSphereCenter(id: string | null | undefined): THREE.Vector3 {
   if (id === 'cde') return CDE_CENTER;
-  if (id === 'campaign-os' || id === 'about-us') return sphereCenterVec(id);
+  if (id === 'campaign-os') return CAMPAIGN_OS_CENTER;
+  if (id === 'about-us') return ABOUT_US_CENTER;
   return HQ_CENTER;
 }
 
@@ -725,7 +734,7 @@ const CinemaFilmGrainVignetteShader = {
  */
 function buildLiquidGlassGalaxySphere(
   parentGroup: THREE.Group,
-  sphereTag: 'hq' | 'cde',
+  sphereTag: ConnectedSphereId,
   isSoftwareGl: boolean
 ): { points: THREE.Points; uniforms: { uTime: { value: number }; uFocalDistance: { value: number }; uAudioRms: { value: number } } } {
   const particleCount = isSoftwareGl ? 1600 : 3200;
@@ -1047,7 +1056,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         objectCode?: string;
         sculptureTag?: string;
         colour: string;
-        sphere: 'hq' | 'cde';
+        sphere: ConnectedSphereId;
         worldPos: THREE.Vector3;
         baseScale: number;
         nodeType: AnchoredLabel2D['nodeType'];
@@ -1062,7 +1071,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     >
   >(new Map());
 
-  const resolveNodeEntry = (nodeId: string, preferredSphere: 'hq' | 'cde') => {
+  const resolveNodeEntry = (nodeId: string, preferredSphere: ConnectedSphereId) => {
     if (preferredSphere === 'cde' && nodeRegistryRef.current.has(`cde-proj-${nodeId}`)) {
       return nodeRegistryRef.current.get(`cde-proj-${nodeId}`);
     }
@@ -1319,7 +1328,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       s.activeAnglePreset = anglePreset;
       const activeId = s.focusedNodeId || s.tourHighlightId;
       const focusedNode = activeId ? resolveNodeEntry(activeId, s.activeSphere) : null;
-      const sphereCenter = s.activeSphere === 'cde' ? CDE_CENTER : HQ_CENTER;
+      const sphereCenter = resolveSphereCenter(s.activeSphere);
       let nodeAz = s.azimuth;
       if (focusedNode) {
         const lv = focusedNode.worldPos.clone().sub(sphereCenter);
@@ -1564,7 +1573,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   useEffect(() => {
     const s = stateRef.current;
     if (s.stoppedExplicitly || s.flightActive) return;
-    const sphereCenter = activeSphere === 'cde' ? CDE_CENTER : HQ_CENTER;
+    const sphereCenter = resolveSphereCenter(activeSphere);
     if (focusedNodeId) {
       const node = resolveNodeEntry(focusedNodeId, activeSphere);
       if (node) {
@@ -2232,7 +2241,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     const buildSphereAssembly = (
       center: THREE.Vector3,
-      sphereTag: 'hq' | 'cde',
+      sphereTag: ConnectedSphereId,
       coreColour: string
     ) => {
       const root = new THREE.Group();
@@ -2448,7 +2457,30 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       root.add(coreGroup);
 
-      const coreId = sphereTag === 'hq' ? 'core-hq' : 'core-cde';
+      const coreId =
+        sphereTag === 'hq'
+          ? 'core-hq'
+          : sphereTag === 'cde'
+            ? 'core-cde'
+            : sphereTag === 'campaign-os'
+              ? 'core-campaign-os'
+              : 'core-about-us';
+      const coreLabel =
+        sphereTag === 'hq'
+          ? 'HQ Core'
+          : sphereTag === 'cde'
+            ? 'CDE Core'
+            : sphereTag === 'campaign-os'
+              ? 'Campaign OS Core'
+              : 'About Us Core';
+      const coreSublabel =
+        sphereTag === 'hq'
+          ? 'Orchestrator'
+          : sphereTag === 'cde'
+            ? 'NOJARA'
+            : sphereTag === 'campaign-os'
+              ? 'Activations'
+              : 'Studio';
       const coreUserData = { nodeId: coreId, nodeType: 'core' as const, sphere: sphereTag };
       coreGroup.userData = coreUserData;
       coreGroup.traverse((child) => {
@@ -2458,8 +2490,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       nodeRegistryRef.current.set(coreId, {
         id: coreId,
         canonicalId: coreId,
-        label: sphereTag === 'hq' ? 'HQ Core' : 'CDE Core',
-        sublabel: sphereTag === 'hq' ? 'Orchestrator' : 'NOJARA',
+        label: coreLabel,
+        sublabel: coreSublabel,
         objectCode: 'OBJ-00',
         sculptureTag: 'Sehly Liquid-Glass Core',
         colour: COLOUR_TOKENS.textPrimary,
@@ -2727,7 +2759,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const buildNodeWithSignal = (
       parentGroup: THREE.Group,
       sphereCenter: THREE.Vector3,
-      sphereTag: 'hq' | 'cde',
+      sphereTag: ConnectedSphereId,
       registryKey: string,
       canonicalId: string,
       label: string,
@@ -2807,7 +2839,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         offset: (pulseIndex * 0.19) % 1,
       });
 
-      const coreId = sphereTag === 'hq' ? 'core-hq' : 'core-cde';
+      const coreId =
+        sphereTag === 'hq'
+          ? 'core-hq'
+          : sphereTag === 'cde'
+            ? 'core-cde'
+            : sphereTag === 'campaign-os'
+              ? 'core-campaign-os'
+              : 'core-about-us';
       const connSet = new Set<string>([coreId, ...connectedIds]);
       const coreEntry = nodeRegistryRef.current.get(coreId);
       if (coreEntry) {
@@ -3134,71 +3173,97 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       );
     });
 
-    // Peer Campaign OS / About Us full spheres are migration inputs only.
-    // Workspace navigation uses master-sphere destinations (MASTER_DESTINATIONS).
-    // Intro film may still present the legacy dual/peer layout.
-    if (introBridge.enabled) {
-      for (const node of SPHERE_NETWORK) {
-        if (node.id === 'hq' || node.id === 'cde') continue;
-        const sat = new THREE.Group();
-        sat.name = `sphere-${node.id}`;
-        sat.position.set(node.center[0], node.center[1], node.center[2]);
-        const satShell = new THREE.Group();
-        satShell.name = `${node.id}-shell`;
-        const satGeo = new THREE.SphereGeometry(node.radius, 48, 32);
-        const backShell = new THREE.Mesh(satGeo, sharedBackOpticalGlassMat);
-        backShell.renderOrder = 2;
-        satShell.add(backShell);
-        const frontShell = new THREE.Mesh(satGeo, sharedOpticalGlassMat);
-        frontShell.renderOrder = 4;
-        satShell.add(frontShell);
-        sat.add(satShell);
-        scene.add(sat);
-        extraDisposables.push(satGeo);
-        mountAlwaysOnMedia(satShell, node.id, node.radius * 0.95);
-        const satBridge = new THREE.CatmullRomCurve3([
-          HQ_CENTER.clone(),
-          new THREE.Vector3(
-            node.center[0] * 0.45,
-            node.center[1] + 4.5,
-            node.center[2] * 0.45
-          ),
-          new THREE.Vector3(node.center[0], node.center[1], node.center[2]),
-        ]);
-        const satTube = createCardiacConnectorTube({
-          curve: satBridge,
-          tubularSegments: 64,
-          radius: 0.045,
-          radialSegments: 8,
-          color: 0x65acff,
-          pulseColor: 0xfff1d4,
-          speed: 0.34,
-        });
-        scene.add(satTube.mesh);
-        extraDisposables.push({ dispose: satTube.dispose });
-        cardiacTubes.push({
-          uniforms: satTube.handle.uniforms,
-          nodeA: 'hq',
-          nodeB: node.id,
-          dispose: satTube.dispose,
-        });
-        const satBead = new THREE.Mesh(
-          new THREE.SphereGeometry(0.12, 10, 10),
-          new THREE.MeshBasicMaterial({
-            color: new THREE.Color(0xfff1d4),
-            transparent: true,
-            opacity: 0.95,
-          })
+    // Campaign OS + About Us — full live peer spheres (always mounted, not intro-only).
+    const peerNodeSpecs: Record<'campaign-os' | 'about-us', typeof CAMPAIGN_OS_NODES> = {
+      'campaign-os': CAMPAIGN_OS_NODES,
+      'about-us': ABOUT_US_NODES,
+    };
+    const peerAssemblies: Partial<
+      Record<'campaign-os' | 'about-us', ReturnType<typeof buildSphereAssembly>>
+    > = {};
+    for (const node of SPHERE_NETWORK) {
+      if (node.id === 'hq' || node.id === 'cde') continue;
+      const peerId = node.id as 'campaign-os' | 'about-us';
+      const peerCenter = resolveSphereCenter(peerId);
+      const peerColour =
+        peerId === 'campaign-os' ? COLOUR_TOKENS.cobaltAccent : COLOUR_TOKENS.stationPeople;
+      const peerAssembly = buildSphereAssembly(peerCenter, peerId, peerColour);
+      peerAssemblies[peerId] = peerAssembly;
+      mountAlwaysOnMedia(
+        peerAssembly.shellGroup,
+        peerId,
+        Math.min(5.92, node.radius * 0.95),
+        mediaStationScreenMat
+      );
+
+      const specs = peerNodeSpecs[peerId];
+      specs.forEach((spec, idx) => {
+        const mappedType: AnchoredLabel2D['nodeType'] =
+          spec.nodeType === 'project'
+            ? 'project'
+            : spec.nodeType === 'station'
+              ? 'station'
+              : 'station';
+        buildNodeWithSignal(
+          peerAssembly.root,
+          peerCenter,
+          peerId,
+          spec.id,
+          spec.id,
+          spec.label,
+          spec.sublabel,
+          spec.colour,
+          spec.position,
+          mappedType,
+          peerId === 'about-us' ? 0.92 : 0.88,
+          idx + (peerId === 'campaign-os' ? 80 : 100),
+          []
         );
-        scene.add(satBead);
-        pulseBeads.push({
-          mesh: satBead,
-          curve: satBridge,
-          speed: 0.2,
-          offset: 0.15,
-        });
-      }
+      });
+
+      const satBridge = new THREE.CatmullRomCurve3([
+        HQ_CENTER.clone(),
+        new THREE.Vector3(
+          node.center[0] * 0.45,
+          node.center[1] + 4.5,
+          node.center[2] * 0.45
+        ),
+        peerCenter.clone(),
+      ]);
+      const satTube = createCardiacConnectorTube({
+        curve: satBridge,
+        tubularSegments: 64,
+        radius: 0.045,
+        radialSegments: 8,
+        color: peerId === 'campaign-os' ? 0x65acff : 0xd4af37,
+        pulseColor: 0xfff1d4,
+        speed: 0.34,
+      });
+      scene.add(satTube.mesh);
+      extraDisposables.push({ dispose: satTube.dispose });
+      cardiacTubes.push({
+        uniforms: satTube.handle.uniforms,
+        nodeA: 'hq',
+        nodeB: peerId,
+        dispose: satTube.dispose,
+      });
+      const satBead = new THREE.Mesh(
+        new THREE.SphereGeometry(0.12, 10, 10),
+        new THREE.MeshBasicMaterial({
+          color: new THREE.Color(0xfff1d4),
+          transparent: true,
+          opacity: 0.95,
+        })
+      );
+      scene.add(satBead);
+      pulseBeads.push({
+        mesh: satBead,
+        curve: satBridge,
+        speed: 0.2,
+        offset: peerId === 'campaign-os' ? 0.15 : 0.42,
+      });
     }
+    void peerAssemblies;
 
     // Procedural إصطمبة mould proof — reconstruction only; parent HQ sphere stays intact.
     let istanbaProof: IstanbaProofHandle | null = null;
@@ -3558,7 +3623,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           return obj.userData as {
             nodeId: string;
             nodeType: AnchoredLabel2D['nodeType'];
-            sphere: 'hq' | 'cde';
+            sphere: ConnectedSphereId;
           };
         }
       }
@@ -3569,7 +3634,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       let closestHit: {
         nodeId: string;
         nodeType: AnchoredLabel2D['nodeType'];
-        sphere: 'hq' | 'cde';
+        sphere: ConnectedSphereId;
         dist: number;
       } | null = null;
 
@@ -4005,7 +4070,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           s.targetAzimuth += 0.22 * dt;
           const activeId = s.focusedNodeId || s.tourHighlightId;
           const focusedNode = activeId ? resolveNodeEntry(activeId, s.activeSphere) : null;
-          const sphereCenter = s.activeSphere === 'cde' ? CDE_CENTER : HQ_CENTER;
+          const sphereCenter = resolveSphereCenter(s.activeSphere);
           if (focusedNode) {
             s.targetPanOffset.copy(focusedNode.worldPos.clone().sub(sphereCenter));
           } else {
@@ -4188,7 +4253,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         ? shellFrontBaseOpacity * 0.22
         : shellFrontBaseOpacity;
       if (tubeActive) {
-        const activeCenter = s.activeSphere === 'cde' ? CDE_CENTER : HQ_CENTER;
+        const activeCenter = resolveSphereCenter(s.activeSphere);
         mediaTubeGroup.position.copy(activeCenter);
 
         if (tubeProp?.projectId && tubeProp.projectId !== mountedTubeProjectId) {
@@ -4688,7 +4753,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         aria-label={
           activeSphere === 'hq'
             ? 'HQ containment sphere with stations and projects.'
-            : 'CDE containment sphere with culture and design dimensions.'
+            : activeSphere === 'cde'
+              ? 'CDE containment sphere with culture and design dimensions.'
+              : activeSphere === 'campaign-os'
+                ? 'Campaign OS sphere with public campaign films and activations.'
+                : 'About Us sphere with NOJARA Studios identity and founder bios.'
         }
         className={`w-full h-full touch-none ${showReducedGraphicsFallback ? 'opacity-15 pointer-events-none' : ''}`}
       />
@@ -4714,7 +4783,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                   REDUCED-GRAPHICS SPATIAL WORKSPACE
                 </div>
                 <h2 className="font-display text-sm md:text-base font-semibold text-[#F2F6F8] truncate">
-                  {activeSphere === 'hq' ? 'HQ Spatial Map' : 'CDE Universe Map'}
+                  {SPHERE_CAPTION[activeSphere] + ' Spatial Map'}
                 </h2>
                 <p className="font-mono text-[11px] text-[#BDCBD3] mt-1" role="status">
                   {webglStatus === 'CONTEXT_LOST'

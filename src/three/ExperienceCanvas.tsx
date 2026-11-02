@@ -123,7 +123,7 @@ export const SPHERE_FALLBACK_REST_DATA_URI = `data:image/svg+xml;utf8,${encodeUR
 )}`;
 
 interface ExperienceCanvasProps {
-  activeSphere: 'hq' | 'cde';
+  activeSphere: 'hq' | 'cde' | 'campaign-os' | 'about-us';
   focusedNodeId: string | null;
   tourHighlightId: string | null;
   captionBubble: string | null;
@@ -134,7 +134,11 @@ interface ExperienceCanvasProps {
   customDomains?: CustomDomain3D[];
   sphereMaterials?: { hq: DomainMaterialPreset; cde: DomainMaterialPreset };
   selectedBlueprintTaskId?: string | null;
-  onSelectNode: (id: string, nodeType: AnchoredLabel2D['nodeType'], sphere: 'hq' | 'cde') => void;
+  onSelectNode: (
+    id: string,
+    nodeType: AnchoredLabel2D['nodeType'],
+    sphere: 'hq' | 'cde' | 'campaign-os' | 'about-us'
+  ) => void;
   onSelectPortalStation?: (station: PortalOrbitalStation) => void;
   onUserTouchPauseTour: () => void;
   onTelemetryChange: (telemetry: CameraTelemetry) => void;

@@ -8,6 +8,10 @@ import {
   SHOWREEL_ITEMS,
   TEAM_CHECKPOINTS,
 } from '../data/sourceData';
+import {
+  isConnectedSphereId,
+  type ConnectedSphereId,
+} from '../three/sphereNetwork';
 import { CRO_CDE_GOOGLE_TOOLS_SCHEMA } from '../data/croCdeGoogleAgentManifest';
 import { ProjectWorkspaceTab } from '../components/PanelsOverlay';
 import {
@@ -69,7 +73,7 @@ export type TourActionType =
   | 'mode_manual';
 
 export type WorkspaceAction =
-  | { type: 'switch_sphere'; sphere: 'hq' | 'cde' }
+  | { type: 'switch_sphere'; sphere: ConnectedSphereId }
   | { type: 'open_station'; station: StationId }
   | { type: 'focus_project'; projectId: string; tab?: ProjectWorkspaceTab }
   | { type: 'select_person'; personId: string }
@@ -132,7 +136,7 @@ export type WorkspaceAction =
   | {
       type: 'create_domain';
       name: string;
-      sphere: 'hq' | 'cde';
+      sphere: ConnectedSphereId;
       colour: string;
       parentNodeId: string;
     }
@@ -343,12 +347,18 @@ export function parseStructuredToolCall(
 
   switch (name) {
     case 'switch_sphere': {
-      const rawSphere = String(params.sphere || params.target || '').toLowerCase();
-      if (rawSphere === 'cde') {
-        return { ok: true, action: { type: 'switch_sphere', sphere: 'cde' } };
-      }
-      if (rawSphere === 'hq' || rawSphere === 'cerebro') {
+      const rawSphere = String(params.sphere || params.target || '').toLowerCase().replace(/_/g, '-');
+      if (rawSphere === 'cerebro') {
         return { ok: true, action: { type: 'switch_sphere', sphere: 'hq' } };
+      }
+      if (rawSphere === 'campaign' || rawSphere === 'campaigns') {
+        return { ok: true, action: { type: 'switch_sphere', sphere: 'campaign-os' } };
+      }
+      if (rawSphere === 'about' || rawSphere === 'aboutus') {
+        return { ok: true, action: { type: 'switch_sphere', sphere: 'about-us' } };
+      }
+      if (isConnectedSphereId(rawSphere)) {
+        return { ok: true, action: { type: 'switch_sphere', sphere: rawSphere } };
       }
       return { ok: false, error: `Invalid sphere parameter: ${String(params.sphere)}` };
     }
@@ -908,14 +918,18 @@ export function mapCanonicalActionIdToWorkspaceAction(
     case 'hands.request_enable':
     case 'hands.disable':
       return { ok: true, action: { type: 'trigger_cta', ctaId: 'settings-hands-toggle' } };
-    case 'sphere.switch':
-      return {
-        ok: true,
-        action: {
-          type: 'switch_sphere',
-          sphere: String(params.sphere || 'cde').toLowerCase() === 'hq' ? 'hq' : 'cde',
-        },
-      };
+    case 'sphere.switch': {
+      const raw = String(params.sphere || 'cde').toLowerCase().replace(/_/g, '-');
+      const sphere: ConnectedSphereId =
+        raw === 'hq' || raw === 'cerebro'
+          ? 'hq'
+          : raw === 'campaign-os' || raw === 'campaign'
+            ? 'campaign-os'
+            : raw === 'about-us' || raw === 'about'
+              ? 'about-us'
+              : 'cde';
+      return { ok: true, action: { type: 'switch_sphere', sphere } };
+    }
     case 'dimension.open':
       return {
         ok: true,
@@ -1648,6 +1662,22 @@ export function parseNaturalLanguageIntent(rawInput: string): WorkspaceAction | 
     return { type: 'switch_sphere', sphere: 'cde' };
   }
   if (
+    lower.includes('campaign os') ||
+    lower.includes('open campaign') ||
+    lower.includes('نظام الحملات') ||
+    lower.includes('switch_sphere(campaign')
+  ) {
+    return { type: 'switch_sphere', sphere: 'campaign-os' };
+  }
+  if (
+    lower.includes('about us') ||
+    lower.includes('open about') ||
+    lower.includes('من نحن') ||
+    lower.includes('switch_sphere(about')
+  ) {
+    return { type: 'switch_sphere', sphere: 'about-us' };
+  }
+  if (
     lower.includes('switch_sphere(hq)') ||
     lower.includes('back to hq') ||
     lower.includes('to hq') ||
@@ -1722,7 +1752,7 @@ export function auditToolRegistry(): ToolAuditEntry[] {
 export function buildNodeSelectionAction(
   nodeId: string,
   nodeType: 'core' | 'station' | 'dimension' | 'subdomain' | 'project',
-  _sphere: 'hq' | 'cde'
+  _sphere: ConnectedSphereId
 ): WorkspaceAction {
   if (nodeType === 'station') {
     return { type: 'open_station', station: nodeId as StationId };
