@@ -2896,10 +2896,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       shellBandRadius: number
     ) => {
       try {
+        const hqAsset = sphereId === 'hq' ? getSphereTextureAsset() : undefined;
         const handle = mountSphereVideoTexture({
           parent,
-          asset: sphereId === 'hq' ? getSphereTextureAsset() : undefined,
+          asset: hqAsset,
           sourceUrl: ALWAYS_ON_SPHERE_MEDIA[sphereId],
+          posterUrl:
+            hqAsset?.poster ||
+            (sphereId === 'hq' ? '/media/riyadh-season-launch-still.jpg' : null),
           portalRadius: shellBandRadius * 0.85,
           shellBandRadius,
           wrapRadius: shellBandRadius * 1.002,

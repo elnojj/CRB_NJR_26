@@ -164,9 +164,9 @@ export const SPHERE_MEDIA_FALLBACK_PLATE =
     </svg>`
   );
 
-function createFallbackTexture(): THREE.Texture {
+function createFallbackTexture(url: string = SPHERE_MEDIA_FALLBACK_PLATE): THREE.Texture {
   const loader = new THREE.TextureLoader();
-  const texture = loader.load(SPHERE_MEDIA_FALLBACK_PLATE);
+  const texture = loader.load(url);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
@@ -179,12 +179,20 @@ function createVideoElement(src: string): HTMLVideoElement {
   // Muted + playsInline + loop is required for autoplay without a user gesture.
   video.muted = true;
   video.defaultMuted = true;
+  video.volume = 0;
   video.autoplay = true;
   // Workspace ambient plate may loop; intro sequence uses introBridge (one-pass cuts).
   video.loop = true;
   video.playsInline = true;
   video.preload = 'auto';
-  video.crossOrigin = 'anonymous';
+  // Same-origin /media paths must not force CORS; only mark cross-origin for remotes.
+  const host =
+    typeof window !== 'undefined' && window.location?.hostname
+      ? window.location.hostname
+      : '';
+  if (/^https?:\/\//i.test(src) && host && !src.includes(host)) {
+    video.crossOrigin = 'anonymous';
+  }
   video.setAttribute('muted', '');
   video.setAttribute('playsinline', 'true');
   video.setAttribute('webkit-playsinline', 'true');
@@ -193,17 +201,38 @@ function createVideoElement(src: string): HTMLVideoElement {
   return video;
 }
 
+function isTransientPlayRejection(err: unknown): boolean {
+  const name =
+    err && typeof err === 'object' && 'name' in err
+      ? String((err as { name?: string }).name)
+      : '';
+  // iPad / AI Studio often reject the first muted play() before a gesture, or abort mid-load.
+  return name === 'NotAllowedError' || name === 'AbortError' || name === 'NotSupportedError';
+}
+
 function attachVideoKeepAlive(video: HTMLVideoElement, tryPlay: () => void) {
   video.addEventListener('loadeddata', tryPlay);
   video.addEventListener('canplay', tryPlay);
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && video.paused) tryPlay();
   });
+  const unlock = () => tryPlay();
+  window.addEventListener('pointerdown', unlock, { passive: true });
+  window.addEventListener('touchstart', unlock, { passive: true });
+  window.addEventListener('keydown', unlock);
   tryPlay();
   const keepAlive = window.setInterval(() => {
     if (video.paused && !document.hidden) tryPlay();
   }, 1500);
-  (video as HTMLVideoElement & { __sphereKeepAlive?: number }).__sphereKeepAlive = keepAlive;
+  (video as HTMLVideoElement & {
+    __sphereKeepAlive?: number;
+    __sphereUnlock?: () => void;
+  }).__sphereKeepAlive = keepAlive;
+  (video as HTMLVideoElement & { __sphereUnlock?: () => void }).__sphereUnlock = () => {
+    window.removeEventListener('pointerdown', unlock);
+    window.removeEventListener('touchstart', unlock);
+    window.removeEventListener('keydown', unlock);
+  };
 }
 
 /**
@@ -214,6 +243,8 @@ export function mountSphereVideoTexture(options: {
   parent: THREE.Object3D;
   asset?: DriveMediaAsset;
   sourceUrl?: string;
+  /** Optional still shown while video buffers / if decode fails (preferred over ice SVG). */
+  posterUrl?: string | null;
   /** When true, skip video and mount ice plate only (no invented project footage). */
   iceOnly?: boolean;
   portalRadius?: number;
@@ -225,6 +256,7 @@ export function mountSphereVideoTexture(options: {
   const initialUrl = options.iceOnly
     ? SPHERE_MEDIA_FALLBACK_PLATE
     : options.sourceUrl || resolveAssetPlaybackUrl(asset);
+  const posterUrl = options.posterUrl ?? asset.poster ?? null;
   const video = createVideoElement(options.iceOnly ? '' : initialUrl);
   const prefix = options.namePrefix || 'sphere';
 
@@ -285,31 +317,55 @@ export function mountSphereVideoTexture(options: {
 
   let fallbackTexture: THREE.Texture | null = null;
   let usingFallback = false;
+  let playRejectStreak = 0;
 
-  const applyFallbackPlate = (reason: string) => {
+  const applyFallbackPlate = (reason: string, softPoster = false) => {
     if (usingFallback) return;
     usingFallback = true;
-    console.warn(`[sphereVideoTexture] ${prefix}: ${reason} — applying ice fallback plate`);
-    fallbackTexture = createFallbackTexture();
+    const plateUrl =
+      softPoster && posterUrl && !posterUrl.endsWith('.mp4')
+        ? posterUrl
+        : SPHERE_MEDIA_FALLBACK_PLATE;
+    console.warn(
+      `[sphereVideoTexture] ${prefix}: ${reason} — applying ${
+        plateUrl === SPHERE_MEDIA_FALLBACK_PLATE ? 'ice' : 'poster'
+      } fallback plate`
+    );
+    fallbackTexture = createFallbackTexture(plateUrl);
     wrapMat.map = fallbackTexture;
     bandMat.map = fallbackTexture;
     wrapMat.needsUpdate = true;
     bandMat.needsUpdate = true;
-    window.dispatchEvent(
-      new CustomEvent('cerebro:media-404', {
-        detail: { sphere: prefix, source: initialUrl, reason },
-      })
-    );
+    // Only toast hard failures (missing/decode). Transient autoplay must not alarm the desk.
+    if (!softPoster || plateUrl === SPHERE_MEDIA_FALLBACK_PLATE) {
+      window.dispatchEvent(
+        new CustomEvent('cerebro:media-404', {
+          detail: { sphere: prefix, source: initialUrl, reason },
+        })
+      );
+    }
   };
 
   const tryPlay = () => {
     if (usingFallback || options.iceOnly) return;
     video.muted = true;
+    video.defaultMuted = true;
+    video.volume = 0;
     const playPromise = video.play();
     if (playPromise && typeof playPromise.catch === 'function') {
-      playPromise.catch(() => {
-        applyFallbackPlate('autoplay/play rejected');
+      playPromise.catch((err: unknown) => {
+        if (isTransientPlayRejection(err)) {
+          playRejectStreak += 1;
+          // Keep retrying via keepAlive / user gesture — do NOT ice the shell.
+          if (playRejectStreak >= 12 && video.readyState < 2) {
+            applyFallbackPlate('video never became ready after repeated play rejects', true);
+          }
+          return;
+        }
+        applyFallbackPlate(`play failed: ${String(err)}`, true);
       });
+    } else {
+      playRejectStreak = 0;
     }
   };
 
@@ -317,8 +373,11 @@ export function mountSphereVideoTexture(options: {
     applyFallbackPlate('iceOnly — no verified sphere footage bound');
   } else {
     attachVideoKeepAlive(video, tryPlay);
+    video.addEventListener('playing', () => {
+      playRejectStreak = 0;
+    });
     video.addEventListener('error', () => {
-      applyFallbackPlate('video element error (Drive/local 404 or decode failure)');
+      applyFallbackPlate('video element error (Drive/local 404 or decode failure)', true);
     });
     video.addEventListener('stalled', () => {
       // Soft signal only; keepAlive will retry. Empty shell never preferred.
@@ -370,9 +429,12 @@ export function mountSphereVideoTexture(options: {
     },
     dispose: () => {
       window.clearInterval(texGuard);
-      const keepAlive = (video as HTMLVideoElement & { __sphereKeepAlive?: number })
-        .__sphereKeepAlive;
-      if (keepAlive) window.clearInterval(keepAlive);
+      const tagged = video as HTMLVideoElement & {
+        __sphereKeepAlive?: number;
+        __sphereUnlock?: () => void;
+      };
+      if (tagged.__sphereKeepAlive) window.clearInterval(tagged.__sphereKeepAlive);
+      tagged.__sphereUnlock?.();
       video.pause();
       video.removeAttribute('src');
       video.load();
