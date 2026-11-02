@@ -41,6 +41,10 @@ import {
 import { mountSphereVideoTexture, type SphereVideoHandle } from '../lib/sphereVideoTexture';
 import { createMatLiquidGlassShell } from '../materials/matLiquidGlassShell';
 import {
+  createCardiacConnectorTube,
+  type CardiacConnectorUniforms,
+} from '../materials/matCardiacConnector';
+import {
   MASTER_SPHERE,
   DOMAIN_CDE,
   MASTER_DESTINATIONS,
@@ -1040,6 +1044,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         haloMesh?: THREE.Mesh;
         emissiveMats: THREE.MeshStandardMaterial[];
         wireMat?: THREE.LineBasicMaterial;
+        connectorUniforms?: CardiacConnectorUniforms;
       }
     >
   >(new Map());
@@ -2153,12 +2158,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     }[] = [];
 
     const cardiacTubes: {
-      uniforms: {
-        uTime: { value: number };
-        uDimFactor: { value: number };
-      };
+      uniforms: CardiacConnectorUniforms;
       nodeA: string;
       nodeB: string;
+      dispose: () => void;
     }[] = [];
 
     // Strictly clamp any local component position inside the 6.2u Master Containment Sphere
@@ -2713,14 +2716,21 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         midCtrl,
         posVec
       );
-      const curvePts = curve.getPoints(32);
-      const lineGeo = new THREE.BufferGeometry().setFromPoints(curvePts);
-      const lineMat = new THREE.LineBasicMaterial({
-        color: new THREE.Color(nodeType === 'station' || nodeType === 'dimension' ? 0xD4AF37 : 0xB4DDFF),
-        transparent: true,
-        opacity: nodeType === 'project' ? 0.16 : 0.28,
+      const spokeColor =
+        nodeType === 'station' || nodeType === 'dimension' ? 0xd4af37 : 0x65acff;
+      const spoke = createCardiacConnectorTube({
+        curve,
+        tubularSegments: 36,
+        radius: nodeType === 'project' ? 0.012 : 0.016,
+        radialSegments: 6,
+        color: spokeColor,
+        pulseColor: 0xfff1d4,
+        speed: 0.28 + (pulseIndex % 5) * 0.04,
       });
-      parentGroup.add(new THREE.Line(lineGeo, lineMat));
+      spoke.handle.uniforms.uDimFactor.value = nodeType === 'project' ? 0.55 : 0.85;
+      parentGroup.add(spoke.mesh);
+      extraDisposables.push({ dispose: spoke.dispose });
+      // Spoke dimming is owned by nodeRegistry.connectorUniforms (avoid fighting cardiacTubes).
 
       const beadMesh = new THREE.Mesh(
         new THREE.SphereGeometry(0.05, 12, 12),
@@ -2758,7 +2768,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         groupMesh: nodeGroup,
         haloMesh,
         emissiveMats,
-        wireMat: lineMat,
+        connectorUniforms: spoke.handle.uniforms,
       });
     };
 
@@ -2779,44 +2789,23 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const mid = vA.clone().lerp(vB, 0.5).multiplyScalar(0.84);
       clampInsideSphere(mid, 4.5);
       const curve = new THREE.CatmullRomCurve3([vA, mid, vB]);
-      const tubeGeo = new THREE.TubeGeometry(curve, 36, 0.014, 6, false);
-      const uniforms = {
-        uTime: { value: 0 },
-        uDimFactor: { value: 1.0 },
-        uColor: { value: new THREE.Color(colourHex) },
-      };
-      const tubeMat = new THREE.ShaderMaterial({
-        uniforms,
-        vertexShader: `
-          varying vec2 vUv;
-          void main() {
-            vUv = uv;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
-        `,
-        fragmentShader: `
-          uniform float uTime;
-          uniform float uDimFactor;
-          uniform vec3 uColor;
-          varying vec2 vUv;
-
-          void main() {
-            // Double-peaked cardiac systolic/diastolic pulse wave along the spline
-            float phase = fract(vUv.x - uTime * 0.38);
-            float peak1 = exp(-pow((phase - 0.18) * 18.0, 2.0));
-            float peak2 = 0.65 * exp(-pow((phase - 0.31) * 22.0, 2.0));
-            float heartbeat = peak1 + peak2;
-            vec3 col = mix(uColor * 0.65, vec3(1.0, 0.957, 0.816), heartbeat * 0.75);
-            float alpha = (0.08 + heartbeat * 0.28) * uDimFactor;
-            gl_FragColor = vec4(col * (0.85 + heartbeat * 0.65), alpha);
-          }
-        `,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
+      const tube = createCardiacConnectorTube({
+        curve,
+        tubularSegments: 48,
+        radius: 0.016,
+        radialSegments: 8,
+        color: colourHex,
+        pulseColor: 0xfff1d4,
+        speed: 0.42,
       });
-      parentGroup.add(new THREE.Mesh(tubeGeo, tubeMat));
-      cardiacTubes.push({ uniforms, nodeA: nodeIdA, nodeB: nodeIdB });
+      parentGroup.add(tube.mesh);
+      extraDisposables.push({ dispose: tube.dispose });
+      cardiacTubes.push({
+        uniforms: tube.handle.uniforms,
+        nodeA: nodeIdA,
+        nodeB: nodeIdB,
+        dispose: tube.dispose,
+      });
     };
 
     nodeRegistryRef.current.clear();
@@ -3075,15 +3064,38 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           ),
           new THREE.Vector3(node.center[0], node.center[1], node.center[2]),
         ]);
-        const bridgeGeo = new THREE.TubeGeometry(satBridge, 48, 0.045, 6, false);
-        const bridgeMat = new THREE.MeshBasicMaterial({
+        const satTube = createCardiacConnectorTube({
+          curve: satBridge,
+          tubularSegments: 64,
+          radius: 0.045,
+          radialSegments: 8,
           color: 0x65acff,
-          transparent: true,
-          opacity: 0.42,
-          depthWrite: false,
+          pulseColor: 0xfff1d4,
+          speed: 0.34,
         });
-        scene.add(new THREE.Mesh(bridgeGeo, bridgeMat));
-        extraDisposables.push(bridgeGeo, bridgeMat);
+        scene.add(satTube.mesh);
+        extraDisposables.push({ dispose: satTube.dispose });
+        cardiacTubes.push({
+          uniforms: satTube.handle.uniforms,
+          nodeA: 'hq',
+          nodeB: node.id,
+          dispose: satTube.dispose,
+        });
+        const satBead = new THREE.Mesh(
+          new THREE.SphereGeometry(0.12, 10, 10),
+          new THREE.MeshBasicMaterial({
+            color: new THREE.Color(0xfff1d4),
+            transparent: true,
+            opacity: 0.95,
+          })
+        );
+        scene.add(satBead);
+        pulseBeads.push({
+          mesh: satBead,
+          curve: satBridge,
+          speed: 0.2,
+          offset: 0.15,
+        });
       }
     }
 
@@ -3162,19 +3174,28 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const midArch = startPt.clone().lerp(endPt, 0.5);
       midArch.y += 3.6;
       const childCardiacCurve = new THREE.CatmullRomCurve3([startPt, midArch, endPt]);
-      const childTubeGeo = new THREE.TubeGeometry(childCardiacCurve, 48, 0.032, 8, false);
-      const childTubeMat = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(0xD4AF37),
-        transparent: true,
-        opacity: 0.55,
-        depthWrite: false,
+      const childTube = createCardiacConnectorTube({
+        curve: childCardiacCurve,
+        tubularSegments: 56,
+        radius: 0.032,
+        radialSegments: 8,
+        color: 0x65acff,
+        pulseColor: 0xfff1d4,
+        speed: 0.36,
       });
-      targetAssembly.root.add(new THREE.Mesh(childTubeGeo, childTubeMat));
+      targetAssembly.root.add(childTube.mesh);
+      extraDisposables.push({ dispose: childTube.dispose });
+      cardiacTubes.push({
+        uniforms: childTube.handle.uniforms,
+        nodeA: dom.parentNodeId || 'hq',
+        nodeB: dom.id,
+        dispose: childTube.dispose,
+      });
 
       const childPulseBead = new THREE.Mesh(
         new THREE.SphereGeometry(0.12, 10, 10),
         new THREE.MeshBasicMaterial({
-          color: new THREE.Color(0xFFF4D0),
+          color: new THREE.Color(0xfff1d4),
           transparent: true,
           opacity: 0.96,
         })
@@ -3194,21 +3215,29 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       new THREE.Vector3(19.0, 5.8, -11.0),
       new THREE.Vector3(31.8, 3.2, -19.5),
     ]);
-    const bridgeTubeGeo = new THREE.TubeGeometry(bridgeCurve, 64, 0.036, 8, false);
-    const bridgeMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(0xD4AF37),
-      transparent: true,
-      opacity: 0.55,
-      depthWrite: false,
+    const bridgeTube = createCardiacConnectorTube({
+      curve: bridgeCurve,
+      tubularSegments: 80,
+      radius: 0.04,
+      radialSegments: 10,
+      color: 0x65acff,
+      pulseColor: 0xfff1d4,
+      speed: 0.4,
     });
-    const bridgeMesh = new THREE.Mesh(bridgeTubeGeo, bridgeMat);
-    scene.add(bridgeMesh);
+    scene.add(bridgeTube.mesh);
+    extraDisposables.push({ dispose: bridgeTube.dispose });
+    cardiacTubes.push({
+      uniforms: bridgeTube.handle.uniforms,
+      nodeA: 'hq',
+      nodeB: 'cde',
+      dispose: bridgeTube.dispose,
+    });
 
     for (let b = 0; b < 4; b++) {
       const bridgeBead = new THREE.Mesh(
         new THREE.SphereGeometry(0.13, 10, 10),
         new THREE.MeshBasicMaterial({
-          color: new THREE.Color(0xFFF4D0),
+          color: new THREE.Color(0xfff1d4),
           transparent: true,
           opacity: 0.95,
         })
@@ -4181,6 +4210,18 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           const baseWireOp = entry.nodeType === 'project' ? 0.34 : 0.44;
           entry.wireMat.opacity = baseWireOp * b + (b > 0.85 && activeEntry ? 0.28 : 0);
         }
+        if (entry.connectorUniforms) {
+          entry.connectorUniforms.uTime.value = s.reducedMotion ? 0 : elapsedTotal;
+          entry.connectorUniforms.uAudioRms.value = liveRms;
+          const baseDim = entry.nodeType === 'project' ? 0.55 : 0.85;
+          const boost = b > 0.85 && activeEntry ? 0.35 : 0;
+          entry.connectorUniforms.uDimFactor.value = THREE.MathUtils.damp(
+            entry.connectorUniforms.uDimFactor.value,
+            baseDim * b + boost,
+            9.5,
+            dt
+          );
+        }
 
         if (entry.haloMesh) {
           entry.haloMesh.lookAt(camera.position);
@@ -4204,17 +4245,20 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         }
       });
 
-      // Update Cardiac Heartbeat Tubes
+      // Update Cardiac Heartbeat Tubes — time, audio coupling, connection dimming
       for (let c = 0; c < cardiacTubes.length; c++) {
         const ct = cardiacTubes[c];
         ct.uniforms.uTime.value = s.reducedMotion ? 0 : elapsedTotal;
+        ct.uniforms.uAudioRms.value = liveRms;
         let tubeDim = 1.0;
         if (activeEntry) {
           const connected =
             activeEntry.canonicalId === ct.nodeA ||
             activeEntry.canonicalId === ct.nodeB ||
-            activeEntry.canonicalId === 'projects';
-          tubeDim = connected ? 1.0 : 0.25;
+            activeEntry.canonicalId === 'projects' ||
+            activeEntry.connectedIds.has(ct.nodeA) ||
+            activeEntry.connectedIds.has(ct.nodeB);
+          tubeDim = connected ? 1.0 : 0.22;
         }
         ct.uniforms.uDimFactor.value = THREE.MathUtils.damp(
           ct.uniforms.uDimFactor.value,
