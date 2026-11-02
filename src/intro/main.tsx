@@ -7,6 +7,11 @@ import { CosmographCanvas } from '../components/CosmographCanvas';
 import { introBridge, FPS, smoother, clamp } from './bridge';
 import './styles.css';
 import { exportProof } from './export-proof';
+import {
+  isBrowserFullscreen,
+  subscribeBrowserFullscreen,
+  toggleBrowserFullscreen,
+} from '../utils/browserFullscreen';
 
 const config = await fetch(new URL('cerebro.intro.json', document.baseURI)).then((r) => {
   if (!r.ok) throw Error('Timeline JSON unavailable');
@@ -123,6 +128,9 @@ export function CerebroIntro({
   const [chromeVisible, setChromeVisible] = useState(false);
   const [exploring, setExploring] = useState(false);
   const [audioError, setAudioError] = useState('');
+  const [browserFullscreen, setBrowserFullscreen] = useState(() =>
+    typeof document !== 'undefined' ? isBrowserFullscreen() : false
+  );
 
   const notify = () => {
     setPlaying(player.playing);
@@ -191,6 +199,8 @@ export function CerebroIntro({
     const asset = mediaIdForNode(id);
     if (asset) introBridge.open(asset);
   };
+
+  useEffect(() => subscribeBrowserFullscreen(setBrowserFullscreen), []);
 
   useEffect(() => {
     introBridge.enabled = true;
@@ -305,7 +315,9 @@ export function CerebroIntro({
         void toggle();
       }
       if (e.key.toLowerCase() === 'h') toggleChrome();
-      if (e.key.toLowerCase() === 'f') void stage.current?.requestFullscreen();
+      if (e.key.toLowerCase() === 'f') {
+        void toggleBrowserFullscreen(stage.current || document.documentElement);
+      }
       if (e.key === 'ArrowRight') player.seek(player.time() + 5);
       if (e.key === 'ArrowLeft') player.seek(player.time() - 5);
       if (e.key === 'Escape') introBridge.close();
@@ -509,7 +521,14 @@ export function CerebroIntro({
             >
               Sound
             </button>
-            <button onClick={() => void stage.current?.requestFullscreen()}>Fullscreen</button>
+            <button
+              type="button"
+              onClick={() =>
+                void toggleBrowserFullscreen(stage.current || document.documentElement)
+              }
+            >
+              {browserFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+            </button>
             <button onClick={() => setChromeVisible(false)} aria-label="Hide controls">
               Hide
             </button>

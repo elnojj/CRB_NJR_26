@@ -134,6 +134,12 @@ import {
 import { MobileSingleHandController } from './components/HandsTracker';
 import { Cerebro39SystemModal } from './components/Cerebro39SystemModal';
 import { VisualAuthorityScopeId } from './data/cerebro39MasterSystem';
+import {
+  isBrowserFullscreen,
+  isBrowserFullscreenSupported,
+  subscribeBrowserFullscreen,
+  toggleBrowserFullscreen,
+} from './utils/browserFullscreen';
 
 export interface SelfTestCheckResult {
   id: string;
@@ -276,6 +282,9 @@ export default function App() {
   const [activeChapterIndex, setActiveChapterIndex] = useState<number>(1);
   const [fileSearchQuery, setFileSearchQuery] = useState<string>('');
   const [fullscreenMedia, setFullscreenMedia] = useState<MediaAssetItem | null>(null);
+  const [browserFullscreen, setBrowserFullscreen] = useState<boolean>(() =>
+    typeof document !== 'undefined' ? isBrowserFullscreen() : false
+  );
   const [mediaPlayback, setMediaPlayback] = useState<MediaPlaybackState>({
     playing: false,
     muted: false,
@@ -2219,7 +2228,13 @@ export default function App() {
     ]
   );
 
-  // Global Keyboard Navigation (Escape closes fullscreen/panel; Arrow keys orbit/tilt when not typing in input/textarea)
+  // Keep browser Fullscreen API state in sync (workspace + intro share the same helpers)
+  useEffect(() => {
+    setBrowserFullscreen(isBrowserFullscreen());
+    return subscribeBrowserFullscreen(setBrowserFullscreen);
+  }, []);
+
+  // Global Keyboard Navigation (Escape closes media/panel; F toggles browser fullscreen; Arrow keys orbit/tilt when not typing)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -2247,6 +2262,12 @@ export default function App() {
 
       // Never trigger 3D camera shortcuts while typing inside an input/textarea
       if (isEditable) return;
+
+      if (e.key.toLowerCase() === 'f' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        void toggleBrowserFullscreen();
+        return;
+      }
 
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
@@ -3865,6 +3886,22 @@ export default function App() {
                 </button>
               ))}
               <div className="border-t border-[rgba(197,204,214,0.22)] my-1" />
+              {isBrowserFullscreenSupported() && (
+                <button
+                  type="button"
+                  data-testid="browser-fullscreen-toggle"
+                  data-cta-id="browser-fullscreen"
+                  onClick={() => {
+                    setShowMoreMenu(false);
+                    void toggleBrowserFullscreen();
+                  }}
+                  className="min-h-[40px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#F2F6F8] hover:bg-[#101622] cursor-pointer flex items-center justify-between"
+                  title="Toggle browser fullscreen (F)"
+                >
+                  <span>{browserFullscreen ? 'Exit fullscreen' : 'Fullscreen'}</span>
+                  <span className="text-[10px] text-[#C5CCD6]">F</span>
+                </button>
+              )}
               <button
                 type="button"
                 data-testid="open-developer-view-btn"
@@ -4261,6 +4298,32 @@ export default function App() {
           data-testid="bottom-right-utility-group"
           className="pointer-events-auto flex items-center justify-end gap-1.5 sm:gap-2 shrink-0"
         >
+          {isBrowserFullscreenSupported() && (
+            <button
+              type="button"
+              data-testid="browser-fullscreen-utility"
+              data-cta-id="browser-fullscreen"
+              onClick={() => void toggleBrowserFullscreen()}
+              className={`cj-glass-card min-h-[40px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full font-mono text-[11px] font-medium transition-colors cursor-pointer shrink-0 ${
+                browserFullscreen
+                  ? 'border-[#D4AF37] text-[#FFF4D0] bg-[#D4AF37]/20'
+                  : 'text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37]'
+              }`}
+              title={browserFullscreen ? 'Exit browser fullscreen (F)' : 'Enter browser fullscreen (F)'}
+              aria-pressed={browserFullscreen}
+            >
+              <span
+                className={`w-2 h-2 rounded-full shrink-0 ${
+                  browserFullscreen ? 'bg-[#D4AF37]' : 'bg-white/30'
+                }`}
+              />
+              <span className="hidden sm:inline">
+                {browserFullscreen ? 'Exit full' : 'Fullscreen'}
+              </span>
+              <span className="sm:hidden">{browserFullscreen ? 'Exit' : 'Full'}</span>
+            </button>
+          )}
+
           <button
             type="button"
             data-testid="ambience-mute-toggle"
