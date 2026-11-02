@@ -1259,8 +1259,23 @@ export default function App() {
           pushNavSnapshot();
           const proj =
             PROJECTS_DATA.find((p) => p.id === action.projectId) ||
-            CEREBRO_17_PROJECTS.find((p) => p.id === action.projectId) ||
-            PROJECTS_DATA[0];
+            CEREBRO_17_PROJECTS.find((p) => p.id === action.projectId);
+          if (!proj) {
+            setCaptionBubble(
+              `Project not found: ${action.projectId || '(missing id)'} — returned to master world.`
+            );
+            setProjectWorld(IDLE_PROJECT_WORLD);
+            setFocusedNodeId(null);
+            dispatchCamera('center', { targetSphere: 'hq' });
+            return {
+              ok: false,
+              action: 'focus_project',
+              target: action.projectId || 'unknown',
+              error: 'unavailable',
+              resultingState: { worldId: 'master' },
+              operationId: opId,
+            };
+          }
           setSelectedProjectId(proj.id);
           setFocusedNodeId(proj.id);
           const worldManifest =
@@ -1358,6 +1373,44 @@ export default function App() {
           }
 
           const targetPanel = action.panel || 'projects';
+          const knownPanels = new Set([
+            'projects',
+            'project-detail',
+            'tasks',
+            'files',
+            'media',
+            'people',
+            'settings',
+            'decisions',
+            'team-room',
+            'minutes',
+            'timeline',
+            'briefing',
+            'insights',
+            'file-viewer',
+            'crew',
+            'kinzo',
+            'baghira',
+            'cde-explorer',
+            'story-journey',
+            'build',
+            'roadmap',
+            'overview',
+            'analytics',
+            'governance',
+            'showreel',
+          ]);
+          if (!knownPanels.has(targetPanel)) {
+            setCaptionBubble(`Panel unavailable: ${targetPanel}`);
+            return {
+              ok: false,
+              action: 'open_panel',
+              target: targetPanel,
+              error: 'unavailable',
+              resultingState: { openPanels },
+              operationId: opId,
+            };
+          }
           pushNavSnapshot();
           ensurePanelOpen(targetPanel, true);
           return {
