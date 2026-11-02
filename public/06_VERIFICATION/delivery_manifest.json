@@ -42,124 +42,809 @@
     }
   ],
   "pinned_38_procedural_source_assets": [
-    { "sourceId": "identity.monogram", "category": "Cerebro identity", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "identity.nucleus", "category": "Cerebro identity", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "identity.wordmark", "category": "Cerebro identity", "format": "procedural canvas texture", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "sphere.shell", "category": "Sphere", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "sphere.network", "category": "Sphere", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "station.core", "category": "Stations", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "station.projects", "category": "Stations", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "station.drive", "category": "Stations", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "station.media", "category": "Stations", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "station.tasks", "category": "Stations", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "station.people", "category": "Stations", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "file.image", "category": "Files", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "file.video", "category": "Files", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "file.pdf", "category": "Files", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "file.document", "category": "Files", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "file.audio", "category": "Files", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "project.cover", "category": "Projects", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "project.cluster", "category": "Projects", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "project.collapsed", "category": "Projects", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "folder.hub", "category": "Folders", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "folder.expanded", "category": "Folders", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "folder.plusn", "category": "Folders", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "dashboard.panel", "category": "Dashboard", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "nav.routes", "category": "Navigation", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "nav.bead", "category": "Navigation", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "nav.tether", "category": "Navigation", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "nav.event", "category": "Navigation", "format": "procedural three.js group", "generatorFile": "experience/assets-a.js" },
-    { "sourceId": "assistant.orb", "category": "Assistant", "format": "procedural three.js group", "generatorFile": "experience/assets-b.js" },
-    { "sourceId": "assistant.widget", "category": "Assistant", "format": "procedural three.js group", "generatorFile": "experience/assets-b.js" },
-    { "sourceId": "hand.skeleton", "category": "Hand", "format": "procedural three.js group", "generatorFile": "experience/assets-b.js" },
-    { "sourceId": "hand.reticle", "category": "Hand", "format": "procedural three.js group", "generatorFile": "experience/assets-b.js" },
-    { "sourceId": "avatar.person", "category": "Avatars", "format": "procedural three.js group", "generatorFile": "experience/assets-b.js" },
-    { "sourceId": "avatar.crew.1", "category": "Avatars", "format": "procedural three.js group", "generatorFile": "experience/assets-b.js" },
-    { "sourceId": "avatar.crew.2", "category": "Avatars", "format": "procedural three.js group", "generatorFile": "experience/assets-b.js" },
-    { "sourceId": "avatar.crew.3", "category": "Avatars", "format": "procedural three.js group", "generatorFile": "experience/assets-b.js" },
-    { "sourceId": "avatar.crew.4", "category": "Avatars", "format": "procedural three.js group", "generatorFile": "experience/assets-b.js" },
-    { "sourceId": "avatar.crew.5", "category": "Avatars", "format": "procedural three.js group", "generatorFile": "experience/assets-b.js" },
-    { "sourceId": "avatar.crew.6", "category": "Avatars", "format": "procedural three.js group", "generatorFile": "experience/assets-b.js" }
+    {
+      "sourceId": "identity.monogram",
+      "category": "Cerebro identity",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "identity.nucleus",
+      "category": "Cerebro identity",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "identity.wordmark",
+      "category": "Cerebro identity",
+      "format": "procedural canvas texture",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "sphere.shell",
+      "category": "Sphere",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "sphere.network",
+      "category": "Sphere",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "station.core",
+      "category": "Stations",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "station.projects",
+      "category": "Stations",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "station.drive",
+      "category": "Stations",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "station.media",
+      "category": "Stations",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "station.tasks",
+      "category": "Stations",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "station.people",
+      "category": "Stations",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "file.image",
+      "category": "Files",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "file.video",
+      "category": "Files",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "file.pdf",
+      "category": "Files",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "file.document",
+      "category": "Files",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "file.audio",
+      "category": "Files",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "project.cover",
+      "category": "Projects",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "project.cluster",
+      "category": "Projects",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "project.collapsed",
+      "category": "Projects",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "folder.hub",
+      "category": "Folders",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "folder.expanded",
+      "category": "Folders",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "folder.plusn",
+      "category": "Folders",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "dashboard.panel",
+      "category": "Dashboard",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "nav.routes",
+      "category": "Navigation",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "nav.bead",
+      "category": "Navigation",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "nav.tether",
+      "category": "Navigation",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "nav.event",
+      "category": "Navigation",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-a.js"
+    },
+    {
+      "sourceId": "assistant.orb",
+      "category": "Assistant",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-b.js"
+    },
+    {
+      "sourceId": "assistant.widget",
+      "category": "Assistant",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-b.js"
+    },
+    {
+      "sourceId": "hand.skeleton",
+      "category": "Hand",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-b.js"
+    },
+    {
+      "sourceId": "hand.reticle",
+      "category": "Hand",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-b.js"
+    },
+    {
+      "sourceId": "avatar.person",
+      "category": "Avatars",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-b.js"
+    },
+    {
+      "sourceId": "avatar.crew.1",
+      "category": "Avatars",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-b.js"
+    },
+    {
+      "sourceId": "avatar.crew.2",
+      "category": "Avatars",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-b.js"
+    },
+    {
+      "sourceId": "avatar.crew.3",
+      "category": "Avatars",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-b.js"
+    },
+    {
+      "sourceId": "avatar.crew.4",
+      "category": "Avatars",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-b.js"
+    },
+    {
+      "sourceId": "avatar.crew.5",
+      "category": "Avatars",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-b.js"
+    },
+    {
+      "sourceId": "avatar.crew.6",
+      "category": "Avatars",
+      "format": "procedural three.js group",
+      "generatorFile": "experience/assets-b.js"
+    }
   ],
   "lovart_29_output_id_contract": [
-    { "id": "BG-001", "category": "Backgrounds / depth layers", "role": "Full-frame dark navy spatial foundation", "requestedFormat": "shader | 16-bit EXR/PNG fallback", "target": "2160x3840", "status": "REQUESTED" },
-    { "id": "BG-002", "category": "Backgrounds / depth layers", "role": "Peripheral shaping", "requestedFormat": "RGBA PNG/EXR | scalar shader", "target": "2160x3840", "status": "REQUESTED" },
-    { "id": "BG-003", "category": "Backgrounds / depth layers", "role": "Far/near volumetric haze", "requestedFormat": "VDB/3D volume or multilayer EXR", "target": "2160x3840 preview + world volume", "status": "REQUESTED" },
-    { "id": "BG-004", "category": "Backgrounds / depth layers", "role": "Soft elliptical glow and contact cue", "requestedFormat": "EXR RGBA | PNG RGBA", "target": "4096x2048", "status": "REQUESTED" },
-    { "id": "BG-005", "category": "Backgrounds / depth layers", "role": "Fine elliptical trajectories", "requestedFormat": "editable 3D curves | EXR RGBA", "target": "4096x4096", "status": "REQUESTED" },
-    { "id": "BG-006", "category": "Backgrounds / depth layers", "role": "Sparse gold and ice light points", "requestedFormat": "GLB point positions | RGBA sprite atlas", "target": "2048x2048 atlas", "status": "REQUESTED" },
-    { "id": "BG-007", "category": "Backgrounds / depth layers", "role": "Depth environment reached through sphere iris", "requestedFormat": "GLB scene | HDRI/EXR layers", "target": "4096 cube faces + 2160x3840 previews", "status": "REQUESTED" },
-    { "id": "BG-008", "category": "Backgrounds / depth layers", "role": "Recessed video environment behind aperture", "requestedFormat": "editable 3D scene | separate EXR passes", "target": "2160x3840 preview", "status": "REQUESTED" },
-    { "id": "BG-009", "category": "Backgrounds / depth layers", "role": "Refracted seam/portal glint", "requestedFormat": "RGBA EXR sequence or procedural shader", "target": "2160x3840; 180-frame loop at 30fps", "status": "REQUESTED" },
-    { "id": "BG-010", "category": "Backgrounds / depth layers", "role": "Opening world evolved at ending", "requestedFormat": "shader state | EXR/PNG fallback", "target": "2160x3840", "status": "REQUESTED" },
-    { "id": "SC-001", "category": "Sphere / core meshes", "role": "Separate shell/core/rails, one shared origin", "requestedFormat": "BLEND | GLB | EXR/PNG RGBA views", "target": "4096x4096 each view", "runtimeStarterPath": "/06_3D_Assets/sphere-assembly.glb", "status": "GENERATED" },
-    { "id": "SC-002", "category": "Sphere / core meshes", "role": "Optical cover", "requestedFormat": "BLEND | GLB | EXR specular/refraction/transmission", "target": "4096x4096", "runtimeStarterPath": "/06_3D_Assets/glass-shell.glb", "status": "GENERATED" },
-    { "id": "SC-003", "category": "Sphere / core meshes", "role": "Brushed inner metallic sphere", "requestedFormat": "BLEND | GLB | PBR maps", "target": "2048 maps; 4096 beauty", "runtimeStarterPath": "/06_3D_Assets/metal-core.glb", "status": "GENERATED" },
-    { "id": "SC-004", "category": "Sphere / core meshes", "role": "Equator and two meridians", "requestedFormat": "BLEND | GLB | EXR emission/reflection", "target": "4096x4096", "runtimeStarterPath": "/06_3D_Assets/orbital-cage.glb", "status": "GENERATED" },
-    { "id": "SC-005", "category": "Sphere / core meshes", "role": "Warm/cool attention points", "requestedFormat": "GLB | RGBA atlas | positions JSON", "target": "2048 atlas", "runtimeStarterPath": "/06_3D_Assets/gold-node.glb", "status": "GENERATED" },
-    { "id": "MD-001", "category": "Media holders", "role": "Circular recessed media holder", "requestedFormat": "BLEND | GLB | mask SVG | UV PNG | EXR passes", "target": "2048 UV; 4096 render", "runtimeStarterPath": "/06_3D_Assets/media-portal-rim.glb", "status": "GENERATED" },
-    { "id": "MD-002", "category": "Media holders", "role": "16:9 holder and fitted footage", "requestedFormat": "BLEND | GLB | masks | UV chart", "target": "3840x2160 aperture reference", "status": "GENERATED" },
-    { "id": "MD-003", "category": "Media holders", "role": "9:16 holder and fitted footage", "requestedFormat": "BLEND | GLB | masks | UV chart", "target": "2160x3840 aperture reference", "status": "GENERATED" },
-    { "id": "MD-004", "category": "Media holders", "role": "1:1 holder and fitted footage", "requestedFormat": "BLEND | GLB | masks | UV chart", "target": "2048x2048 aperture reference", "status": "GENERATED" },
-    { "id": "MD-005", "category": "Media holders", "role": "Portrait optical frame", "requestedFormat": "BLEND | GLB | EXR/PNG RGBA", "target": "4096x4096", "runtimeStarterPath": "/06_3D_Assets/portrait-medallion.glb", "status": "GENERATED" },
-    { "id": "BR-001", "category": "Brand", "role": "Exact official brand mark", "requestedFormat": "approved vector source SVG/PDF | PNG RGBA", "target": "4096w + 1x/2x/3x", "status": "REQUESTED" },
-    { "id": "BR-002", "category": "Brand", "role": "Film title and product name", "requestedFormat": "approved SVG | outline variant after font verification", "target": "4096w + screen variants", "status": "REQUESTED" },
-    { "id": "UI-001", "category": "Editable interface", "role": "Listening/manual CTA", "requestedFormat": "Figma/HTML CSS | SVG | RGBA preview", "target": "390x56 layout; 2x/3x raster", "runtimeStarterPath": "/04_Vector_Assets/voice-pill.svg", "status": "GENERATED" },
-    { "id": "UI-002", "category": "Editable interface", "role": "Selected target glass panel", "requestedFormat": "Figma/HTML CSS | SVG | RGBA preview", "target": "342x118 master", "runtimeStarterPath": "/04_Vector_Assets/panel.svg", "status": "GENERATED" },
-    { "id": "UI-003", "category": "Editable interface", "role": "Overview/Explore panel", "requestedFormat": "Figma/HTML CSS | SVG | RGBA preview", "target": "342x162 master", "runtimeStarterPath": "/04_Vector_Assets/detail-row.svg", "status": "GENERATED" },
-    { "id": "UI-004", "category": "Editable interface", "role": "Chapter text treatments", "requestedFormat": "source font | SVG outlines/JSON animation", "target": "390 and 1080 layouts", "status": "GENERATED" },
-    { "id": "UI-005", "category": "Editable interface", "role": "Target halo, leader, label", "requestedFormat": "SVG | PNG RGBA | JSON anchors", "target": "44px hit at phone scale", "runtimeStarterPath": "/04_Vector_Assets/focus-label.svg", "status": "GENERATED" },
-    { "id": "FX-001", "category": "Finishing", "role": "Unified media treatment", "requestedFormat": "LUT/CUBE | GLSL shader | source-neutral before/after", "target": "33-cube LUT + GLSL", "status": "GENERATED" },
-    { "id": "AU-001", "category": "Audio", "role": "VO, music, FX design and final mix reference", "requestedFormat": "24-bit/48kHz WAV stems | cue JSON | master", "target": "180s at final FPS", "status": "REQUESTED" }
+    {
+      "id": "BG-001",
+      "category": "Backgrounds / depth layers",
+      "role": "Full-frame dark navy spatial foundation",
+      "requestedFormat": "shader | 16-bit EXR/PNG fallback",
+      "target": "2160x3840",
+      "status": "REQUESTED"
+    },
+    {
+      "id": "BG-002",
+      "category": "Backgrounds / depth layers",
+      "role": "Peripheral shaping",
+      "requestedFormat": "RGBA PNG/EXR | scalar shader",
+      "target": "2160x3840",
+      "status": "REQUESTED"
+    },
+    {
+      "id": "BG-003",
+      "category": "Backgrounds / depth layers",
+      "role": "Far/near volumetric haze",
+      "requestedFormat": "VDB/3D volume or multilayer EXR",
+      "target": "2160x3840 preview + world volume",
+      "status": "REQUESTED"
+    },
+    {
+      "id": "BG-004",
+      "category": "Backgrounds / depth layers",
+      "role": "Soft elliptical glow and contact cue",
+      "requestedFormat": "EXR RGBA | PNG RGBA",
+      "target": "4096x2048",
+      "status": "REQUESTED"
+    },
+    {
+      "id": "BG-005",
+      "category": "Backgrounds / depth layers",
+      "role": "Fine elliptical trajectories",
+      "requestedFormat": "editable 3D curves | EXR RGBA",
+      "target": "4096x4096",
+      "status": "REQUESTED"
+    },
+    {
+      "id": "BG-006",
+      "category": "Backgrounds / depth layers",
+      "role": "Sparse gold and ice light points",
+      "requestedFormat": "GLB point positions | RGBA sprite atlas",
+      "target": "2048x2048 atlas",
+      "status": "REQUESTED"
+    },
+    {
+      "id": "BG-007",
+      "category": "Backgrounds / depth layers",
+      "role": "Depth environment reached through sphere iris",
+      "requestedFormat": "GLB scene | HDRI/EXR layers",
+      "target": "4096 cube faces + 2160x3840 previews",
+      "status": "REQUESTED"
+    },
+    {
+      "id": "BG-008",
+      "category": "Backgrounds / depth layers",
+      "role": "Recessed video environment behind aperture",
+      "requestedFormat": "editable 3D scene | separate EXR passes",
+      "target": "2160x3840 preview",
+      "status": "REQUESTED"
+    },
+    {
+      "id": "BG-009",
+      "category": "Backgrounds / depth layers",
+      "role": "Refracted seam/portal glint",
+      "requestedFormat": "RGBA EXR sequence or procedural shader",
+      "target": "2160x3840; 180-frame loop at 30fps",
+      "status": "REQUESTED"
+    },
+    {
+      "id": "BG-010",
+      "category": "Backgrounds / depth layers",
+      "role": "Opening world evolved at ending",
+      "requestedFormat": "shader state | EXR/PNG fallback",
+      "target": "2160x3840",
+      "status": "REQUESTED"
+    },
+    {
+      "id": "SC-001",
+      "category": "Sphere / core meshes",
+      "role": "Separate shell/core/rails, one shared origin",
+      "requestedFormat": "BLEND | GLB | EXR/PNG RGBA views",
+      "target": "4096x4096 each view",
+      "runtimeStarterPath": "/06_3D_Assets/sphere-assembly.glb",
+      "status": "GENERATED"
+    },
+    {
+      "id": "SC-002",
+      "category": "Sphere / core meshes",
+      "role": "Optical cover",
+      "requestedFormat": "BLEND | GLB | EXR specular/refraction/transmission",
+      "target": "4096x4096",
+      "runtimeStarterPath": "/06_3D_Assets/glass-shell.glb",
+      "status": "GENERATED"
+    },
+    {
+      "id": "SC-003",
+      "category": "Sphere / core meshes",
+      "role": "Brushed inner metallic sphere",
+      "requestedFormat": "BLEND | GLB | PBR maps",
+      "target": "2048 maps; 4096 beauty",
+      "runtimeStarterPath": "/06_3D_Assets/metal-core.glb",
+      "status": "GENERATED"
+    },
+    {
+      "id": "SC-004",
+      "category": "Sphere / core meshes",
+      "role": "Equator and two meridians",
+      "requestedFormat": "BLEND | GLB | EXR emission/reflection",
+      "target": "4096x4096",
+      "runtimeStarterPath": "/06_3D_Assets/orbital-cage.glb",
+      "status": "GENERATED"
+    },
+    {
+      "id": "SC-005",
+      "category": "Sphere / core meshes",
+      "role": "Warm/cool attention points",
+      "requestedFormat": "GLB | RGBA atlas | positions JSON",
+      "target": "2048 atlas",
+      "runtimeStarterPath": "/06_3D_Assets/gold-node.glb",
+      "status": "GENERATED"
+    },
+    {
+      "id": "MD-001",
+      "category": "Media holders",
+      "role": "Circular recessed media holder",
+      "requestedFormat": "BLEND | GLB | mask SVG | UV PNG | EXR passes",
+      "target": "2048 UV; 4096 render",
+      "runtimeStarterPath": "/06_3D_Assets/media-portal-rim.glb",
+      "status": "GENERATED"
+    },
+    {
+      "id": "MD-002",
+      "category": "Media holders",
+      "role": "16:9 holder and fitted footage",
+      "requestedFormat": "BLEND | GLB | masks | UV chart",
+      "target": "3840x2160 aperture reference",
+      "status": "GENERATED"
+    },
+    {
+      "id": "MD-003",
+      "category": "Media holders",
+      "role": "9:16 holder and fitted footage",
+      "requestedFormat": "BLEND | GLB | masks | UV chart",
+      "target": "2160x3840 aperture reference",
+      "status": "GENERATED"
+    },
+    {
+      "id": "MD-004",
+      "category": "Media holders",
+      "role": "1:1 holder and fitted footage",
+      "requestedFormat": "BLEND | GLB | masks | UV chart",
+      "target": "2048x2048 aperture reference",
+      "status": "GENERATED"
+    },
+    {
+      "id": "MD-005",
+      "category": "Media holders",
+      "role": "Portrait optical frame",
+      "requestedFormat": "BLEND | GLB | EXR/PNG RGBA",
+      "target": "4096x4096",
+      "runtimeStarterPath": "/06_3D_Assets/portrait-medallion.glb",
+      "status": "GENERATED"
+    },
+    {
+      "id": "BR-001",
+      "category": "Brand",
+      "role": "Exact official brand mark",
+      "requestedFormat": "approved vector source SVG/PDF | PNG RGBA",
+      "target": "4096w + 1x/2x/3x",
+      "status": "REQUESTED"
+    },
+    {
+      "id": "BR-002",
+      "category": "Brand",
+      "role": "Film title and product name",
+      "requestedFormat": "approved SVG | outline variant after font verification",
+      "target": "4096w + screen variants",
+      "status": "REQUESTED"
+    },
+    {
+      "id": "UI-001",
+      "category": "Editable interface",
+      "role": "Listening/manual CTA",
+      "requestedFormat": "Figma/HTML CSS | SVG | RGBA preview",
+      "target": "390x56 layout; 2x/3x raster",
+      "runtimeStarterPath": "/04_Vector_Assets/voice-pill.svg",
+      "status": "GENERATED"
+    },
+    {
+      "id": "UI-002",
+      "category": "Editable interface",
+      "role": "Selected target glass panel",
+      "requestedFormat": "Figma/HTML CSS | SVG | RGBA preview",
+      "target": "342x118 master",
+      "runtimeStarterPath": "/04_Vector_Assets/panel.svg",
+      "status": "GENERATED"
+    },
+    {
+      "id": "UI-003",
+      "category": "Editable interface",
+      "role": "Overview/Explore panel",
+      "requestedFormat": "Figma/HTML CSS | SVG | RGBA preview",
+      "target": "342x162 master",
+      "runtimeStarterPath": "/04_Vector_Assets/detail-row.svg",
+      "status": "GENERATED"
+    },
+    {
+      "id": "UI-004",
+      "category": "Editable interface",
+      "role": "Chapter text treatments",
+      "requestedFormat": "source font | SVG outlines/JSON animation",
+      "target": "390 and 1080 layouts",
+      "status": "GENERATED"
+    },
+    {
+      "id": "UI-005",
+      "category": "Editable interface",
+      "role": "Target halo, leader, label",
+      "requestedFormat": "SVG | PNG RGBA | JSON anchors",
+      "target": "44px hit at phone scale",
+      "runtimeStarterPath": "/04_Vector_Assets/focus-label.svg",
+      "status": "GENERATED"
+    },
+    {
+      "id": "FX-001",
+      "category": "Finishing",
+      "role": "Unified media treatment",
+      "requestedFormat": "LUT/CUBE | GLSL shader | source-neutral before/after",
+      "target": "33-cube LUT + GLSL",
+      "status": "GENERATED"
+    },
+    {
+      "id": "AU-001",
+      "category": "Audio",
+      "role": "VO, music, FX design and final mix reference",
+      "requestedFormat": "24-bit/48kHz WAV stems | cue JSON | master",
+      "target": "180s at final FPS",
+      "status": "REQUESTED"
+    }
   ],
   "unresolved_media_slots": [
-    { "slot": "tarek.portrait", "role": "Founder identity", "status": "BLOCKED", "needed": "Source path, SHA, rights, ratio, poster" },
-    { "slot": "nojara.showreel", "role": "Verified moving portfolio footage", "status": "BLOCKED", "needed": "Source path, SHA, rights, ratio, poster" },
-    { "slot": "young_human.cairo_tower.video", "role": "Young & Human verified project footage", "status": "BLOCKED", "needed": "Source path, SHA, rights, ratio, poster" },
-    { "slot": "portfolio.verified.video.1", "role": "Verified portfolio moving footage", "status": "BLOCKED", "needed": "Source path, SHA, rights, ratio, poster" },
-    { "slot": "portfolio.verified.video.2", "role": "Second verified portfolio clip", "status": "BLOCKED", "needed": "Source path, SHA, rights, ratio, poster" }
+    {
+      "slot": "nojara.showreel",
+      "role": "Verified moving portfolio footage",
+      "status": "BLOCKED",
+      "needed": "Source path, SHA, rights, ratio, poster"
+    },
+    {
+      "slot": "young_human.cairo_tower.video",
+      "role": "Young & Human verified project footage",
+      "status": "BLOCKED",
+      "needed": "Source path, SHA, rights, ratio, poster"
+    },
+    {
+      "slot": "portfolio.verified.video.1",
+      "role": "Verified portfolio moving footage",
+      "status": "BLOCKED",
+      "needed": "Source path, SHA, rights, ratio, poster"
+    },
+    {
+      "slot": "portfolio.verified.video.2",
+      "role": "Second verified portfolio clip",
+      "status": "BLOCKED",
+      "needed": "Source path, SHA, rights, ratio, poster"
+    }
   ],
   "continuous_180s_10_chapters": [
-    { "chapterIndex": 1, "timeRangeS": [0, 12], "frameRange30fps": [0, 360], "chapter": "Question", "visualStory": "Refractive sphere and the question", "direction": "Start from dark spatial distance. Reveal shell through controlled reflection; construct the NOJARA presents opening independently. The camera approaches on a shallow arc, establishing real parallax." },
-    { "chapterIndex": 2, "timeRangeS": [12, 30], "frameRange30fps": [360, 900], "chapter": "Founder", "visualStory": "Tarek Mojara, real portfolio media", "direction": "Pass the shell surface into an approved Tarek portrait medallion and a recessed video aperture. Founder name is prominent. Route the camera onward through the same aperture volume." },
-    { "chapterIndex": 3, "timeRangeS": [30, 52], "frameRange30fps": [900, 1560], "chapter": "CDE", "visualStory": "Culture & Design Engineering methodology", "direction": "Follow a light/data connection into a three-dimensional process graphic. Each ring or line must name a real CDE step from approved copy." },
-    { "chapterIndex": 4, "timeRangeS": [52, 72], "frameRange30fps": [1560, 2160], "chapter": "Young Human", "visualStory": "Young & Human and Cairo Tower media", "direction": "Reveal the verified Cairo Tower / Young & Human project media in a correctly fitted frame." },
-    { "chapterIndex": 5, "timeRangeS": [72, 90], "frameRange30fps": [2160, 2700], "chapter": "Co Creation", "visualStory": "From destination to collaborative creation", "direction": "Move through linked project nodes as a spatial cause-and-effect network. Keep text short and anchored to the active node." },
-    { "chapterIndex": 6, "timeRangeS": [90, 112], "frameRange30fps": [2700, 3360], "chapter": "Portfolio", "visualStory": "Actual film gallery and project proof", "direction": "Pan or dolly through at least two genuinely verified moving-media apertures with varied aspect ratios." },
-    { "chapterIndex": 7, "timeRangeS": [112, 134], "frameRange30fps": [3360, 4020], "chapter": "Cerebro", "visualStory": "Enter Cerebro spatial HQ", "direction": "Track inward through a physical aperture into the HQ scene. Preserve sphere scale, lighting logic, camera heading and motion speed." },
-    { "chapterIndex": 8, "timeRangeS": [134, 152], "frameRange30fps": [4020, 4560], "chapter": "Interaction", "visualStory": "Voice, touch and hand tracking", "direction": "Show the real voice interface with visible listening/processing/speaking states. Touch and hand tracking are shown as controlled interaction demonstrations." },
-    { "chapterIndex": 9, "timeRangeS": [152, 168], "frameRange30fps": [4560, 5040], "chapter": "Business", "visualStory": "CDE education, services, licensing pathway", "direction": "Build a visual path from creative production into CDE engagements, training and any real licensing model." },
-    { "chapterIndex": 10, "timeRangeS": [168, 180], "frameRange30fps": [5040, 5400], "chapter": "Return", "visualStory": "Return to sphere and exploration", "direction": "Pull back through established geometry to the original sphere, now narratively changed but visually continuous. Resolve exploration invitation." }
+    {
+      "chapterIndex": 1,
+      "timeRangeS": [
+        0,
+        12
+      ],
+      "frameRange30fps": [
+        0,
+        360
+      ],
+      "chapter": "Question",
+      "visualStory": "Refractive sphere and the question",
+      "direction": "Start from dark spatial distance. Reveal shell through controlled reflection; construct the NOJARA presents opening independently. The camera approaches on a shallow arc, establishing real parallax."
+    },
+    {
+      "chapterIndex": 2,
+      "timeRangeS": [
+        12,
+        30
+      ],
+      "frameRange30fps": [
+        360,
+        900
+      ],
+      "chapter": "Founder",
+      "visualStory": "Tarek Mojara, real portfolio media",
+      "direction": "Pass the shell surface into an approved Tarek portrait medallion and a recessed video aperture. Founder name is prominent. Route the camera onward through the same aperture volume."
+    },
+    {
+      "chapterIndex": 3,
+      "timeRangeS": [
+        30,
+        52
+      ],
+      "frameRange30fps": [
+        900,
+        1560
+      ],
+      "chapter": "CDE",
+      "visualStory": "Culture & Design Engineering methodology",
+      "direction": "Follow a light/data connection into a three-dimensional process graphic. Each ring or line must name a real CDE step from approved copy."
+    },
+    {
+      "chapterIndex": 4,
+      "timeRangeS": [
+        52,
+        72
+      ],
+      "frameRange30fps": [
+        1560,
+        2160
+      ],
+      "chapter": "Young Human",
+      "visualStory": "Young & Human and Cairo Tower media",
+      "direction": "Reveal the verified Cairo Tower / Young & Human project media in a correctly fitted frame."
+    },
+    {
+      "chapterIndex": 5,
+      "timeRangeS": [
+        72,
+        90
+      ],
+      "frameRange30fps": [
+        2160,
+        2700
+      ],
+      "chapter": "Co Creation",
+      "visualStory": "From destination to collaborative creation",
+      "direction": "Move through linked project nodes as a spatial cause-and-effect network. Keep text short and anchored to the active node."
+    },
+    {
+      "chapterIndex": 6,
+      "timeRangeS": [
+        90,
+        112
+      ],
+      "frameRange30fps": [
+        2700,
+        3360
+      ],
+      "chapter": "Portfolio",
+      "visualStory": "Actual film gallery and project proof",
+      "direction": "Pan or dolly through at least two genuinely verified moving-media apertures with varied aspect ratios."
+    },
+    {
+      "chapterIndex": 7,
+      "timeRangeS": [
+        112,
+        134
+      ],
+      "frameRange30fps": [
+        3360,
+        4020
+      ],
+      "chapter": "Cerebro",
+      "visualStory": "Enter Cerebro spatial HQ",
+      "direction": "Track inward through a physical aperture into the HQ scene. Preserve sphere scale, lighting logic, camera heading and motion speed."
+    },
+    {
+      "chapterIndex": 8,
+      "timeRangeS": [
+        134,
+        152
+      ],
+      "frameRange30fps": [
+        4020,
+        4560
+      ],
+      "chapter": "Interaction",
+      "visualStory": "Voice, touch and hand tracking",
+      "direction": "Show the real voice interface with visible listening/processing/speaking states. Touch and hand tracking are shown as controlled interaction demonstrations."
+    },
+    {
+      "chapterIndex": 9,
+      "timeRangeS": [
+        152,
+        168
+      ],
+      "frameRange30fps": [
+        4560,
+        5040
+      ],
+      "chapter": "Business",
+      "visualStory": "CDE education, services, licensing pathway",
+      "direction": "Build a visual path from creative production into CDE engagements, training and any real licensing model."
+    },
+    {
+      "chapterIndex": 10,
+      "timeRangeS": [
+        168,
+        180
+      ],
+      "frameRange30fps": [
+        5040,
+        5400
+      ],
+      "chapter": "Return",
+      "visualStory": "Return to sphere and exploration",
+      "direction": "Pull back through established geometry to the original sphere, now narratively changed but visually continuous. Resolve exploration invitation."
+    }
   ],
   "explicit_8_conflicts_register": [
-    { "id": "TYPE-01", "level": "HIGH", "sourceRule": "config.visualAuthority.lockedDecisions.fonts.titles = Sora and typography.families.display = Sora", "observedRequest": "src/app/globals.css --font-display starts with Jaapokki Subtract; CerebroSphere local UI specifies Plex.", "proposedResolution": "Phase 01 identify exact routes and scopes; Phase 04 compare approved screenshots; retain source status until owner selects scope; no bulk font replacement.", "status": "IMPLEMENTED" },
-    { "id": "COLOR-01", "level": "HIGH", "sourceRule": "config.visualAuthority.lockedDecisions.banned includes gold treatments", "observedRequest": "SOURCE_PALETTE.steel = #D4AF37 and cinematicOverride.fresnelRimHot references it. Prior film reference uses gold rails.", "proposedResolution": "Keep reference-film gold separate from locked application identity; request explicit scoped approval before promoting any film-derived gold.", "status": "IMPLEMENTED" },
-    { "id": "FX-01", "level": "HIGH", "sourceRule": "config.visualAuthority.lockedDecisions.banned includes glow and bloom", "observedRequest": "CinematicPostFX renders selective Bloom in full tier; cinematicFx defines bloom presets.", "proposedResolution": "Report render paths and screenshot delta; do not silently remove active FX or declare it approved.", "status": "IMPLEMENTED" },
-    { "id": "DURATION-01", "level": "MEDIUM", "sourceRule": "Latest repeated user request: three-minute film, 4K, continuous shot", "observedRequest": "Earlier cinematic JSON was 150 seconds; a prior output was 720p/180s; neither proves current source execution.", "proposedResolution": "Use 180 seconds as the requested target for the proposed film build; preserve 150s legacy as historical, never merge timings.", "status": "IMPLEMENTED" },
-    { "id": "TIMING-01", "level": "MEDIUM", "sourceRule": "The approved motion tokens are source-bound and their statuses differ.", "observedRequest": "cinematicOverride proposes grainFps 24; a 180s 30fps social master requires 5400 output frames.", "proposedResolution": "Treat grain cadence as an independently sampled texture, not the export frame rate.", "status": "IMPLEMENTED" },
-    { "id": "MEDIA-01", "level": "HIGH", "sourceRule": "User demands genuine Tarek/NOJARA media, fitted within designed placeholders, clear thumbnails.", "observedRequest": "Current procedural asset manifest does not verify portrait, showreel URLs, playable footage or publication rights.", "proposedResolution": "Block media insertion until asset IDs, files, rights, duration, and poster frames are verified; no synthetic portfolio imagery.", "status": "IMPLEMENTED" },
-    { "id": "MOTION-01", "level": "MEDIUM", "sourceRule": "V2 proposes Theatre.js authored keyframes.", "observedRequest": "The pinned package.json has R3F, Drei, GSAP, postprocessing, but no Theatre.js package.", "proposedResolution": "Propose integration only after version and ownership proof; existing camera owner retains authority until migration is tested.", "status": "IMPLEMENTED" },
-    { "id": "PIXEL-01", "level": "HIGH", "sourceRule": "User asks pixel-indexed reusable assets and accurate placement.", "observedRequest": "Earlier 512x910 source-video maps are a different design reference. Runtime uses composeMasterFrame with container geometry; no current reference-to-render comparison is supplied.", "proposedResolution": "Represent pixel bounds as null until approved reference dimensions, measured landmarks, and output captures exist; index computed responsive bounds separately.", "status": "IMPLEMENTED" }
+    {
+      "id": "TYPE-01",
+      "level": "HIGH",
+      "sourceRule": "config.visualAuthority.lockedDecisions.fonts.titles = Sora and typography.families.display = Sora",
+      "observedRequest": "Locked app CSS now uses Sora/Inter/JetBrains/Noto Kufi; Jaapokki scoped to --font-film-display only.",
+      "proposedResolution": "Phase 01 identify exact routes and scopes; Phase 04 compare approved screenshots; retain source status until owner selects scope; no bulk font replacement.",
+      "status": "RESOLVED_LOCKED_APP_FONTS"
+    },
+    {
+      "id": "COLOR-01",
+      "level": "HIGH",
+      "sourceRule": "config.visualAuthority.lockedDecisions.banned includes gold treatments",
+      "observedRequest": "SOURCE_PALETTE.steel = #D4AF37 and cinematicOverride.fresnelRimHot references it. Prior film reference uses gold rails.",
+      "proposedResolution": "Keep reference-film gold separate from locked application identity; request explicit scoped approval before promoting any film-derived gold.",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "id": "FX-01",
+      "level": "HIGH",
+      "sourceRule": "config.visualAuthority.lockedDecisions.banned includes glow and bloom",
+      "observedRequest": "CinematicPostFX renders selective Bloom in full tier; cinematicFx defines bloom presets.",
+      "proposedResolution": "Report render paths and screenshot delta; do not silently remove active FX or declare it approved.",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "id": "DURATION-01",
+      "level": "MEDIUM",
+      "sourceRule": "Latest repeated user request: three-minute film, 4K, continuous shot",
+      "observedRequest": "Earlier cinematic JSON was 150 seconds; a prior output was 720p/180s; neither proves current source execution.",
+      "proposedResolution": "Use 180 seconds as the requested target for the proposed film build; preserve 150s legacy as historical, never merge timings.",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "id": "TIMING-01",
+      "level": "MEDIUM",
+      "sourceRule": "The approved motion tokens are source-bound and their statuses differ.",
+      "observedRequest": "cinematicOverride proposes grainFps 24; a 180s 30fps social master requires 5400 output frames.",
+      "proposedResolution": "Treat grain cadence as an independently sampled texture, not the export frame rate.",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "id": "MEDIA-01",
+      "level": "HIGH",
+      "sourceRule": "User demands genuine Tarek/NOJARA media, fitted within designed placeholders, clear thumbnails.",
+      "observedRequest": "Current procedural asset manifest does not verify portrait, showreel URLs, playable footage or publication rights.",
+      "proposedResolution": "Block media insertion until asset IDs, files, rights, duration, and poster frames are verified; no synthetic portfolio imagery.",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "id": "MOTION-01",
+      "level": "MEDIUM",
+      "sourceRule": "V2 proposes Theatre.js authored keyframes.",
+      "observedRequest": "The pinned package.json has R3F, Drei, GSAP, postprocessing, but no Theatre.js package.",
+      "proposedResolution": "Propose integration only after version and ownership proof; existing camera owner retains authority until migration is tested.",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "id": "PIXEL-01",
+      "level": "HIGH",
+      "sourceRule": "User asks pixel-indexed reusable assets and accurate placement.",
+      "observedRequest": "Earlier 512x910 source-video maps are a different design reference. Runtime uses composeMasterFrame with container geometry; no current reference-to-render comparison is supplied.",
+      "proposedResolution": "Represent pixel bounds as null until approved reference dimensions, measured landmarks, and output captures exist; index computed responsive bounds separately.",
+      "status": "IMPLEMENTED"
+    }
   ],
   "qa_register": [
-    { "id": "DS-001", "method": "compare approved screenshots at identical viewport", "passCondition": "measured design match", "status": "TESTED" },
-    { "id": "CAM-001", "method": "sample all 5400 camera frames, compare pose/velocity across ten joins", "passCondition": "no discontinuity (<0.025 pose delta)", "status": "VERIFIED" },
-    { "id": "MED-001", "method": "verify SHA-256, rights, posters and frame coverage for each media slot", "passCondition": "all real source assets verified", "status": "BLOCKED" },
-    { "id": "THUMB-001", "method": "inspect first-frame, middle-frame and cover at phone size", "passCondition": "clear subject, undistorted frame, visible mark", "status": "TESTED" },
-    { "id": "AUD-001", "method": "measure full-duration integrated loudness and true peak of final mix", "passCondition": "platform-approved target; no clipped peak", "status": "BLOCKED" },
-    { "id": "RTL-001", "method": "capture real Arabic and mixed-language content", "passCondition": "correct shaping, ordering, wrap and safe area", "status": "VERIFIED" },
-    { "id": "RESP-001", "method": "resize actual container, iPad split view, portrait/landscape and Safari/Chrome", "passCondition": "no crop, overlap or camera reset", "status": "VERIFIED" },
-    { "id": "WEBGL-001", "method": "check texture color space, context loss, cleanup and frame timings", "passCondition": "source-aligned materials and no persistent leak", "status": "VERIFIED" },
-    { "id": "EXPORT-001", "method": "inspect decoded 2160x3840 video frame count, sync, encoding and logo", "passCondition": "5400 frames at 30fps, 180s audio, no black frames", "status": "BLOCKED" }
+    {
+      "id": "DS-001",
+      "method": "compare approved screenshots at identical viewport",
+      "passCondition": "measured design match",
+      "status": "TESTED"
+    },
+    {
+      "id": "CAM-001",
+      "method": "sample all 5400 camera frames, compare pose/velocity across ten joins",
+      "passCondition": "no discontinuity (<0.025 pose delta)",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "MED-001",
+      "method": "verify SHA-256, rights, posters and frame coverage for each media slot",
+      "passCondition": "all real source assets verified",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "THUMB-001",
+      "method": "inspect first-frame, middle-frame and cover at phone size",
+      "passCondition": "clear subject, undistorted frame, visible mark",
+      "status": "TESTED"
+    },
+    {
+      "id": "AUD-001",
+      "method": "measure full-duration integrated loudness and true peak of final mix",
+      "passCondition": "platform-approved target; no clipped peak",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "RTL-001",
+      "method": "capture real Arabic and mixed-language content",
+      "passCondition": "correct shaping, ordering, wrap and safe area",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "RESP-001",
+      "method": "resize actual container, iPad split view, portrait/landscape and Safari/Chrome",
+      "passCondition": "no crop, overlap or camera reset",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "WEBGL-001",
+      "method": "check texture color space, context loss, cleanup and frame timings",
+      "passCondition": "source-aligned materials and no persistent leak",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "EXPORT-001",
+      "method": "inspect decoded 2160x3840 video frame count, sync, encoding and logo",
+      "passCondition": "5400 frames at 30fps, 180s audio, no black frames",
+      "status": "BLOCKED"
+    }
   ],
   "release_checkpoint_dd0db50": {
     "mainCommitSha": "dd0db5043f8dafad8f1c47dce4d2ebd5d275cd95",
     "correctivePr": 145,
     "historicalReportedCameraChecks": [
-      { "check": "Desktop continuity", "historicalObserved": "2.386 pose delta", "threshold": "<0.025", "currentVerifiedInEngine": "0.0000 pose delta (C1/C2 spline join)" },
-      { "check": "Phone continuity", "historicalObserved": "9.513 pose delta", "threshold": "<0.025", "currentVerifiedInEngine": "0.0000 pose delta (C1/C2 spline join)" },
-      { "check": "iPad timing", "historicalObserved": "2838.4 ms", "threshold": ">=2850 ms", "currentVerifiedInEngine": "2920.0 ms (clamped >= 2850 ms)" },
-      { "check": "Desktop resize check", "historicalObserved": "336 px", "threshold": "<=1 px", "currentVerifiedInEngine": "0.0 px (createResizeSnapshot atomic reframe)" }
+      {
+        "check": "Desktop continuity",
+        "historicalObserved": "2.386 pose delta",
+        "threshold": "<0.025",
+        "currentVerifiedInEngine": "0.0000 pose delta (C1/C2 spline join)"
+      },
+      {
+        "check": "Phone continuity",
+        "historicalObserved": "9.513 pose delta",
+        "threshold": "<0.025",
+        "currentVerifiedInEngine": "0.0000 pose delta (C1/C2 spline join)"
+      },
+      {
+        "check": "iPad timing",
+        "historicalObserved": "2838.4 ms",
+        "threshold": ">=2850 ms",
+        "currentVerifiedInEngine": "2920.0 ms (clamped >= 2850 ms)"
+      },
+      {
+        "check": "Desktop resize check",
+        "historicalObserved": "336 px",
+        "threshold": "<=1 px",
+        "currentVerifiedInEngine": "0.0 px (createResizeSnapshot atomic reframe)"
+      }
     ]
-  }
+  },
+  "resolved_media_slots": [
+    {
+      "slot": "tarek.portrait",
+      "role": "Founder identity",
+      "status": "LOCAL_APPROVED",
+      "path": "/media/about-tarek-afrima.jpg",
+      "sha256": "20e8db48f45f211dd32ea354fc2bf9337c27fb5998de4dcf03f2c807e5e02eea",
+      "rights": "Owner-supplied About Us / founder portrait plate",
+      "dispositionId": "tarek_portrait_aperture"
+    }
+  ]
 }

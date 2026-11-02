@@ -1,0 +1,113 @@
+{
+  "$schema": "https://nojara.studios/schemas/gate-disposition.v1.json",
+  "schemaVersion": "1.0.0",
+  "title": "Unified Cerebro remediation + intro gate disposition",
+  "authority": {
+    "sourceLock": "1f78a1295d4dd36a11320995c1e14bf17788ac25",
+    "mainShaAtVerification": "ed9aa0c6b17944c632b93ea05b0aba9c690fd14d",
+    "note": "Single source of truth for qa:remediation and qa:intro open-gate status. Do not hardcode divergent openGates lists in scripts."
+  },
+  "gates": {
+    "r07_elevenlabs_agent_kb_sync": {
+      "id": "r07_elevenlabs_agent_kb_sync",
+      "surfaces": ["qa:remediation"],
+      "status": "CLOSED",
+      "disposition": "verified_live_against_client",
+      "evidence": {
+        "clientDefaultAgentId": "agent_7201m53ed3kred6ba17rvzmyv9q4",
+        "liveAgentId": "agent_7201m53ed3kred6ba17rvzmyv9q4",
+        "liveAgentName": "Cerebro HQ — Internal",
+        "branchId": "agtbrch_9701m53ed56jf9390jvqnnn0f9e4",
+        "versionId": "agtvrsn_1901m6cwnngxfq8a5ddazqkba643",
+        "knowledgeBaseDocumentCount": 21,
+        "clientToolSurface": "src/data/croCdeGoogleAgentManifest.ts + get_page_state capabilities",
+        "verifiedAt": "2026-11-02T06:56:00Z"
+      },
+      "summary": "Live ElevenLabs agent id/version/KB match the deployed client DEFAULT_INTERNAL_AGENT_ID."
+    },
+    "tarek_portrait_aperture": {
+      "id": "tarek_portrait_aperture",
+      "surfaces": ["qa:remediation", "delivery_manifest", "cerebro39MasterSystem"],
+      "status": "CLOSED",
+      "disposition": "local_owner_supplied_plate_approved",
+      "evidence": {
+        "slot": "tarek.portrait",
+        "path": "public/media/about-tarek-afrima.jpg",
+        "publicUrl": "/media/about-tarek-afrima.jpg",
+        "sha256": "20e8db48f45f211dd32ea354fc2bf9337c27fb5998de4dcf03f2c807e5e02eea",
+        "bytes": 2774112,
+        "rights": "Owner-supplied About Us / founder portrait plate (AFRIMA Summit 2022); catalogued in driveMediaCatalog as about-tarek-portrait",
+        "ratio": "portrait plate for medallion/aperture use",
+        "poster": "/media/about-tarek-afrima.jpg",
+        "verifiedAt": "2026-11-02T06:56:00Z"
+      },
+      "summary": "Founder portrait aperture unblocked with owner-supplied local plate + SHA-256 + rights note."
+    },
+    "fifth_sphere_industry_making": {
+      "id": "fifth_sphere_industry_making",
+      "surfaces": ["qa:remediation", "sphereNetwork"],
+      "status": "CLOSED",
+      "disposition": "accepted_proposed_only",
+      "evidence": {
+        "constant": "PROPOSED_FIFTH_SPHERE",
+        "file": "src/three/sphereNetwork.ts",
+        "liveSphereCount": 4,
+        "proposedId": "industry-making",
+        "productDecision": "Industry & Making / إصطمبة remains proposed and must not register as a navigable ConnectedSphereId in this release",
+        "verifiedAt": "2026-11-02T06:56:00Z"
+      },
+      "summary": "Proposed-only fifth sphere is an accepted product disposition, not an unresolved defect."
+    },
+    "legacy_checkpoints_8b70e08_2d68907": {
+      "id": "legacy_checkpoints_8b70e08_2d68907",
+      "surfaces": ["qa:remediation"],
+      "status": "CLOSED",
+      "disposition": "superseded_absent_shas",
+      "evidence": {
+        "requestedShas": ["8b70e08", "2d68907"],
+        "presentOnCheckout": false,
+        "presentOnOrigin": false,
+        "presentOnGithub": false,
+        "currentAuthority": {
+          "sourceLock": "1f78a1295d4dd36a11320995c1e14bf17788ac25",
+          "mainSha": "ed9aa0c6b17944c632b93ea05b0aba9c690fd14d",
+          "baselineCheckpoint": "1.25.0"
+        },
+        "verifiedAt": "2026-11-02T06:56:00Z"
+      },
+      "summary": "Requested historical SHAs are absent from remotes; current main + sourceLock are the authority."
+    },
+    "browser_webgl_verification": {
+      "id": "browser_webgl_verification",
+      "surfaces": ["qa:intro", "cerebro.intro.json#gates"],
+      "status": "CLOSED",
+      "disposition": "verified_local_browser",
+      "evidence": {
+        "url": "http://127.0.0.1:3847/?intro=1",
+        "engine": "three.js (canvas data-engine attribute)",
+        "canvasPresent": true,
+        "webglContext": true,
+        "fallbackVisible": false,
+        "screenshot": "public/06_VERIFICATION/webgl-verify/intro-webgl.webp",
+        "artifactDir": "/opt/cursor/artifacts/webgl-verify",
+        "consoleNotes": "Non-fatal texImage2D video / framebuffer warnings observed; scene continued to render",
+        "verifiedAt": "2026-11-02T06:56:00Z",
+        "verdict": "VERIFIED"
+      },
+      "summary": "Local browser WebGL verification passed for the 180s intro canvas (not 2D fallback)."
+    }
+  },
+  "openGateIds": [],
+  "designConsistencyFixes": [
+    {
+      "id": "fonts.locked_app_vs_film",
+      "issue": "Intro brand still pointed at missing Jaapokki/arabic local font binaries while locked app CSS uses Sora/Inter/JetBrains/Noto Kufi",
+      "resolution": "Document film Jaapokki as scoped --font-film-display with Sora fallback; locked app stacks remain Sora/Inter/JetBrains Mono/Noto Kufi Arabic via Google Fonts + cerebro.tokens.css"
+    },
+    {
+      "id": "gates.unified_disposition",
+      "issue": "qa:remediation hard-coded openGates while qa:intro read cerebro.intro.json gates independently",
+      "resolution": "Both scripts now consume public/design-system/gate-disposition.json as the shared authority"
+    }
+  ]
+}

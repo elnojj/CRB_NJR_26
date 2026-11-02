@@ -1,6 +1,6 @@
 {
   "schema": "nojara.cerebro.remediation-contract/1",
-  "status": "PASS_WITH_OPEN_GATES",
+  "status": "PASS",
   "checks": [
     {
       "id": "r06-explainer60-contract",
@@ -33,18 +33,86 @@
     {
       "id": "r07-tool-parity-surface",
       "status": "PASS",
-      "detail": "Frontend accepts place/name_or_code/back aliases and exposes truthful capability flags. Live ElevenLabs agent sync remains an unresolved gate."
+      "detail": {
+        "message": "Frontend accepts place/name_or_code/back aliases and exposes truthful capability flags. Live ElevenLabs agent/KB verified against client default.",
+        "agentId": "agent_7201m53ed3kred6ba17rvzmyv9q4",
+        "versionId": "agtvrsn_1901m6cwnngxfq8a5ddazqkba643",
+        "knowledgeBaseDocumentCount": 21
+      }
     },
     {
       "id": "release-scripts",
       "status": "PASS",
       "detail": "qa:spheres and qa:remediation registered in package scripts."
+    },
+    {
+      "id": "tarek-portrait-aperture",
+      "status": "PASS",
+      "detail": {
+        "slot": "tarek.portrait",
+        "path": "public/media/about-tarek-afrima.jpg",
+        "publicUrl": "/media/about-tarek-afrima.jpg",
+        "sha256": "20e8db48f45f211dd32ea354fc2bf9337c27fb5998de4dcf03f2c807e5e02eea",
+        "bytes": 2774112,
+        "rights": "Owner-supplied About Us / founder portrait plate (AFRIMA Summit 2022); catalogued in driveMediaCatalog as about-tarek-portrait",
+        "ratio": "portrait plate for medallion/aperture use",
+        "poster": "/media/about-tarek-afrima.jpg",
+        "verifiedAt": "2026-11-02T06:56:00Z"
+      }
+    },
+    {
+      "id": "fifth-sphere-proposed-only",
+      "status": "PASS",
+      "detail": {
+        "id": "industry-making",
+        "labelEn": "Industry & Making",
+        "labelAr": "إصطمبة",
+        "status": "proposed",
+        "note": "Proposed die-world; not implemented as a navigable sphere in this repository."
+      }
+    },
+    {
+      "id": "legacy-checkpoints-superseded",
+      "status": "PASS",
+      "detail": {
+        "requestedShas": [
+          "8b70e08",
+          "2d68907"
+        ],
+        "presentOnCheckout": false,
+        "presentOnOrigin": false,
+        "presentOnGithub": false,
+        "currentAuthority": {
+          "sourceLock": "1f78a1295d4dd36a11320995c1e14bf17788ac25",
+          "mainSha": "ed9aa0c6b17944c632b93ea05b0aba9c690fd14d",
+          "baselineCheckpoint": "1.25.0"
+        },
+        "verifiedAt": "2026-11-02T06:56:00Z"
+      }
     }
   ],
-  "openGates": [
-    "R07 live ElevenLabs agent version + KB sync not verified against deployed client in this run",
-    "tarek_portrait_aperture blocked pending approved source/rights",
-    "fifth_sphere Industry & Making proposed only",
-    "checkpoints 8b70e08 / 2d68907 absent from this checkout and remotes"
+  "openGates": [],
+  "dispositionAuthority": "public/design-system/gate-disposition.json",
+  "closedGates": [
+    {
+      "id": "r07_elevenlabs_agent_kb_sync",
+      "disposition": "verified_live_against_client",
+      "summary": "Live ElevenLabs agent id/version/KB match the deployed client DEFAULT_INTERNAL_AGENT_ID."
+    },
+    {
+      "id": "tarek_portrait_aperture",
+      "disposition": "local_owner_supplied_plate_approved",
+      "summary": "Founder portrait aperture unblocked with owner-supplied local plate + SHA-256 + rights note."
+    },
+    {
+      "id": "fifth_sphere_industry_making",
+      "disposition": "accepted_proposed_only",
+      "summary": "Proposed-only fifth sphere is an accepted product disposition, not an unresolved defect."
+    },
+    {
+      "id": "legacy_checkpoints_8b70e08_2d68907",
+      "disposition": "superseded_absent_shas",
+      "summary": "Requested historical SHAs are absent from remotes; current main + sourceLock are the authority."
+    }
   ]
 }

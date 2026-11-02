@@ -32,8 +32,8 @@
   "brand": {
     "logo": "assets/brand/nojara-logo-white.png",
     "logoMode": "approved NOJARA white PNG",
-    "englishFont": "assets/fonts/JaapokkiSubtract-Regular.ttf",
-    "arabicFont": "assets/fonts/arabic.ttf",
+    "englishFont": null,
+    "arabicFont": null,
     "surfaces": {
       "void": "#05090E",
       "canvas": "#101D27",
@@ -58,6 +58,22 @@
       "radiusPx": 12,
       "textShadow": "photographic scrim only",
       "noDecorativeHUD": true
+    },
+    "fontScopes": {
+      "lockedApp": {
+        "titles": "Sora",
+        "body": "Inter",
+        "data": "JetBrains Mono",
+        "arabic": "Noto Kufi Arabic",
+        "loadedVia": "Google Fonts + src/styles/cerebro.tokens.css"
+      },
+      "filmReference": {
+        "display": "Jaapokki Subtract",
+        "cssVar": "--font-film-display",
+        "status": "scoped-reference-pending-owner-decision",
+        "fallbackWhenBinaryAbsent": "Sora",
+        "optionalLocalBinary": "assets/fonts/JaapokkiSubtract-Regular.ttf"
+      }
     }
   },
   "scene": {
@@ -474,15 +490,15 @@
       0,
       0,
       0,
-      0.00001,
-      0.00001,
-      0.00002,
-      0.00002,
-      0.00004,
-      0.00006,
-      0.00004,
-      0.00009,
-      0.00009,
+      1e-05,
+      1e-05,
+      2e-05,
+      2e-05,
+      4e-05,
+      6e-05,
+      4e-05,
+      9e-05,
+      9e-05,
       0.00012,
       0.00018,
       0.00011,
@@ -11254,19 +11270,19 @@
       0.00015,
       0.00014,
       0.00014,
-      0.00008,
+      8e-05,
       0.00011,
-      0.00009,
-      0.00006,
-      0.00007,
-      0.00004,
-      0.00004,
-      0.00004,
-      0.00002,
-      0.00002,
-      0.00001,
-      0.00001,
-      0.00001,
+      9e-05,
+      6e-05,
+      7e-05,
+      4e-05,
+      4e-05,
+      4e-05,
+      2e-05,
+      2e-05,
+      1e-05,
+      1e-05,
+      1e-05,
       0,
       0,
       0
@@ -11588,12 +11604,19 @@
     "noFakePortraits": true,
     "noClaimedCannesAward": true,
     "noInventedFounderIncident": true,
-    "browserWebGLVerification": "PENDING_LOCAL_VERIFY",
+    "browserWebGLVerification": "VERIFIED_LOCAL_2026-11-02",
     "fullVideoGenerated": false,
     "productionReady": false,
     "screensApproved": false,
     "voice": "OMITTED_BY_OWNER",
-    "mediaSource": "Local fallbacks remapped from Hotspot_26 sphere showreel + About Us portrait; original intro media package not attached in this wire"
+    "mediaSource": "Local fallbacks remapped from Hotspot_26 sphere showreel + About Us portrait; original intro media package not attached in this wire",
+    "webglEvidence": {
+      "dispositionId": "browser_webgl_verification",
+      "screenshot": "06_VERIFICATION/webgl-verify/intro-webgl.webp",
+      "url": "http://127.0.0.1:3847/?intro=1",
+      "engine": "three.js",
+      "fallbackVisible": false
+    }
   },
   "proofFrames": [
     {

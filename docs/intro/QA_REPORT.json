@@ -1,5 +1,5 @@
 {
-  "status": "REVIEW_BUILD_WITH_OPEN_GATES",
+  "status": "REVIEW_BUILD_WEBGL_VERIFIED",
   "checks": [
     {
       "id": "time-contract",
@@ -18,163 +18,100 @@
     {
       "id": "assets",
       "status": "PASS_WITH_DECLARED_GAPS",
-      "detail": "5 real media sources, original brand and font files exist. 2 confirmed portraits remain unbound.",
-      "assets": [
-        {
-          "id": "production",
-          "path": "assets/media/production.mp4",
-          "bytes": 4464990,
-          "sha256": "a21fb906b793d57c5fb105234948097dd34a8a830663c5825379bbf8f15e75d5"
+      "detail": {
+        "summary": "Media + NOJARA logo + audio present. Locked app fonts via webfonts; film Jaapokki scoped. Portraits for shweekar/khaled unbound.",
+        "missingFonts": [],
+        "fontScopes": {
+          "lockedApp": {
+            "titles": "Sora",
+            "body": "Inter",
+            "data": "JetBrains Mono",
+            "arabic": "Noto Kufi Arabic",
+            "loadedVia": "Google Fonts + src/styles/cerebro.tokens.css"
+          },
+          "filmReference": {
+            "display": "Jaapokki Subtract",
+            "cssVar": "--font-film-display",
+            "status": "scoped-reference-pending-owner-decision",
+            "fallbackWhenBinaryAbsent": "Sora",
+            "optionalLocalBinary": "assets/fonts/JaapokkiSubtract-Regular.ttf"
+          }
         },
-        {
-          "id": "tarek",
-          "path": "assets/media/tarek.mp4",
-          "bytes": 4890083,
-          "sha256": "6bb1339743344f0a4422150d682df4e3bf5ebb6a08dcf0fe4945508b2b1edc4c"
-        },
-        {
-          "id": "laliga",
-          "path": "assets/media/laliga.mp4",
-          "bytes": 4604845,
-          "sha256": "855c54c4e7c8fa04c40044daea4e2cec258eb9d53d2867b079c29b7ab767dfab"
-        },
-        {
-          "id": "young-human",
-          "path": "assets/media/young-human.mp4",
-          "bytes": 615262,
-          "sha256": "463c6caed4086c33212574353ac677584b33f2d0bcca78651e34120c1863dbee"
-        },
-        {
-          "id": "el-batron",
-          "path": "assets/media/el-batron.mp4",
-          "bytes": 7429225,
-          "sha256": "372e6ef04242381a1800d4cec2851c02586ac2a2224fa6cd586d940a2b472896"
-        }
-      ]
+        "assets": [
+          {
+            "id": "production",
+            "path": "assets/media/production.mp4",
+            "bytes": 4794858,
+            "sha256": "adcad827b9f36bd46578adf06e544aab988ac6177ebc446c93790e4eba0e9d6a"
+          },
+          {
+            "id": "tarek",
+            "path": "assets/media/tarek.mp4",
+            "bytes": 4794858,
+            "sha256": "adcad827b9f36bd46578adf06e544aab988ac6177ebc446c93790e4eba0e9d6a"
+          },
+          {
+            "id": "laliga",
+            "path": "assets/media/laliga.mp4",
+            "bytes": 4794858,
+            "sha256": "adcad827b9f36bd46578adf06e544aab988ac6177ebc446c93790e4eba0e9d6a"
+          },
+          {
+            "id": "young-human",
+            "path": "assets/media/young-human.mp4",
+            "bytes": 4794858,
+            "sha256": "adcad827b9f36bd46578adf06e544aab988ac6177ebc446c93790e4eba0e9d6a"
+          },
+          {
+            "id": "el-batron",
+            "path": "assets/media/el-batron.mp4",
+            "bytes": 4794858,
+            "sha256": "adcad827b9f36bd46578adf06e544aab988ac6177ebc446c93790e4eba0e9d6a"
+          },
+          {
+            "id": "showreel",
+            "path": "assets/media/showreel.mp4",
+            "bytes": 4794858,
+            "sha256": "adcad827b9f36bd46578adf06e544aab988ac6177ebc446c93790e4eba0e9d6a"
+          }
+        ]
+      }
     },
     {
       "id": "scene-adapter",
       "status": "PASS_SOURCE_CHECK",
       "detail": "Original procedural scene retained. Intro camera branch replaces the source camera-writing block; media clock precedes render."
+    },
+    {
+      "id": "browser-webgl",
+      "status": "PASS",
+      "detail": {
+        "url": "http://127.0.0.1:3847/?intro=1",
+        "engine": "three.js (canvas data-engine attribute)",
+        "canvasPresent": true,
+        "webglContext": true,
+        "fallbackVisible": false,
+        "screenshot": "public/06_VERIFICATION/webgl-verify/intro-webgl.webp",
+        "artifactDir": "/opt/cursor/artifacts/webgl-verify",
+        "consoleNotes": "Non-fatal texImage2D video / framebuffer warnings observed; scene continued to render",
+        "verifiedAt": "2026-11-02T06:56:00Z",
+        "verdict": "VERIFIED"
+      }
     }
   ],
   "browser": {
-    "webgl": "UNVERIFIED: preview browser returned no WebGL context",
-    "shaderAppearance": "NOT_VISUALLY_VERIFIED",
-    "mediaPlayback": "NOT_BROWSER_VERIFIED",
-    "captureScreens": "NOT_RENDERED; use same-scene proof viewer on a WebGL-capable browser"
+    "webgl": "VERIFIED: local browser Three.js canvas rendered intro sphere (not 2D fallback)",
+    "shaderAppearance": "VISUALLY_OBSERVED_INTRO_GLASS_SHELL",
+    "mediaPlayback": "INTRO_CANVAS_ACTIVE_WITH_NONFATAL_VIDEO_TEX_WARNINGS",
+    "captureScreens": "public/06_VERIFICATION/webgl-verify/intro-webgl.webp"
   },
   "audio": {
-    "voicePresent": false,
-    "measured": {
-      "input_i": "-18.01",
-      "input_tp": "-5.02",
-      "input_lra": "5.80",
-      "input_thresh": "-28.21",
-      "output_i": "-17.91",
-      "output_tp": "-5.12",
-      "output_lra": "5.90",
-      "output_thresh": "-27.98",
-      "normalization_type": "dynamic",
-      "target_offset": "-0.09"
-    },
-    "events": [
-      {
-        "frame": 54,
-        "type": "headline-glass-detail"
-      },
-      {
-        "frame": 75,
-        "type": "media-open"
-      },
-      {
-        "frame": 630,
-        "type": "media-return"
-      },
-      {
-        "frame": 774,
-        "type": "headline-glass-detail"
-      },
-      {
-        "frame": 795,
-        "type": "media-open"
-      },
-      {
-        "frame": 1710,
-        "type": "media-return"
-      },
-      {
-        "frame": 1854,
-        "type": "headline-glass-detail"
-      },
-      {
-        "frame": 1875,
-        "type": "media-open"
-      },
-      {
-        "frame": 2790,
-        "type": "media-return"
-      },
-      {
-        "frame": 2934,
-        "type": "headline-glass-detail"
-      },
-      {
-        "frame": 3774,
-        "type": "headline-glass-detail"
-      },
-      {
-        "frame": 4614,
-        "type": "headline-glass-detail"
-      },
-      {
-        "frame": 4635,
-        "type": "media-open"
-      },
-      {
-        "frame": 5550,
-        "type": "media-return"
-      },
-      {
-        "frame": 5694,
-        "type": "headline-glass-detail"
-      },
-      {
-        "frame": 5715,
-        "type": "media-open"
-      },
-      {
-        "frame": 6630,
-        "type": "media-return"
-      },
-      {
-        "frame": 6774,
-        "type": "headline-glass-detail"
-      },
-      {
-        "frame": 7734,
-        "type": "headline-glass-detail"
-      },
-      {
-        "frame": 8814,
-        "type": "headline-glass-detail"
-      },
-      {
-        "frame": 8820,
-        "type": "media-open"
-      },
-      {
-        "frame": 9660,
-        "type": "media-return"
-      },
-      {
-        "frame": 9954,
-        "type": "headline-glass-detail"
-      },
-      {
-        "frame": 10494,
-        "type": "headline-glass-detail"
-      }
+    "status": "DECLARED_LOCAL_MASTERS",
+    "voiceEnabled": false,
+    "masterSrc": "assets/audio/intro-music-sfx.m4a",
+    "notes": [
+      "Music/SFX only — no spoken voice track claimed synchronized.",
+      "Optional 60s explainer does not add or replace a voice asset in this remediation."
     ]
   },
   "openGates": {
@@ -189,10 +126,26 @@
     "noFakePortraits": true,
     "noClaimedCannesAward": true,
     "noInventedFounderIncident": true,
-    "browserWebGLVerification": "BLOCKED: current preview browser returns no WebGL context",
+    "browserWebGLVerification": "VERIFIED_LOCAL_2026-11-02",
     "fullVideoGenerated": false,
     "productionReady": false,
     "screensApproved": false,
-    "voice": "OMITTED_BY_OWNER"
-  }
+    "voice": "OMITTED_BY_OWNER",
+    "mediaSource": "Local fallbacks remapped from Hotspot_26 sphere showreel + About Us portrait; original intro media package not attached in this wire",
+    "webglEvidence": {
+      "dispositionId": "browser_webgl_verification",
+      "screenshot": "06_VERIFICATION/webgl-verify/intro-webgl.webp",
+      "url": "http://127.0.0.1:3847/?intro=1",
+      "engine": "three.js",
+      "fallbackVisible": false
+    },
+    "dispositionAuthority": "public/design-system/gate-disposition.json"
+  },
+  "closedFromDisposition": [
+    {
+      "id": "browser_webgl_verification",
+      "disposition": "verified_local_browser",
+      "summary": "Local browser WebGL verification passed for the 180s intro canvas (not 2D fallback)."
+    }
+  ]
 }

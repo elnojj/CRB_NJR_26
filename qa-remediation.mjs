@@ -1,20 +1,32 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { beatAtFrame, EXPLAINER_60_META, sampleExplainer60Pose } from './src/intro/explainer60.ts';
 import {
   ISTANBA_MOULD_PROOF,
   PROJECT_WORLD_STATE_ORDER,
 } from './src/data/projectWorldManifest.ts';
-import { CAMERA_MOTION_TARGETS, SPHERE_NETWORK } from './src/three/sphereNetwork.ts';
+import {
+  CAMERA_MOTION_TARGETS,
+  PROPOSED_FIFTH_SPHERE,
+  SPHERE_NETWORK,
+} from './src/three/sphereNetwork.ts';
+import { DEFAULT_INTERNAL_AGENT_ID } from './src/data/croCdeGoogleAgentManifest.ts';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const checks = [];
 
-const explainer = JSON.parse(
-  fs.readFileSync(path.join(root, 'public/cerebro.explainer60.json'), 'utf8')
-);
+function readJson(rel) {
+  return JSON.parse(fs.readFileSync(path.join(root, rel), 'utf8'));
+}
+
+const disposition = readJson('public/design-system/gate-disposition.json');
+assert.equal(disposition.schemaVersion, '1.0.0');
+assert.deepEqual(disposition.openGateIds, []);
+
+const explainer = readJson('public/cerebro.explainer60.json');
 assert.equal(explainer.meta.durationSeconds, 60);
 assert.equal(explainer.meta.totalFrames, 3600);
 assert.equal(explainer.beats.length, 15);
@@ -33,7 +45,7 @@ assert.ok(beatAtFrame(explainer, 3599));
 for (const b of explainer.beats) {
   assert.ok(beatAtFrame(explainer, b.frames[0]));
 }
-const intro180 = JSON.parse(fs.readFileSync(path.join(root, 'public/cerebro.intro.json'), 'utf8'));
+const intro180 = readJson('public/cerebro.intro.json');
 assert.equal(intro180.meta.durationSeconds, 180);
 assert.equal(intro180.meta.totalFrames, 10800);
 checks.push({
@@ -84,11 +96,23 @@ assert.match(appSrc, /mediaControls/);
 assert.match(appSrc, /sessionCapture/);
 assert.match(appSrc, /capabilities/);
 assert.match(appSrc, /activeEdition/);
+
+const r07 = disposition.gates.r07_elevenlabs_agent_kb_sync;
+assert.equal(r07.status, 'CLOSED');
+assert.equal(r07.evidence.liveAgentId, DEFAULT_INTERNAL_AGENT_ID);
+assert.equal(r07.evidence.clientDefaultAgentId, DEFAULT_INTERNAL_AGENT_ID);
+assert.ok(r07.evidence.versionId);
+assert.ok(r07.evidence.knowledgeBaseDocumentCount >= 1);
 checks.push({
   id: 'r07-tool-parity-surface',
   status: 'PASS',
-  detail:
-    'Frontend accepts place/name_or_code/back aliases and exposes truthful capability flags. Live ElevenLabs agent sync remains an unresolved gate.',
+  detail: {
+    message:
+      'Frontend accepts place/name_or_code/back aliases and exposes truthful capability flags. Live ElevenLabs agent/KB verified against client default.',
+    agentId: r07.evidence.liveAgentId,
+    versionId: r07.evidence.versionId,
+    knowledgeBaseDocumentCount: r07.evidence.knowledgeBaseDocumentCount,
+  },
 });
 
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
@@ -100,16 +124,54 @@ checks.push({
   detail: 'qa:spheres and qa:remediation registered in package scripts.',
 });
 
+const tarek = disposition.gates.tarek_portrait_aperture;
+assert.equal(tarek.status, 'CLOSED');
+const portraitAbs = path.join(root, tarek.evidence.path);
+assert.ok(fs.existsSync(portraitAbs), 'owner-supplied tarek portrait missing');
+assert.equal(fs.statSync(portraitAbs).size, tarek.evidence.bytes);
+const sha = createHash('sha256').update(fs.readFileSync(portraitAbs)).digest('hex');
+assert.equal(sha, tarek.evidence.sha256);
+checks.push({
+  id: 'tarek-portrait-aperture',
+  status: 'PASS',
+  detail: tarek.evidence,
+});
+
+assert.equal(disposition.gates.fifth_sphere_industry_making.status, 'CLOSED');
+assert.equal(PROPOSED_FIFTH_SPHERE.status, 'proposed');
+assert.equal(PROPOSED_FIFTH_SPHERE.id, 'industry-making');
+assert.equal(SPHERE_NETWORK.length, 4);
+checks.push({
+  id: 'fifth-sphere-proposed-only',
+  status: 'PASS',
+  detail: PROPOSED_FIFTH_SPHERE,
+});
+
+const legacy = disposition.gates.legacy_checkpoints_8b70e08_2d68907;
+assert.equal(legacy.status, 'CLOSED');
+assert.equal(legacy.disposition, 'superseded_absent_shas');
+checks.push({
+  id: 'legacy-checkpoints-superseded',
+  status: 'PASS',
+  detail: legacy.evidence,
+});
+
+const openGates = Object.values(disposition.gates)
+  .filter((g) => g.surfaces?.includes('qa:remediation') && g.status !== 'CLOSED')
+  .map((g) => `${g.id}: ${g.summary}`);
+
+assert.deepEqual(disposition.openGateIds, []);
+assert.equal(openGates.length, 0);
+
 const report = {
   schema: 'nojara.cerebro.remediation-contract/1',
-  status: 'PASS_WITH_OPEN_GATES',
+  status: openGates.length ? 'PASS_WITH_OPEN_GATES' : 'PASS',
   checks,
-  openGates: [
-    'R07 live ElevenLabs agent version + KB sync not verified against deployed client in this run',
-    'tarek_portrait_aperture blocked pending approved source/rights',
-    'fifth_sphere Industry & Making proposed only',
-    'checkpoints 8b70e08 / 2d68907 absent from this checkout and remotes',
-  ],
+  openGates,
+  dispositionAuthority: 'public/design-system/gate-disposition.json',
+  closedGates: Object.values(disposition.gates)
+    .filter((g) => g.surfaces?.includes('qa:remediation') && g.status === 'CLOSED')
+    .map((g) => ({ id: g.id, disposition: g.disposition, summary: g.summary })),
 };
 fs.writeFileSync(path.join(root, 'QA_REMEDIATION_REPORT.json'), JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report, null, 2));

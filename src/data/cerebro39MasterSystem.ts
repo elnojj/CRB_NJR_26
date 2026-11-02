@@ -464,7 +464,7 @@ export const EXPLICIT_CONFLICTS_TABLE = [
 ] as const;
 
 export const UNRESOLVED_MEDIA_SLOTS_TABLE = [
-  { slot: 'tarek.portrait', role: 'Founder identity', ratio: '1:1 medallion', status: 'BLOCKED', needed: 'Source path, SHA-256, rights, ratio, poster' },
+  { slot: 'tarek.portrait', role: 'Founder identity', ratio: '1:1 medallion', status: 'LOCAL_APPROVED', needed: 'Owner-supplied /media/about-tarek-afrima.jpg (sha256 20e8db48…)' },
   { slot: 'nojara.showreel', role: 'Verified moving portfolio footage', ratio: '16:9 recessed aperture', status: 'BLOCKED', needed: 'Source path, SHA-256, rights, ratio, poster' },
   { slot: 'young_human.cairo_tower.video', role: 'Young & Human verified project footage', ratio: '9:16 recessed aperture', status: 'BLOCKED', needed: 'Source path, SHA-256, rights, ratio, poster' },
   { slot: 'portfolio.verified.video.1', role: 'Verified portfolio moving footage', ratio: '16:9 recessed aperture', status: 'BLOCKED', needed: 'Source path, SHA-256, rights, ratio, poster' },

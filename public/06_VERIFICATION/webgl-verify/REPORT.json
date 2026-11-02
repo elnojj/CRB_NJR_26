@@ -1,0 +1,17 @@
+{
+  "schema": "nojara.cerebro.webgl-verify/1",
+  "verdict": "VERIFIED",
+  "url": "http://127.0.0.1:3847/?intro=1",
+  "engine": "three.js",
+  "canvasPresent": true,
+  "webglContext": true,
+  "fallbackVisible": false,
+  "screenshot": "public/06_VERIFICATION/webgl-verify/intro-webgl.webp",
+  "artifacts": [
+    "/opt/cursor/artifacts/webgl-verify/671ae.webp",
+    "/opt/cursor/artifacts/webgl-verify/b6a73.webp",
+    "/opt/cursor/artifacts/webgl-verify/49395.webp"
+  ],
+  "verifiedAt": "2026-11-02T06:56:00Z",
+  "notes": "Non-fatal video texImage2D / framebuffer warnings; intro 3D scene rendered."
+}
