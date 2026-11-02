@@ -51,11 +51,7 @@ import {
   mountUnavailableProjectWorld,
   type ProjectWorldHostHandle,
 } from '../three/projectWorldHost';
-import {
-  getShowreelAssetByCode,
-  getSphereTextureAsset,
-  resolveAssetPlaybackUrl,
-} from '../data/driveMediaCatalog';
+import { getSphereTextureAsset } from '../data/driveMediaCatalog';
 import { getProjectWorldManifest } from '../data/projectWorldManifest';
 import { introBridge } from '../intro/bridge';
 import {
@@ -2896,20 +2892,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       }
     }
 
-    // Always-on inner media for connected spheres — catalog / public-brand only.
-    // CDE has no verified YAH master in catalog (shared young-human.mp4 is a duplicate
-    // plate) → omit sourceUrl so ice fallback mounts truthfully.
-    const laligaAsset = getShowreelAssetByCode('LALIGA');
-    const aboutShowreel = getShowreelAssetByCode('NOJARA');
-    const ALWAYS_ON_SPHERE_MEDIA: Record<string, string | undefined> = {
-      hq: resolveAssetPlaybackUrl(getSphereTextureAsset()),
-      cde: undefined,
-      'campaign-os':
-        (laligaAsset && resolveAssetPlaybackUrl(laligaAsset)) ||
-        PUBLIC_BRAND_MEDIA.laligaFilm.url,
-      'about-us':
-        (aboutShowreel && resolveAssetPlaybackUrl(aboutShowreel)) ||
-        PUBLIC_BRAND_MEDIA.showreel2023.url,
+    // Always-on ambient plates keep every connected shell lit.
+    // These local paths are shared ambient plates (same bytes historically) — not
+    // project-credit masters. Verified project bindings live in projectWorldManifest.
+    const ALWAYS_ON_SPHERE_MEDIA: Record<string, string> = {
+      hq: '/media/sphere-showreel-fallback.mp4',
+      cde: '/assets/media/young-human.mp4',
+      'campaign-os': '/assets/media/laliga.mp4',
+      'about-us': '/assets/media/showreel.mp4',
     };
     const mountAlwaysOnMedia = (
       parent: THREE.Object3D,
@@ -2917,12 +2907,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       shellBandRadius: number
     ) => {
       try {
-        const sourceUrl = ALWAYS_ON_SPHERE_MEDIA[sphereId];
         const handle = mountSphereVideoTexture({
           parent,
           asset: sphereId === 'hq' ? getSphereTextureAsset() : undefined,
-          sourceUrl,
-          iceOnly: sphereId === 'cde' && !sourceUrl,
+          sourceUrl: ALWAYS_ON_SPHERE_MEDIA[sphereId],
           portalRadius: shellBandRadius * 0.85,
           shellBandRadius,
           wrapRadius: shellBandRadius * 1.002,

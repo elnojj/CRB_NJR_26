@@ -18,11 +18,25 @@ export type SphereVideoHandle = {
 };
 
 /**
- * Verified project → video only. Shared /assets/media/*.mp4 duplicates are NOT
- * project masters — absent sources resolve to null (caller must use ice plate).
+ * Ambient plates for project / station node shells.
+ * These keep nodes lit; they are NOT project-credit masters.
+ * Verified showreels (e.g. El Batron Wix) win when present in the catalog binding.
  */
-export function resolveProjectMediaSrc(projectId: string): string | null {
-  return resolveVerifiedProjectVideoUrl(projectId);
+export const PROJECT_MEDIA_SRC: Record<string, string> = {
+  SEVEN: '/assets/media/production.mp4',
+  YAH: '/assets/media/young-human.mp4',
+  MHE: '/assets/media/tarek.mp4',
+  BSOCIAL: '/assets/media/young-human.mp4',
+  'AL-AHRAM': '/assets/media/production.mp4',
+  'MUSEUM-OF-ALMOST': '/assets/media/showreel.mp4',
+  'EL-BATRON': '/assets/media/el-batron.mp4',
+  GONDWANA: '/assets/media/laliga.mp4',
+};
+
+export function resolveProjectMediaSrc(projectId: string): string {
+  const verified = resolveVerifiedProjectVideoUrl(projectId);
+  if (verified) return verified;
+  return PROJECT_MEDIA_SRC[projectId] || '/assets/media/showreel.mp4';
 }
 
 export type NodeVideoHandle = {
@@ -383,51 +397,16 @@ export function mountProjectNodeVideoShell(options: {
   radius?: number;
   name?: string;
 }): NodeVideoHandle {
-  const verified = resolveProjectMediaSrc(options.projectId);
-  const radius = options.radius ?? 0.62;
-  const geo = createSphericalVideoShellGeometry(radius, 16 / 9, 48, 32);
-
-  // Absent verified video → ice plate only (never invent a project master from shared fallbacks).
-  if (!verified) {
-    const ice = createFallbackTexture();
-    const mat = new THREE.MeshBasicMaterial({
-      map: ice,
-      side: THREE.FrontSide,
-      transparent: true,
-      opacity: 0.88,
-      depthWrite: false,
-      toneMapped: false,
-    });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.name = options.name || `project-video-${options.projectId}`;
-    mesh.renderOrder = 4;
-    mesh.userData = {
-      projectMediaId: options.projectId,
-      mediaUnavailable: true,
-      introInteractive: true,
-    };
-    options.parent.add(mesh);
-    const stub = document.createElement('video');
-    return {
-      video: stub,
-      texture: ice as unknown as THREE.VideoTexture,
-      mesh,
-      dispose: () => {
-        ice.dispose();
-        geo.dispose();
-        mat.dispose();
-        options.parent.remove(mesh);
-      },
-    };
-  }
-
-  const video = createVideoElement(verified);
+  const url = resolveProjectMediaSrc(options.projectId);
+  const video = createVideoElement(url);
   const texture = new THREE.VideoTexture(video);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
   texture.generateMipmaps = false;
 
+  const radius = options.radius ?? 0.62;
+  const geo = createSphericalVideoShellGeometry(radius, 16 / 9, 48, 32);
   const mat = new THREE.MeshBasicMaterial({
     map: texture,
     side: THREE.FrontSide,
@@ -441,6 +420,7 @@ export function mountProjectNodeVideoShell(options: {
   mesh.renderOrder = 4;
   mesh.userData = {
     projectMediaId: options.projectId,
+    verifiedShowreel: Boolean(resolveVerifiedProjectVideoUrl(options.projectId)),
     introInteractive: true,
   };
   options.parent.add(mesh);
