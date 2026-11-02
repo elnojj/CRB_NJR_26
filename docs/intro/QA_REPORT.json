@@ -41,38 +41,38 @@
           {
             "id": "production",
             "path": "assets/media/production.mp4",
-            "bytes": 4794858,
-            "sha256": "adcad827b9f36bd46578adf06e544aab988ac6177ebc446c93790e4eba0e9d6a"
+            "bytes": 565634,
+            "sha256": "b0a5518358864995809f6230aa1dc377ad12170a7d0b36cf0ea565a199dfdd39"
           },
           {
             "id": "tarek",
             "path": "assets/media/tarek.mp4",
-            "bytes": 4794858,
-            "sha256": "adcad827b9f36bd46578adf06e544aab988ac6177ebc446c93790e4eba0e9d6a"
+            "bytes": 1236143,
+            "sha256": "acd8230434dd751f6e52ec2db03d3c040bf7eb34c681988b2286269e185bea02"
           },
           {
             "id": "laliga",
             "path": "assets/media/laliga.mp4",
-            "bytes": 4794858,
-            "sha256": "adcad827b9f36bd46578adf06e544aab988ac6177ebc446c93790e4eba0e9d6a"
+            "bytes": 613980,
+            "sha256": "004384e4c33e9a305c4517ea57879aa1cd7aa8a1d4249e49069b9093b5fdfe12"
           },
           {
             "id": "young-human",
             "path": "assets/media/young-human.mp4",
-            "bytes": 4794858,
-            "sha256": "adcad827b9f36bd46578adf06e544aab988ac6177ebc446c93790e4eba0e9d6a"
+            "bytes": 1029529,
+            "sha256": "ce4ee735a195ff68b84b5647a8a0bec5d4ad1c87140001b68f100c628f86b9b7"
           },
           {
             "id": "el-batron",
             "path": "assets/media/el-batron.mp4",
-            "bytes": 4794858,
-            "sha256": "adcad827b9f36bd46578adf06e544aab988ac6177ebc446c93790e4eba0e9d6a"
+            "bytes": 2296664,
+            "sha256": "f5ed99adf23057b4bf6a7c8447759d95a573a04a64503b390f664bd3cf4956d2"
           },
           {
             "id": "showreel",
             "path": "assets/media/showreel.mp4",
-            "bytes": 4794858,
-            "sha256": "adcad827b9f36bd46578adf06e544aab988ac6177ebc446c93790e4eba0e9d6a"
+            "bytes": 1219768,
+            "sha256": "fb3b7cfe7b5d9e559a88fea674597a3d08adbd5a95ea21a0ed784bf67e95288a"
           }
         ]
       }
