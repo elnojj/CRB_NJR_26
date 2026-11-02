@@ -79,6 +79,13 @@
   line-height: var(--type-body-lh);
 }
 
+.font-arabic,
+[lang='ar'],
+:lang(ar) {
+  font-family: var(--font-arabic, 'Noto Kufi Arabic', 'Cairo', sans-serif);
+  letter-spacing: 0;
+}
+
 .font-mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;

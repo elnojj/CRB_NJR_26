@@ -526,11 +526,20 @@ export default function App() {
     const snap = readSessionSnapshot();
     setHydrationPhase(phases[2]);
     setOpenPanels(snap.openPanels);
+    if (snap.navigation?.language === 'ar' || snap.navigation?.language === 'en') {
+      setLanguageRtl(snap.navigation.language);
+    }
     setHydrationPhase(phases[3]);
     setVoiceState('Ready');
     setTourState((prev) => ({ ...prev, active: false, paused: false, step: 0 }));
+    setProjectWorld(IDLE_PROJECT_WORLD);
     setHydrationPhase(phases[4]);
   }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = languageRtl === 'ar' ? 'ar' : 'en';
+    document.documentElement.dir = languageRtl === 'ar' ? 'rtl' : 'ltr';
+  }, [languageRtl]);
 
   useEffect(() => {
     writeSessionSnapshot({
