@@ -500,7 +500,7 @@ export const GUI_CANONICAL_SCREENS: Record<
     cameraPreset: 'focused',
     visualState: 'voice_speaking',
     description:
-      'Gold voice orb; teal only denotes listening. Caption and Stop remain readable.',
+      'Teal voice orb (#9AFFE0) for listening and speaking. Caption and Stop remain readable; gold stays film/3D rails only.',
   },
 
   S07: {

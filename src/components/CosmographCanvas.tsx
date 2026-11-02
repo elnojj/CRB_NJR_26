@@ -1660,8 +1660,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     domEl.style.touchAction = 'none';
     domEl.style.cursor = 'grab';
 
+    // Local flag — React state alone is too late to stop the in-flight RAF tick.
+    let contextLost = false;
+
     const handleContextLost = (e: Event) => {
       e.preventDefault();
+      contextLost = true;
       setWebglStatus('CONTEXT_LOST');
       setWebglReason(
         'WebGL context lost — Reduced-graphics spatial view active. Retry restores the liquid-glass scene.'
@@ -1674,6 +1678,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     };
 
     const handleContextRestored = () => {
+      contextLost = false;
       setWebglStatus('ACTIVE');
       setWebglReason('');
       window.dispatchEvent(
@@ -1939,6 +1944,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       softwareGl: isSoftwareGl,
       face: 'back',
     });
+    // MAT owns shell opacity — tick must not invent a competing 0.42 recipe.
+    const shellFrontBaseOpacity = sharedOpticalGlassMat.opacity;
 
     // Shared Titanium / Silver Material (silver nodes & portal rim)
     const sharedTitaniumMat = new THREE.MeshPhysicalMaterial({
@@ -3645,7 +3652,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     window.addEventListener('keydown', recordUserInput);
 
     const onResize = () => {
-      if (!container) return;
+      if (!container || contextLost) return;
       const w = container.clientWidth || window.innerWidth;
       const h = container.clientHeight || window.innerHeight;
       const comp = readHomeComposition(container);
@@ -3715,6 +3722,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     }
 
     function tick() {
+      if (contextLost) {
+        // Keep a slow heartbeat so restore can resume; skip all GPU work.
+        frameId = window.setTimeout(tick, 500);
+        return;
+      }
       if (isPageHidden && GUI_WORLD_MOTION_TOKENS.freezeIfHidden) {
         frameId = window.setTimeout(tick, 250);
         return;
@@ -3986,12 +3998,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         dt
       );
       const domeMix = glassUniforms.uInteriorDome.value;
-      hqAssembly.frontShellMat.opacity = isSoftwareGl
-        ? 0.16 * (1 - domeMix * 0.75)
-        : 0.42 * (1 - domeMix * 0.72);
-      cdeAssembly.frontShellMat.opacity = isSoftwareGl
-        ? 0.16 * (1 - domeMix * 0.75)
-        : 0.42 * (1 - domeMix * 0.72);
+      // Dome transition is shader-driven (uInteriorDome); keep MAT shell opacity intact.
       hqAssembly.domeGridMat.opacity = domeMix * 0.24;
       cdeAssembly.domeGridMat.opacity = domeMix * 0.24;
 
@@ -4031,13 +4038,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const tubeProp = mediaTubeStateRef.current;
       const tubeActive = Boolean(tubeProp?.active);
       mediaTubeGroup.visible = tubeActive;
+      // Shared MAT front shell — dim from registry base while tube is up, else restore.
+      sharedOpticalGlassMat.opacity = tubeActive
+        ? shellFrontBaseOpacity * 0.22
+        : shellFrontBaseOpacity;
       if (tubeActive) {
         const activeCenter = s.activeSphere === 'cde' ? CDE_CENTER : HQ_CENTER;
         mediaTubeGroup.position.copy(activeCenter);
-
-        // Dim enclosing sphere shell so the 3D cylindrical tube is crystal clear
-        hqAssembly.frontShellMat.opacity *= 0.22;
-        cdeAssembly.frontShellMat.opacity *= 0.22;
 
         if (tubeProp?.projectId && tubeProp.projectId !== mountedTubeProjectId) {
           mountedTubeProjectId = tubeProp.projectId;
@@ -4811,7 +4818,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           })}
 
           {captionBubble && (
-            <div className="cerebro-infograph-caption fixed left-1/2 top-[16%] -translate-x-1/2 z-20 px-4 py-2.5 rounded-2xl pointer-events-none">
+            <div
+              className="cerebro-infograph-caption fixed left-1/2 top-[16%] -translate-x-1/2 z-20 px-4 py-2.5 rounded-2xl pointer-events-none"
+              role="status"
+              aria-live="polite"
+              data-testid="caption-bubble"
+            >
               <div className="ig-shell">
                 <div className="flex items-center gap-2 mb-0.5">
                   <span

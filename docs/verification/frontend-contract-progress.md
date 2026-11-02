@@ -6,7 +6,7 @@ Date: 2026-11-02 (Africa/Cairo)
 
 | Remote | SHA | Status |
 |--------|-----|--------|
-| Cursor Origin `main` | `285b75f07352d99a0497582b508984b4d5dc6ddf` (+ follow-ups) | Pushed · `git ls-remote` verified |
+| Cursor Origin `main` | `ae6320d7ef532928a5cbdd7d0071e2369255e9b4` | Explore follow-up (glass/a11y/voice copy) |
 | GitHub `elnojj/CRB_NJR_26` `main` | **blocked** | No `GH_TOKEN`. AI Studio sync: `GH_TOKEN=… ./scripts/sync-aistudio-main.sh` |
 
 ## Gates
@@ -16,9 +16,18 @@ Date: 2026-11-02 (Africa/Cairo)
 | `npm run validate:design` | PASS 36/36 |
 | `npm run lint` / `typecheck` | PASS |
 | `npm run qa:spheres` / `qa:remediation` | PASS |
-| `npm run build` / `qa:gates` | PASS |
+| `npm run build` | PASS (this pass) |
 | Layout self-tests | 10/10 |
 | Browser | Capsule pill verified at `/?intro=0` |
+
+## Explore follow-up (2026-11-02 Africa/Cairo)
+
+| Gap | Status |
+|-----|--------|
+| S06 “Gold voice orb” copy | Fixed — teal `#9AFFE0` speaking/listening; gold film/3D only |
+| HQ/CDE `frontShellMat.opacity` vs `MAT_LIQUID_GLASS_SHELL` | Fixed — MAT base opacity; tube dims from registry base only |
+| captionBubble `aria-live` | Fixed — `role="status"` + `aria-live="polite"` |
+| WebGL context-lost tick pause | Fixed — local `contextLost` flag skips GPU work + resize render |
 
 ## Layer status
 
