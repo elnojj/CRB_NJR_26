@@ -15,7 +15,9 @@ export const BrandLockup: React.FC<Props> = ({ mode }) => {
     <div
       data-testid={isLoader ? 'brand-lockup-loader' : 'brand-lockup-region'}
       data-layout-id="cerebro-brand-lockup"
-      className={'nojara-brand-container ' + (isLoader ? 'nojara-brand-loader' : 'nojara-brand-header')}
+      className={
+        'nojara-brand-container ' + (isLoader ? 'nojara-brand-loader' : 'nojara-brand-header is-centered-stack')
+      }
       aria-label="NOJARA Studios"
     >
       {!logoFailed ? (

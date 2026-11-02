@@ -140,6 +140,7 @@ import {
   subscribeBrowserFullscreen,
   toggleBrowserFullscreen,
 } from './utils/browserFullscreen';
+import { FloatingIconToggles } from './components/chrome/FloatingIconToggles';
 
 export interface SelfTestCheckResult {
   id: string;
@@ -271,6 +272,7 @@ export default function App() {
     'MUSEUM-OF-ALMOST': 'overview',
     GONDWANA: 'overview',
   });
+  // Overview docks start available but each panel itself stays collapsed behind vector ships.
   const [dashboardCollapsed, setDashboardCollapsed] = useState<boolean>(false);
   const [activeShowreelIndex, setActiveShowreelIndex] = useState<number>(0);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('SEVEN');
@@ -3651,215 +3653,152 @@ export default function App() {
         })()}
       </TrackerMotionProvider>
 
-      {/* 4. Shared Layout Grid Region 1: Safe-Area Header — Separate Brand Lockup Region & Controls Region */}
+      {/* 4. Clear fixed header — centered NOJARA + CEREBRO only */}
       <header
         data-testid="workspace-header"
-        className="fixed top-0 left-0 right-0 z-30 pointer-events-none flex items-center justify-between gap-2 px-3 md:px-5 pt-3 pb-1 safe-area-top"
+        className="fixed top-0 left-0 right-0 z-30 pointer-events-none flex items-start justify-center px-3 pt-3 pb-1 safe-area-top"
       >
-        {/* Top-Left Reserved Region: NOJARA Brand Lockup + Optional Back Navigation */}
-        <div className="pointer-events-none flex items-center gap-2 min-w-0 shrink-0">
-          <div className="pointer-events-auto shrink-0">
-            <BrandLockup
-              mode="header"
-              activeSphere={activeSphere}
-              onSwitchSphere={(target) =>
-                executeTypedAction({ type: 'switch_sphere', sphere: target }, 'header')
-              }
-            />
-          </div>
-
-          {navHistory.length > 0 && (
-            <button
-              type="button"
-              data-testid="header-back-btn"
-              onClick={handleNavigateBack}
-              title="Return to previous workspace context"
-              className="cj-glass-card pointer-events-auto min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer shrink-0"
-            >
-              ← Back
-            </button>
-          )}
+        <div className="pointer-events-auto">
+          <BrandLockup
+            mode="header"
+            activeSphere={activeSphere}
+            onSwitchSphere={(target) =>
+              executeTypedAction({ type: 'switch_sphere', sphere: target }, 'header')
+            }
+          />
         </div>
+      </header>
 
-        {/* Top-Right Reserved Region: HQ/CDE Switch, Overview Status Actions, Tour & More Menu */}
-        <div
-          data-testid="header-controls-region"
-          onPointerDown={(e) => e.stopPropagation()}
-          className="pointer-events-auto flex items-center justify-end gap-1.5 shrink-0 relative"
-        >
-          {/* HQ / CDE Segmented Switcher (Strictly Outside Brand Lockup Bounding Box) */}
-          <div
-            data-testid="sphere-switch-group"
-            role="group"
-            aria-label="Sphere Switch"
-            className="cj-glass-card inline-flex items-center p-1 rounded-xl gap-1 h-[44px]"
-          >
-            <button
-              type="button"
-              data-testid="switch-sphere-hq"
-              onClick={() =>
-                executeTypedAction({ type: 'switch_sphere', sphere: 'hq' }, 'header')
-              }
-              className={`min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] font-semibold transition-colors cursor-pointer ${
-                activeSphere === 'hq'
-                  ? 'bg-[#D4AF37] text-[#101622]'
-                  : 'text-[#C5CCD6] hover:text-[#F2F6F8]'
-              }`}
-            >
-              HQ
-            </button>
-            <button
-              type="button"
-              data-testid="switch-sphere-cde"
-              onClick={() =>
-                executeTypedAction({ type: 'switch_sphere', sphere: 'cde' }, 'header')
-              }
-              className={`min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] font-semibold transition-colors cursor-pointer ${
-                activeSphere === 'cde'
-                  ? 'bg-[#D4AF37] text-[#101622]'
-                  : 'text-[#C5CCD6] hover:text-[#F2F6F8]'
-              }`}
-            >
-              CDE
-            </button>
-          </div>
-
-          {/* Overview Counts & Status Action Chips (Visible on Desktop >= 1024px; kept in DOM as sr-only on smaller screens so all test selectors remain accessible) */}
-          <div
-            data-testid="header-overview-status"
-            className="cj-glass-card hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-xl h-[44px]"
-          >
-            <span className="font-mono tabular-nums text-[10px] text-[#36E88D] hidden xl:inline">
-              ● {PROJECTS_DATA.filter((p) => p.health === 'On track').length} On track
-            </span>
-            <button
-              type="button"
-              data-testid="chip-whats-urgent"
-              onClick={() => {
-                ensurePanelOpen('tasks');
-              }}
-              className="px-2 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#101622] border border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/15 cursor-pointer"
-            >
-              Urgent ({PROJECTS_DATA.filter((p) => p.health === 'At risk').length})
-            </button>
-            <button
-              type="button"
-              data-testid="chip-approve-pending"
-              onClick={() => ensurePanelOpen('decisions')}
-              className="px-2 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#101622] border border-[#C5CCD6]/50 text-[#C5CCD6] hover:bg-[#C5CCD6]/15 cursor-pointer"
-            >
-              Reviews ({decisions.filter((d) => d.status === 'PENDING').length})
-            </button>
-            <button
-              type="button"
-              data-testid="chip-unblock-this"
-              onClick={() => {
-                setSelectedProjectId('BSOCIAL');
-                setProjectTabsById((prev) => ({ ...prev, BSOCIAL: 'decisions' }));
-                ensurePanelOpen('decisions');
-              }}
-              className="px-2 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#101622] border border-[#FF5666]/50 text-[#FF5666] hover:bg-[#FF5666]/15 cursor-pointer"
-            >
-              Blocked ({PROJECTS_DATA.filter((p) => p.health === 'Blocked').length})
-            </button>
-          </div>
-
-          {/* Overview Toggle */}
-          <button
-            type="button"
-            onClick={() => executeTypedAction({ type: 'open_dashboard', mode: 'toggle' }, 'header')}
-            className="cj-glass-card hidden md:inline-flex items-center min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
-            style={{
-              borderColor: dashboardCollapsed
-                ? COLOUR_TOKENS.cobaltAccent
-                : COLOUR_TOKENS.outlineControl,
-            }}
-          >
-            Overview
-          </button>
-
-          {/* Guided Tour Control */}
-          {!tourState.active ? (
-            <button
-              type="button"
-              data-testid="start-tour-btn"
-              onClick={() => executeTypedAction({ type: 'tour_control', action: 'start' }, 'header')}
-              className="cj-glass-card hidden sm:inline-flex items-center min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
-              style={{ borderColor: COLOUR_TOKENS.outlineControl }}
-            >
-              Take a tour
-            </button>
-          ) : (
-            <div
-              className="cj-glass-card min-h-[44px] px-3 py-1 rounded-xl flex items-center gap-2 font-mono text-[11px]"
-              style={{ borderColor: COLOUR_TOKENS.focusRing }}
-            >
-              <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse shrink-0" />
-              <span className="text-[#FFF4D0]">
-                Tour {tourState.step}/{tourState.total} · {tourState.secondsLeft}s
-              </span>
-              <button
-                type="button"
-                data-testid="stop-tour-btn"
-                onClick={() => executeTypedAction({ type: 'tour_control', action: 'stop' }, 'header')}
-                className="px-2 py-0.5 rounded-lg bg-[#101622] border border-[#FF5666]/60 text-[#FF5666] hover:bg-[#FF5666]/20 cursor-pointer text-[10px]"
-              >
-                Stop
-              </button>
-            </div>
-          )}
-
-          {/* Progressive Disclosure "More" Menu */}
-          <button
-            type="button"
-            data-testid="header-more-btn"
-            onClick={() => setShowMoreMenu((v) => !v)}
-            className="cj-glass-card min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
-            style={{ borderColor: COLOUR_TOKENS.outlineControl }}
-          >
-            More ▾
-          </button>
-
-          {showMoreMenu && (
-            <div className="cj-glass-card absolute right-0 top-14 w-64 max-h-[72dvh] overflow-y-auto overscroll-contain rounded-2xl p-2 flex flex-col gap-1 z-50">
-              <div className="px-2 py-1 font-mono text-[10px] text-[#D4AF37] uppercase tracking-wider">
-                Stations & Views
-              </div>
+      {/* Floating icon-only toggles (phone / iPad / desktop) — kept out of the brand header */}
+      <div
+        data-testid="header-controls-region"
+        className="fixed top-0 right-0 z-40 pointer-events-none px-3 pt-3 safe-area-top"
+      >
+        <FloatingIconToggles
+          moreOpen={showMoreMenu}
+          toggles={[
+            {
+              id: 'back',
+              label: 'Back',
+              visible: navHistory.length > 0,
+              testId: 'header-back-btn',
+              onClick: handleNavigateBack,
+            },
+            {
+              id: 'hq',
+              label: 'HQ',
+              active: activeSphere === 'hq',
+              testId: 'switch-sphere-hq',
+              onClick: () =>
+                executeTypedAction({ type: 'switch_sphere', sphere: 'hq' }, 'header'),
+            },
+            {
+              id: 'cde',
+              label: 'CDE',
+              active: activeSphere === 'cde',
+              testId: 'switch-sphere-cde',
+              onClick: () =>
+                executeTypedAction({ type: 'switch_sphere', sphere: 'cde' }, 'header'),
+            },
+            {
+              id: 'overview',
+              label: dashboardCollapsed ? 'Show overview docks' : 'Hide overview docks',
+              active: !dashboardCollapsed,
+              onClick: () =>
+                executeTypedAction({ type: 'open_dashboard', mode: 'toggle' }, 'header'),
+            },
+            {
+              id: 'tour',
+              label: tourState.active
+                ? `Stop tour ${tourState.step}/${tourState.total}`
+                : 'Take a tour',
+              active: tourState.active,
+              testId: tourState.active ? 'stop-tour-btn' : 'start-tour-btn',
+              onClick: () =>
+                executeTypedAction(
+                  { type: 'tour_control', action: tourState.active ? 'stop' : 'start' },
+                  'header'
+                ),
+            },
+            {
+              id: 'fullscreen',
+              label: browserFullscreen ? 'Exit fullscreen' : 'Fullscreen',
+              active: browserFullscreen,
+              visible: isBrowserFullscreenSupported(),
+              testId: 'browser-fullscreen-toggle',
+              onClick: () => void toggleBrowserFullscreen(),
+            },
+            {
+              id: 'more',
+              label: 'More',
+              active: showMoreMenu,
+              testId: 'header-more-btn',
+              onClick: () => setShowMoreMenu((v) => !v),
+            },
+          ]}
+          moreMenu={
+            <>
+              <div className="fim-section">Stations & Views</div>
               {CEREBRO_STATIONS.map((st) => (
                 <button
                   key={st.id}
                   type="button"
+                  className="fim-item"
                   onClick={() => {
                     setShowMoreMenu(false);
                     executeTypedAction({ type: 'open_station', station: st.id }, 'header');
                   }}
-                  className="min-h-[38px] px-3 py-1 rounded-xl font-mono text-xs text-left text-[#F2F6F8] hover:bg-[#101622] flex items-center justify-between cursor-pointer"
                 >
                   <span>{st.label}</span>
-                  <span className="text-[10px] text-[#C5CCD6]">{st.badgeCount}</span>
+                  <span className="fim-meta">{st.badgeCount}</span>
                 </button>
               ))}
-              <div className="border-t border-[rgba(197,204,214,0.22)] my-1" />
+              <div className="fim-rule" />
               <button
                 type="button"
+                className="fim-item"
+                data-testid="chip-whats-urgent"
                 onClick={() => {
                   setShowMoreMenu(false);
-                  executeTypedAction({ type: 'open_dashboard', mode: 'toggle' }, 'header');
+                  ensurePanelOpen('tasks');
                 }}
-                className="min-h-[38px] px-3 py-1 rounded-xl font-mono text-xs text-left text-[#F2F6F8] hover:bg-[#101622] cursor-pointer"
               >
-                Overview ({PROJECTS_DATA.length} projects)
+                <span>Urgent</span>
+                <span className="fim-meta">
+                  {PROJECTS_DATA.filter((p) => p.health === 'At risk').length}
+                </span>
               </button>
               <button
                 type="button"
+                className="fim-item"
+                data-testid="chip-approve-pending"
                 onClick={() => {
                   setShowMoreMenu(false);
-                  executeTypedAction({ type: 'tour_control', action: 'start' }, 'header');
+                  ensurePanelOpen('decisions');
                 }}
-                className="min-h-[38px] px-3 py-1 rounded-xl font-mono text-xs text-left text-[#FFF4D0] hover:bg-[#101622] cursor-pointer sm:hidden"
               >
-                Take a tour
+                <span>Reviews</span>
+                <span className="fim-meta">
+                  {decisions.filter((d) => d.status === 'PENDING').length}
+                </span>
               </button>
+              <button
+                type="button"
+                className="fim-item"
+                data-testid="chip-unblock-this"
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  setSelectedProjectId('BSOCIAL');
+                  setProjectTabsById((prev) => ({ ...prev, BSOCIAL: 'decisions' }));
+                  ensurePanelOpen('decisions');
+                }}
+              >
+                <span>Blocked</span>
+                <span className="fim-meta">
+                  {PROJECTS_DATA.filter((p) => p.health === 'Blocked').length}
+                </span>
+              </button>
+              <div className="fim-rule" />
               {(
                 [
                   { id: 'decisions', label: 'Reviews' },
@@ -3873,6 +3812,7 @@ export default function App() {
                 <button
                   key={item.id}
                   type="button"
+                  className="fim-item"
                   onClick={() => {
                     setShowMoreMenu(false);
                     executeTypedAction(
@@ -3880,54 +3820,38 @@ export default function App() {
                       'more_menu'
                     );
                   }}
-                  className="min-h-[38px] px-3 py-1 rounded-xl font-mono text-xs text-left text-[#F2F6F8] hover:bg-[#101622] cursor-pointer"
                 >
                   {item.label}
                 </button>
               ))}
-              <div className="border-t border-[rgba(197,204,214,0.22)] my-1" />
-              {isBrowserFullscreenSupported() && (
-                <button
-                  type="button"
-                  data-testid="browser-fullscreen-toggle"
-                  data-cta-id="browser-fullscreen"
-                  onClick={() => {
-                    setShowMoreMenu(false);
-                    void toggleBrowserFullscreen();
-                  }}
-                  className="min-h-[40px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#F2F6F8] hover:bg-[#101622] cursor-pointer flex items-center justify-between"
-                  title="Toggle browser fullscreen (F)"
-                >
-                  <span>{browserFullscreen ? 'Exit fullscreen' : 'Fullscreen'}</span>
-                  <span className="text-[10px] text-[#C5CCD6]">F</span>
-                </button>
-              )}
+              <div className="fim-rule" />
+              <div className="sr-only" data-testid="header-overview-status" aria-hidden="true" />
               <button
                 type="button"
+                className="fim-item"
                 data-testid="open-developer-view-btn"
                 onClick={() => {
                   setShowMoreMenu(false);
                   setShowDeveloperDrawer(true);
                 }}
-                className="min-h-[40px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#C5CCD6] hover:bg-[#101622] cursor-pointer"
               >
                 Developer View & Self-Tests
               </button>
               <button
                 type="button"
+                className="fim-item"
                 data-testid="open-gui-qa-hud-btn"
                 onClick={() => {
                   setShowMoreMenu(false);
                   setShowGuiQaHud((v) => !v);
                 }}
-                className="min-h-[40px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#D4AF37] hover:bg-[#101622] cursor-pointer"
               >
                 GUI v3.0 Layout & Lens QA
               </button>
-            </div>
-          )}
-        </div>
-      </header>
+            </>
+          }
+        />
+      </div>
 
       {/* 6. Translucent Glass Panels Overlay (Event-Isolated from 3D Canvas) */}
       <PanelsOverlay

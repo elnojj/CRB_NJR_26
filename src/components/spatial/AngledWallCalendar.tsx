@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import './spatialHealth.css';
 import { PROJECTS_DATA, TEAM_CHECKPOINTS } from '../../data/sourceData';
+import { VectorExpandShape } from '../chrome/VectorExpandShape';
 
 const DOW = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -23,6 +24,8 @@ export function AngledWallCalendar({
   const [cursor, setCursor] = useState(() => new Date(now.getFullYear(), now.getMonth(), 1));
   const [selectedDay, setSelectedDay] = useState<number | null>(now.getDate());
   const [mode, setMode] = useState<'month' | 'agenda'>('agenda');
+  // Agenda / calendar starts collapsed behind its vector ship.
+  const [expanded, setExpanded] = useState(false);
 
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
@@ -77,8 +80,30 @@ export function AngledWallCalendar({
   ];
 
   return (
-    <div className="wall-cal-stage" data-testid="angled-wall-calendar" aria-label="Angled wall calendar">
-      <button type="button" className="wall-cal-done" onClick={onClose}>
+    <div
+      className={`wall-cal-stage${expanded ? ' is-expanded' : ' is-collapsed'}`}
+      data-testid="angled-wall-calendar"
+      aria-label="Angled wall calendar"
+    >
+      <VectorExpandShape
+        label={monthLabel}
+        metric={String(year).slice(2)}
+        tone="ice"
+        expanded={expanded}
+        onToggle={() => setExpanded((v) => !v)}
+        testId="vector-expand-calendar"
+        className="wall-cal-vector"
+      />
+      {expanded ? (
+        <>
+      <button
+        type="button"
+        className="wall-cal-done"
+        onClick={() => {
+          setExpanded(false);
+          onClose?.();
+        }}
+      >
         Done ✓
       </button>
       <div className="wall-cal-recess">
@@ -180,6 +205,8 @@ export function AngledWallCalendar({
           </p>
         </div>
       </div>
+        </>
+      ) : null}
     </div>
   );
 }

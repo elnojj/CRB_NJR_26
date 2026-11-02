@@ -141,6 +141,58 @@
   transform: rotateX(14deg) rotateY(-8deg) rotateZ(0.4deg);
 }
 
+.disk-ar-vector-dock {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.disk-ar-panel-slot {
+  position: absolute;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  transform: var(--disk-tilt, none);
+  transform-style: preserve-3d;
+  animation: sh-infograph-land 780ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.disk-ar-panel-slot .vector-expand-shape,
+.disk-ar-panel-slot .disk-ar-card {
+  pointer-events: auto;
+  position: relative;
+  top: auto;
+  left: auto;
+  width: 100%;
+  transform: none;
+  animation: none;
+}
+
+.disk-ar-panel-slot.is-collapsed {
+  width: auto !important;
+}
+
+.spatial-plan-launch-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: max(7.25rem, calc(env(safe-area-inset-bottom, 0px) + 6.5rem));
+  transform: translateX(-50%);
+  pointer-events: auto;
+  z-index: 5;
+}
+
+.wall-cal-stage.is-collapsed {
+  width: auto;
+  height: auto;
+  max-height: none;
+}
+
+.wall-cal-vector {
+  margin-bottom: 0.35rem;
+}
+
 .disk-ar-card {
   position: absolute;
   pointer-events: auto;
@@ -602,7 +654,7 @@
   display: inline-block;
 }
 
-/* Tablet — keep sphere center clear; tuck cards top-left; calendar as slim agenda */
+/* Tablet — keep sphere center clear; tuck docks top-left; calendar as slim agenda */
 @media (max-width: 1100px) {
   .disk-ar-stage {
     inset: 4.25rem 38% auto 2%;
@@ -625,6 +677,21 @@
     display: none;
   }
 
+  .disk-ar-vector-dock {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+    align-content: start;
+  }
+
+  .disk-ar-panel-slot {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    transform: none !important;
+  }
+
   .disk-ar-card {
     position: relative !important;
     top: auto !important;
@@ -634,7 +701,8 @@
     padding: 0.55rem 0.65rem;
   }
 
-  .disk-ar-card.is-secondary {
+  .disk-ar-card.is-secondary,
+  .disk-ar-panel-slot.is-secondary {
     display: none;
   }
 
@@ -671,7 +739,8 @@
   }
 
   .disk-ar-stage {
-    inset: max(3.35rem, env(safe-area-inset-top, 0px) + 2.35rem) 4% auto 4%;
+    /* Leave room under centered brand + right floating icon rail */
+    inset: max(4.85rem, env(safe-area-inset-top, 0px) + 3.75rem) 3.75rem auto 0.75rem;
     height: auto;
     max-height: none;
     perspective: none;
@@ -704,9 +773,32 @@
     min-height: 5.25rem;
   }
 
-  /* Keep only priority health cards on phone — leave sphere readable */
-  .disk-ar-card.is-secondary {
+  /* Keep only priority health docks on phone — leave sphere readable */
+  .disk-ar-card.is-secondary,
+  .disk-ar-panel-slot.is-secondary {
     display: none;
+  }
+
+  .disk-ar-panel-slot {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    transform: none !important;
+  }
+
+  .disk-ar-vector-dock {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem;
+    align-content: start;
+  }
+
+  .spatial-plan-launch-wrap {
+    left: 0.85rem;
+    right: auto;
+    transform: none;
+    bottom: var(--sh-dock-clear);
   }
 
   .disk-ar-metric {

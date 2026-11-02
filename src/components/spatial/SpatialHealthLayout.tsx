@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { DiskArHealthDashboard } from './DiskArHealthDashboard';
 import { AngledWallCalendar } from './AngledWallCalendar';
 import { InteractiveProjectPlan } from './InteractiveProjectPlan';
+import { VectorExpandShape } from '../chrome/VectorExpandShape';
 import './spatialHealth.css';
 
 type SpatialMode = 'dashboard' | 'project';
@@ -34,6 +35,7 @@ export function SpatialHealthLayout({
 }) {
   const [mountedMode, setMountedMode] = useState<SpatialMode>(mode);
   const [phase, setPhase] = useState<'in' | 'out'>('in');
+  const [planExpanded, setPlanExpanded] = useState(false);
 
   useEffect(() => {
     if (mode === mountedMode) {
@@ -44,6 +46,7 @@ export function SpatialHealthLayout({
     const t = window.setTimeout(() => {
       setMountedMode(mode);
       setPhase('in');
+      setPlanExpanded(false);
     }, 280);
     return () => window.clearTimeout(t);
   }, [mode, mountedMode]);
@@ -66,15 +69,23 @@ export function SpatialHealthLayout({
             onClose={onCloseCalendar}
             onOpenProject={onSelectProject}
           />
-          <button
-            type="button"
-            className="spatial-plan-launch"
-            data-testid="spatial-plan-launch"
-            onClick={() => onSelectProject?.(selectedProjectId)}
-          >
-            <span className="spatial-plan-launch-kicker">Project tools</span>
-            <span className="spatial-plan-launch-title">Open plan</span>
-          </button>
+          <div className="spatial-plan-launch-wrap">
+            <VectorExpandShape
+              label="Plan"
+              tone="gold"
+              expanded={planExpanded}
+              onToggle={() => {
+                if (planExpanded) {
+                  setPlanExpanded(false);
+                  return;
+                }
+                setPlanExpanded(true);
+                onSelectProject?.(selectedProjectId);
+              }}
+              testId="spatial-plan-launch"
+              title="Expand project plan"
+            />
+          </div>
         </div>
       )}
       {mountedMode === 'project' && (

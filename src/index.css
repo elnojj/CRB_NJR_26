@@ -292,6 +292,15 @@ canvas {
   height: 48px;
   min-width: 0;
 }
+/* Fixed centered stack: NOJARA above, CEREBRO wordmark below */
+.nojara-brand-header.is-centered-stack {
+  height: auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+}
 .nojara-logo-image {
   display: block;
   width: 148px;
@@ -308,6 +317,14 @@ canvas {
   object-fit: contain;
   flex: 0 1 auto;
 }
+.nojara-brand-header.is-centered-stack .nojara-logo-image {
+  width: min(168px, 42vw);
+}
+.nojara-brand-header.is-centered-stack .cerebro-wordmark-image {
+  width: 72px;
+  height: 14px;
+  opacity: 0.92;
+}
 .nojara-brand-loader {
   min-width: 0;
   padding: 20px 24px;
@@ -323,12 +340,24 @@ canvas {
   .nojara-brand-header {
     height: 44px;
   }
+  .nojara-brand-header.is-centered-stack {
+    height: auto;
+    padding: 0;
+    gap: 3px;
+  }
   .nojara-brand-header .nojara-logo-image {
     width: 108px;
+  }
+  .nojara-brand-header.is-centered-stack .nojara-logo-image {
+    width: min(132px, 46vw);
   }
   .nojara-brand-header .cerebro-wordmark-image {
     width: 58px;
     height: 12px;
+  }
+  .nojara-brand-header.is-centered-stack .cerebro-wordmark-image {
+    width: 56px;
+    height: 11px;
   }
   .nojara-brand-loader .nojara-logo-image {
     width: min(240px, 70vw);
