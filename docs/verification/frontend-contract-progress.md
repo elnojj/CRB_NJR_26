@@ -8,8 +8,8 @@ Full evidence table: [`cerebro-frontend-master-sphere-v1-evidence.md`](./cerebro
 
 | Remote | SHA | Status |
 |--------|-----|--------|
-| Cursor Origin `main` | tip after this commit | Verified push |
-| GitHub `elnojj/CRB_NJR_26` `main` | same tip | Synced via deployment PAT |
+| Cursor Origin `main` | `2669382` | Verified push |
+| GitHub `elnojj/CRB_NJR_26` `main` | `2669382` | Synced · matches Origin |
 
 ## Gates
 

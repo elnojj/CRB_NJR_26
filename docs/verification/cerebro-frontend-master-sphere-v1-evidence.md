@@ -11,8 +11,8 @@ Honesty rule: the 36 design-config checks do not prove GPU appearance, live medi
 
 | Remote | SHA | Status |
 |--------|-----|--------|
-| Cursor Origin `main` | pending this commit tip | Verified via `git push` + `git ls-remote` |
-| GitHub `elnojj/CRB_NJR_26` `main` | same tip | Synced via deployment PAT |
+| Cursor Origin `main` | `2669382` | Verified via `git push` + `git ls-remote` |
+| GitHub `elnojj/CRB_NJR_26` `main` | `2669382` | Synced via deployment PAT · matches Origin |
 
 ## Static gates
 
