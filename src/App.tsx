@@ -322,6 +322,7 @@ export default function App() {
   const viewport = useViewport();
   const [phoneSheetState, setPhoneSheetState] = useState<PhoneSheetExpansion>('default');
   const [voiceExpanded, setVoiceExpanded] = useState<boolean>(false);
+  const [voiceSheetExpanded, setVoiceSheetExpanded] = useState<boolean>(false);
   const [voiceDragDelta, setVoiceDragDelta] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [projectedTarget, setProjectedTarget] = useState<ProjectedTargetScreenCoords | null>(null);
@@ -1815,6 +1816,7 @@ export default function App() {
             openPanels,
             phoneSheetState,
             voiceExpanded,
+            voiceSheetExpanded,
             voiceDragDelta,
             keyboardInsetBottom: viewport.keyboardInsetBottom,
           });
@@ -3358,6 +3360,7 @@ export default function App() {
     openPanels,
     phoneSheetState,
     voiceExpanded,
+    voiceSheetExpanded,
     voiceDragDelta,
     keyboardInsetBottom: viewport.keyboardInsetBottom,
   });
@@ -4136,6 +4139,7 @@ export default function App() {
         guiLayout={guiLayout}
         onVoiceDragDeltaChange={setVoiceDragDelta}
         onVoiceExpandedChange={setVoiceExpanded}
+        onVoiceSheetExpandedChange={setVoiceSheetExpanded}
         contextualUpdateJson={contextualUpdateJson}
       />
 

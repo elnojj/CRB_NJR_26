@@ -95,6 +95,7 @@ interface VoiceCardProps {
   guiLayout?: ComputedGuiLayout;
   onVoiceDragDeltaChange?: (delta: { x: number; y: number }) => void;
   onVoiceExpandedChange?: (expanded: boolean) => void;
+  onVoiceSheetExpandedChange?: (expanded: boolean) => void;
   contextualUpdateJson?: string;
 }
 
@@ -119,6 +120,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   guiLayout,
   onVoiceExpandedChange,
   onVoiceDragDeltaChange,
+  onVoiceSheetExpandedChange,
   contextualUpdateJson,
 }) => {
   const [ringLevel, setRingLevel] = useState(0);
@@ -151,6 +153,10 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const expandTriggerRef = useRef<HTMLButtonElement | null>(null);
   const bridgeRef = useRef<ElevenLabsConvaiBridge | null>(null);
   const offline = typeof navigator !== 'undefined' ? !navigator.onLine : false;
+
+  useEffect(() => {
+    onVoiceSheetExpandedChange?.(sheetOpen);
+  }, [sheetOpen, onVoiceSheetExpandedChange]);
 
   useEffect(() => {
     const bridge = new ElevenLabsConvaiBridge({

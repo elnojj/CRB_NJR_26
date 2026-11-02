@@ -62,6 +62,8 @@ export interface ComputeGuiLayoutParams {
   activeSlotTabs?: Record<string, string | undefined>;
   phoneSheetState?: PhoneSheetExpansion;
   voiceExpanded?: boolean;
+  /** L04/L05 — expanded voice transcript sheet owns focus on phone; panels collapse. */
+  voiceSheetExpanded?: boolean;
   voiceDragDelta?: { x: number; y: number };
   keyboardInsetBottom?: number;
   allowFourQuadrantSlots?: boolean;
@@ -75,6 +77,7 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
   const phoneSheetState = params.phoneSheetState ?? 'default';
   const kbInset = Math.max(0, Math.round(params.keyboardInsetBottom ?? 0));
   const allowFourQuadrantSlots = params.allowFourQuadrantSlots ?? openPanels.length > 2;
+  const voiceSheetExpanded = Boolean(params.voiceSheetExpanded);
 
   // ---------------------------------------------------------------------------
   // 1. PHONE (390x844 reference)
@@ -85,7 +88,8 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
     const headerRect: GuiRect = { x: padX, y: 12, w: colW, h: 52 };
     const minimizedChipsRect: GuiRect = { x: padX, y: 388, w: colW, h: 36 };
 
-    const isSheetOpen = openPanels.length > 0;
+    // Voice sheet owns focus over project sheet on phone (L05).
+    const isSheetOpen = openPanels.length > 0 && !voiceSheetExpanded;
     // C06 capsule: 220–256 × 48–56, center at ~0.88H (never full-width card).
     // Sheet-open keeps capsule height in-range (52) and lifts above keyboard inset.
     const voiceH = 52;
@@ -105,7 +109,7 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
     const panelSlots: PanelSlotAssignment[] = [];
     let sheetTop = voiceY;
 
-    if (openPanels.length > 0) {
+    if (isSheetOpen) {
       const targetSheetH =
         phoneSheetState === 'collapsed' ? 72 : phoneSheetState === 'expanded' ? 480 : 264;
       const maxAvailableSheetH = Math.max(
@@ -128,8 +132,7 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
       });
     }
 
-    const safeBottom =
-      openPanels.length > 0 ? sheetTop - 12 : voiceRect.y - 12;
+    const safeBottom = isSheetOpen ? sheetTop - 12 : voiceRect.y - 12;
     const safeTop = headerRect.y + headerRect.h + 12;
     const centerSafeRect: GuiRect = {
       x: padX,
