@@ -108,6 +108,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const filterXRef = useRef(new OneEuroFilter(60, 1.4, 0.05));
   const filterYRef = useRef(new OneEuroFilter(60, 1.4, 0.05));
+  const landmarkFiltersRef = useRef<OneEuroFilter[][]>([]);
   const [offset, setOffset] = useState<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
   const [sparkles, setSparkles] = useState<SparkleParticle[]>([]);
   const [activeNote, setActiveNote] = useState<string | null>(null);
@@ -115,17 +116,36 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
   const [cvStatusLabel, setCvStatusLabel] = useState<string>('Requesting camera...');
   const [pinchRatio, setPinchRatio] = useState<number>(0.19);
   const [pinchLocked, setPinchLocked] = useState<boolean>(true);
-  const [zDepth, setZDepth] = useState<number>(-0.14);
   const [liveLandmarks, setLiveLandmarks] = useState<[number, number][][] | null>(null);
+  const [isPhone, setIsPhone] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+  );
   const nextSparkleId = useRef(1);
   const pinchLockRef = useRef(true);
   const lastGestureTimeRef = useRef(0);
+  const frameSkipRef = useRef(0);
+  const lastUiPushRef = useRef(0);
+  const handModeRef = useRef(handMode);
+  const wantedHands = handMode === 'two-hands' ? 2 : 1;
+
+  useEffect(() => {
+    handModeRef.current = handMode;
+  }, [handMode]);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const sync = () => setIsPhone(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
 
   // Request ONE shared camera MediaStream only when `active === true`, and stop all tracks on disable
   useEffect(() => {
     if (!active) {
       setHasLiveCam(false);
       setLiveLandmarks(null);
+      landmarkFiltersRef.current = [];
       return;
     }
 
@@ -133,12 +153,21 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
     let landmarker: HandLandmarker | null = null;
     let stream: MediaStream | null = null;
     let rafId = 0;
+    const phone =
+      typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
 
     async function initSharedCameraAndMediaPipe() {
       setCvStatusLabel('Requesting camera permission...');
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 960, height: 540, facingMode: 'user' },
+          video: phone
+            ? {
+                width: { ideal: 480 },
+                height: { ideal: 360 },
+                frameRate: { ideal: 24, max: 30 },
+                facingMode: 'user',
+              }
+            : { width: { ideal: 720 }, height: { ideal: 405 }, facingMode: 'user' },
         });
       } catch {
         if (!cancelled) {
@@ -164,7 +193,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
       }
 
       try {
-        setCvStatusLabel('Loading MediaPipe HandLandmarker GPU...');
+        setCvStatusLabel('Loading MediaPipe HandLandmarker…');
         const vision = await FilesetResolver.forVisionTasks(
           'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
         );
@@ -173,27 +202,51 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           baseOptions: {
             modelAssetPath:
               'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
-            delegate: 'GPU',
+            delegate: phone ? 'CPU' : 'GPU',
           },
           runningMode: 'VIDEO',
-          numHands: 2,
+          numHands: wantedHands,
         });
         if (cancelled) return;
-        setCvStatusLabel('Tracking active (MediaPipe GPU · 1 shared stream)');
+        setCvStatusLabel(
+          wantedHands === 1
+            ? 'Tracking · one hand'
+            : 'Tracking · two hands'
+        );
+
+        const ensureFilters = (handCount: number) => {
+          while (landmarkFiltersRef.current.length < handCount) {
+            landmarkFiltersRef.current.push(
+              Array.from({ length: 42 }, () => new OneEuroFilter(30, 1.1, 0.02, 1.0))
+            );
+          }
+        };
 
         const detectFrame = () => {
           if (cancelled || !landmarker || !videoRef.current) return;
           const v = videoRef.current;
-          if (v.readyState >= 2) {
+          const skipEvery = phone ? 2 : 1;
+          frameSkipRef.current += 1;
+          if (v.readyState >= 2 && frameSkipRef.current % (skipEvery + 1) === 0) {
             const now = performance.now();
             const res = landmarker.detectForVideo(v, now);
             if (res.landmarks && res.landmarks.length > 0) {
-              const mappedHands: [number, number][][] = res.landmarks.map((hand) =>
-                hand.map((lm) => [(1 - lm.x) * 1366, lm.y * 1024])
-              );
-              setLiveLandmarks(mappedHands);
+              const mode = handModeRef.current;
+              const maxHands = mode === 'two-hands' ? 2 : 1;
+              const hands = res.landmarks.slice(0, maxHands);
+              ensureFilters(hands.length);
+              const mappedHands: [number, number][][] = hands.map((hand, hi) => {
+                const filters = landmarkFiltersRef.current[hi];
+                return hand.map((lm, li) => {
+                  const sx = (1 - lm.x) * 1366;
+                  const sy = lm.y * 1024;
+                  const fx = filters[li * 2].filter(sx, now);
+                  const fy = filters[li * 2 + 1].filter(sy, now);
+                  return [fx, fy] as [number, number];
+                });
+              });
 
-              const h0 = res.landmarks[0];
+              const h0 = hands[0];
               const palmLen = Math.max(
                 0.05,
                 Math.hypot(h0[9].x - h0[0].x, h0[9].y - h0[0].y, h0[9].z - h0[0].z)
@@ -209,8 +262,6 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                 h0[4].z - h0[20].z
               );
               const ratio = Number((thumbIndexDist / palmLen).toFixed(2));
-              setPinchRatio(ratio);
-              setZDepth(Number((h0[8].z || -0.12).toFixed(2)));
 
               const dWristIndex = Math.hypot(h0[8].x - h0[0].x, h0[8].y - h0[0].y);
               const dWristMiddle = Math.hypot(h0[12].x - h0[0].x, h0[12].y - h0[0].y);
@@ -219,6 +270,13 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
 
               const panX = ((1 - h0[8].x) - 0.5) * 2;
               const nowMs = performance.now();
+
+              // Throttle React state on phone — landmark paint at ~18–20fps is enough.
+              if (nowMs - lastUiPushRef.current > (phone ? 50 : 22)) {
+                lastUiPushRef.current = nowMs;
+                setLiveLandmarks(mappedHands);
+                setPinchRatio(ratio);
+              }
 
               // 1. Pinch Orbit
               if (!pinchLockRef.current && ratio <= 0.22) {
@@ -260,7 +318,10 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
               }
               // 4. Spread Zoom: Thumb and pinky spread wide or dual-hand spread
               else if (
-                (thumbPinkyDist > 1.45 * palmLen || (res.landmarks.length >= 2 && Math.abs(res.landmarks[0][0].x - res.landmarks[1][0].x) > 0.4)) &&
+                (thumbPinkyDist > 1.45 * palmLen ||
+                  (mode === 'two-hands' &&
+                    hands.length >= 2 &&
+                    Math.abs(hands[0][0].x - hands[1][0].x) > 0.4)) &&
                 nowMs - lastGestureTimeRef.current > 700
               ) {
                 lastGestureTimeRef.current = nowMs;
@@ -268,7 +329,8 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                 setActiveNote('SPREAD-ZOOM');
                 onTriggerGesture('spread-zoom');
               }
-            } else {
+            } else if (performance.now() - lastUiPushRef.current > 120) {
+              lastUiPushRef.current = performance.now();
               setLiveLandmarks(null);
             }
           }
@@ -302,7 +364,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
         }
       }
     };
-  }, [active, onTriggerGesture]);
+  }, [active, wantedHands, onTriggerGesture]);
 
   useEffect(() => {
     if (!active) return;
@@ -336,27 +398,41 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
     const now = performance.now();
     const fx = filterXRef.current.filter(normX, now);
     const fy = filterYRef.current.filter(normY, now);
+    if (now - lastUiPushRef.current < (isPhone ? 48 : 16)) return;
+    lastUiPushRef.current = now;
     setOffset({ dx: fx, dy: fy });
 
     const simRatio = activeGesture === 'pinch-orbit' ? 0.18 : activeGesture === 'spread-zoom' ? 0.42 : 0.34;
     setPinchRatio(simRatio);
     setPinchLocked(simRatio <= 0.22);
 
+    if (isPhone) return;
     const svgX = ((e.clientX - rect.left) / rect.width) * 1366;
     const svgY = ((e.clientY - rect.top) / rect.height) * 1024;
-    if (Math.random() > 0.35) {
-      spawnSparklesAt(svgX, svgY, simRatio <= 0.22 ? COLOUR_TOKENS.stationMedia : '#36E88D');
+    if (Math.random() > 0.72) {
+      spawnSparklesAt(svgX, svgY, simRatio <= 0.22 ? COLOUR_TOKENS.stationMedia : '#B4DDFF');
     }
   };
 
-  const getHandPoints = (side: 'left' | 'right'): [number, number][] => {
+  const getHandPoints = (side: 'left' | 'right'): [number, number][] | null => {
+    // Live track only — never invent a second ghost skeleton when only one hand is seen.
     if (liveLandmarks && liveLandmarks.length > 0) {
-      if (side === 'left' && liveLandmarks[0]) return liveLandmarks[0];
-      if (side === 'right' && liveLandmarks[1]) return liveLandmarks[1];
+      if (handMode === 'two-hands') {
+        if (side === 'left') return liveLandmarks[0] || null;
+        return liveLandmarks[1] || null;
+      }
+      // Single-hand modes: always use the first detected hand for the active side.
+      if (handMode === 'left-only' && side === 'left') return liveLandmarks[0];
+      if (handMode === 'right-only' && side === 'right') return liveLandmarks[0];
+      return null;
     }
 
+    // Touch/mouse fallback: draw only the active single-hand (or both if 2× selected).
+    if (handMode === 'left-only' && side !== 'left') return null;
+    if (handMode === 'right-only' && side !== 'right') return null;
+
     const baseWristX = side === 'left' ? 355 + offset.dx * 0.85 : 1010 - offset.dx * 0.85;
-    const baseWristY = 895 + offset.dy * 0.75;
+    const baseWristY = isPhone ? 820 + offset.dy * 0.55 : 895 + offset.dy * 0.75;
     const mirror = side === 'left' ? 1 : -1;
     const pinchScale = activeGesture === 'pinch-orbit' ? 0.72 : activeGesture === 'spread-zoom' ? 1.14 : 1.0;
 
@@ -369,7 +445,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
       } else if (activeGesture === 'point-select' && idx > 8 && !FINGERTIP_INDICES.has(8)) {
         modY *= 0.65;
       }
-      return [baseWristX + modX, baseWristY + modY];
+      return [baseWristX + modX, baseWristY + modY] as [number, number];
     });
   };
 
@@ -397,14 +473,14 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
 
   const renderGlove = (pts: [number, number][], side: 'left' | 'right') => {
     const isPinchActive = pinchLocked || activeGesture === 'pinch-orbit';
-    // Desk-AR glass palette: soft gold focus / ice idle (matches spatialHealth.css)
-    const gloveAccent = isPinchActive ? COLOUR_TOKENS.stationMedia : COLOUR_TOKENS.trackingValid;
+    // Soft glass glove — ice/gold, never neon skeleton green zigzags.
+    const gloveAccent = isPinchActive ? COLOUR_TOKENS.stationMedia : '#B4DDFF';
     const iceEdge = '#B4DDFF';
     const sheen = '#FFF4D0';
     const uid = `${side}-glove`;
     const fingertipLabels = ['THUMB', 'INDEX', 'MIDDLE', 'RING', 'PINKY'];
+    const phoneSoft = isPhone;
 
-    // Expanded palm shell (wrist + MCPs) so the hand reads as a solid glove body.
     const palmIdx = [0, 1, 5, 9, 13, 17];
     const palmPts = palmIdx.map((i) => pts[i]);
     const palmCx = palmPts.reduce((s, p) => s + p[0], 0) / palmPts.length;
@@ -418,13 +494,13 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
         })
         .join(' ');
 
-    // Finger chains → thick rounded glass tubes (no skeleton dots/bones).
+    // Thin soft finger ribbons (phone) / glass tubes (desktop) — no bone dots.
     const fingerChains: { id: string; indices: number[]; width: number }[] = [
-      { id: 'thumb', indices: [1, 2, 3, 4], width: 26 },
-      { id: 'index', indices: [5, 6, 7, 8], width: 22 },
-      { id: 'middle', indices: [9, 10, 11, 12], width: 24 },
-      { id: 'ring', indices: [13, 14, 15, 16], width: 21 },
-      { id: 'pinky', indices: [17, 18, 19, 20], width: 18 },
+      { id: 'thumb', indices: [1, 2, 3, 4], width: phoneSoft ? 10 : 22 },
+      { id: 'index', indices: [5, 6, 7, 8], width: phoneSoft ? 9 : 18 },
+      { id: 'middle', indices: [9, 10, 11, 12], width: phoneSoft ? 9 : 20 },
+      { id: 'ring', indices: [13, 14, 15, 16], width: phoneSoft ? 8 : 17 },
+      { id: 'pinky', indices: [17, 18, 19, 20], width: phoneSoft ? 7 : 15 },
     ];
 
     const chainPath = (indices: number[]) =>
@@ -432,7 +508,6 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
         .map((i, n) => `${n === 0 ? 'M' : 'L'} ${pts[i][0].toFixed(1)} ${pts[i][1].toFixed(1)}`)
         .join(' ');
 
-    // Soft outer silhouette path: thumb → index tip → pinky tip → wrist heel.
     const silhouette = [
       pts[0],
       pts[1],
@@ -466,102 +541,110 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
     const midY = (thumbPt[1] + indexPt[1]) * 0.5;
 
     return (
-      <g key={side} className="cursor-pointer">
+      <g key={side} className="cursor-pointer" opacity={phoneSoft ? 0.72 : 1}>
         <defs>
           <linearGradient id={`${uid}-shell`} x1="18%" y1="8%" x2="82%" y2="92%">
-            <stop offset="0%" stopColor={isPinchActive ? sheen : iceEdge} stopOpacity="0.28" />
-            <stop offset="42%" stopColor={isPinchActive ? '#D4AF37' : '#36E88D'} stopOpacity="0.12" />
-            <stop offset="100%" stopColor="#03060c" stopOpacity="0.42" />
+            <stop offset="0%" stopColor={isPinchActive ? sheen : iceEdge} stopOpacity={phoneSoft ? 0.16 : 0.28} />
+            <stop offset="42%" stopColor={isPinchActive ? '#D4AF37' : iceEdge} stopOpacity={phoneSoft ? 0.08 : 0.12} />
+            <stop offset="100%" stopColor="#03060c" stopOpacity="0.35" />
           </linearGradient>
           <radialGradient id={`${uid}-palm`} cx="38%" cy="28%" r="78%">
-            <stop offset="0%" stopColor={isPinchActive ? sheen : iceEdge} stopOpacity="0.55" />
+            <stop offset="0%" stopColor={isPinchActive ? sheen : iceEdge} stopOpacity={phoneSoft ? 0.32 : 0.5} />
             <stop
               offset="45%"
-              stopColor={isPinchActive ? 'rgba(212, 175, 55, 0.48)' : 'rgba(54, 232, 141, 0.38)'}
+              stopColor={isPinchActive ? 'rgba(212, 175, 55, 0.4)' : 'rgba(180, 221, 255, 0.28)'}
             />
-            <stop offset="100%" stopColor="rgba(12, 18, 28, 0.55)" stopOpacity="0.72" />
+            <stop offset="100%" stopColor="rgba(12, 18, 28, 0.45)" stopOpacity="0.55" />
           </radialGradient>
           <linearGradient id={`${uid}-finger`} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={isPinchActive ? sheen : iceEdge} stopOpacity="0.62" />
+            <stop offset="0%" stopColor={isPinchActive ? sheen : iceEdge} stopOpacity={phoneSoft ? 0.35 : 0.55} />
             <stop
               offset="55%"
-              stopColor={isPinchActive ? 'rgba(212, 175, 55, 0.55)' : 'rgba(54, 232, 141, 0.48)'}
+              stopColor={isPinchActive ? 'rgba(212, 175, 55, 0.4)' : 'rgba(180, 221, 255, 0.32)'}
             />
-            <stop offset="100%" stopColor="rgba(8, 14, 22, 0.35)" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="rgba(8, 14, 22, 0.28)" stopOpacity="0.4" />
           </linearGradient>
-          <filter id={`${uid}-soft`} x="-35%" y="-35%" width="170%" height="170%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="blur" />
-            <feColorMatrix
-              in="blur"
-              type="matrix"
-              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.85 0"
-              result="soft"
-            />
-            <feMerge>
-              <feMergeNode in="soft" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <filter id={`${uid}-glow`} x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur stdDeviation="3.5" result="g" />
-            <feMerge>
-              <feMergeNode in="g" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
+          {!phoneSoft && (
+            <>
+              <filter id={`${uid}-soft`} x="-35%" y="-35%" width="170%" height="170%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="blur" />
+                <feColorMatrix
+                  in="blur"
+                  type="matrix"
+                  values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.85 0"
+                  result="soft"
+                />
+                <feMerge>
+                  <feMergeNode in="soft" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <filter id={`${uid}-glow`} x="-60%" y="-60%" width="220%" height="220%">
+                <feGaussianBlur stdDeviation="3.5" result="g" />
+                <feMerge>
+                  <feMergeNode in="g" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </>
+          )}
         </defs>
 
-        <g stroke={gloveAccent} strokeWidth="1.5" fill="none" opacity="0.45">
-          <path d={`M ${minX} ${minY + bracketLen} V ${minY} H ${minX + bracketLen}`} />
-          <path d={`M ${maxX - bracketLen} ${minY} H ${maxX} V ${minY + bracketLen}`} />
-          <path d={`M ${minX} ${maxY - bracketLen} V ${maxY} H ${minX + bracketLen}`} />
-          <path d={`M ${maxX - bracketLen} ${maxY} H ${maxX} V ${maxY - bracketLen}`} />
-        </g>
+        {!phoneSoft && (
+          <g stroke={gloveAccent} strokeWidth="1.5" fill="none" opacity="0.45">
+            <path d={`M ${minX} ${minY + bracketLen} V ${minY} H ${minX + bracketLen}`} />
+            <path d={`M ${maxX - bracketLen} ${minY} H ${maxX} V ${minY + bracketLen}`} />
+            <path d={`M ${minX} ${maxY - bracketLen} V ${maxY} H ${minX + bracketLen}`} />
+            <path d={`M ${maxX - bracketLen} ${maxY} H ${maxX} V ${maxY - bracketLen}`} />
+          </g>
+        )}
 
-        <text
-          x={minX}
-          y={minY - 10}
-          fill={isPinchActive ? sheen : iceEdge}
-          fillOpacity="0.88"
-          fontSize="11"
-          fontFamily="JetBrains Mono, monospace"
-        >
-          {side === 'left' ? 'Left Hand' : 'Right Hand'} · Pinch {pinchRatio.toFixed(2)} · Depth {zDepth}
-        </text>
+        {!phoneSoft && (
+          <text
+            x={minX}
+            y={minY - 10}
+            fill={isPinchActive ? sheen : iceEdge}
+            fillOpacity="0.72"
+            fontSize="11"
+            fontFamily="JetBrains Mono, monospace"
+          >
+            {side === 'left' ? 'Left' : 'Right'}
+            {handMode === 'two-hands' ? '' : ' · One hand'}
+          </text>
+        )}
 
-        {/* Soft glass shell — frosted depth behind the palm */}
         <path
           d={silhouetteD}
           fill={`url(#${uid}-shell)`}
           stroke={isPinchActive ? gloveAccent : iceEdge}
-          strokeOpacity="0.28"
-          strokeWidth="1.1"
+          strokeOpacity={phoneSoft ? 0.18 : 0.28}
+          strokeWidth={phoneSoft ? 0.8 : 1.1}
           strokeLinejoin="round"
-          filter={`url(#${uid}-soft)`}
+          filter={phoneSoft ? undefined : `url(#${uid}-soft)`}
         />
 
-        {/* Palm glass body + specular sheen */}
         <polygon
-          points={expandPalm(1.28)}
+          points={expandPalm(phoneSoft ? 1.18 : 1.28)}
           fill={`url(#${uid}-palm)`}
           stroke={isPinchActive ? gloveAccent : iceEdge}
-          strokeOpacity="0.42"
-          strokeWidth="1.35"
+          strokeOpacity={phoneSoft ? 0.28 : 0.42}
+          strokeWidth={phoneSoft ? 1 : 1.35}
           strokeLinejoin="round"
-          filter={`url(#${uid}-glow)`}
+          filter={phoneSoft ? undefined : `url(#${uid}-glow)`}
         />
-        <ellipse
-          cx={palmCx - 8}
-          cy={palmCy - 14}
-          rx={28}
-          ry={16}
-          fill={isPinchActive ? sheen : iceEdge}
-          fillOpacity="0.22"
-          style={{ mixBlendMode: 'screen' }}
-        />
-        <polygon points={expandPalm(1.05)} fill="rgba(3, 6, 12, 0.18)" />
+        {!phoneSoft && (
+          <ellipse
+            cx={palmCx - 8}
+            cy={palmCy - 14}
+            rx={28}
+            ry={16}
+            fill={isPinchActive ? sheen : iceEdge}
+            fillOpacity="0.22"
+            style={{ mixBlendMode: 'screen' }}
+          />
+        )}
+        <polygon points={expandPalm(1.05)} fill="rgba(3, 6, 12, 0.14)" />
 
-        {/* Glass finger tubes */}
         {fingerChains.map((finger) => (
           <g key={`${side}-${finger.id}`}>
             <path
@@ -571,45 +654,45 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
               strokeWidth={finger.width}
               strokeLinecap="round"
               strokeLinejoin="round"
-              opacity="0.92"
-              filter={`url(#${uid}-soft)`}
+              opacity={phoneSoft ? 0.55 : 0.88}
+              filter={phoneSoft ? undefined : `url(#${uid}-soft)`}
             />
-            <path
-              d={chainPath(finger.indices)}
-              fill="none"
-              stroke={isPinchActive ? sheen : iceEdge}
-              strokeWidth={finger.width * 0.16}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              opacity="0.42"
-            />
+            {!phoneSoft && (
+              <path
+                d={chainPath(finger.indices)}
+                fill="none"
+                stroke={isPinchActive ? sheen : iceEdge}
+                strokeWidth={finger.width * 0.14}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity="0.35"
+              />
+            )}
           </g>
         ))}
 
-        {/* Pinch cue between thumb and index pads */}
         <line
           x1={thumbPt[0]}
           y1={thumbPt[1]}
           x2={indexPt[0]}
           y2={indexPt[1]}
           stroke={gloveAccent}
-          strokeWidth={isPinchActive ? 2.2 : 1.3}
-          strokeOpacity={isPinchActive ? 0.85 : 0.4}
+          strokeWidth={isPinchActive ? (phoneSoft ? 1.6 : 2.2) : 1.1}
+          strokeOpacity={isPinchActive ? 0.75 : 0.28}
           strokeDasharray={isPinchActive ? undefined : '5 5'}
-          filter={isPinchActive ? `url(#${uid}-glow)` : undefined}
+          filter={!phoneSoft && isPinchActive ? `url(#${uid}-glow)` : undefined}
         />
         <circle
           cx={midX}
           cy={midY}
-          r={isPinchActive ? 8 : 4.5}
+          r={isPinchActive ? (phoneSoft ? 5 : 8) : 3.5}
           fill={isPinchActive ? `url(#${uid}-palm)` : 'none'}
-          fillOpacity={isPinchActive ? 0.85 : 0}
+          fillOpacity={isPinchActive ? 0.8 : 0}
           stroke={gloveAccent}
-          strokeWidth="1.4"
-          strokeOpacity="0.65"
+          strokeWidth="1.2"
+          strokeOpacity="0.55"
         />
 
-        {/* Invisible fingertip hit targets — keep interaction, hide skeleton dots */}
         {[4, 8, 12, 16, 20].map((idx, tipOrder) => {
           const [px, py] = pts[idx];
           return (
@@ -617,7 +700,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
               key={`${side}-tip-${idx}`}
               cx={px}
               cy={py}
-              r={16}
+              r={phoneSoft ? 12 : 16}
               fill="transparent"
               className="cursor-pointer"
               onClick={(e) => {
@@ -649,12 +732,12 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           playsInline
           muted
           className={`absolute inset-0 w-full h-full object-cover scale-x-[-1] transition-opacity duration-300 ${
-            hasLiveCam ? 'opacity-14' : 'opacity-0'
+            hasLiveCam ? (isPhone ? 'opacity-[0.08]' : 'opacity-14') : 'opacity-0'
           }`}
         />
         {/* Light veil only — must not wash the workspace atmospheric field back to flat navy. */}
         <svg
-          className="w-full h-full object-cover opacity-28 scale-x-[-1]"
+          className={`w-full h-full object-cover scale-x-[-1] ${isPhone ? 'opacity-12' : 'opacity-28'}`}
           viewBox="0 0 1366 1024"
           preserveAspectRatio="xMidYMid slice"
         >
@@ -696,8 +779,8 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
             </g>
           ))}
 
-          {(handMode === 'two-hands' || handMode === 'left-only') && renderGlove(leftPts, 'left')}
-          {(handMode === 'two-hands' || handMode === 'right-only') && renderGlove(rightPts, 'right')}
+          {leftPts && (handMode === 'two-hands' || handMode === 'left-only') && renderGlove(leftPts, 'left')}
+          {rightPts && (handMode === 'two-hands' || handMode === 'right-only') && renderGlove(rightPts, 'right')}
         </svg>
 
         <div
@@ -762,9 +845,9 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
               >
                 {(
                   [
+                    { id: 'right-only', label: '1×', full: 'One Hand' },
                     { id: 'two-hands', label: '2×', full: 'Two Hands' },
                     { id: 'left-only', label: 'L', full: 'Left Hand' },
-                    { id: 'right-only', label: 'R', full: 'Right Hand' },
                   ] as const
                 ).map((m) => (
                   <button
@@ -772,6 +855,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                     type="button"
                     title={m.full}
                     aria-label={m.full}
+                    data-testid={`hand-mode-${m.id}`}
                     onClick={() => onChangeHandMode(m.id)}
                     className={`min-h-[40px] sm:min-h-[44px] min-w-[40px] px-2 sm:px-3 py-1.5 rounded-lg font-mono text-xs transition-colors cursor-pointer ${
                       handMode === m.id

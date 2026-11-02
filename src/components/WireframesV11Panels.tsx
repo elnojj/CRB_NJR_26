@@ -2905,7 +2905,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 onClick={onToggleHands}
                 className="w-full min-h-[38px] rounded-xl font-mono text-xs font-semibold bg-[#36E88D] text-[#101D27] cursor-pointer"
               >
-                {handsActive ? 'Disable 21-Landmark Hand Rig' : 'Enable 21-Landmark Hand Rig'}
+                {handsActive ? 'Disable Hand Gesture' : 'Enable Hand Gesture (1×)'}
               </button>
             )}
           </div>

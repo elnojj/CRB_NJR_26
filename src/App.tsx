@@ -405,7 +405,8 @@ export default function App() {
 
   // 5. Hands Overlay State
   const [handsActive, setHandsActive] = useState<boolean>(false);
-  const [handMode, setHandMode] = useState<HandDetectionMode>('two-hands');
+  // Always start one-hand; two-hands only when the user picks the 2× control.
+  const [handMode, setHandMode] = useState<HandDetectionMode>('right-only');
   const [activeGesture, setActiveGesture] = useState<HandGestureType>('pinch-orbit');
   // Spatial Health desk AR / wall calendar / node-chips (mounted in workspace chrome)
   const [spatialHealthOpen, setSpatialHealthOpen] = useState<boolean>(true);
@@ -2337,6 +2338,7 @@ export default function App() {
       setActiveSphere('cde');
       setOpenPanels(['story-journey']);
     } else if (view === 'hands') {
+      setHandMode('right-only');
       setHandsActive(true);
     } else if (view === 'audit' || view === 'developer') {
       setShowDeveloperDrawer(true);
@@ -2652,6 +2654,16 @@ export default function App() {
     },
     [audienceLevel, pendingTaskProposal, appendTranscript, ensurePanelOpen]
   );
+
+  const handleToggleHands = useCallback(() => {
+    setHandsActive((wasActive) => {
+      if (!wasActive) {
+        // Fresh session always starts one-hand until the user picks 2×.
+        setHandMode('right-only');
+      }
+      return !wasActive;
+    });
+  }, []);
 
   const handleTriggerHandGesture = useCallback(
     (gesture: HandGestureType) => {
@@ -3958,7 +3970,7 @@ export default function App() {
         onSimulateCommand={handleSimulateCommand}
         handsActive={handsActive}
         screenAmendments={screenAmendments}
-        onToggleHands={() => setHandsActive((v) => !v)}
+        onToggleHands={handleToggleHands}
         guiLayout={guiLayout}
         phoneSheetState={phoneSheetState}
         onChangePhoneSheetState={setPhoneSheetState}
@@ -3981,7 +3993,7 @@ export default function App() {
         externalSnapEdge={externalSnapEdge}
         openAgentModalTrigger={openAgentModalTrigger}
         onChangePocket={setActivePocket}
-        onToggleHands={() => setHandsActive((v) => !v)}
+        onToggleHands={handleToggleHands}
         onSimulateCommand={handleSimulateCommand}
         onExecuteToolCall={handleExecuteToolCall}
         onSendCompose={handleSendCompose}
