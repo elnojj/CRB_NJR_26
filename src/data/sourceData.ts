@@ -141,7 +141,7 @@ export const MISSING_ITEMS: MissingItem[] = [
   },
   {
     id: 'M02',
-    item: '09 Media (Hotspot_26_media 1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh video showreels & audio)',
+    item: '09 Media (HOTSPOT_26_MEDIA 1mNIsnqFkqoD_kNC6VBLEwgvXVZvOT2iq video showreels & stills)',
     referencedIn: 'Master Instruction v2 ("09 Media: the only media allowed") & 01 KB Handoff §3',
     currentFallbackInPhase0: 'Used the 2 attachedrenders (06_SEVEN_Tabuk_concept_render_desktop & mobile) and labelled unattached video showreels as SAMPLE.',
   },
@@ -1099,13 +1099,13 @@ export const FILES_DATA: FileEntry[] = [
   },
   {
     id: 'f-hotspot-media',
-    name: 'Hotspot_26_media (09 Media Single Source)',
+    name: 'HOTSPOT_26_MEDIA (09 Media Single Source)',
     folder: 'Allowlisted Drive Root (01 KB Handoff §3)',
-    driveId: '1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh',
-    lastSaved: '21 Oct 2026',
+    driveId: '1mNIsnqFkqoD_kNC6VBLEwgvXVZvOT2iq',
+    lastSaved: '14 Oct 2026',
     type: 'Folder',
-    status: 'Missing from attachment',
-    pagesOrSize: 'Locked single media source',
+    status: 'Verified',
+    pagesOrSize: 'Canonical Hotspot media folder',
   },
 ];
 

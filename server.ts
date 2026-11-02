@@ -379,8 +379,13 @@ async function startServer() {
         folderUrl: `https://drive.google.com/drive/folders/${HOTSPOT_26_MEDIA_FOLDER_ID}`,
         assets: DRIVE_MEDIA_ASSETS.map((asset) => ({
           ...asset,
-          streamUrl: resolveDriveStreamPath(asset.driveFileId),
-          playbackUrl: asset.localFallback || resolveDriveStreamPath(asset.driveFileId),
+          streamUrl: asset.driveFileId
+            ? resolveDriveStreamPath(asset.driveFileId)
+            : null,
+          playbackUrl:
+            asset.publicUrl ||
+            asset.localFallback ||
+            (asset.driveFileId ? resolveDriveStreamPath(asset.driveFileId) : null),
         })),
       });
     } catch (err) {
@@ -394,23 +399,34 @@ async function startServer() {
         ABOUT_US_BIOS,
         DRIVE_MEDIA_ASSETS,
         HOTSPOT_26_MEDIA_FOLDER_ID,
+        HOTSPOT_UNATTRIBUTED_INVENTORY,
+        resolveAssetRemotePlaybackUrl,
         resolveAssetPlaybackUrl,
       } = await import('./src/data/driveMediaCatalog.ts');
       res.json({
         ok: true,
         folderId: HOTSPOT_26_MEDIA_FOLDER_ID,
+        folderUrl: `https://drive.google.com/drive/folders/${HOTSPOT_26_MEDIA_FOLDER_ID}`,
+        unattributedCount: HOTSPOT_UNATTRIBUTED_INVENTORY.length,
         bios: ABOUT_US_BIOS.map((bio) => {
           const portrait = DRIVE_MEDIA_ASSETS.find((a) => a.id === bio.portraitAssetId);
           const media = DRIVE_MEDIA_ASSETS.filter((a) => bio.mediaAssetIds.includes(a.id));
           return {
             ...bio,
-            portraitUrl: portrait ? resolveAssetPlaybackUrl(portrait) : null,
+            portraitUrl: portrait
+              ? portrait.kind === 'image'
+                ? resolveAssetPlaybackUrl(portrait)
+                : resolveAssetRemotePlaybackUrl(portrait)
+              : null,
             media: media.map((m) => ({
               id: m.id,
               title: m.title,
               kind: m.kind,
               role: m.role,
-              playbackUrl: resolveAssetPlaybackUrl(m),
+              playbackUrl:
+                m.kind === 'video'
+                  ? resolveAssetRemotePlaybackUrl(m)
+                  : resolveAssetPlaybackUrl(m),
               driveFileId: m.driveFileId,
             })),
           };

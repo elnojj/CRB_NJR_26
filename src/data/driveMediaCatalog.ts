@@ -1,12 +1,23 @@
 /**
- * Google Drive Hotspot_26_media catalog (folder 1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh)
- * Wired for sphere VideoTexture + About Us bios. Prefer streamUrl via /api/drive/stream/:id
- * or public Wix URLs; shared local MP4 fallbacks are ice/placeholder plates only — not
- * project-specific verified masters.
+ * Google Drive HOTSPOT_26_MEDIA catalog
+ * Folder: https://drive.google.com/drive/folders/1mNIsnqFkqoD_kNC6VBLEwgvXVZvOT2iq
+ *
+ * Wired for sphere VideoTexture + About Us bios + project stills.
+ * Prefer public Wix URLs for browser video; Drive stream for allowlisted file ids;
+ * localFallback keeps WebGL ambient shells lit offline.
+ *
+ * Do not invent campaign credit from celebrity / festival frames — filename
+ * attribution only unless separately verified in source register.
  */
 import { PUBLIC_BRAND_MEDIA } from './publicBrandMedia';
 
-export const HOTSPOT_26_MEDIA_FOLDER_ID = '1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh';
+/** Canonical Hotspot media folder (owner Drive). */
+export const HOTSPOT_26_MEDIA_FOLDER_ID = '1mNIsnqFkqoD_kNC6VBLEwgvXVZvOT2iq';
+export const HOTSPOT_26_MEDIA_FOLDER_URL =
+  `https://drive.google.com/drive/folders/${HOTSPOT_26_MEDIA_FOLDER_ID}`;
+
+/** CDE 2030 build packs live under Hotspot — docs/build, not playable sphere media. */
+export const CDE_2030_FOLDER_ID = '1PkWxkKevz0ZiI7xh9kBAExCoHXItWUj3';
 
 export type DriveMediaKind = 'video' | 'image' | 'bio';
 
@@ -27,7 +38,13 @@ export type DriveMediaAsset = {
   title: string;
   kind: DriveMediaKind;
   mimeType: string;
-  role: 'sphere-texture' | 'showreel' | 'about-portrait' | 'about-bio' | 'project-still';
+  role:
+    | 'sphere-texture'
+    | 'showreel'
+    | 'about-portrait'
+    | 'about-bio'
+    | 'project-still'
+    | 'about-gallery';
   /** L13 — required provenance contract fields */
   projectId: string | null;
   mediaType: DriveMediaKind;
@@ -38,7 +55,7 @@ export type DriveMediaAsset = {
   durationSec: number | null;
   playable: boolean;
   projectCode?: string;
-  /** Direct public playback URL when available (preferred over shared local plates). */
+  /** Direct public playback URL when available (preferred for HTML5 video). */
   publicUrl?: string;
   localFallback?: string;
   /** True when localFallback is the shared showreel/ice plate, not a distinct master. */
@@ -46,36 +63,90 @@ export type DriveMediaAsset = {
   caption?: string;
 };
 
-/** Shared local plate SHA — not a distinct project master. */
+/** Shared local plate SHA — ambient shell only, not a distinct project master. */
 export const SHARED_SHOWREEL_FALLBACK = '/media/sphere-showreel-fallback.mp4';
+
+/**
+ * Drive file ids verified from HOTSPOT_26_MEDIA listing (2026-11-02).
+ * NJR showreel has duplicate filenames — largest MOV is the catalog master.
+ */
+function resolveDriveStreamPathLazy(driveFileId: string): string {
+  return `/api/drive/stream/${encodeURIComponent(driveFileId)}`;
+}
+
+const DRIVE = {
+  riyadhSeasonStill: '1bktzZxS3fPe5cES9T0GLguzBIdo3y-8S',
+  alahlyShell: '1WG2TIpFqmHyTJ_-1LJWulO0XHmGm8STQ',
+  zaidAlbum: '1quHWLRaXg1AI8DBLCdFFaX9F3lzF47H0',
+  cairokeeLive: '1S2YezzNpK1NyNcZYKMB978c7OBsAZpa7',
+  tarekAfrima: '16tvRrs4f3cxiaF2k7HAYhkAdl7vVPIAd',
+  kaswaraSummit: '1lbFTi24Jn8KueARWh0gBVSEy5U5_clpJ',
+  moayadMdlbeast: '1srusbARRsvBfKDmP3GzUGnsa1tPmRU7p',
+  zahaCairo: '1auwAFABq8laRUx5L1PUCdIt9yGQgUZcj',
+  zahaIndoor: '1E9exkeo0uJ2Q00n0ytmLpEJ69Bfj8iWv',
+  asserSchweppes: '1Z2J_C-QK-Vki7z5rLiWVDf3xofnk105I',
+  wegzOrange: '1CbO5HO_3gCKmNNRe5Ol3OtPwKp3YF1Do',
+  ramadanAircraft: '13XpE1Hf5IeuExVaQN9fdPm1Mmyrc3XW2',
+  riyadhSpiderman: '1dQpCVZju5QT5zT72_Nc130DHTkb3nHIl',
+  outdoorSet: '11gAGk9CIV6tF8EEE82OKTMSTesVjKZ6g',
+  entrepreneurAwards: '10jk3h981tzaVug3_49Nyco4K3DmmSpXh',
+  elGouna: '1m9VgS0FHiUiP5Ng9hASLFp6TDKzkhrY4',
+  productionSet: '1lPzUKY5o8JPYAFkGq_ydqxNs5MAQaxJh',
+  batronShowreelMov: '1Gruhma2eZYCE-myaVEMhV_pFr9JpKBnA',
+  /** Largest of four identically named NJR FINAL SHOWREEL 2023 MOV masters. */
+  njrShowreel2023Mov: '1_x6GfdJ5hzqOtmd__Fk57Lrx1ZeP5AV_',
+} as const;
 
 export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
   {
     id: 'sphere-primary',
-    driveFileId: '1WOsaz0C-F9sTnWl_xQaSN1wt86I_jRoA',
-    title: 'HH Turki Alshaikh — Riyadh Season Launch',
+    driveFileId: DRIVE.njrShowreel2023Mov,
+    title: 'NOJARA Studios — 2023 Showreel (HQ ambient)',
     kind: 'video',
-    mimeType: 'video/mp4',
+    mimeType: 'video/quicktime',
     role: 'sphere-texture',
     projectId: null,
     mediaType: 'video',
     aspect: '16:9',
     projection: 'equatorial',
-    poster: PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
+    poster: '/media/riyadh-season-launch-still.jpg',
     provenance: 'verified-footage',
+    durationSec: PUBLIC_BRAND_MEDIA.showreel2023.expectedDurationSec,
+    playable: true,
+    projectCode: 'NOJARA',
+    publicUrl: PUBLIC_BRAND_MEDIA.showreel2023.url,
+    localFallback: SHARED_SHOWREEL_FALLBACK,
+    localFallbackIsSharedPlate: true,
+    caption:
+      'HQ equator ambient uses NOJARA 2023 showreel (Wix MP4). Drive master is NJR_FINAL_SHOWREEL_2023 MOV in HOTSPOT_26_MEDIA. Poster is Riyadh Season still 01 — not a claim that Turki launch video is present.',
+  },
+  {
+    id: 'riyadh-season-still',
+    driveFileId: DRIVE.riyadhSeasonStill,
+    title: 'Riyadh Season launch — Rabeh Saqer still (4K)',
+    kind: 'image',
+    mimeType: 'image/jpeg',
+    role: 'about-gallery',
+    projectId: null,
+    mediaType: 'image',
+    aspect: '16:9',
+    projection: 'flat',
+    poster: '/media/riyadh-season-launch-still.jpg',
+    provenance: 'owner-supplied',
     durationSec: null,
     playable: true,
     projectCode: 'RIYADH-SEASON',
-    localFallback: SHARED_SHOWREEL_FALLBACK,
-    localFallbackIsSharedPlate: true,
-    caption: 'Primary equator-band video texture for HQ glass sphere (Drive stream preferred)',
+    localFallback: '/media/riyadh-season-launch-still.jpg',
+    localFallbackIsSharedPlate: false,
+    caption:
+      'Filename plate from HOTSPOT_26_MEDIA. Celebrity/event frames do not alone establish campaign credit.',
   },
   {
     id: 'njr-showreel-2023',
-    driveFileId: '143QDgWYEcU9kI7F87XVMHr9WZuWl6HBe',
-    title: '1 — NJR Showreel',
+    driveFileId: DRIVE.njrShowreel2023Mov,
+    title: 'NOJARA Studios — 2023 Showreel',
     kind: 'video',
-    mimeType: 'video/mp4',
+    mimeType: 'video/quicktime',
     role: 'showreel',
     projectId: null,
     mediaType: 'video',
@@ -89,11 +160,11 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
     publicUrl: PUBLIC_BRAND_MEDIA.showreel2023.url,
     localFallback: SHARED_SHOWREEL_FALLBACK,
     localFallbackIsSharedPlate: true,
-    caption: 'NOJARA Studios Showreel 2023 — About Us visual anchor',
+    caption: 'About Us visual anchor — public Wix MP4 + Drive MOV master',
   },
   {
     id: 'laliga-reel',
-    driveFileId: '1JuftO8KtXKGeEcEPCXDpDXmtiS5a9orQ',
+    driveFileId: '',
     title: 'NOJARA × LaLiga',
     kind: 'video',
     mimeType: 'video/mp4',
@@ -110,13 +181,15 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
     publicUrl: PUBLIC_BRAND_MEDIA.laligaFilm.url,
     localFallback: SHARED_SHOWREEL_FALLBACK,
     localFallbackIsSharedPlate: true,
+    caption:
+      'Public Wix master. Not present as a named file in HOTSPOT_26_MEDIA listing — keep Wix URL.',
   },
   {
     id: 'batron-showreel',
-    driveFileId: '1xh0Dqv4yo-sUO7oSZbThIG0e1RDXLln8',
+    driveFileId: DRIVE.batronShowreelMov,
     title: 'Batron showreel',
     kind: 'video',
-    mimeType: 'video/mp4',
+    mimeType: 'video/quicktime',
     role: 'showreel',
     projectId: 'EL-BATRON',
     mediaType: 'video',
@@ -130,6 +203,8 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
     publicUrl: PUBLIC_BRAND_MEDIA.elBatron.url,
     localFallback: SHARED_SHOWREEL_FALLBACK,
     localFallbackIsSharedPlate: true,
+    caption:
+      'Drive: Batron showreel.mov in HOTSPOT_26_MEDIA. Browser playback prefers public Wix MP4. Programme remains SAMPLE in register.',
   },
   {
     id: 'seven-tabuk-desktop',
@@ -177,7 +252,7 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
   },
   {
     id: 'about-tarek-portrait',
-    driveFileId: '1BBf1Jo1MZrztEIJj8ig0D5GQ_vyXi-Mq',
+    driveFileId: DRIVE.tarekAfrima,
     title: 'Tarek Mojara — AFRIMA Summit 2022',
     kind: 'image',
     mimeType: 'image/jpeg',
@@ -192,7 +267,145 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
     playable: true,
     localFallback: '/media/about-tarek-afrima.jpg',
     localFallbackIsSharedPlate: false,
-    caption: 'Owner-supplied portrait plate for About Us / founder page',
+    caption:
+      'Drive: 05_tarek_nojara_afrima_summit_2022_4k.jpg — matches local owner-supplied plate.',
+  },
+  {
+    id: 'about-entrepreneur-awards',
+    driveFileId: DRIVE.entrepreneurAwards,
+    title: 'Egypt Entrepreneur Awards — Media Entrepreneur finalist plate',
+    kind: 'image',
+    mimeType: 'image/jpeg',
+    role: 'about-gallery',
+    projectId: null,
+    mediaType: 'image',
+    aspect: '16:9',
+    projection: 'flat',
+    poster: resolveDriveStreamPathLazy(DRIVE.entrepreneurAwards),
+    provenance: 'owner-supplied',
+    durationSec: null,
+    playable: true,
+    caption: 'Finalist evidence plate — not winner. Bound to About Us / founder bio.',
+  },
+  {
+    id: 'about-el-gouna',
+    driveFileId: DRIVE.elGouna,
+    title: 'Tarek Mojara — El Gouna Film Festival',
+    kind: 'image',
+    mimeType: 'image/jpeg',
+    role: 'about-gallery',
+    projectId: null,
+    mediaType: 'image',
+    aspect: '16:9',
+    projection: 'flat',
+    poster: resolveDriveStreamPathLazy(DRIVE.elGouna),
+    provenance: 'owner-supplied',
+    durationSec: null,
+    playable: true,
+    caption: 'Festival frame — does not alone establish campaign credit.',
+  },
+  {
+    id: 'about-production-set',
+    driveFileId: DRIVE.productionSet,
+    title: 'Tarek Mojara — production set',
+    kind: 'image',
+    mimeType: 'image/jpeg',
+    role: 'about-gallery',
+    projectId: null,
+    mediaType: 'image',
+    aspect: '16:9',
+    projection: 'flat',
+    poster: resolveDriveStreamPathLazy(DRIVE.productionSet),
+    provenance: 'owner-supplied',
+    durationSec: null,
+    playable: true,
+  },
+  {
+    id: 'gallery-alahly-shell',
+    driveFileId: DRIVE.alahlyShell,
+    title: 'Al Ahly Shell campaign still (4K)',
+    kind: 'image',
+    mimeType: 'image/jpeg',
+    role: 'about-gallery',
+    projectId: null,
+    mediaType: 'image',
+    aspect: '16:9',
+    projection: 'flat',
+    poster: resolveDriveStreamPathLazy(DRIVE.alahlyShell),
+    provenance: 'owner-supplied',
+    durationSec: null,
+    playable: true,
+    caption: 'Filename attribution only — no invented rights claim.',
+  },
+  {
+    id: 'gallery-outdoor-set',
+    driveFileId: DRIVE.outdoorSet,
+    title: 'Outdoor production set still (4K)',
+    kind: 'image',
+    mimeType: 'image/jpeg',
+    role: 'about-gallery',
+    projectId: null,
+    mediaType: 'image',
+    aspect: '16:9',
+    projection: 'flat',
+    poster: resolveDriveStreamPathLazy(DRIVE.outdoorSet),
+    provenance: 'owner-supplied',
+    durationSec: null,
+    playable: true,
+  },
+];
+
+/**
+ * Present in HOTSPOT_26_MEDIA but not yet attributed to a project world.
+ * Inventory only — do not invent playable project bindings.
+ */
+export const HOTSPOT_UNATTRIBUTED_INVENTORY: Array<{
+  driveFileId: string;
+  name: string;
+  mimeType: string;
+  note: string;
+}> = [
+  {
+    driveFileId: DRIVE.zaidAlbum,
+    name: '03_zaid_khalid_el_waili_album_launch_4k.jpg',
+    mimeType: 'image/jpeg',
+    note: 'Event still — no project-world binding yet.',
+  },
+  {
+    driveFileId: DRIVE.cairokeeLive,
+    name: '04_legecy_tamer_hashem_cairokee_live_4k.jpg',
+    mimeType: 'image/jpeg',
+    note: 'Live frame — no project-world binding yet.',
+  },
+  {
+    driveFileId: DRIVE.kaswaraSummit,
+    name: '07_kaswara_alkhatib_creative_industry_summit_2021_4k.jpg',
+    mimeType: 'image/jpeg',
+    note: 'Summit still — About context only if separately cleared.',
+  },
+  {
+    driveFileId: DRIVE.moayadMdlbeast,
+    name: '08_moayad_mdlbeast_xp_batn_alshaer_4k.jpg',
+    mimeType: 'image/jpeg',
+    note: 'Event still — no project-world binding yet.',
+  },
+  {
+    driveFileId: '1Knhq62Bdl3MNwtOw7TrCXOG-j5DozWKs',
+    name: 'Mobily 3.mov',
+    mimeType: 'video/quicktime',
+    note: 'Mobily reel present — no Mobily project in register; left unattributed.',
+  },
+  {
+    driveFileId: '1tlJEf___RlmtqnacAXJD7FfuTX1Szoc9',
+    name: 'unujual Reel.mov',
+    mimeType: 'video/quicktime',
+    note: 'Unattributed reel — do not invent project credit.',
+  },
+  {
+    driveFileId: CDE_2030_FOLDER_ID,
+    name: 'CDE 2030/',
+    mimeType: 'application/vnd.google-apps.folder',
+    note: 'Build/observation packs for CDE — not sphere VideoTexture media.',
   },
 ];
 
@@ -214,24 +427,37 @@ export const ABOUT_US_BIOS: AboutUsBio[] = [
     name: 'NOJARA Studios',
     role: 'Cairo · Riyadh · Est. 2016',
     summary:
-      'NOJARA Studios practices across four connected pillars: creative strategy, production leadership, talent, and media technology. The public About Us visual anchor is the curated NOJARA Studios Showreel — a portfolio overview, not a single client campaign.',
+      'NOJARA Studios practices across four pillars: creative strategy, production leadership, talent, and media technology. The public About Us visual anchor is the curated NOJARA Studios Showreel — a portfolio overview, not a single client campaign.',
     evidenceNote:
-      'Source: Hotspot_26_media folder + Owner-Source-Excerpts (2026-10-23). Individual showreel frames must be attributed to their original projects wherever identifiable.',
+      'Source: HOTSPOT_26_MEDIA folder 1mNIsnqFkqoD_kNC6VBLEwgvXVZvOT2iq + Owner-Source-Excerpts. Individual frames must be attributed to original projects wherever identifiable.',
     portraitAssetId: 'about-tarek-portrait',
     driveFolderId: HOTSPOT_26_MEDIA_FOLDER_ID,
-    mediaAssetIds: ['njr-showreel-2023', 'sphere-primary', 'laliga-reel'],
+    mediaAssetIds: [
+      'njr-showreel-2023',
+      'sphere-primary',
+      'laliga-reel',
+      'riyadh-season-still',
+      'gallery-alahly-shell',
+      'gallery-outdoor-set',
+    ],
   },
   {
     id: 'tarek-mojara',
     name: 'Tarek Mojara (39)',
     role: 'Founder and Culture and Design Engineer',
     summary:
-      'Founder and Culture and Design Engineer of NOJARA Studios — never titled CEO. Presented as founder, creative producer, and strategist orchestrating multidisciplinary teams and AI crew systems across Cairo and Riyadh.',
+      'Founder and Culture and Design Engineer of NOJARA Studios — never titled CEO. Presented as founder, creative producer, and strategist across Cairo and Riyadh.',
     evidenceNote:
       'Source: SEVEN verified facts + Owner-Source-Excerpts. Egypt Entrepreneur Awards: Media Entrepreneur of the Year finalist (not winner). Celebrity / festival images do not establish campaign credit unless separately verified.',
     portraitAssetId: 'about-tarek-portrait',
     driveFolderId: HOTSPOT_26_MEDIA_FOLDER_ID,
-    mediaAssetIds: ['about-tarek-portrait', 'njr-showreel-2023'],
+    mediaAssetIds: [
+      'about-tarek-portrait',
+      'njr-showreel-2023',
+      'about-entrepreneur-awards',
+      'about-el-gouna',
+      'about-production-set',
+    ],
   },
 ];
 
@@ -245,9 +471,6 @@ export function resolveDriveStreamPath(driveFileId: string): string {
  * 2) Shared local ambient plate (keeps shells lit offline)
  * 3) Public Wix URL
  * 4) Drive stream
- *
- * Provenance still lives on the asset — local shared plates are ambient shells,
- * not project-credit masters.
  */
 export function resolveAssetPlaybackUrl(asset: DriveMediaAsset): string {
   if (asset.localFallback && !asset.localFallbackIsSharedPlate) return asset.localFallback;
