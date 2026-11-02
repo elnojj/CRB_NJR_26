@@ -6,8 +6,8 @@ Date: 2026-11-02 (Africa/Cairo)
 
 | Remote | SHA | Status |
 |--------|-----|--------|
-| Cursor Origin `main` | `7e0ef62` | Explore + WebGL rebuild + idle gate · verified |
-| GitHub `elnojj/CRB_NJR_26` `main` | `7e0ef62` | Synced · matches Origin |
+| Cursor Origin `main` | `ee3dae7` | Explore + WebGL rebuild + idle + MAT world host |
+| GitHub `elnojj/CRB_NJR_26` `main` | `ee3dae7` | Synced · matches Origin |
 
 ## Gates
 
