@@ -8,6 +8,17 @@ export const HOTSPOT_26_MEDIA_FOLDER_ID = '1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh';
 
 export type DriveMediaKind = 'video' | 'image' | 'bio';
 
+export type DriveMediaProvenance =
+  | 'verified-footage'
+  | 'study'
+  | 'render'
+  | 'specification'
+  | 'missing-asset'
+  | 'sample-programme'
+  | 'owner-supplied';
+
+export type DriveMediaProjection = 'spherical' | 'equatorial' | 'flat' | 'portrait';
+
 export type DriveMediaAsset = {
   id: string;
   driveFileId: string;
@@ -15,6 +26,15 @@ export type DriveMediaAsset = {
   kind: DriveMediaKind;
   mimeType: string;
   role: 'sphere-texture' | 'showreel' | 'about-portrait' | 'about-bio';
+  /** L13 — required provenance contract fields */
+  projectId: string | null;
+  mediaType: DriveMediaKind;
+  aspect: '16:9' | '1:1' | '9:16' | 'unknown';
+  projection: DriveMediaProjection;
+  poster: string | null;
+  provenance: DriveMediaProvenance;
+  durationSec: number | null;
+  playable: boolean;
   projectCode?: string;
   localFallback?: string;
   caption?: string;
@@ -28,6 +48,14 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
     kind: 'video',
     mimeType: 'video/mp4',
     role: 'sphere-texture',
+    projectId: null,
+    mediaType: 'video',
+    aspect: '16:9',
+    projection: 'equatorial',
+    poster: '/media/sphere-showreel-fallback.mp4',
+    provenance: 'verified-footage',
+    durationSec: null,
+    playable: true,
     projectCode: 'RIYADH-SEASON',
     localFallback: '/media/sphere-showreel-fallback.mp4',
     caption: 'Primary equator-band video texture for HQ glass sphere',
@@ -39,6 +67,14 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
     kind: 'video',
     mimeType: 'video/mp4',
     role: 'showreel',
+    projectId: null,
+    mediaType: 'video',
+    aspect: '16:9',
+    projection: 'flat',
+    poster: '/media/sphere-showreel-fallback.mp4',
+    provenance: 'verified-footage',
+    durationSec: null,
+    playable: true,
     projectCode: 'NOJARA',
     localFallback: '/media/sphere-showreel-fallback.mp4',
     caption: 'NOJARA Studios Showreel 2023 — About Us visual anchor',
@@ -50,6 +86,14 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
     kind: 'video',
     mimeType: 'video/mp4',
     role: 'showreel',
+    projectId: null,
+    mediaType: 'video',
+    aspect: '16:9',
+    projection: 'flat',
+    poster: '/media/sphere-showreel-fallback.mp4',
+    provenance: 'verified-footage',
+    durationSec: null,
+    playable: true,
     projectCode: 'LALIGA',
     localFallback: '/media/sphere-showreel-fallback.mp4',
   },
@@ -60,6 +104,14 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
     kind: 'video',
     mimeType: 'video/mp4',
     role: 'showreel',
+    projectId: 'EL-BATRON',
+    mediaType: 'video',
+    aspect: '16:9',
+    projection: 'flat',
+    poster: '/media/sphere-showreel-fallback.mp4',
+    provenance: 'verified-footage',
+    durationSec: null,
+    playable: true,
     projectCode: 'EL-BATRON',
     localFallback: '/media/sphere-showreel-fallback.mp4',
   },
@@ -70,6 +122,14 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
     kind: 'image',
     mimeType: 'image/jpeg',
     role: 'about-portrait',
+    projectId: null,
+    mediaType: 'image',
+    aspect: '9:16',
+    projection: 'portrait',
+    poster: '/media/about-tarek-afrima.jpg',
+    provenance: 'owner-supplied',
+    durationSec: null,
+    playable: true,
     localFallback: '/media/about-tarek-afrima.jpg',
     caption: 'Owner-supplied portrait plate for About Us / founder page',
   },
