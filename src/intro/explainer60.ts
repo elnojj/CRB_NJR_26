@@ -99,6 +99,7 @@ export function resolveEditionFromSearch(search: string): ExplainerEdition {
   if (params.get('explainer') === '60' || params.get('edition') === '60') return 'explainer-60';
   if (params.get('intro') === '0' || params.get('movie') === '0') return 'none';
   if (params.get('intro') === '1' || params.get('edition') === '180') return 'intro-180';
+  if (params.get('view') === 'hq' || params.get('view') === 'cde') return 'explainer-60';
   return 'default';
 }
 
