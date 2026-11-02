@@ -2956,7 +2956,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           resolveProjectMediaSrc(portal.projectId) || resolveShotMedia(portal.projectId)?.videoUrl;
         if (!playbackUrl) return;
 
-        const mat = createMatLiquidGlassShell({ softwareGl: isSoftwareGl });
+        // Playback shells own their glass/video materials. Keep the parent as an
+        // invisible raycast surface so a second glass shader cannot conflict.
+        const mat = new THREE.MeshBasicMaterial({
+          transparent: true,
+          opacity: 0,
+          depthWrite: false,
+          colorWrite: false,
+        });
         const mesh = new THREE.Mesh(portalGeo, mat);
         mesh.name = `master-portal-${portal.projectId}`;
         mesh.scale.setScalar(portal.radius);
