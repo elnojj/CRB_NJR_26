@@ -4438,9 +4438,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       // Align camera optical center to unobstructed centerSafeRect when panels are open.
       // EffectComposer + UnrealBloomPass mishandles PerspectiveCamera.setViewOffset and
-      // paints a solid clear-color slab over the right/bottom of the canvas (visible
-      // when the Media/Projects inspector is open on iPad). Skip viewOffset while composer
-      // is active; labels still clamp into the safe rect below.
+      // paints a solid clear-color slab over half the framebuffer (visible when Media/Projects
+      // inspector is open on iPad). Skip viewOffset while composer is active; labels still
+      // clamp into the safe rect below.
       const curW = domEl.clientWidth || window.innerWidth;
       const curH = domEl.clientHeight || window.innerHeight;
       if (unobstructedRectRef.current && curW > 0 && curH > 0) {
