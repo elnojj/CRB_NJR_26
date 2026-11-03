@@ -1307,12 +1307,31 @@ export default function App() {
           setFocusedNodeId(action.station);
           ensurePanelOpen(action.station, true);
           dispatchCamera('focus_node', { targetSphere: 'hq', targetNodeId: action.station });
-          setCaptionBubble(`Station · ${action.station.toUpperCase()}`);
+          // Media station: expand showreel previews inside the sphere (past armature cage).
+          if (action.station === 'media') {
+            setMediaTubeState((prev) => ({
+              active: true,
+              projectId: 'NOJARA',
+              focusedTileIndex: 0,
+              savedPanels: prev.savedPanels.length > 0 ? prev.savedPanels : [...openPanels],
+            }));
+            dispatchCamera('set_angle', {
+              targetSphere: 'hq',
+              anglePreset: 'interior_dome',
+            });
+            setCaptionBubble('Media · 5 Showreels expanded · Interior Dome past cage');
+          } else {
+            setCaptionBubble(`Station · ${action.station.toUpperCase()}`);
+          }
           return {
             ok: true,
             action: 'open_station',
             target: action.station,
-            resultingState: { activeSphere: 'hq', openPanels: [action.station] },
+            resultingState: {
+              activeSphere: 'hq',
+              openPanels: [action.station],
+              mediaTube: action.station === 'media',
+            },
             operationId: opId,
           };
         }

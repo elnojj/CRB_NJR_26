@@ -1281,7 +1281,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         s.targetPanOffset.copy(localVec).multiplyScalar(0.22);
         const isCrossingSpheres = sphereCenter.distanceTo(s.currentCenter) > 10;
         const focusMs = clampNodeFocusMs(isCrossingSpheres);
-        triggerCometFlight(sphereCenter, az, pol, 12.8, focusMs, isCrossingSpheres);
+        triggerCometFlight(sphereCenter, az, pol, 5.4, focusMs, isCrossingSpheres);
         s.lastCameraCommandLog = {
           commandId: id,
           verb,
@@ -1422,7 +1422,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           s.targetPolar = 1.57;
           s.targetFocalLengthMm = 5;
           s.activeLensId = '5mm';
-          s.targetRadius = 4.2;
+          s.targetRadius = 3.6; // Clear of outer cage rib (~6.29u)
           s.targetRollDeg = 0;
           s.targetPanOffset.set(0, 0, 0);
           break;
@@ -1513,7 +1513,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     } else if (verb === 'max_in') {
       s.flightActive = false;
       s.activeLoopMode = 'off';
-      s.targetRadius = 6.2; // Enters Interior Planetary Dome Mode (< 8.2u)
+      s.targetRadius = 4.2; // Past outer armature cage (~6.29u) into Interior Dome
       soundEngine.triggerFlightWhoosh(680, 0);
     } else if (verb === 'max_out') {
       s.flightActive = false;
@@ -1581,6 +1581,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   useEffect(() => {
     const s = stateRef.current;
     if (s.stoppedExplicitly || s.flightActive) return;
+    // Do not yank Interior Dome / Macro Orbit back outside the armature cage (~6.3u).
+    if (s.activeAnglePreset === 'interior_dome' || s.activeLoopMode === 'macro_orbit') {
+      return;
+    }
     const sphereCenter = resolveSphereCenter(activeSphere);
     if (focusedNodeId) {
       const node = resolveNodeEntry(focusedNodeId, activeSphere);
@@ -1593,7 +1597,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           Math.PI - 0.35
         );
         s.targetAzimuth = Math.atan2(localVec.x, localVec.z);
-        s.targetRadius = 13.2;
+        // Past outer orbital cage (~6.29u) so station interiors / media are readable.
+        s.targetRadius = 5.4;
       }
     } else {
       s.targetRadius = 19.0;
@@ -1606,6 +1611,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     if (!guiCameraPreset) return;
     const s = stateRef.current;
     if (s.stoppedExplicitly) return;
+    // Fitted GUI distances floor near ~9u (outside cage). Skip while inside dome/macro.
+    if (s.activeAnglePreset === 'interior_dome' || s.activeLoopMode === 'macro_orbit') {
+      return;
+    }
     const spec = GUI_CAMERA_PRESETS[guiCameraPreset];
     if (!spec) return;
     s.targetFocalLengthMm = spec.focalMm;
@@ -3431,7 +3440,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             if (Math.abs(distDelta) > 0.2) {
               s.targetRadius = THREE.MathUtils.clamp(
                 s.targetRadius - distDelta * 0.045,
-                9.2,
+                3.2,
                 42.0
               );
               setTouchIndicator({ active: true, x: tf.midX, y: tf.midY, mode: 'pinch' });
@@ -3551,7 +3560,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const s = stateRef.current;
       s.flightActive = false;
       s.activeLoopMode = 'off';
-      s.targetRadius = THREE.MathUtils.clamp(s.targetRadius + e.deltaY * 0.012, 9.2, 42.0);
+      s.targetRadius = THREE.MathUtils.clamp(s.targetRadius + e.deltaY * 0.012, 3.2, 42.0);
       setTouchIndicator({ active: true, x: e.clientX, y: e.clientY, mode: 'pinch' });
       window.setTimeout(() => setTouchIndicator((prev) => ({ ...prev, active: false })), 350);
     };
