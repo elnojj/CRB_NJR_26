@@ -617,10 +617,24 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
 
   return (
     <>
-      {/* Single Shared Camera Backdrop Layer */}
+      {/*
+        Sampling video must stay in the DOM for MediaPipe, but NEVER paint full-bleed.
+        A mirrored object-cover webcam of the monitor created a second ghosted "page"
+        of the UI (vertical seam / duplicated spheres). Keep it 1×1 and invisible.
+      */}
       <div
-        className="fixed inset-0 z-[1] pointer-events-none select-none overflow-hidden"
+        className="pointer-events-none select-none"
         aria-hidden="true"
+        style={{
+          position: 'fixed',
+          left: 0,
+          top: 0,
+          width: 1,
+          height: 1,
+          overflow: 'hidden',
+          opacity: 0,
+          zIndex: -1,
+        }}
       >
         <video
           ref={videoRef}
@@ -631,47 +645,18 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           height={480}
           controls={false}
           disablePictureInPicture
-          // Keep in DOM layout (never display:none) so MediaPipe can sample frames.
-          style={{ width: 640, height: 480, maxWidth: '100%', maxHeight: '100%' }}
-          className={`absolute inset-0 object-cover scale-x-[-1] transition-opacity duration-300 ${
-            hasLiveCam ? (isPhone ? 'opacity-[0.04]' : 'opacity-[0.07]') : 'opacity-0'
-          }`}
+          style={{ width: 640, height: 480 }}
         />
-        {/* Soft veil only — no sensor-grid wash; keep cryo void readable. */}
-        <svg
-          className={`w-full h-full object-cover scale-x-[-1] ${isPhone ? 'opacity-[0.08]' : 'opacity-[0.14]'}`}
-          viewBox="0 0 1366 1024"
-          preserveAspectRatio="xMidYMid slice"
-          aria-hidden="true"
-        >
-          <defs>
-            <radialGradient id="camFeedField" cx="50%" cy="40%">
-              <stop offset="0%" stopColor="#243848" stopOpacity="0.16" />
-              <stop offset="55%" stopColor="#0a1520" stopOpacity="0.1" />
-              <stop offset="100%" stopColor="#03060c" stopOpacity="0.18" />
-            </radialGradient>
-          </defs>
-          <rect width="1366" height="1024" fill="url(#camFeedField)" />
-        </svg>
       </div>
 
-      {/* Interactive Hand Rig & Control Bar */}
+      {/* Interactive Hand Rig & Control Bar — no decorative sphere arc (WebGL owns spheres). */}
       <div className="fixed inset-0 z-[15] pointer-events-none select-none flex flex-col justify-between p-4 md:p-6">
         <svg
           className="fixed inset-0 w-full h-full pointer-events-auto"
           viewBox="0 0 1366 1024"
-          preserveAspectRatio="xMidYMid slice"
+          preserveAspectRatio="xMidYMid meet"
           onPointerMove={handlePointerMove}
         >
-          <path
-            d="M 410 560 A 295 295 0 0 1 956 560"
-            fill="none"
-            stroke={COLOUR_TOKENS.sphereWireframe}
-            strokeOpacity="0.22"
-            strokeWidth="1.25"
-            strokeDasharray="6 8"
-          />
-
           {sparkles.map((sp) => (
             <g key={sp.id} opacity={sp.opacity * 0.65}>
               <circle

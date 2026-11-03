@@ -1742,6 +1742,18 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const domEl = renderer.domElement;
     domEl.style.touchAction = 'none';
     domEl.style.cursor = 'grab';
+    // One viewport only — never let the canvas paint wider than the shell
+    // (100vw + DPR mismatch previously looked like a tiled second page).
+    domEl.style.display = 'block';
+    domEl.style.width = '100%';
+    domEl.style.height = '100%';
+    domEl.style.maxWidth = '100%';
+    domEl.style.maxHeight = '100%';
+    container.style.overflow = 'hidden';
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.maxWidth = '100%';
+    container.style.maxHeight = '100%';
 
     // Local flag — React state alone is too late to stop the in-flight RAF tick.
     let contextLost = false;
@@ -4168,31 +4180,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       introBridge.update?.(elapsedTotal);
 
-      // Align camera optical center to unobstructed centerSafeRect when panels are open.
-      // EffectComposer + UnrealBloomPass mishandles PerspectiveCamera.setViewOffset and
-      // paints a solid clear-color slab over half the framebuffer (visible when Media/Projects
-      // inspector is open on iPad). Skip viewOffset while composer is active; labels still
-      // clamp into the safe rect below.
+      // Never apply setViewOffset in the live frame loop.
+      // EffectComposer + UnrealBloomPass mishandles it and paints a clear-color slab /
+      // vertical seam that reads as a second tiled page of the workspace.
+      // Labels still clamp into the safe rect below without shifting the framebuffer.
       const curW = domEl.clientWidth || window.innerWidth;
       const curH = domEl.clientHeight || window.innerHeight;
-      if (unobstructedRectRef.current && curW > 0 && curH > 0) {
-        const sub = computeSubFrustumOffset(curW, curH, unobstructedRectRef.current);
-        const wantsOffset = Math.abs(sub.offsetX) > 2 || Math.abs(sub.offsetY) > 2;
-        if (composer || !wantsOffset) {
-          camera.clearViewOffset();
-        } else {
-          camera.setViewOffset(
-            sub.fullWidth,
-            sub.fullHeight,
-            sub.offsetX,
-            sub.offsetY,
-            sub.width,
-            sub.height
-          );
-        }
-      } else {
-        camera.clearViewOffset();
-      }
+      camera.clearViewOffset();
 
       if (isSoftwareGl || !composer) {
         renderer.render(scene, camera);
