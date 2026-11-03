@@ -4830,10 +4830,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                       : 'color-mix(in srgb, var(--token-active-ice) 36%, transparent)',
                   background: useHitTargetOnly ? 'transparent' : undefined,
                   color: useHitTargetOnly ? 'transparent' : undefined,
+                  opacity: useHitTargetOnly ? 0 : undefined,
                 }}
                 className={`cerebro-focus-label cerebro-infograph-label fixed top-0 left-0 min-h-[44px] pointer-events-auto cursor-pointer px-3.5 py-1.5 rounded-full border flex items-center gap-2.5 text-left group hover:border-[color:var(--token-focus,#65ACFF)] ${
                   useHitTargetOnly
-                    ? 'opacity-0 hover:opacity-0 focus:opacity-0'
+                    ? ''
                     : item.isFocused
                       ? 'is-focused opacity-100'
                       : isAttentionProject

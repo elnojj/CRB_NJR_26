@@ -213,6 +213,18 @@ canvas {
     filter var(--motion-fast) var(--motion-ease);
 }
 
+/* WebGL billboards own station/core copy — DOM labels stay as invisible hit targets only. */
+button.cerebro-infograph-label[data-spatial-billboard='true'],
+button.cerebro-infograph-label[data-spatial-billboard='true'][data-chrome-state='cold'],
+button.cerebro-infograph-label[data-spatial-billboard='true'][data-chrome-state='active'] {
+  opacity: 0 !important;
+  color: transparent !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
 .cj-cold:hover,
 .cj-cold:focus-visible,
 [data-chrome-state='cold']:hover,
