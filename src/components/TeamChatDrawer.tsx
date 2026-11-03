@@ -126,7 +126,8 @@ export const TeamChatDrawer: React.FC<TeamChatDrawerProps> = ({
 
   return (
     <aside
-      className="fixed bottom-24 right-3 z-[160] flex h-[min(520px,70vh)] w-[min(380px,calc(100vw-24px))] flex-col overflow-hidden rounded-2xl border border-white/15 bg-black/80 shadow-2xl backdrop-blur-xl"
+      data-chrome="glass"
+      className="cerebro-chrome cj-glass-card fixed bottom-24 right-3 z-[160] flex h-[min(520px,70vh)] w-[min(380px,calc(100vw-24px))] flex-col overflow-hidden"
       data-testid="team-chat-drawer"
       role="dialog"
       aria-label="Team chat"
