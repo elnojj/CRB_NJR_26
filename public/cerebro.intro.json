@@ -1,7 +1,7 @@
 {
   "brand": {
     "name": "NOJARA Studios",
-    "mark": "\u0646\u064f\u0686\u0627\u0631\u0629",
+    "mark": "نُچارة",
     "logo": "/assets/brand/nojara-logo-white.png"
   },
   "audio": {
@@ -10817,7 +10817,7 @@
       {
         "start": 13.0,
         "end": 29.0,
-        "text": "Tarek Nojara \u2014 Founder and Culture and Design Engineer."
+        "text": "Tarek Nojara — Founder and Culture and Design Engineer."
       },
       {
         "start": 31.0,
@@ -10827,7 +10827,7 @@
       {
         "start": 53.0,
         "end": 71.0,
-        "text": "Young & Human \u2014 Landmark Cairo Tower public architectural projection."
+        "text": "Young & Human — Landmark Cairo Tower public architectural projection."
       },
       {
         "start": 73.0,
@@ -10842,7 +10842,7 @@
       {
         "start": 113.0,
         "end": 133.0,
-        "text": "Enter Cerebro spatial HQ \u2014 dual-sphere cognitive navigation."
+        "text": "Enter Cerebro spatial HQ — dual-sphere cognitive navigation."
       },
       {
         "start": 135.0,
@@ -10857,7 +10857,7 @@
       {
         "start": 169.0,
         "end": 179.5,
-        "text": "Return to the living sphere \u2014 explore NOJARA Cerebro."
+        "text": "Return to the living sphere — explore NOJARA Cerebro."
       }
     ]
   },
@@ -11030,37 +11030,37 @@
     "production": {
       "type": "video",
       "src": "https://video.wixstatic.com/video/227dff_5eb47ff9d6fc4753802d517fa87f3a43/720p/mp4/file.mp4",
-      "label": "NOJARA Studios \u2014 Production Master",
+      "label": "NOJARA Studios — Production Master",
       "brandLogo": "/assets/brand/nojara-logo-white.png"
     },
     "showreel": {
       "type": "video",
       "src": "https://video.wixstatic.com/video/227dff_5eb47ff9d6fc4753802d517fa87f3a43/720p/mp4/file.mp4",
-      "label": "NOJARA Studios \u2014 2023 Showreel",
+      "label": "NOJARA Studios — 2023 Showreel",
       "brandLogo": "/assets/brand/nojara-logo-white.png"
     },
     "laliga": {
       "type": "video",
       "src": "https://video.wixstatic.com/video/227dff_8649ac6a450c471683cc3e72a2655a02/720p/mp4/file.mp4",
-      "label": "NOJARA \u00d7 LaLiga \u2014 Broadcast Collaboration",
+      "label": "NOJARA × LaLiga — Broadcast Collaboration",
       "brandLogo": "/assets/brand/nojara-logo-white.png"
     },
     "el-batron": {
       "type": "video",
       "src": "https://video.wixstatic.com/video/227dff_620a67c30ded4fcfbd798648a3dacc6a/720p/mp4/file.mp4",
-      "label": "El Batron \u2014 Brand Showcase",
+      "label": "El Batron — Brand Showcase",
       "brandLogo": "/assets/brand/nojara-logo-white.png"
     },
     "tarek": {
       "type": "video",
       "src": "https://video.wixstatic.com/video/227dff_5eb47ff9d6fc4753802d517fa87f3a43/720p/mp4/file.mp4",
-      "label": "Tarek Nojara (39) \u2014 Founder & CDE",
+      "label": "Tarek Nojara (39) — Founder & CDE",
       "brandLogo": "/assets/brand/nojara-logo-white.png"
     },
     "young-human": {
       "type": "video",
       "src": "https://video.wixstatic.com/video/227dff_5eb47ff9d6fc4753802d517fa87f3a43/720p/mp4/file.mp4",
-      "label": "Young & Human \u2014 Cairo Tower Showcase",
+      "label": "Young & Human — Cairo Tower Showcase",
       "brandLogo": "/assets/brand/nojara-logo-white.png"
     }
   },
@@ -11071,7 +11071,7 @@
       "endFrameExclusive": 720,
       "textStartFrame": 60,
       "headline": "CAN SPATIAL INTERACTION BREATHE WITH CULTURE?",
-      "kicker": "01 / 10 \u00b7 THE QUESTION",
+      "kicker": "01 / 10 · THE QUESTION",
       "body": "An inquiry into refractive dual-sphere optics and continuous cinematic architecture.",
       "mediaId": "production",
       "sphereVideo": "production"
@@ -11081,8 +11081,8 @@
       "startFrame": 720,
       "endFrameExclusive": 1800,
       "textStartFrame": 760,
-      "headline": "TAREK NOJARA \u00b7 FOUNDER & CULTURE AND DESIGN ENGINEER",
-      "kicker": "02 / 10 \u00b7 DIRECTION & CRAFT",
+      "headline": "TAREK NOJARA · FOUNDER & CULTURE AND DESIGN ENGINEER",
+      "kicker": "02 / 10 · DIRECTION & CRAFT",
       "body": "Grounding spatial design in 17 verified production records and studio archives.",
       "mediaId": "tarek",
       "sphereVideo": "tarek"
@@ -11093,7 +11093,7 @@
       "endFrameExclusive": 3120,
       "textStartFrame": 1840,
       "headline": "CULTURE & DESIGN ENGINEERING METHODOLOGY",
-      "kicker": "03 / 10 \u00b7 CDE FRAMEWORK",
+      "kicker": "03 / 10 · CDE FRAMEWORK",
       "body": "Transforming narrative identity into rigorous three-dimensional systems and spatial logic.",
       "mediaId": "showreel",
       "sphereVideo": "showreel"
@@ -11103,8 +11103,8 @@
       "startFrame": 3120,
       "endFrameExclusive": 4320,
       "textStartFrame": 3160,
-      "headline": "YOUNG & HUMAN \u00b7 CAIRO TOWER COLLABORATION",
-      "kicker": "04 / 10 \u00b7 VERIFIED EVIDENCE",
+      "headline": "YOUNG & HUMAN · CAIRO TOWER COLLABORATION",
+      "kicker": "04 / 10 · VERIFIED EVIDENCE",
       "body": "Landmark architectural projection and cultural synthesis in public space.",
       "mediaId": "young-human",
       "sphereVideo": "young-human"
@@ -11115,7 +11115,7 @@
       "endFrameExclusive": 5400,
       "textStartFrame": 4360,
       "headline": "FROM DESTINATION TO COLLABORATIVE CREATION",
-      "kicker": "05 / 10 \u00b7 NETWORK NODES",
+      "kicker": "05 / 10 · NETWORK NODES",
       "body": "A living relational graph connecting talent, brands, and generative spatial stations.",
       "mediaId": "production",
       "sphereVideo": "production"
@@ -11125,8 +11125,8 @@
       "startFrame": 5400,
       "endFrameExclusive": 6720,
       "textStartFrame": 5440,
-      "headline": "PROVEN PRODUCTION \u00b7 LALIGA & EL BATRON",
-      "kicker": "06 / 10 \u00b7 PORTFOLIO PROOF",
+      "headline": "PROVEN PRODUCTION · LALIGA & EL BATRON",
+      "kicker": "06 / 10 · PORTFOLIO PROOF",
       "body": "Broadcast-grade motion, physical aperture lenses, and authentic brand partnerships.",
       "mediaId": "laliga",
       "sphereVideo": "laliga"
@@ -11137,7 +11137,7 @@
       "endFrameExclusive": 8040,
       "textStartFrame": 6760,
       "headline": "ENTER CEREBRO SPATIAL HQ",
-      "kicker": "07 / 10 \u00b7 SPATIAL SYSTEM",
+      "kicker": "07 / 10 · SPATIAL SYSTEM",
       "body": "HQ [0,0,0] and CDE [38,4,-22] interconnected dual-sphere operational intelligence.",
       "mediaId": "showreel",
       "sphereVideo": "showreel"
@@ -11147,8 +11147,8 @@
       "startFrame": 8040,
       "endFrameExclusive": 9120,
       "textStartFrame": 8080,
-      "headline": "VOICE \u00b7 GESTURE \u00b7 SPATIAL AUDIO DYNAMICS",
-      "kicker": "08 / 10 \u00b7 SENSORY CONTROL",
+      "headline": "VOICE · GESTURE · SPATIAL AUDIO DYNAMICS",
+      "kicker": "08 / 10 · SENSORY CONTROL",
       "body": "Multi-modal hands tracking, sub-millimeter camera settle, and acoustic resonance.",
       "mediaId": "production",
       "sphereVideo": "production"
@@ -11158,8 +11158,8 @@
       "startFrame": 9120,
       "endFrameExclusive": 10080,
       "textStartFrame": 9160,
-      "headline": "CDE EDUCATION \u00b7 SERVICES \u00b7 LICENSING PATHWAYS",
-      "kicker": "09 / 10 \u00b7 INSTITUTIONAL REACH",
+      "headline": "CDE EDUCATION · SERVICES · LICENSING PATHWAYS",
+      "kicker": "09 / 10 · INSTITUTIONAL REACH",
       "body": "Empowering next-generation culture engineering through studio-grade spatial tools.",
       "mediaId": "el-batron",
       "sphereVideo": "el-batron"
@@ -11170,8 +11170,8 @@
       "endFrameExclusive": 10800,
       "textStartFrame": 10120,
       "headline": "EXPLORE THE LIVING CEREBRO ARCHITECTURE",
-      "kicker": "10 / 10 \u00b7 THE CONTINUOUS JOURNEY",
-      "body": "Step into sovereign workspace navigation \u2014 welcome to NOJARA Studios.",
+      "kicker": "10 / 10 · THE CONTINUOUS JOURNEY",
+      "body": "Step into sovereign workspace navigation — welcome to NOJARA Studios.",
       "mediaId": "showreel",
       "sphereVideo": "showreel"
     }
@@ -11179,7 +11179,9 @@
   "gates": {
     "missingConfirmedPortraits": [
       "Shweekar Ahmed",
-      "Khaled El Shaalan"
-    ]
+      "Khaled Al-Shaalan"
+    ],
+    "missingTarekPortraitPlate": "/media/about-tarek-afrima.jpg",
+    "openSequence": "LiveSphereOpenSequence drives hostPoseSampler; About Us order Shweekar→Khaled→Tarek"
   }
 }

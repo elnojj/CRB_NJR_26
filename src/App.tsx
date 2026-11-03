@@ -3134,16 +3134,18 @@ export default function App() {
 
   const handleToggleHands = useCallback(() => {
     setHandsActive((wasActive) => {
-      const next = !wasActive;
-      if (!wasActive) {
-        // Fresh session always starts one-hand until the user picks 2×.
-        setHandMode('right-only');
-      } else {
+      if (wasActive) {
         // iOS Safari: stop tracks immediately so the green camera indicator clears.
+        // Generation bump also cancels any in-flight getUserMedia so re-enable is not jammed.
         forceStopSharedWebcamStream();
+        setIsHandTrackingActive(false);
+        return false;
       }
-      setIsHandTrackingActive(next);
-      return next;
+      // Fresh enable — clear any zombie stream, then start one-hand until the user picks 2×.
+      forceStopSharedWebcamStream();
+      setHandMode('right-only');
+      setIsHandTrackingActive(true);
+      return true;
     });
   }, []);
 
@@ -3814,7 +3816,11 @@ export default function App() {
         activeGesture={activeGesture}
         onChangeHandMode={setHandMode}
         onTriggerGesture={handleTriggerHandGesture}
-        onCloseHands={() => setHandsActive(false)}
+        onCloseHands={() => {
+          forceStopSharedWebcamStream();
+          setHandsActive(false);
+          setIsHandTrackingActive(false);
+        }}
         onTrackingLost={() => setGestureTrackingActive(false)}
         onTrackingAcquired={() => setGestureTrackingActive(true)}
         dockClearancePx={

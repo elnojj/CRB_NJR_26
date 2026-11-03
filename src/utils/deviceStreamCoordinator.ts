@@ -55,6 +55,8 @@ let webcamStream: MediaStream | null = null;
 let webcamRefCount = 0;
 let webcamInflight: Promise<MediaStream> | null = null;
 let webcamLastError: MediaSessionError | null = null;
+/** Bumped on force-stop so late getUserMedia resolves cannot resurrect a killed stream. */
+let webcamGeneration = 0;
 
 let microphoneStream: MediaStream | null = null;
 let microphoneRefCount = 0;
@@ -106,12 +108,19 @@ export async function getSharedWebcamStream(
 
   webcamRefCount += 1;
 
-  if (webcamStream) {
+  if (webcamStream && webcamStream.getVideoTracks().some((t) => t.readyState === 'live')) {
     webcamLastError = null;
     return webcamStream;
   }
 
+  // Stale stopped stream left behind after a force-stop race — drop it.
+  if (webcamStream) {
+    stopStreamTracks(webcamStream);
+    webcamStream = null;
+  }
+
   if (!webcamInflight) {
+    const generationAtStart = webcamGeneration;
     const track = asVideoTrackConstraints(constraints);
     const video =
       typeof track === 'boolean' ? track : { ...DEFAULT_WEBCAM, ...track };
@@ -120,14 +129,23 @@ export async function getSharedWebcamStream(
       { timeoutMs: 8000, label: 'webcam' }
     )
       .then((stream) => {
-        webcamStream = stream;
         webcamInflight = null;
+        if (generationAtStart !== webcamGeneration) {
+          // Toggle was force-stopped while this acquire was in flight.
+          stopStreamTracks(stream);
+          throw new MediaSessionError('unknown', 'Webcam acquire cancelled');
+        }
+        webcamStream = stream;
         webcamLastError = null;
         return stream;
       })
       .catch((err) => {
         webcamInflight = null;
         webcamRefCount = Math.max(0, webcamRefCount - 1);
+        if (err instanceof MediaSessionError && err.message === 'Webcam acquire cancelled') {
+          webcamLastError = null;
+          throw err;
+        }
         webcamLastError =
           err instanceof MediaSessionError
             ? err
@@ -148,10 +166,12 @@ export function releaseSharedWebcamStream(): void {
 
 /** Force-release webcam (iOS Safari green indicator). Ignores refcount. */
 export function forceStopSharedWebcamStream(): void {
+  webcamGeneration += 1;
   webcamRefCount = 0;
   webcamInflight = null;
   stopStreamTracks(webcamStream);
   webcamStream = null;
+  webcamLastError = null;
 }
 
 export async function getSharedMicrophoneStream(
@@ -230,6 +250,7 @@ export function getDeviceStreamCoordinatorDebugState(): {
   hasAudioContext: boolean;
   webcamError: string | null;
   microphoneError: string | null;
+  webcamGeneration: number;
 } {
   return {
     webcamRefCount,
@@ -239,6 +260,7 @@ export function getDeviceStreamCoordinatorDebugState(): {
     hasAudioContext: Boolean(sharedAudioContext && sharedAudioContext.state !== 'closed'),
     webcamError: webcamLastError?.message ?? null,
     microphoneError: microphoneLastError?.message ?? null,
+    webcamGeneration,
   };
 }
 
@@ -253,6 +275,7 @@ export function __resetDeviceStreamCoordinatorForTests(): void {
   microphoneInflight = null;
   webcamLastError = null;
   microphoneLastError = null;
+  webcamGeneration = 0;
   if (sharedAudioContext && sharedAudioContext.state !== 'closed') {
     sharedAudioContext.close().catch(() => {});
   }

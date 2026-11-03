@@ -10,7 +10,9 @@ cp .env.example .env   # optional: set GEMINI_API_KEY / ElevenLabs keys
 PORT=3847 npm run dev
 ```
 
-Cold start is fully automatic: **CerebroIntro wordmark** → **open sequence** (control-free cinematic film) → **BootLoader** → **ExperienceCanvas** workspace. No Enter Cerebro / Skip CTAs on the open path.
+Cold start is fully automatic: **CerebroIntro wordmark** (over the live constellation) → **LiveSphereOpenSequence** (continuous WebGL camera one-shot: wide reveal → About Us Shweekar → Khaled → Tarek → business arc) → **BootLoader** → **ExperienceCanvas** workspace. No Enter Cerebro / Skip CTAs on the open path.
+
+Open-sequence duration is configurable: `?openDuration=48` (seconds). Reduced-motion caps the journey.
 
 Skip straight to workspace: `http://127.0.0.1:3847/?skipExplainer=1` or `?view=hq`.
 

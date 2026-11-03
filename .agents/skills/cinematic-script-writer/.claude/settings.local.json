@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(git status -u)",
+      "Bash(npm whoami:*)",
+      "Bash(npm publish:*)",
+      "Bash(npm org:*)"
+    ]
+  }
+}

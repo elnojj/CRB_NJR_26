@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { BootLoader } from '../components/BootLoader';
 import { selectLatestSnapshotTimestamp } from '../data/projectPlanModel';
-import { ExplainerFilm } from './ExplainerFilm';
+import { LiveSphereOpenSequence } from './LiveSphereOpenSequence';
 import { introBridge } from './bridge';
 
 export interface CerebroIntroProps {
@@ -17,7 +17,7 @@ type IntroPhase = 'title' | 'openSequence' | 'loader' | 'ready';
 
 /**
  * Public open path on the shared ExperienceCanvas:
- * wordmark → control-free open sequence → BootLoader → workspace.
+ * translucent wordmark over live spheres → continuous WebGL camera journey → BootLoader → workspace.
  */
 export const CerebroIntro: React.FC<CerebroIntroProps> = ({
   embedCanvas = false,
@@ -60,16 +60,19 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
         );
         setConfigReady(true);
       } catch {
-        if (!cancelled) setConfigReady(true);
+        if (!cancelled) {
+          introBridge.enabled = true;
+          setConfigReady(true);
+        }
       }
     })();
-    // Wordmark holds briefly, then auto-enters the open sequence (no CTA).
-    const titleTimer = window.setTimeout(() => setPhase('openSequence'), 1600);
+    // Brief brand hold over the live constellation, then one continuous camera journey.
+    const titleTimer = window.setTimeout(() => setPhase('openSequence'), reducedMotion ? 700 : 1400);
     return () => {
       cancelled = true;
       window.clearTimeout(titleTimer);
     };
-  }, [embedCanvas]);
+  }, [embedCanvas, reducedMotion]);
 
   return (
     <div
@@ -81,26 +84,29 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
     >
       {phase === 'title' && (
         <div
-          className="absolute inset-0 flex flex-col items-center justify-center bg-[#101D27]/92 px-6 text-center backdrop-blur-md"
+          className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center"
           data-testid="cerebro-intro-wordmark"
+          style={{
+            background:
+              'radial-gradient(70% 55% at 50% 42%, rgba(16,29,39,0.28) 0%, rgba(16,29,39,0.55) 100%)',
+          }}
         >
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#9AFFE0]">
-            Cerebro · dual sphere
+            Cerebro · constellation
           </p>
           <h1 className="mt-3 max-w-xl font-display text-3xl text-[#F2F6F8] md:text-5xl">
             NOJARA Studios
           </h1>
           <p className="mt-3 max-w-md font-mono text-xs text-[#BDCBD3]">
-            Spatial workspace boot · register snapshot {asOfLabel}
+            Live spheres · register snapshot {asOfLabel}
           </p>
         </div>
       )}
 
       {phase === 'openSequence' && (
-        <ExplainerFilm
+        <LiveSphereOpenSequence
           reducedMotion={reducedMotion}
           startMuted
-          hideControls
           onComplete={() => setPhase('loader')}
         />
       )}

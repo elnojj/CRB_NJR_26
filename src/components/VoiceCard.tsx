@@ -418,12 +418,12 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   };
 
   const callLabel = voiceLive ? 'End call' : 'Call';
-  const handsLabel = 'Hands';
+  const handsLabel = handsActive ? 'Hands on' : 'Hands';
   const chatLabel = chatOpen ? 'Close chat' : 'Chat';
   const statusLine = voiceLive
     ? bridgeDetail || bridgeStatus
     : handsActive
-      ? 'Hands on · camera tracking'
+      ? 'Hands on · camera live · tap again to stop'
       : chatOpen
         ? 'Chat with Cerebro'
         : 'Call · Hands · Chat';

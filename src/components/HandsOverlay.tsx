@@ -191,6 +191,13 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
             err && typeof err === 'object' && 'message' in err
               ? String((err as Error).message)
               : 'Camera permission denied';
+          // In-flight cancel from a deliberate toggle-off is not a permission failure.
+          if (/cancelled/i.test(detail)) {
+            setCvStatusLabel('Camera off');
+            setLiveLandmarks(null);
+            onTrackingLost?.();
+            return;
+          }
           setCvStatusLabel(`${detail} — gesture disabled · orbit restored`);
           setLiveLandmarks(null);
           // Yield camera ownership so pointer orbit is not left blocked.

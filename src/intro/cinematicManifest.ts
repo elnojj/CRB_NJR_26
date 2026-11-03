@@ -120,12 +120,24 @@ export const CINEMATIC_PEOPLE_GAPS = [
     name: 'Shweekar Ahmed',
     portrait: null,
     status: 'NEEDS_CONFIRMED_PORTRAIT_AND_BIO' as const,
+    expectedPath: null,
+    note: 'About Us beat 1 — confirmed portrait not in public media folder.',
   },
   {
     id: 'khaled',
-    name: 'Khaled El Shaalan',
+    name: 'Khaled Al-Shaalan',
     portrait: null,
     status: 'NEEDS_CONFIRMED_PORTRAIT_AND_BIO' as const,
+    expectedPath: null,
+    note: 'About Us beat 2 — confirmed portrait not in public media folder. Private project data stays permission-gated.',
+  },
+  {
+    id: 'tarek',
+    name: 'Tarek Nojara',
+    portrait: '/media/about-tarek-afrima.jpg',
+    status: 'NEEDS_CONFIRMED_PORTRAIT_AND_BIO' as const,
+    expectedPath: '/media/about-tarek-afrima.jpg',
+    note: 'About Us beat 3 — owner-supplied AFRIMA plate + BTS reel missing on deploy host; do not substitute showreel as portrait.',
   },
 ] as const;
 

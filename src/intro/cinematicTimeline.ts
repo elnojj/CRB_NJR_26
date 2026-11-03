@@ -1,11 +1,15 @@
 /**
- * Open-sequence cinematic timeline (public autoplay).
- * Editorial clock: 24 fps → 1,440 frames. Sphere/world cuts + Cerebro onboarding.
+ * Legacy 2D ExplainerFilm editorial clock (explainer-60 edition).
+ * Public cold start uses LiveSphereOpenSequence + openSequenceConfig.ts instead.
  */
 
+import { OPEN_SEQUENCE_BASE_DURATION_SEC } from './openSequenceConfig';
+
 export const CINEMATIC_FPS = 24;
+/** Prefer ?openDuration= for the live WebGL journey; this remains the 2D film default. */
 export const CINEMATIC_DURATION_SEC = 60;
 export const CINEMATIC_TOTAL_FRAMES = CINEMATIC_FPS * CINEMATIC_DURATION_SEC; // 1440
+export { OPEN_SEQUENCE_BASE_DURATION_SEC };
 
 export type FilmLang = 'en' | 'ar';
 
