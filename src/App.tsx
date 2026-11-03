@@ -17,6 +17,7 @@ import { BrandLockup } from './components/BrandLockup';
 import { CerebroIntro } from './intro/CerebroIntro';
 import { Explainer60Player } from './intro/Explainer60Player';
 import { assertIntroBridgeClean } from './intro/bridge';
+import { sampleJourneyPose } from './intro/cinematicJourney';
 import {
   CosmographCanvas,
   CameraCommandPayload,
@@ -117,6 +118,7 @@ import {
   orchestrateScreenCommandWithGemini,
 } from './utils/geminiScreenOrchestrator';
 import { soundEngine } from './utils/soundEngine';
+import type { EditorialCameraPose } from './design/editorialMonograph';
 import { useViewport } from './gui/useViewport';
 import { computeGuiLayout, PhoneSheetExpansion } from './gui/layoutEngine';
 import { GUI_CAMERA_PRESETS, GuiCameraPresetId } from './gui/cameraPresets';
@@ -192,25 +194,16 @@ export default function App() {
   const [bootDone, setBootDone] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      const v = params.get('view')?.toLowerCase();
-      const skip =
-        params.get('skipBoot') === '1' ||
-        params.get('preview') === '1' ||
-        v === 'app' ||
-        v === 'hq' ||
-        v === 'cde';
-      // Hosted static previews should land in the spatial GUI, not the gate.
-      const hostedPreview =
-        /\.tmp\.now$|vercel\.app$|trycloudflare\.com$|localhost|127\.0\.0\.1/.test(
-          window.location.hostname
-        ) && !v;
-      if (skip || hostedPreview) return true;
-      if (v && v !== 'boot' && v !== 'loader' && v !== 'keypad') {
-        return true;
-      }
+      // Only an explicit skipBoot bypasses the cinematic opening gate.
+      // ?view=hq / hosted previews must still hold at Frame 0000 until ENTER CEREBRO.
+      if (params.get('skipBoot') === '1') return true;
     }
     return false;
   });
+  const [journeyActive, setJourneyActive] = useState<boolean>(false);
+  const [journeyPose, setJourneyPose] = useState<EditorialCameraPose | null>(() =>
+    sampleJourneyPose(0)
+  );
   const [customDomains, setCustomDomains] = useState<CustomDomain3D[]>([]);
   const [sphereMaterials, setSphereMaterials] = useState<{
     hq: DomainMaterialPreset;
@@ -439,15 +432,18 @@ export default function App() {
   /** Intro overlays sit on the shared canvas; workspace chrome is inert until 'workspace'. */
   const introMode: 'intro' | 'explainer' | 'workspace' = bootDone ? 'workspace' : 'intro';
   const [explainerOpen, setExplainerOpen] = useState(false);
-  const workspaceChromeClass =
-    introMode === 'workspace'
-      ? 'transition-opacity duration-500 opacity-100'
-      : 'transition-opacity duration-500 opacity-0 pointer-events-none';
+  const showWorkspaceChrome = introMode === 'workspace' && !journeyActive;
+  const workspaceChromeClass = showWorkspaceChrome
+    ? 'transition-opacity duration-500 opacity-100'
+    : 'transition-opacity duration-500 opacity-0 pointer-events-none hidden';
   const handleToggleHands = useCallback(() => {
     setHandsActive((v) => !v);
   }, []);
   const [handMode, setHandMode] = useState<HandDetectionMode>('two-hands');
   const [activeGesture, setActiveGesture] = useState<HandGestureType>('pinch-orbit');
+  const handleJourneyPose = useCallback((pose: EditorialCameraPose | null) => {
+    setJourneyPose(pose);
+  }, []);
 
   useEffect(() => {
     assertIntroBridgeClean();
@@ -461,9 +457,9 @@ export default function App() {
     }
   }, []);
 
-  // 6. Voice State, Audience & Compose Task State
+  // 6. Chat / Hands state (voice agent / Call / mic loops removed — text Compose only)
   const [voiceState, setVoiceState] = useState<VoiceState>('Ready');
-  const [activePocket, setActivePocket] = useState<VoicePocket>('tap-to-talk');
+  const [activePocket, setActivePocket] = useState<VoicePocket>('compose');
   const [audienceLevel, setAudienceLevel] = useState<AudienceLevel>('Owner only');
   const isOwnerOnly = audienceLevel === 'Owner only';
   const [pendingTaskProposal, setPendingTaskProposal] = useState<PendingComposeTask | null>(null);
@@ -2498,8 +2494,9 @@ export default function App() {
   }, [bootDone, executeTypedAction]);
 
   // All 12 ?view=... URL State Inspectors + Morning Briefing 06:00–10:30 Africa/Cairo Auto-Window
+  // Workspace deep-links apply only after the cinematic gate/journey completes (bootDone).
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || !bootDone) return;
     const params = new URLSearchParams(window.location.search);
     const view = params.get('view')?.toLowerCase();
 
@@ -2525,19 +2522,10 @@ export default function App() {
       return;
     }
 
-    if (view === 'keypad') {
-      setBootInitialMode('keypad');
-      setBootDone(false);
-      dispatchCamera('arrival', { targetSphere: 'hq', lensId: '35mm' });
+    if (view === 'keypad' || view === 'boot' || view === 'loader') {
+      // Gate already shown before bootDone; ignore re-entry once workspace is live.
       return;
     }
-    if (view === 'boot' || view === 'loader') {
-      setBootInitialMode('loader');
-      setBootDone(false);
-      dispatchCamera('arrival', { targetSphere: 'hq', lensId: '35mm' });
-      return;
-    }
-    setBootDone(true);
     if (view === 'arrival' || view === 'hq') {
       setActiveSphere('hq');
       setOpenPanels([]);
@@ -2596,7 +2584,7 @@ export default function App() {
     ) {
       setOpenPanels([view]);
     }
-  }, [dispatchCamera, selectedProjectId]);
+  }, [bootDone, dispatchCamera, selectedProjectId]);
 
   // Handle 3D node or floating label click from CosmographCanvas — flies camera & dispatches actionDispatcher action
   const handleSelectNode = useCallback(
@@ -3496,13 +3484,18 @@ export default function App() {
         color: COLOUR_TOKENS.textPrimary,
       }}
     >
-      {/* 1. Intro overlay (embedCanvas=false) — keypad / boot on shared ExperienceCanvas */}
+      {/* 1. Cinematic opening gate + 72s journey overlay on shared ExperienceCanvas */}
       {introMode !== 'workspace' && (
         <CerebroIntro
           embedCanvas={false}
           reducedMotion={reducedMotion}
           initialPhase={bootInitialMode}
+          journeyActive={journeyActive}
+          onJourneyPose={handleJourneyPose}
+          onJourneyStart={() => setJourneyActive(true)}
           onComplete={() => {
+            setJourneyActive(false);
+            setJourneyPose(null);
             setBootDone(true);
             setOpenPanels([]);
             setFocusedNodeId(null);
@@ -3522,7 +3515,7 @@ export default function App() {
       {/* 2. Camera + Hands — single HandsWireframeRig owns the shared webcam stream */}
       <HandsCameraBackdrop active={handsActive} />
       <HandsWireframeRig
-        active={handsActive}
+        active={showWorkspaceChrome && handsActive}
         handMode={handMode}
         activeGesture={activeGesture}
         onChangeHandMode={setHandMode}
@@ -3539,10 +3532,12 @@ export default function App() {
         reducedMotion={reducedMotion}
         audioRms={audioRms}
         forceWebglFallback={forceWebglFallback}
-        cameraCommand={cameraCommand}
+        cameraCommand={showWorkspaceChrome ? cameraCommand : null}
         customDomains={customDomains}
         sphereMaterials={sphereMaterials}
         selectedBlueprintTaskId={selectedBlueprintTaskId}
+        editorialMode={!showWorkspaceChrome}
+        editorialCameraPose={!showWorkspaceChrome ? journeyPose : null}
         onSelectNode={handleSelectNode}
         onSelectPortalStation={(st) => {
           setSelectedBlueprintTaskId(st.linkedTaskId);
@@ -3620,6 +3615,7 @@ export default function App() {
       />
 
       {/* 3B. Tracker-First Build Activity Header & Observation Portal HUD (Wrapped in TrackerMotionProvider) */}
+      <div className={workspaceChromeClass}>
       <TrackerMotionProvider projectId={selectedProjectId}>
         {(() => {
           const activeCp =
@@ -3803,10 +3799,11 @@ export default function App() {
           );
         })()}
       </TrackerMotionProvider>
+      </div>
 
-      {/* 4. Sticky Telemetry Header — Neural Observatory Layer 5 (z-40) */}
+      {/* 4. Sticky Telemetry Header — Neural Observatory Layer 5 (z-40) — hidden during cinematic journey */}
       <header
-        className="fixed top-0 left-0 right-0 pointer-events-none flex flex-wrap items-center justify-between gap-2 px-3 md:px-5 pt-3 pb-2 safe-area-top"
+        className={`fixed top-0 left-0 right-0 pointer-events-none flex flex-wrap items-center justify-between gap-2 px-3 md:px-5 pt-3 pb-2 safe-area-top ${workspaceChromeClass}`}
         style={{ zIndex: GUI_Z_LAYERS.stickyHeader }}
         data-testid="sticky-telemetry-header"
       >
@@ -4121,10 +4118,11 @@ export default function App() {
         </div>
       </header>
 
-      {/* 5. Compact 3D Cinema Optics — collapsed by default (V04 collision budget) */}
+      {/* 5. Compact 3D Cinema Optics — hidden while journeyActive; revealed after 01:12 / SKIP INTRO */}
       <div
         onPointerDown={(e) => e.stopPropagation()}
-        className="fixed left-4 bottom-28 z-[28] pointer-events-auto hidden lg:flex flex-col gap-1.5 p-2.5 rounded-xl bg-[#101D27]/88 border border-white/20 backdrop-blur-md font-mono text-[10px] text-[#D0DCE3] max-w-[min(680px,46vw)]"
+        className={`fixed left-4 bottom-28 z-[28] pointer-events-auto hidden lg:flex flex-col gap-1.5 p-2.5 rounded-xl bg-[#101D27]/88 border border-white/20 backdrop-blur-md font-mono text-[10px] text-[#D0DCE3] max-w-[min(680px,46vw)] ${workspaceChromeClass}`}
+        data-testid="camera-optics-drawer"
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <button
@@ -4560,7 +4558,8 @@ export default function App() {
         );
       })()}
 
-      {/* 6C. v5.0 persistent CEREBRO voice status dock — bottom-center, outside scene safe frame */}
+      {/* 6C. Persistent assistant status dock — text/chat only; no mic / Call on startup */}
+      <div className={workspaceChromeClass}>
       <div
         className="fixed z-[28] pointer-events-none px-3"
         style={{
@@ -4578,22 +4577,21 @@ export default function App() {
         <div className="pointer-events-auto cerebro-glass-panel p-2.5">
           <PersistentCerebroWidget
             connection={widgetConnection}
-            inputState={widgetInput}
+            inputState="mic-off"
             outputState={widgetOutput}
             execution={widgetExecution}
             persistence={widgetPersistence}
             actionLine={widgetActionLine}
             transcriptPreview={latestTranscript || captionBubble || ''}
-            transcriptProvisional={voiceState === 'Listening' || voiceState === 'Thinking'}
+            transcriptProvisional={false}
             readinessLabel={mapVoiceVisualState(voiceState, {
               tourActive: tourState.active && !tourState.paused,
               cameraMoving: telemetry.isMoving,
             })}
             onMicToggle={() => {
-              setActivePocket('tap-to-talk');
-              setVoiceState((prev) =>
-                prev === 'Listening' || prev === 'Speaking' ? 'Muted' : 'Listening'
-              );
+              // Voice/Call teardown: mic stays off; open text Chat instead.
+              setActivePocket('compose');
+              setVoiceExpanded(true);
             }}
             onStop={() => {
               handleStopTourImmediately();
@@ -4606,6 +4604,7 @@ export default function App() {
             }}
           />
         </div>
+      </div>
       </div>
 
       {/* 6D–7. Health strip + VoiceCard — inert until introMode === workspace */}
@@ -4745,11 +4744,12 @@ export default function App() {
                     type="button"
                     onClick={() => {
                       setShowDeveloperDrawer(false);
-                      setOpenAgentModalTrigger((c) => c + 1);
+                      setActivePocket('compose');
+                      setVoiceExpanded(true);
                     }}
                     className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#142632] border border-[#65ACFF]/50 text-[#B4DDFF] cursor-pointer"
                   >
-                    Voice Agent ID & 18-Tool Provisioning
+                    Open Text Chat Dock
                   </button>
                   <button
                     type="button"

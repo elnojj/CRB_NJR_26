@@ -1,17 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { COLOUR_TOKENS } from '../tokens/colours';
 import { AudienceLevel } from './PanelsOverlay';
-import {
-  CRO_CDE_GOOGLE_AGENT_NAME,
-  CRO_CDE_GOOGLE_SYSTEM_PROMPT,
-  CRO_CDE_GOOGLE_TOOLS_SCHEMA,
-  DEFAULT_INTERNAL_AGENT_ID,
-  buildElevenLabsAgentPayload,
-} from '../data/croCdeGoogleAgentManifest';
-import {
-  ElevenLabsConvaiBridge,
-  VoiceBridgeState,
-} from '../utils/elevenLabsBridge';
 import { ComputedGuiLayout } from '../gui/layoutEngine';
 import { GUI_GLASS_TOKENS, GUI_Z_LAYERS } from '../gui/guiTokens';
 
@@ -27,7 +16,8 @@ export type VoiceState =
   | 'Error'
   | 'Idle';
 
-export type VoicePocket = 'tap-to-talk' | 'hands' | 'compose';
+/** Hands tracking + text Chat only — conversational voice / Call pocket removed. */
+export type VoicePocket = 'hands' | 'compose';
 export type WidgetSnapEdge = 'bottom-center' | 'bottom-left' | 'bottom-right' | 'top-right';
 
 export interface TranscriptLine {
@@ -103,7 +93,6 @@ interface VoiceCardProps {
 
 const STORAGE_KEY_POS = 'cerebro_voice_card_pos_v2';
 const STORAGE_KEY_SIZE = 'cerebro_voice_card_size_v2';
-const STORAGE_KEY_AGENT_ID = 'cro_cde_google_agent_id';
 
 const QUICK_WORKSPACE_COMMANDS = [
   { label: 'Overview', cmd: 'open_dashboard(collapsed)' },
@@ -170,12 +159,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   onVoiceExpandedChange,
   contextualUpdateJson,
 }) => {
-  const [audioRms, setAudioRms] = useState<number>(0);
-  const bridgeRmsRef = useRef<number>(0);
-  const onAudioLevelRef = useRef(onAudioLevel);
-  useEffect(() => {
-    onAudioLevelRef.current = onAudioLevel;
-  }, [onAudioLevel]);
+  void onAudioLevel;
   const [isExpanded, setIsExpanded] = useState<boolean>(() => {
     try {
       return localStorage.getItem(STORAGE_KEY_SIZE) === 'expanded';
@@ -236,40 +220,12 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     } catch {}
   }, [liveFeedReceipts]);
 
-  // ElevenLabs Agent Modal & Stable Connection State
-  const [showAgentModal, setShowAgentModal] = useState(false);
-  const [agentModalTab, setAgentModalTab] = useState<'connect' | 'create' | 'manifest'>('connect');
-  const [agentIdInput, setAgentIdInput] = useState<string>(() => {
-    try {
-      return localStorage.getItem(STORAGE_KEY_AGENT_ID) || DEFAULT_INTERNAL_AGENT_ID;
-    } catch {
-      return DEFAULT_INTERNAL_AGENT_ID;
-    }
-  });
-  const [apiKeyInput, setApiKeyInput] = useState('');
-  const [voiceIdInput, setVoiceIdInput] = useState('');
-  const [bridgeStatus, setBridgeStatus] = useState<VoiceBridgeState>('Ready');
-  const [bridgeDetail, setBridgeDetail] = useState<string>('Ready');
-  const [creatingAgent, setCreatingAgent] = useState(false);
-  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
-  const bridgeRef = useRef<ElevenLabsConvaiBridge | null>(null);
+  // Conversational voice / Call / ElevenLabs mic loops removed — text Chat + Hands only.
+  void openAgentModalTrigger;
+  void contextualUpdateJson;
+  void voiceState;
 
   useEffect(() => {
-    if (openAgentModalTrigger && openAgentModalTrigger > 0) {
-      setShowAgentModal(true);
-    }
-  }, [openAgentModalTrigger]);
-
-  useEffect(() => {
-    fetch('/api/elevenlabs/status')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data?.defaultAgentId && !agentIdInput) {
-          setAgentIdInput(data.defaultAgentId);
-        }
-      })
-      .catch(() => {});
-
     fetch('/api/messages/feed')
       .then((r) => r.json())
       .then((data) => {
@@ -296,148 +252,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       .catch(() => {});
   }, []);
 
-  // Single bridge instance — mic/AudioContext come from deviceStreamCoordinator (no orphaned tracks)
-  useEffect(() => {
-    const bridge = new ElevenLabsConvaiBridge({
-      onStatusChange: (status, detail) => {
-        setBridgeStatus(status);
-        if (detail) setBridgeDetail(detail);
-      },
-      onTranscript: (role, text) => {
-        if (role === 'user') {
-          const isLiveWs = bridgeRef.current?.isLiveWebSocketOpen?.() ?? false;
-          onSimulateCommand(isLiveWs ? `__user_voice_live__:${text}` : `__user_voice__:${text}`);
-        } else {
-          onSimulateCommand(`__agent_reply__:${text}`);
-        }
-      },
-      onClientToolCall: async (toolName, parameters) => {
-        if (onExecuteToolCall) {
-          return await onExecuteToolCall(toolName, parameters || {});
-        }
-        onSimulateCommand(toolName);
-        return `Executed ${toolName}`;
-      },
-      onAudioLevel: (rms) => {
-        bridgeRmsRef.current = rms;
-        setAudioRms(rms);
-        onAudioLevelRef.current?.(rms);
-      },
-    });
-    bridgeRef.current = bridge;
-    return () => {
-      bridge.disconnect();
-      bridgeRef.current = null;
-    };
-  }, []);
-
-  // Keep callbacks fresh without ever disconnecting the active WebSocket/AudioContext session
-  useEffect(() => {
-    bridgeRef.current?.updateCallbacks({
-      onStatusChange: (status, detail) => {
-        setBridgeStatus(status);
-        if (detail) setBridgeDetail(detail);
-      },
-      onTranscript: (role, text) => {
-        if (role === 'user') {
-          const isLiveWs = bridgeRef.current?.isLiveWebSocketOpen?.() ?? false;
-          onSimulateCommand(isLiveWs ? `__user_voice_live__:${text}` : `__user_voice__:${text}`);
-        } else {
-          onSimulateCommand(`__agent_reply__:${text}`);
-        }
-      },
-      onClientToolCall: async (toolName, parameters) => {
-        if (onExecuteToolCall) {
-          return await onExecuteToolCall(toolName, parameters || {});
-        }
-        onSimulateCommand(toolName);
-        return `Executed ${toolName}`;
-      },
-      onAudioLevel: (rms) => {
-        bridgeRmsRef.current = rms;
-        setAudioRms(rms);
-        onAudioLevelRef.current?.(rms);
-      },
-    });
-  }, [onSimulateCommand, onExecuteToolCall]);
-
-  useEffect(() => {
-    if (contextualUpdateJson && bridgeRef.current?.isLiveWebSocketOpen?.()) {
-      bridgeRef.current.sendContextualUpdate(contextualUpdateJson);
-    }
-  }, [contextualUpdateJson]);
-
-  // Real-time harmonic RMS envelope when Cerebro is Speaking / Listening (including browser speech synthesis)
-  useEffect(() => {
-    const activeSpeech =
-      bridgeStatus === 'Speaking' ||
-      voiceState === 'Speaking' ||
-      bridgeStatus === 'Listening' ||
-      voiceState === 'Listening';
-    if (!activeSpeech) {
-      setAudioRms(0);
-      onAudioLevelRef.current?.(0);
-      return;
-    }
-    const id = window.setInterval(() => {
-      const t = performance.now() * 0.006;
-      const isSpeakingNow = bridgeStatus === 'Speaking' || voiceState === 'Speaking';
-      const synthLevel = isSpeakingNow
-        ? 0.28 + 0.24 * Math.abs(Math.sin(t * 2.3) * Math.cos(t * 1.1))
-        : 0.06 + 0.05 * Math.abs(Math.sin(t * 1.4));
-      const merged = Math.min(1, Math.max(bridgeRmsRef.current * 2.5, synthLevel));
-      setAudioRms(merged);
-      onAudioLevelRef.current?.(merged);
-    }, 60);
-    return () => window.clearInterval(id);
-  }, [bridgeStatus, voiceState]);
-
-  const handleConnectLiveAgent = async (targetAgentId?: string) => {
-    const idToUse = (targetAgentId ?? agentIdInput).trim() || DEFAULT_INTERNAL_AGENT_ID;
-    try {
-      localStorage.setItem(STORAGE_KEY_AGENT_ID, idToUse);
-    } catch {}
-    await bridgeRef.current?.connect(idToUse, apiKeyInput.trim() || undefined);
-    setShowAgentModal(false);
-  };
-
-  const handleCreateCroCdeGoogleAgent = async () => {
-    if (!apiKeyInput.trim()) {
-      setBridgeDetail('Enter ElevenLabs API Key to provision a new agent');
-      return;
-    }
-    setCreatingAgent(true);
-    try {
-      const res = await fetch('/api/elevenlabs/create-agent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Cerebro-Audience': audienceLevel,
-        },
-        body: JSON.stringify({
-          apiKey: apiKeyInput.trim(),
-          voiceId: voiceIdInput.trim() || undefined,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && data?.agentId) {
-        setAgentIdInput(data.agentId);
-        try {
-          localStorage.setItem(STORAGE_KEY_AGENT_ID, data.agentId);
-        } catch {}
-        await handleConnectLiveAgent(data.agentId);
-      } else {
-        setBridgeDetail(data?.error || 'Failed to create agent');
-      }
-    } catch (err) {
-      setBridgeDetail(err instanceof Error ? err.message : 'Network error');
-    } finally {
-      setCreatingAgent(false);
-    }
-  };
-
   const handleInstantStop = () => {
-    bridgeRef.current?.stopOutputAudioImmediately();
     if (tourState.active) {
       onStopTour?.();
       onSimulateCommand('stop tour');
@@ -647,9 +462,6 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     const raw = composeText.trim();
     if (!raw) return;
     setComposeText('');
-    if (bridgeRef.current?.isConnected()) {
-      bridgeRef.current.sendUserMessage(raw);
-    }
     onSimulateCommand(raw);
   };
 
@@ -658,44 +470,10 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     if (!simInput.trim()) return;
     const raw = simInput.trim();
     setSimInput('');
-    if (bridgeRef.current?.isConnected()) {
-      bridgeRef.current.sendUserMessage(raw);
-    }
     onSimulateCommand(raw);
   };
 
-  const copyToClipboard = (content: string, label: string) => {
-    navigator.clipboard?.writeText(content);
-    setCopyFeedback(`Copied ${label}`);
-    window.setTimeout(() => setCopyFeedback(null), 2200);
-  };
-
-  const downloadManifestJson = () => {
-    const payload = JSON.stringify(
-      buildElevenLabsAgentPayload(voiceIdInput.trim() || undefined),
-      null,
-      2
-    );
-    const blob = new Blob([payload], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Cro-cde-google_ElevenLabs_Agent_18_Tools.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const isSessionLive =
-    bridgeStatus === 'Listening' ||
-    bridgeStatus === 'Thinking' ||
-    bridgeStatus === 'Speaking' ||
-    bridgeStatus === 'Muted';
-
-  const displayedVoiceStatus: string = isSessionLive
-    ? bridgeStatus
-    : voiceState === 'Idle'
-    ? bridgeStatus
-    : voiceState;
+  const displayedVoiceStatus = 'Chat';
 
   return (
     <>
@@ -718,194 +496,6 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
           </div>
         )}
       </div>
-
-      {/* Developer Voice Agent Settings Modal */}
-      {showAgentModal && (
-        <div
-          onPointerDown={(e) => e.stopPropagation()}
-          onWheel={(e) => e.stopPropagation()}
-          className="fixed inset-0 flex items-center justify-center p-4 bg-[#101D27]/75 backdrop-blur-md"
-          style={{ zIndex: GUI_Z_LAYERS.modalBackdrop }}
-        >
-          <div
-            className="w-full max-w-xl rounded-xl border p-5 space-y-4 neural-reveal"
-            style={{
-              backgroundColor: 'rgba(16, 29, 39, 0.84)',
-              borderColor: 'rgba(255, 255, 255, 0.14)',
-              boxShadow:
-                'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-            }}
-          >
-            <div className="flex items-center justify-between border-b border-white/15 pb-3">
-              <div>
-                <div className="font-mono text-[10px] text-[#B4DDFF] uppercase tracking-wider">
-                  VOICE AGENT SETTINGS · DEVELOPER CONFIGURATION
-                </div>
-                <h2 className="font-display text-base font-semibold text-[#F2F6F8]">
-                  Voice Agent: {CRO_CDE_GOOGLE_AGENT_NAME}
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowAgentModal(false)}
-                className="min-w-[44px] min-h-[44px] rounded-lg border border-white/25 text-[#BDCBD3] hover:text-[#F2F6F8] font-mono cursor-pointer"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="flex items-center gap-1 p-1 rounded-lg bg-[#142632] border border-white/15">
-              {(
-                [
-                  { id: 'connect', label: 'Connect Agent' },
-                  { id: 'create', label: 'Provision New Agent' },
-                  { id: 'manifest', label: '22-Tool Schema' },
-                ] as const
-              ).map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setAgentModalTab(t.id)}
-                  className={`min-h-[40px] flex-1 py-1.5 px-2 rounded-lg font-mono text-[11px] transition-colors cursor-pointer ${
-                    agentModalTab === t.id
-                      ? 'bg-[#4C8DFF] text-[#101D27] font-semibold'
-                      : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-
-            {agentModalTab === 'connect' && (
-              <div className="space-y-3">
-                <p className="font-sans text-xs text-[#BDCBD3]">
-                  Default configured internal agent ID:{' '}
-                  <code className="text-[#F2F6F8]">{DEFAULT_INTERNAL_AGENT_ID}</code>
-                </p>
-                <input
-                  type="text"
-                  value={agentIdInput}
-                  onChange={(e) => setAgentIdInput(e.target.value)}
-                  placeholder={DEFAULT_INTERNAL_AGENT_ID}
-                  className="w-full min-h-[44px] px-3 py-1.5 rounded-lg bg-[#142632] border border-white/20 font-mono text-xs text-[#F2F6F8] focus:outline-none focus:border-[#65ACFF]"
-                />
-                <div className="flex items-center justify-between gap-2 pt-1">
-                  <span className="font-mono text-[11px] text-[#7CE0B8] truncate">
-                    State: {bridgeStatus} · {bridgeDetail}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    {isSessionLive && (
-                      <button
-                        type="button"
-                        onClick={() => bridgeRef.current?.disconnect()}
-                        className="min-h-[44px] px-3 py-2 rounded-lg font-mono text-xs bg-[#142632] border border-white/25 text-[#F2B66D] cursor-pointer"
-                      >
-                        Disconnect
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => handleConnectLiveAgent()}
-                      className="min-h-[44px] px-4 py-2 rounded-lg font-mono text-xs font-semibold bg-[#4C8DFF] text-[#101D27] cursor-pointer"
-                    >
-                      Connect Voice
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {agentModalTab === 'create' && (
-              <div className="space-y-3">
-                <p className="font-sans text-xs text-[#BDCBD3]">
-                  Explicitly provision a new instance of{' '}
-                  <strong className="text-[#F2F6F8]">{CRO_CDE_GOOGLE_AGENT_NAME}</strong> on your ElevenLabs account (never auto-created without confirmation).
-                </p>
-                <div className="space-y-2">
-                  <input
-                    type="password"
-                    value={apiKeyInput}
-                    onChange={(e) => setApiKeyInput(e.target.value)}
-                    placeholder="ElevenLabs xi-api-key"
-                    className="w-full min-h-[44px] px-3 py-1.5 rounded-lg bg-[#142632] border border-white/20 font-mono text-xs text-[#F2F6F8] focus:outline-none focus:border-[#65ACFF]"
-                  />
-                  <input
-                    type="text"
-                    value={voiceIdInput}
-                    onChange={(e) => setVoiceIdInput(e.target.value)}
-                    placeholder="Optional ElevenLabs Voice ID"
-                    className="w-full min-h-[44px] px-3 py-1.5 rounded-lg bg-[#142632] border border-white/20 font-mono text-xs text-[#F2F6F8] focus:outline-none focus:border-[#65ACFF]"
-                  />
-                </div>
-                <div className="flex items-center justify-between pt-1">
-                  <span className="font-mono text-[11px] text-[#BDCBD3]">{bridgeDetail}</span>
-                  <button
-                    type="button"
-                    disabled={creatingAgent}
-                    onClick={handleCreateCroCdeGoogleAgent}
-                    className="min-h-[44px] px-4 py-2 rounded-lg font-mono text-xs font-semibold bg-[#36E88D] text-[#101D27] cursor-pointer disabled:opacity-50"
-                  >
-                    {creatingAgent ? 'Provisioning...' : 'Create Agent'}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {agentModalTab === 'manifest' && (
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        copyToClipboard(
-                          JSON.stringify(buildElevenLabsAgentPayload(), null, 2),
-                          '22-Tool Manifest JSON'
-                        )
-                      }
-                      className="min-h-[40px] px-3 py-1.5 rounded-lg font-mono text-[11px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
-                    >
-                      Copy JSON
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        copyToClipboard(CRO_CDE_GOOGLE_SYSTEM_PROMPT, 'System Prompt')
-                      }
-                      className="min-h-[40px] px-3 py-1.5 rounded-lg font-mono text-[11px] bg-[#142632] border border-white/25 text-[#F2F6F8] cursor-pointer"
-                    >
-                      Copy Prompt
-                    </button>
-                    <button
-                      type="button"
-                      onClick={downloadManifestJson}
-                      className="min-h-[40px] px-3 py-1.5 rounded-lg font-mono text-[11px] bg-[#7CE0B8] text-[#101D27] font-semibold cursor-pointer"
-                    >
-                      Download .JSON
-                    </button>
-                  </div>
-                  {copyFeedback && (
-                    <span className="font-mono text-[11px] text-[#7CE0B8]">{copyFeedback}</span>
-                  )}
-                </div>
-                <pre className="max-h-56 overflow-y-auto rounded-lg p-3 bg-[#142632] border border-white/15 font-mono text-[10px] text-[#B4DDFF] leading-relaxed">
-                  {JSON.stringify(
-                    {
-                      agentName: CRO_CDE_GOOGLE_AGENT_NAME,
-                      defaultAgentId: DEFAULT_INTERNAL_AGENT_ID,
-                      toolsCount: CRO_CDE_GOOGLE_TOOLS_SCHEMA.length,
-                      tools: CRO_CDE_GOOGLE_TOOLS_SCHEMA.map((t) => t.name),
-                    },
-                    null,
-                    2
-                  )}
-                </pre>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Draggable, Collision-Managed, Resizable Voice Dock (Panel #10 · z-40 voiceDock / z-70 Stop) */}
       <div
@@ -944,130 +534,18 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
             guiLayout?.voiceCompactedForSheet ? 'py-1 min-h-[52px]' : 'py-2 border-b'
           } border-[rgba(232,251,255,0.20)] flex items-center justify-between gap-2 cursor-grab active:cursor-grabbing`}
         >
-          {/* Voice Pilot Orb (SACRED RESERVATION: #9AFFE0 -> #359D8E -> #133A44) + Status */}
           <div className="flex items-center gap-2.5 min-w-0">
-            <button
-              type="button"
-              data-testid="voice-orb-btn"
-              onClick={() => {
-                onChangePocket('tap-to-talk');
-                if (isSessionLive) {
-                  bridgeRef.current?.toggleMute();
-                } else {
-                  handleConnectLiveAgent();
-                }
-              }}
-              title={isSessionLive ? 'Toggle microphone mute' : 'Start live voice session'}
-              className="relative min-w-[46px] min-h-[46px] w-[46px] h-[46px] rounded-full border flex items-center justify-center shrink-0 cursor-pointer overflow-hidden transition-transform duration-150"
-              style={{
-                transform: `scale(${(1 + audioRms * 0.14).toFixed(3)})`,
-                background:
-                  'radial-gradient(circle at 34% 30%, #9AFFE0 0%, #359D8E 56%, #133A44 100%)',
-                borderColor: '#9AFFE0',
-                boxShadow: `0 0 ${Math.round(14 + audioRms * 26)}px rgba(154, 255, 224, ${(
-                  0.32 +
-                  audioRms * 0.52
-                ).toFixed(2)}), inset 0 1px 4px rgba(242, 246, 248, 0.55)`,
-              }}
-            >
-              {/* Concept A "Living Lens": Internal Elliptical Caustic Specular Arc */}
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-[3px] rounded-full"
-                style={{
-                  background:
-                    'radial-gradient(ellipse 75% 46% at 36% 20%, rgba(242,246,248,0.52), rgba(154,255,224,0.18) 58%, transparent 80%)',
-                  transform: `rotate(${Math.round(audioRms * 28 - 12)}deg)`,
-                }}
-              />
-              {/* 16-Bar Radial & Waveform Audio-Reactive Shimmer */}
-              <svg
-                width="36"
-                height="36"
-                viewBox="0 0 36 36"
-                fill="none"
-                className="relative z-10 pointer-events-none"
-              >
-                {Array.from({ length: 16 }).map((_, idx) => {
-                  const angle = (idx / 16) * Math.PI * 2;
-                  const harmonic = Math.abs(Math.sin(idx * 1.35 + audioRms * 14));
-                  const innerR = 9.2;
-                  const barLen = 2.2 + audioRms * 6.4 * (0.45 + 0.55 * harmonic);
-                  const x1 = 18 + Math.cos(angle) * innerR;
-                  const y1 = 18 + Math.sin(angle) * innerR;
-                  const x2 = 18 + Math.cos(angle) * (innerR + barLen);
-                  const y2 = 18 + Math.sin(angle) * (innerR + barLen);
-                  return (
-                    <line
-                      key={idx}
-                      x1={x1.toFixed(2)}
-                      y1={y1.toFixed(2)}
-                      x2={x2.toFixed(2)}
-                      y2={y2.toFixed(2)}
-                      stroke={idx % 2 === 0 ? '#9AFFE0' : '#F2F6F8'}
-                      strokeWidth="1.35"
-                      strokeLinecap="round"
-                      strokeOpacity={(0.52 + Math.min(0.48, audioRms * 0.9)).toFixed(2)}
-                    />
-                  );
-                })}
-                <circle
-                  cx="18"
-                  cy="18"
-                  r={(4.2 + audioRms * 2.4).toFixed(2)}
-                  fill="#133A44"
-                  fillOpacity={(0.38 + audioRms * 0.45).toFixed(2)}
-                  stroke="#9AFFE0"
-                  strokeWidth="1.2"
-                />
-                <path
-                  d={`M12 18 Q15 ${(18 - 2.5 - audioRms * 5.5).toFixed(1)} 18 18 T24 18`}
-                  stroke="#F2F6F8"
-                  strokeWidth="1.35"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="font-display text-xs font-semibold tracking-[0.08em] uppercase text-[#F2F6F8]">
-                  #10 · Cerebro Voice
+                  #10 · Cerebro Chat
                 </span>
                 <span
                   data-testid="voice-status-badge"
-                  title={bridgeDetail}
                   className="font-mono tabular-nums text-[10px] px-2 py-0.5 rounded bg-[#142632] border border-white/15 text-[#B4DDFF]"
                 >
                   {displayedVoiceStatus}
                 </span>
-                {!isSessionLive ? (
-                  <button
-                    type="button"
-                    data-testid="connect-elevenlabs-btn"
-                    onClick={() => handleConnectLiveAgent()}
-                    className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#4C8DFF]/20 border border-[#65ACFF] text-[#B4DDFF] hover:bg-[#4C8DFF] hover:text-[#101D27] transition-colors cursor-pointer"
-                  >
-                    Connect Live
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => bridgeRef.current?.disconnect()}
-                    className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#142632] border border-white/20 text-[#F2B66D] cursor-pointer"
-                  >
-                    End Voice
-                  </button>
-                )}
-                <button
-                  type="button"
-                  data-testid="open-voice-agent-modal-btn"
-                  onClick={() => setShowAgentModal(true)}
-                  title="ElevenLabs Agent Settings & 22-Tool Manifest"
-                  className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#142632] border border-white/15 text-[#BDCBD3] hover:text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
-                >
-                  Agent ⚙
-                </button>
               </div>
 
               {tourState.active && (
@@ -1101,13 +579,12 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
             </div>
           </div>
 
-          {/* Three Pockets Switcher: Tap to talk · Hands · Compose + Collapse/Expand button */}
+          {/* Pockets: Hands · Chat (Call / voice removed) */}
           <div className="flex items-center gap-1 shrink-0">
             {(
               [
-                { id: 'tap-to-talk', label: 'Voice' },
                 { id: 'hands', label: 'Hands' },
-                { id: 'compose', label: 'Compose' },
+                { id: 'compose', label: 'Chat' },
               ] as const
             ).map((p) => {
               const isAct = activePocket === p.id || (p.id === 'hands' && handsActive);
