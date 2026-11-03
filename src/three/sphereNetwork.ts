@@ -415,7 +415,7 @@ export function buildSafeAreaFittedCatmullRomFlight(
     viewportH: opts.viewportH,
     unobstructedRect: normalizedRect,
   });
-  const fittedDistanceU = Math.max(9.2, Math.min(34.0, rawFitted));
+  const fittedDistanceU = Math.max(3.6, Math.min(34.0, rawFitted));
 
   const subOffset = computeSubFrustumOffset(
     opts.viewportW,
