@@ -11,7 +11,3 @@ agent-tools/
 .env
 .vercel
 .vercel/
-
-# Google AI Studio workspace artifacts and applet metadata (never sync)
-.aistudio/
-metadata.json

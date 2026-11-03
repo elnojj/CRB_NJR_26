@@ -30,6 +30,7 @@ const rawSourceModules = import.meta.glob(
     '/package.json',
     '/tsconfig.json',
     '/vite.config.ts',
+    '/metadata.json',
     '/server.ts',
   ],
   { query: '?raw', import: 'default' }

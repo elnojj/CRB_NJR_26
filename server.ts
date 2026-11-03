@@ -1129,6 +1129,7 @@ async function startServer() {
         'tsconfig.json',
         'vite.config.ts',
         'index.html',
+        'metadata.json',
         'server.ts',
       ];
       for (const f of topFiles) {
@@ -1313,7 +1314,7 @@ async function startServer() {
       try {
         const ai = new GoogleGenAI({
           apiKey: geminiKey,
-          httpOptions: { headers: { 'User-Agent': 'cerebro-server' } },
+          httpOptions: { headers: { 'User-Agent': 'aistudio-build' } },
         });
         const prompt = `You are the CEREBRO + CDE Spatial OS Orchestrator for Owner 39 (Tarek Nojara — Founder and Culture and Design Engineer).
 Current page state JSON: ${JSON.stringify(pageState)}
