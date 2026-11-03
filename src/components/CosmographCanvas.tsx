@@ -4830,7 +4830,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             );
           })}
 
-          {captionBubble && (
+          {/* Caption suppressed — Cerebro chat widget owns bottom-center copy to avoid overlap. */}
+          {false && captionBubble && (
             <div
               className="cerebro-infograph-caption cerebro-intro-copy fixed left-1/2 bottom-[max(7.5rem,18%)] -translate-x-1/2 z-20 px-4 py-2.5 pointer-events-none max-w-[min(420px,88vw)]"
               role="status"

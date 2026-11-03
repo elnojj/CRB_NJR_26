@@ -4145,14 +4145,14 @@ export default function App() {
           toggles={[
             {
               id: 'back',
-              label: 'Back',
+              label: 'Go back one step',
               visible: navHistory.length > 0,
               testId: 'header-back-btn',
               onClick: handleNavigateBack,
             },
             {
               id: 'hq',
-              label: 'HQ',
+              label: 'Open Cerebro HQ sphere',
               active: activeSphere === 'hq',
               testId: 'switch-sphere-hq',
               onClick: () =>
@@ -4160,7 +4160,7 @@ export default function App() {
             },
             {
               id: 'cde',
-              label: 'CDE',
+              label: 'Open CDE Universe sphere',
               active: activeSphere === 'cde',
               testId: 'switch-sphere-cde',
               onClick: () =>
@@ -4168,7 +4168,7 @@ export default function App() {
             },
             {
               id: 'campaign-os',
-              label: 'Campaign',
+              label: 'Open Campaign OS sphere',
               active: activeSphere === 'campaign-os',
               testId: 'switch-sphere-campaign-os',
               onClick: () =>
@@ -4179,7 +4179,7 @@ export default function App() {
             },
             {
               id: 'about-us',
-              label: 'About',
+              label: 'Open About Us sphere',
               active: activeSphere === 'about-us',
               testId: 'switch-sphere-about-us',
               onClick: () =>
@@ -4195,8 +4195,8 @@ export default function App() {
             {
               id: 'tour',
               label: tourState.active
-                ? `Stop tour ${tourState.step}/${tourState.total}`
-                : 'Take a tour',
+                ? `Stop guided tour (${tourState.step}/${tourState.total})`
+                : 'Start guided tour',
               active: tourState.active,
               testId: tourState.active ? 'stop-tour-btn' : 'start-tour-btn',
               onClick: () =>
@@ -4207,7 +4207,7 @@ export default function App() {
             },
             {
               id: 'fullscreen',
-              label: browserFullscreen ? 'Exit fullscreen' : 'Fullscreen',
+              label: browserFullscreen ? 'Exit browser fullscreen' : 'Enter browser fullscreen',
               active: browserFullscreen,
               visible: isBrowserFullscreenSupported(),
               testId: 'browser-fullscreen-toggle',
@@ -4215,7 +4215,7 @@ export default function App() {
             },
             {
               id: 'more',
-              label: showMoreMenu ? 'Close menu' : 'Open menu',
+              label: showMoreMenu ? 'Close stations and tools menu' : 'Open stations and tools menu',
               active: showMoreMenu,
               testId: 'header-more-btn',
               onClick: () => setShowMoreMenu((v) => !v),
