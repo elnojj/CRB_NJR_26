@@ -1,7 +1,7 @@
 .entry-gate {
   position: fixed;
   inset: 0;
-  z-index: 70;
+  z-index: 200;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -13,6 +13,8 @@
     #02050a;
   color: #f2f6f8;
   box-sizing: border-box;
+  pointer-events: auto;
+  isolation: isolate;
 }
 
 .entry-gate__logo {

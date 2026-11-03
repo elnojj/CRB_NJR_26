@@ -4212,7 +4212,7 @@ export default function App() {
       <header
         data-testid="workspace-header"
         className={`fixed top-0 left-0 right-0 z-30 pointer-events-none flex items-start justify-center px-4 pt-4 pb-2 safe-area-top ${
-          introMode !== 'workspace' ? 'opacity-0' : 'opacity-100'
+          !bootDone || introMode !== 'workspace' ? 'opacity-0' : 'opacity-100'
         } transition-opacity duration-300`}
       >
         <div className="pointer-events-auto">
@@ -4230,7 +4230,7 @@ export default function App() {
       <div
         data-testid="header-controls-region"
         className={`fixed top-0 right-0 z-40 pointer-events-none px-4 pt-4 safe-area-top ${
-          introMode !== 'workspace' ? 'opacity-0' : 'opacity-100'
+          !bootDone || introMode !== 'workspace' ? 'opacity-0' : 'opacity-100'
         } transition-opacity duration-300`}
       >
         <FloatingIconToggles
