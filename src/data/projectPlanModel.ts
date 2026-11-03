@@ -6,6 +6,7 @@
 import {
   PEOPLE_DATA,
   PROJECTS_DATA,
+  VISIBLE_PROJECTS_DATA,
   RACI_MATRIX,
   REGISTER_RECORDS,
   type PersonRecord,
@@ -64,13 +65,13 @@ export function selectOpenRegisterWorkCount(): {
   asOf: string;
   definition: string;
 } {
-  const count = PROJECTS_DATA.reduce((n, p) => n + p.openTaskCount, 0);
-  const dates = PROJECTS_DATA.map((p) => p.lastActivity).filter(Boolean);
+  const count = VISIBLE_PROJECTS_DATA.reduce((n, p) => n + p.openTaskCount, 0);
+  const dates = VISIBLE_PROJECTS_DATA.map((p) => p.lastActivity).filter(Boolean);
   return {
     count,
     asOf: dates.sort().at(-1) || 'unknown',
     definition:
-      'Sum of openTaskCount across PROJECTS_DATA (register workstreams + SAMPLE rows). Distinct from HQ Tasks station “52 Total” blueprint aggregate.',
+      'Sum of openTaskCount across VISIBLE_PROJECTS_DATA (register workstreams + SAMPLE rows; Gondwana excluded). Distinct from HQ Tasks station “52 Total” blueprint aggregate.',
   };
 }
 

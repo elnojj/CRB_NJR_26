@@ -30,6 +30,34 @@
   color: var(--token-text-primary, #f2f6f8);
 }
 
+@media (max-width: 767px) {
+  .cerebro-dock__capsule {
+    gap: 4px;
+    padding: 8px 12px;
+    border-radius: 18px;
+  }
+
+  .cerebro-dock__status {
+    font-size: 10px;
+  }
+
+  .cerebro-dock__actions {
+    gap: 6px;
+  }
+
+  .cerebro-dock__btn {
+    min-height: 40px;
+    gap: 2px;
+    padding: 6px 4px;
+    font-size: 11px;
+  }
+
+  .cerebro-dock__btn svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
 .cerebro-dock__status {
   margin: 0;
   padding: 0 4px;
@@ -381,7 +409,14 @@
 }
 
 @media (max-width: 767px) {
-  .cerebro-chat {
-    max-height: min(52vh, 460px);
+  .cerebro-dock {
+    width: min(100vw - 16px, 360px);
+    bottom: max(8px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .cerebro-chat,
+  .cerebro-chat--docked {
+    max-height: min(70vh, 520px);
+    border-radius: 20px 20px 0 0;
   }
 }

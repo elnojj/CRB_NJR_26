@@ -55,7 +55,7 @@ export const SOURCE_MAP: SourceMapEntry[] = [
     code: '05b',
     fileName: '05_SEVEN_01_Verified_Facts_and_Evidence',
     status: 'ATTACHED',
-    usageInApp: 'Verified text for NOJARA Studios (founded 2016, Cairo and Riyadh, creative strategy, production, talent, media technology, NJR+ execution intelligence; Young & Human, Drafteers, Museum of Almost, El Batron, Gondwana), Tarek Mojara, Mohammed Alhamdan, and "SEVEN × NOJARA — A reason to return".',
+    usageInApp: 'Verified text for NOJARA Studios (founded 2016, Cairo and Riyadh, creative strategy, production, talent, media technology, NJR+ execution intelligence; Young & Human, Drafteers, Museum of Almost, El Batron), Tarek Mojara, Mohammed Alhamdan, and "SEVEN × NOJARA — A reason to return".',
   },
   {
     code: '05c',
@@ -168,7 +168,7 @@ export const MISSING_ITEMS: MissingItem[] = [
     id: 'M06',
     item: 'Confirmed 17 project codes, quantitative progress percentages, and per-project RACI sign-offs',
     referencedIn: '01 KB Handoff §9 ("Confirm the 17 project codes and supply real clients, contacts, owners, dates") & 07 Project Register',
-    currentFallbackInPhase0: 'Used all 4 active project codes in 07 Project Register (SEVEN, YAH, MHE, BSOCIAL) plus portfolio programmes (AL-AHRAM, MUSEUM-OF-ALMOST, EL-BATRON, GONDWANA) with exact record counts; labelled unverified progress % and RACI cells as SAMPLE.',
+    currentFallbackInPhase0: 'Used all 4 active project codes in 07 Project Register (SEVEN, YAH, MHE, BSOCIAL) plus portfolio programmes (AL-AHRAM, MUSEUM-OF-ALMOST, EL-BATRON) with exact record counts; labelled unverified progress % and RACI cells as SAMPLE.',
   },
   {
     id: 'M07',
@@ -756,34 +756,26 @@ export const PROJECTS_DATA: ProjectSummary[] = [
     sunPositionHq: [3.95, 0.15, -0.45],
     sunPositionCde: [4.05, 0.0, -0.95],
   },
-  {
-    id: 'GONDWANA',
-    code: 'GND',
-    name: 'Gondwana',
-    subtitle: 'NOJARA Programme Identity (05 SEVEN 01)',
-    isSample: true,
-    health: 'At risk',
-    healthNote: 'Confirmed NOJARA identity in 05 SEVEN 01; schedule marked SAMPLE',
-    progress: 45,
-    progressLabel: '45% · illustrative',
-    owner: 'SAMPLE — NOJARA Studios',
-    nextDeadline: 'TBD · illustrative',
-    openTaskCount: 2,
-    totalRecordCount: 2,
-    lastActivity: '13 Oct 2026',
-    dimensionId: 'production',
-    subdomain: 'Film & Showreel Production',
-    description: 'Experiential and production programme presented in the NOJARA Studios company profile.',
-    sunPositionHq: [-3.95, -1.25, -0.55],
-    sunPositionCde: [2.85, -2.85, -0.95],
-  },
+  // Gondwana / GND removed from active register per owner correction (2026-11).
 ];
+
+/** Projects hidden from spatial graph, drawers, and portfolio counts. */
+export const EXCLUDED_PROJECT_IDS = new Set<string>(['GONDWANA']);
+
+export function isProjectVisibleInWorkspace(projectId: string): boolean {
+  return !EXCLUDED_PROJECT_IDS.has(projectId);
+}
+
+export const VISIBLE_PROJECTS_DATA = PROJECTS_DATA.filter((p) =>
+  isProjectVisibleInWorkspace(p.id)
+);
 
 /** Contract: never use legacy "6 Suns · 4 Real" — derive count from source. */
 export const PROJECT_PROVENANCE_COUNTS = (() => {
-  const registerCount = PROJECTS_DATA.filter((p) => !p.isSample).length;
-  const sampleCount = PROJECTS_DATA.filter((p) => p.isSample).length;
-  const totalCount = PROJECTS_DATA.length;
+  const visible = VISIBLE_PROJECTS_DATA;
+  const registerCount = visible.filter((p) => !p.isSample).length;
+  const sampleCount = visible.filter((p) => p.isSample).length;
+  const totalCount = visible.length;
   const badgeLabel = `${registerCount} Register · ${sampleCount} Sample`;
   const projectsStation = CEREBRO_STATIONS.find((s) => s.id === 'projects');
   if (projectsStation) {
@@ -1401,7 +1393,7 @@ export const CDE_DIMENSIONS: CdeDimensionNode[] = [
     description: 'Joined-up destination activations, spatial directing, and film/experiential production (05_SEVEN_01).',
     subdomains: [
       { id: 'sub-act', name: 'Destination Activations', position: [1.15, 3.15, 0.75], projectIds: ['BSOCIAL', 'SEVEN'] },
-      { id: 'sub-spatial', name: 'Live Spatial & Film', position: [3.25, 1.15, 0.75], projectIds: ['EL-BATRON', 'GONDWANA'] },
+      { id: 'sub-spatial', name: 'Live Spatial & Film', position: [3.25, 1.15, 0.75], projectIds: ['EL-BATRON'] },
     ],
   },
   {
@@ -1483,13 +1475,13 @@ export const STORY_CHAPTERS: StoryChapter[] = [
     id: 'ch-03-identities',
     routeAlias: '#studio',
     title: '03 · Programmes & Identities',
-    kicker: 'YOUNG & HUMAN · DRAFTEERS · MUSEUM OF ALMOST · EL BATRON · GONDWANA',
+    kicker: 'YOUNG & HUMAN · DRAFTEERS · MUSEUM OF ALMOST · EL BATRON',
     colour: COLOUR_TOKENS.cdeTalent,
     cameraTarget: [-5.4, -3.8, 2.5],
     sculpturalAssetId: 'A05_different_together',
     sculpturalAssetName: 'A05 · Different Together (Navy Enamel #223C73)',
     companionSticker: 'Scale without sameness',
-    verifiedBody: 'NOJARA Studios presents Young & Human (YAH), Drafteers, Museum of Almost, El Batron, and Gondwana as distinct identities and programmes with project-defined roles across culture, talent acceleration, and experiential production.',
+    verifiedBody: 'NOJARA Studios presents Young & Human (YAH), Drafteers, Museum of Almost, and El Batron as distinct identities and programmes with project-defined roles across culture, talent acceleration, and experiential production.',
   },
   {
     index: 4,

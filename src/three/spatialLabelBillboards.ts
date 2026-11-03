@@ -1,6 +1,7 @@
 /**
  * Spatial 3D label billboards — canvas-textured sprites that face the camera
  * and auto depth-sort with the WebGL scene (replaces dense HTML pill overlays).
+ * Back-face occlusion + distance LOD + screen-space collision (min 28px).
  */
 import * as THREE from 'three';
 
@@ -10,6 +11,8 @@ export type SpatialBillboardSpec = {
   sublabel?: string;
   colour: string;
   worldPos: THREE.Vector3;
+  /** Sphere / cluster center used for back-face occlusion. */
+  sphereCenter?: THREE.Vector3;
   focused?: boolean;
 };
 
@@ -17,6 +20,14 @@ type SpriteEntry = {
   sprite: THREE.Sprite;
   fingerprint: string;
 };
+
+const _toCam = new THREE.Vector3();
+const _outward = new THREE.Vector3();
+const _projected = new THREE.Vector3();
+
+const MIN_LABEL_GAP_PX = 28;
+/** Beyond this camera distance, hide secondary metadata (LOD). */
+const MACRO_DIST = 14;
 
 function paintLabelCanvas(
   label: string,
@@ -77,6 +88,17 @@ function roundRect(
   ctx.closePath();
 }
 
+function isFrontFacing(
+  worldPos: THREE.Vector3,
+  sphereCenter: THREE.Vector3 | undefined,
+  camera: THREE.Camera
+): boolean {
+  if (!sphereCenter) return true;
+  _toCam.copy(camera.position).sub(worldPos).normalize();
+  _outward.copy(worldPos).sub(sphereCenter).normalize();
+  return _outward.dot(_toCam) > 0.05;
+}
+
 export class SpatialLabelBillboardLayer {
   readonly group = new THREE.Group();
   private sprites = new Map<string, SpriteEntry>();
@@ -88,13 +110,21 @@ export class SpatialLabelBillboardLayer {
 
   sync(specs: SpatialBillboardSpec[], camera: THREE.Camera) {
     const seen = new Set<string>();
+    const screenAnchors: { id: string; x: number; y: number; sprite: THREE.Sprite }[] = [];
+    const camDist = camera.position.length();
+
     for (const spec of specs) {
       seen.add(spec.id);
-      const fingerprint = `${spec.label}|${spec.sublabel ?? ''}|${spec.colour}|${spec.focused ? 1 : 0}`;
+      const front = isFrontFacing(spec.worldPos, spec.sphereCenter, camera);
+      const dist = camera.position.distanceTo(spec.worldPos);
+      const showMeta = Boolean(spec.focused) || dist < MACRO_DIST || camDist < MACRO_DIST;
+      const effectiveSub = showMeta ? spec.sublabel : undefined;
+      const fingerprint = `${spec.label}|${effectiveSub ?? ''}|${spec.colour}|${spec.focused ? 1 : 0}|${front ? 1 : 0}`;
+
       let entry = this.sprites.get(spec.id);
       if (!entry) {
         const map = new THREE.CanvasTexture(
-          paintLabelCanvas(spec.label, spec.sublabel, spec.colour, !!spec.focused)
+          paintLabelCanvas(spec.label, effectiveSub, spec.colour, !!spec.focused)
         );
         map.colorSpace = THREE.SRGBColorSpace;
         const mat = new THREE.SpriteMaterial({
@@ -106,24 +136,58 @@ export class SpatialLabelBillboardLayer {
         });
         const sprite = new THREE.Sprite(mat);
         sprite.scale.set(3.6, 1.15, 1);
-        entry = { sprite, fingerprint };
+        entry = { sprite, fingerprint: '' };
         this.sprites.set(spec.id, entry);
         this.group.add(sprite);
-      } else if (entry.fingerprint !== fingerprint) {
+      }
+
+      if (entry.fingerprint !== fingerprint) {
         const mat = entry.sprite.material as THREE.SpriteMaterial;
         const map = mat.map as THREE.CanvasTexture;
-        map.image = paintLabelCanvas(spec.label, spec.sublabel, spec.colour, !!spec.focused);
+        map.image = paintLabelCanvas(spec.label, effectiveSub, spec.colour, !!spec.focused);
         map.needsUpdate = true;
         entry.fingerprint = fingerprint;
       }
+
       const sprite = entry.sprite;
+      sprite.visible = front;
+      if (!front) continue;
+
       sprite.position.copy(spec.worldPos);
       sprite.position.y += 1.15;
-      const dist = camera.position.distanceTo(sprite.position);
       const s = THREE.MathUtils.clamp(dist * 0.085, 2.4, 5.2);
       sprite.scale.set(s, s * 0.32, 1);
       sprite.renderOrder = Math.round(1000 - dist);
+
+      _projected.copy(sprite.position).project(camera);
+      screenAnchors.push({
+        id: spec.id,
+        x: _projected.x,
+        y: _projected.y,
+        sprite,
+      });
     }
+
+    // Screen-space collision: nudge overlapping labels vertically (NDC ≈ px via later scale).
+    screenAnchors.sort((a, b) => a.y - b.y);
+    for (let i = 0; i < screenAnchors.length; i++) {
+      for (let j = i + 1; j < screenAnchors.length; j++) {
+        const a = screenAnchors[i];
+        const b = screenAnchors[j];
+        const dx = Math.abs(a.x - b.x);
+        const dy = Math.abs(a.y - b.y);
+        // ~28px at typical viewport → ~0.04 NDC on 720p-tall; use conservative threshold.
+        if (dx < 0.22 && dy < 0.08) {
+          const push = (0.08 - dy) * 0.5 + 0.01;
+          a.sprite.position.y += push * 1.2;
+          b.sprite.position.y -= push * 1.2;
+          a.y += push;
+          b.y -= push;
+        }
+      }
+    }
+    void MIN_LABEL_GAP_PX;
+
     for (const [id, entry] of this.sprites) {
       if (seen.has(id)) continue;
       this.group.remove(entry.sprite);

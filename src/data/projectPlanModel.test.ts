@@ -18,10 +18,11 @@ describe('projectPlanModel', () => {
     assert.ok(graph.edges.every((e) => graph.nodes.some((n) => n.id === e.from)));
   });
 
-  it('keeps open-register-work (61) distinct from indexed register rows', () => {
+  it('keeps open-register-work distinct from indexed register rows', () => {
     const open = selectOpenRegisterWorkCount();
     const indexed = selectIndexedRegisterRecordCount();
-    assert.equal(open.count, 61);
+    // Visible register after Gondwana purge (17+14+18+3+4+2+1 = 59).
+    assert.equal(open.count, 59);
     assert.ok(indexed.count > 0);
     assert.notEqual(open.count, indexed.count);
     assert.match(open.definition, /openTaskCount/);

@@ -4,6 +4,7 @@ import {
   CEREBRO_STATIONS,
   CDE_DIMENSIONS,
   PROJECTS_DATA,
+  VISIBLE_PROJECTS_DATA,
   PEOPLE_DATA,
   RACI_MATRIX,
   SHOWREEL_ITEMS,
@@ -16,6 +17,7 @@ import {
 import { BrandLockup } from './components/BrandLockup';
 import { BootLoader } from './components/BootLoader';
 import { ExplainerFilm } from './intro/ExplainerFilm';
+import { EntryGate } from './intro/EntryGate';
 import { SystemStatusLayer } from './components/SystemStatusLayer';
 import {
   readSessionSnapshot,
@@ -126,6 +128,7 @@ import {
   orchestrateScreenCommandWithGemini,
 } from './utils/geminiScreenOrchestrator';
 import { soundEngine } from './utils/soundEngine';
+import { forceStopSharedWebcamStream } from './utils/deviceStreamCoordinator';
 import { useViewport } from './gui/useViewport';
 import { computeGuiLayout, PhoneSheetExpansion } from './gui/layoutEngine';
 import { GUI_CAMERA_PRESETS, GuiCameraPresetId } from './gui/cameraPresets';
@@ -203,19 +206,18 @@ const BUILD_VERSION = '1.28.0';
 
 export type BootMode = 'intro' | 'explainer-60' | 'workspace';
 
+/** Legacy CerebroIntro / Enter sequence — opt-in only via URL. Default entry is EntryGate → film. */
 function shouldStartInIntro(): boolean {
   if (typeof window === 'undefined') return false;
   const params = new URLSearchParams(window.location.search);
-  if (params.get('intro') === '0') return false;
-  if (params.get('movie') === '0') return false;
+  if (params.get('intro') === '0' || params.get('movie') === '0') return false;
   const view = params.get('view');
-  if (params.get('intro') === '1' || params.get('movie') === '1' || view === 'intro' || view === 'movie') {
-    return true;
-  }
-  if (view && view !== 'intro' && view !== 'movie' && view !== 'hq' && view !== 'cde') {
-    return false;
-  }
-  return true;
+  return (
+    params.get('intro') === '1' ||
+    params.get('movie') === '1' ||
+    view === 'intro' ||
+    view === 'movie'
+  );
 }
 
 function resolveBootMode(): BootMode {
@@ -260,24 +262,26 @@ export default function App() {
     }
     return 'loader';
   });
-  const [bootDone, setBootDone] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const v = params.get('view')?.toLowerCase();
-      if (v && v !== 'boot' && v !== 'loader' && v !== 'keypad') {
-        return true;
-      }
-    }
-    return false;
+  /** Public entry: gate → 60s film → workspace. Skip URL flags jump to workspace. */
+  const [entryPhase, setEntryPhase] = useState<'gate' | 'film' | 'done'>(() => {
+    if (typeof window === 'undefined') return 'gate';
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get('view')?.toLowerCase();
+    if (params.get('skipExplainer') === '1' || params.get('skipGate') === '1') return 'done';
+    if (v === 'keypad') return 'done';
+    if (v === 'film') return 'film';
+    if (v === 'loader' || v === 'boot') return 'gate';
+    if (v && v !== 'boot' && v !== 'loader' && v !== 'keypad' && v !== 'film') return 'done';
+    return 'gate';
   });
-  /** Trailer explainer plays before Owner Gate unless skipped via URL. */
-  const [explainerDone, setExplainerDone] = useState<boolean>(() => {
+  const [filmStartMuted, setFilmStartMuted] = useState(true);
+  const [bootDone, setBootDone] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     const params = new URLSearchParams(window.location.search);
     const v = params.get('view')?.toLowerCase();
-    if (params.get('skipExplainer') === '1') return true;
-    if (v === 'keypad' || v === 'loader' || v === 'boot') return true;
-    if (v && v !== 'boot' && v !== 'loader' && v !== 'keypad') return true;
+    if (params.get('skipExplainer') === '1' || params.get('skipGate') === '1') return true;
+    if (v === 'keypad') return false;
+    if (v && v !== 'boot' && v !== 'loader' && v !== 'keypad' && v !== 'film') return true;
     return false;
   });
   const [customDomains, setCustomDomains] = useState<CustomDomain3D[]>([]);
@@ -380,7 +384,6 @@ export default function App() {
     'EL-BATRON': 'overview',
     'AL-AHRAM': 'overview',
     'MUSEUM-OF-ALMOST': 'overview',
-    GONDWANA: 'overview',
   });
   // Overview docks start available but each panel itself stays collapsed behind vector ships.
   const [dashboardCollapsed, setDashboardCollapsed] = useState<boolean>(false);
@@ -1364,7 +1367,7 @@ export default function App() {
           const proj =
             PROJECTS_DATA.find((p) => p.id === action.projectId) ||
             CEREBRO_17_PROJECTS.find((p) => p.id === action.projectId);
-          if (!proj) {
+          if (!proj || proj.id === 'GONDWANA') {
             setCaptionBubble(
               `Project not found: ${action.projectId || '(missing id)'} — returned to master world.`
             );
@@ -1387,13 +1390,35 @@ export default function App() {
             getProjectWorldManifest(proj.id);
           const available =
             Boolean(worldManifest) && worldManifest?.worldType !== 'unavailable';
-          setProjectWorld((prev) => {
-            const entered = enterProjectWorld(prev, proj.id, available);
-            return available ? activateProjectWorld(entered) : entered;
-          });
           const nextTab = action.tab || projectTabsById[proj.id] || 'overview';
           setProjectTabsById((prev) => ({ ...prev, [proj.id]: nextTab }));
-          // Spatial interactive plan is the primary project workspace; detail sheet opens on demand.
+          // Keep camera in master when no verified 3D world — open 2D sheet, no unavailable toast.
+          if (!available) {
+            setProjectWorld((prev) => settleMasterWorld(exitProjectWorld(prev)));
+            setSpatialHealthOpen(true);
+            setSpatialHealthMode('project');
+            setDashboardCollapsed(false);
+            ensurePanelOpen('project-detail', true);
+            dispatchCamera('focus_node', {
+              targetSphere: activeSphere,
+              targetNodeId: proj.id,
+            });
+            setCaptionBubble(`${proj.name} · ${proj.health}`);
+            return {
+              ok: true,
+              action: 'focus_project',
+              target: proj.id,
+              resultingState: {
+                selectedProjectId: proj.id,
+                activeTab: nextTab,
+                spatialHealthMode: 'project',
+                worldId: 'master',
+                openPanels: ['project-detail'],
+              },
+              operationId: opId,
+            };
+          }
+          setProjectWorld((prev) => activateProjectWorld(enterProjectWorld(prev, proj.id, true)));
           setSpatialHealthOpen(true);
           setSpatialHealthMode('project');
           setDashboardCollapsed(false);
@@ -2549,7 +2574,7 @@ export default function App() {
             } else {
               appendTranscript(
                 'Cerebro',
-                `I heard "${cleanInput}". Try naming any of the 17 projects (SEVEN, El Batron, Young & Human, Abu Hamdan, BSocial, Gondwana...), a panel (Portfolio, Tasks, Insights, Briefing, Gmail, Calendar, Drive, Crew, Baghira, Kinzo), or a 3D command ("create domain Riyadh Lab").`
+                `I heard "${cleanInput}". Try naming a project (SEVEN, El Batron, Young & Human, Abu Hamdan, BSocial...), a panel (Portfolio, Tasks, Insights, Briefing, Gmail, Calendar, Drive, Crew, Baghira, Kinzo), or a 3D command ("create domain Riyadh Lab").`
               );
             }
           });
@@ -3124,6 +3149,9 @@ export default function App() {
       if (!wasActive) {
         // Fresh session always starts one-hand until the user picks 2×.
         setHandMode('right-only');
+      } else {
+        // iOS Safari: stop tracks immediately so the green camera indicator clears.
+        forceStopSharedWebcamStream();
       }
       setIsHandTrackingActive(next);
       return next;
@@ -3186,6 +3214,10 @@ export default function App() {
     setSoundMuted(false);
     setAmbienceMuted(false);
     setBootDone(true);
+    setEntryPhase('done');
+    // Never leave legacy Enter-sequence intro armed after the public gate/film.
+    introBridge.enabled = false;
+    setIntroMode('workspace');
     setOpenPanels([]);
     setFocusedNodeId(null);
     setDashboardCollapsed(false);
@@ -3778,20 +3810,38 @@ export default function App() {
         color: COLOUR_TOKENS.textPrimary,
       }}
     >
-      {/* 1. Trailer explainer → Owner Gate (3939) → dual-sphere workspace */}
-      {!bootDone && !explainerDone && (
-        <ExplainerFilm
-          reducedMotion={reducedMotion}
-          onComplete={() => {
-            setExplainerDone(true);
-            setBootInitialMode('keypad');
+      {/* 1. Clean entry gate → 60s film → workspace (no calibration / Enter sequence) */}
+      {!bootDone && entryPhase === 'gate' && (
+        <EntryGate
+          onPlayWithSound={() => {
+            setFilmStartMuted(false);
+            setEntryPhase('film');
+          }}
+          onWatchSilently={() => {
+            setFilmStartMuted(true);
+            setEntryPhase('film');
+          }}
+          onSkip={() => {
+            setEntryPhase('done');
+            handleBootTakeOff();
           }}
         />
       )}
-      {!bootDone && explainerDone && (
+      {!bootDone && entryPhase === 'film' && (
+        <ExplainerFilm
+          reducedMotion={reducedMotion}
+          startMuted={filmStartMuted}
+          onComplete={() => {
+            setEntryPhase('done');
+            handleBootTakeOff();
+          }}
+        />
+      )}
+      {/* Optional Owner Gate via ?view=keypad only */}
+      {!bootDone && entryPhase === 'done' && bootInitialMode === 'keypad' && (
         <BootLoader
           reducedMotion={reducedMotion}
-          initialPhase={bootInitialMode}
+          initialPhase="keypad"
           onTakeOff={handleBootTakeOff}
         />
       )}
@@ -3863,7 +3913,7 @@ export default function App() {
                 ? 'Portfolio health · on-track programmes'
                 : filter === 'attention'
                   ? 'Blocked / at risk · Owner 39 attention'
-                  : `Open register work · ${PROJECTS_DATA.reduce((n, p) => n + p.openTaskCount, 0)} (sum of openTaskCount; distinct from 52-record CSV index)`
+                  : `Open register work · ${VISIBLE_PROJECTS_DATA.reduce((n, p) => n + p.openTaskCount, 0)} (sum of openTaskCount; distinct from 52-record CSV index)`
             );
           }}
           onOpenPerson={(personId) => {
@@ -4293,7 +4343,7 @@ export default function App() {
               >
                 <span>Urgent</span>
                 <span className="fim-meta">
-                  {PROJECTS_DATA.filter((p) => p.health === 'At risk').length}
+                  {VISIBLE_PROJECTS_DATA.filter((p) => p.health === 'At risk').length}
                 </span>
               </button>
               <button
@@ -4323,7 +4373,7 @@ export default function App() {
               >
                 <span>Blocked</span>
                 <span className="fim-meta">
-                  {PROJECTS_DATA.filter((p) => p.health === 'Blocked').length}
+                  {VISIBLE_PROJECTS_DATA.filter((p) => p.health === 'Blocked').length}
                 </span>
               </button>
               <div className="fim-rule" />
@@ -4525,14 +4575,16 @@ export default function App() {
         <SystemStatusLayer
           webglUnavailable={false}
           voiceAuthFailed={voiceAuthFailed}
-          projectCount={PROJECTS_DATA.length}
+          projectCount={VISIBLE_PROJECTS_DATA.length}
           onRetryVoice={() => {
             setVoiceAuthFailed(false);
             setOpenAgentModalTrigger((n) => (n || 0) + 1);
           }}
           onRetryWebgl={() => window.location.reload()}
         />
-        {projectWorld.projectId && (
+        {projectWorld.projectId &&
+          projectWorld.state !== 'unavailable' &&
+          projectWorld.state !== 'exiting' && (
           <div
             className="cerebro-status-banner cerebro-status-banner--info"
             data-testid="project-world-runtime"
@@ -4548,11 +4600,7 @@ export default function App() {
             }}
           >
             <div className="cerebro-status-banner__copy">
-              <strong>
-                {projectWorld.state === 'unavailable'
-                  ? 'Project world unavailable'
-                  : `Project world · ${projectWorld.state}`}
-              </strong>
+              <strong>{`Project world · ${projectWorld.state}`}</strong>
               <span>
                 {projectWorld.reason ||
                   `${projectWorld.projectId} — return restores master-sphere pose.`}

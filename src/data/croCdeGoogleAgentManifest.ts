@@ -81,7 +81,6 @@ export const CRO_CDE_GOOGLE_TOOLS_SCHEMA = [
             'AL-AHRAM',
             'MUSEUM-OF-ALMOST',
             'EL-BATRON',
-            'GONDWANA',
             'DRAFTEERS',
             'NJR-PLUS',
             'MISSION-LOTUS',

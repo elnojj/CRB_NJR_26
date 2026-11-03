@@ -4,6 +4,7 @@ import { COLOUR_TOKENS } from '../tokens/colours';
 import { soundEngine } from '../utils/soundEngine';
 import {
   getSharedWebcamStream,
+  forceStopSharedWebcamStream,
   releaseSharedWebcamStream,
 } from '../utils/deviceStreamCoordinator';
 
@@ -404,6 +405,8 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
     return () => {
       cancelled = true;
       if (rafId) cancelAnimationFrame(rafId);
+      // Force-stop so iOS Safari clears the green camera indicator even if refcount races.
+      forceStopSharedWebcamStream();
       releaseSharedWebcamStream();
       if (videoRef.current) {
         videoRef.current.srcObject = null;

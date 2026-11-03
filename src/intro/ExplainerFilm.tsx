@@ -1,12 +1,11 @@
 /**
- * Cerebro 180s cinematic introduction — single film clock, attributable media,
- * continuous handover into Owner Gate → workspace.
- * Editorial: 24 fps / 4,320 frames. Runtime: rAF playhead (not throttled to 24).
+ * Cerebro 60s cinematic introduction — single film clock, attributable media,
+ * continuous handover into workspace.
+ * Editorial: 24 fps / 1,440 frames. Runtime: rAF playhead (not throttled to 24).
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CINEMATIC_BRAND, cinematicMediaById } from './cinematicManifest';
 import {
-  CINEMATIC_BEATS,
   CINEMATIC_DURATION_SEC,
   CINEMATIC_FPS,
   CINEMATIC_MOTION,
@@ -21,6 +20,8 @@ import './explainerFilm.css';
 export type ExplainerFilmProps = {
   onComplete: () => void;
   reducedMotion?: boolean;
+  /** When true, film starts muted (Watch silently). Sound On still available. */
+  startMuted?: boolean;
 };
 
 type PlaybackDiag =
@@ -33,9 +34,16 @@ type PlaybackDiag =
   | 'DECODE_ERROR'
   | 'GAP_BLOCKED';
 
+function formatClock(sec: number): string {
+  const s = Math.max(0, Math.floor(sec));
+  const m = Math.floor(s / 60);
+  return `${m}:${String(s % 60).padStart(2, '0')}`;
+}
+
 export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
   onComplete,
   reducedMotion = false,
+  startMuted = true,
 }) => {
   const totalSec = reducedMotion ? Math.min(48, CINEMATIC_DURATION_SEC) : CINEMATIC_DURATION_SEC;
   const totalFrames = reducedMotion
@@ -45,7 +53,7 @@ export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
   const [lang, setLang] = useState<FilmLang>('en');
   const [playing, setPlaying] = useState(true);
   const [frame, setFrame] = useState(0);
-  const [soundOn, setSoundOn] = useState(false);
+  const [soundOn, setSoundOn] = useState(!startMuted);
   const [diag, setDiag] = useState<PlaybackDiag>('READY');
   const [completed, setCompleted] = useState(false);
 
@@ -57,6 +65,10 @@ export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
   const completedRef = useRef(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
 
+  useEffect(() => {
+    setSoundOn(!startMuted);
+  }, [startMuted]);
+
   // In reduced motion, map shortened playhead across full editorial beats proportionally.
   const editorialFrame = reducedMotion
     ? Math.min(
@@ -67,6 +79,7 @@ export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
   const activeBeat = beatAtFrame(editorialFrame);
   const media = activeBeat.mediaId ? cinematicMediaById(activeBeat.mediaId) : undefined;
   const mediaBlocked = Boolean(media?.blocked || !media?.src);
+  const posterStill = media?.poster || CINEMATIC_BRAND.localUrl;
 
   const finish = useCallback(() => {
     if (completedRef.current) return;
@@ -77,7 +90,6 @@ export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
     onComplete();
   }, [onComplete]);
 
-  // Single film clock
   useEffect(() => {
     playingRef.current = playing;
   }, [playing]);
@@ -109,7 +121,9 @@ export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
       setDiag(mediaBlocked ? 'GAP_BLOCKED' : 'READY');
       return;
     }
-    const wantTime = activeBeat.mediaInSec + (secondsFromFrame(editorialFrame) - secondsFromFrame(activeBeat.startFrame));
+    const wantTime =
+      activeBeat.mediaInSec +
+      (secondsFromFrame(editorialFrame) - secondsFromFrame(activeBeat.startFrame));
     const apply = () => {
       if (!Number.isFinite(el.duration) || el.duration <= 0) return;
       const t = Math.max(0, Math.min(el.duration - 0.05, wantTime));
@@ -205,14 +219,13 @@ export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
   const support = lang === 'ar' ? activeBeat.supportAr : activeBeat.supportEn;
   const narration = lang === 'ar' ? activeBeat.narrationAr : activeBeat.narrationEn;
   const credit = lang === 'ar' ? activeBeat.creditAr : activeBeat.creditEn;
-  const gap = lang === 'ar' ? activeBeat.gapAr : activeBeat.gapEn;
   const progress = Math.min(1, frame / Math.max(1, totalFrames - 1));
-
   const words = headline.split(/\s+/).filter(Boolean);
+  const elapsedSec = secondsFromFrame(editorialFrame);
 
   return (
     <div
-      className="explainer-film cinematic-180"
+      className="explainer-film cinematic-60"
       data-testid="explainer-film"
       data-beat={activeBeat.id}
       data-diag={diag}
@@ -239,37 +252,52 @@ export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
           loop
         />
       ) : (
-        <div className="explainer-film__gap" data-testid="cinematic-gap">
-          <p className="explainer-film__gap-title">
-            {lang === 'ar' ? 'أصل غير متوفر بعد' : 'Asset not on this host yet'}
-          </p>
-          <p className="explainer-film__gap-body">{gap || media?.evidenceLimit}</p>
+        <div
+          className="explainer-film__gap"
+          data-testid="cinematic-gap"
+          style={
+            posterStill
+              ? {
+                  backgroundImage: `linear-gradient(180deg, rgba(2,5,10,0.55), rgba(2,5,10,0.78)), url(${posterStill})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }
+              : undefined
+          }
+        >
+          <div className="explainer-film__gap-card">
+            <p className="explainer-film__gap-title">
+              {lang === 'ar' ? 'لقطة الاستوديو' : 'Studio still'}
+            </p>
+            <p className="explainer-film__gap-body">
+              {lang === 'ar'
+                ? 'الأصل السينمائي غير متوفر على هذا المضيف — نعرض صورة معتمدة.'
+                : 'Cinematic source unavailable on this host — showing an approved studio still.'}
+            </p>
+          </div>
         </div>
       )}
 
       <div className="explainer-film__grade" aria-hidden="true" />
       <div className="explainer-film__vignette" aria-hidden="true" />
 
-      <header className="explainer-film__brand cinematic-180__brand">
+      <header className="explainer-film__brand cinematic-60__brand">
         <img
           src={CINEMATIC_BRAND.localUrl}
           alt="NOJARA"
           width={160}
           height={40}
-          className="cinematic-180__logo"
+          className="cinematic-60__logo"
           draggable={false}
         />
-        <span className="cinematic-180__mark" lang="ar" dir="rtl">
-          {CINEMATIC_BRAND.markAr}
-        </span>
       </header>
 
-      <div className="explainer-film__supers cinematic-180__supers" key={`${activeBeat.id}-${lang}`}>
-        <h1 className="cinematic-180__headline" dir={lang === 'ar' ? 'rtl' : 'ltr'} lang={lang}>
+      <div className="explainer-film__supers cinematic-60__supers" key={`${activeBeat.id}-${lang}`}>
+        <h1 className="cinematic-60__headline" dir={lang === 'ar' ? 'rtl' : 'ltr'} lang={lang}>
           {words.map((w, i) => (
             <span
               key={`${w}-${i}`}
-              className="cinematic-180__word is-in"
+              className="cinematic-60__word is-in"
               style={{
                 animationDelay: `${Math.min(i, 8) * CINEMATIC_MOTION.wordStaggerMs}ms`,
                 transitionDuration: `${CINEMATIC_MOTION.headlineRevealMs}ms`,
@@ -281,23 +309,21 @@ export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
           ))}
         </h1>
         {support && (
-          <p className="cinematic-180__support" dir={lang === 'ar' ? 'rtl' : 'ltr'} lang={lang}>
+          <p className="cinematic-60__support" dir={lang === 'ar' ? 'rtl' : 'ltr'} lang={lang}>
             {support}
           </p>
         )}
-        <p className="cinematic-180__narration" dir={lang === 'ar' ? 'rtl' : 'ltr'} lang={lang}>
+        <p className="cinematic-60__narration" dir={lang === 'ar' ? 'rtl' : 'ltr'} lang={lang}>
           {narration}
         </p>
-        {credit && !mediaBlocked && (
-          <p className="cinematic-180__credit">{credit}</p>
-        )}
+        {credit && !mediaBlocked && <p className="cinematic-60__credit">{credit}</p>}
       </div>
 
-      <footer className="explainer-film__bar cinematic-180__bar">
-        <div className="cinematic-180__transport">
+      <footer className="explainer-film__bar cinematic-60__bar">
+        <div className="cinematic-60__pill" role="toolbar" aria-label="Film controls">
           <button
             type="button"
-            className="explainer-film__skip"
+            className="cinematic-60__ctrl"
             data-testid="cinematic-play-pause"
             aria-label={playing ? 'Pause film' : 'Play film'}
             onClick={() => setPlaying((p) => !p)}
@@ -306,7 +332,7 @@ export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
           </button>
           <button
             type="button"
-            className="explainer-film__skip"
+            className="cinematic-60__ctrl"
             data-testid="cinematic-sound"
             aria-label={soundOn ? 'Mute film' : 'Unmute film'}
             onClick={() => setSoundOn((s) => !s)}
@@ -315,7 +341,7 @@ export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
           </button>
           <button
             type="button"
-            className="explainer-film__skip"
+            className="cinematic-60__ctrl"
             data-testid="cinematic-lang"
             aria-label="Toggle English or Arabic"
             onClick={() => setLang((l) => (l === 'en' ? 'ar' : 'en'))}
@@ -326,32 +352,25 @@ export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
             type="button"
             data-testid="explainer-skip"
             data-cta-id="explainer.skip"
-            className="explainer-film__skip cinematic-180__skip-primary"
+            className="cinematic-60__ctrl cinematic-60__ctrl--skip"
             onClick={finish}
           >
             Skip
           </button>
         </div>
-        <div className="cinematic-180__meta">
-          <span>
-            {Math.floor(secondsFromFrame(editorialFrame) / 60)}:
-            {String(Math.floor(secondsFromFrame(editorialFrame) % 60)).padStart(2, '0')} / 3:00
+        <div className="cinematic-60__progress-row" aria-hidden={completed}>
+          <span className="cinematic-60__clock">
+            {formatClock(elapsedSec)} / {formatClock(totalSec)}
           </span>
-          <span className="cinematic-180__diag">{diag}</span>
-          {!completed && (
-            <span>
-              Frame {editorialFrame} · {CINEMATIC_BEATS.length} beats
-            </span>
-          )}
-        </div>
-        <div
-          className="cinematic-180__progress"
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={Math.round(progress * 100)}
-        >
-          <div style={{ width: `${Math.min(100, progress * 100)}%` }} />
+          <div
+            className="cinematic-60__progress"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(progress * 100)}
+          >
+            <div style={{ width: `${Math.min(100, progress * 100)}%` }} />
+          </div>
         </div>
       </footer>
     </div>

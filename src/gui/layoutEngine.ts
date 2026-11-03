@@ -111,10 +111,17 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
 
     if (isSheetOpen) {
       const targetSheetH =
-        phoneSheetState === 'collapsed' ? 72 : phoneSheetState === 'expanded' ? 480 : 264;
+        phoneSheetState === 'collapsed'
+          ? 72
+          : phoneSheetState === 'expanded'
+            ? Math.round(height * 0.7)
+            : Math.min(264, Math.round(height * 0.45));
       const maxAvailableSheetH = Math.max(
         72,
-        voiceRect.y - GUI_TOUCH_TOKENS.panelCollisionMarginPx - (headerRect.y + headerRect.h + 100)
+        Math.min(
+          Math.round(height * 0.7),
+          voiceRect.y - GUI_TOUCH_TOKENS.panelCollisionMarginPx - (headerRect.y + headerRect.h + 100)
+        )
       );
       const sheetH = Math.min(targetSheetH, maxAvailableSheetH);
       sheetTop = voiceRect.y - GUI_TOUCH_TOKENS.panelCollisionMarginPx - sheetH;

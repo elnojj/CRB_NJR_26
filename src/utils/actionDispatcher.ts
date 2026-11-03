@@ -296,7 +296,8 @@ export function resolveProjectId(raw: string): string | null {
   if (s === 'al-ahram' || s === 'ahram' || s === 'ahr' || s.includes('الأهرام')) return 'AL-AHRAM';
   if (s === 'museum-of-almost' || s === 'moa' || s.includes('almost')) return 'MUSEUM-OF-ALMOST';
   if (s === 'el-batron' || s === 'el batron' || s === 'batron' || s === 'bat' || s.includes('باترون')) return 'EL-BATRON';
-  if (s === 'gondwana' || s === 'gnd' || s.includes('جوندوانا')) return 'GONDWANA';
+  // Gondwana / GND purged from workspace — do not resolve to a project id.
+  if (s === 'gondwana' || s === 'gnd' || s.includes('جوندوانا')) return null;
 
   const exact17 = CEREBRO_17_PROJECTS.find(
     (p) =>
@@ -1498,8 +1499,6 @@ export function parseNaturalLanguageIntent(rawInput: string): WorkspaceAction | 
       ? 'AL-AHRAM'
       : lower.includes('museum of almost')
       ? 'MUSEUM-OF-ALMOST'
-      : lower.includes('gondwana')
-      ? 'GONDWANA'
       : null;
 
   if (matchedProject) {

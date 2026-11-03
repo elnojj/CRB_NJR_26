@@ -905,11 +905,17 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           left: `${rect.x}px`,
           top: `${rect.y}px`,
           width: `${rect.w}px`,
-          maxHeight: `${rect.h}px`,
+          maxHeight:
+            slotId === 'bottomSheet'
+              ? `min(70vh, ${rect.h}px)`
+              : `${rect.h}px`,
           backgroundColor: GUI_GLASS_TOKENS.background,
           backdropFilter: GUI_GLASS_TOKENS.backdropFilter,
           WebkitBackdropFilter: GUI_GLASS_TOKENS.backdropFilter,
-          borderRadius: `${GUI_GLASS_TOKENS.panelRadiusPx}px`,
+          borderRadius:
+            slotId === 'bottomSheet'
+              ? '20px 20px 0 0'
+              : `${GUI_GLASS_TOKENS.panelRadiusPx}px`,
           zIndex: GUI_Z_LAYERS.panels,
         }}
       >

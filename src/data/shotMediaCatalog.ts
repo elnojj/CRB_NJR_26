@@ -91,16 +91,6 @@ export const SHOT_ENTRIES: ShotEntry[] = [
     'AMBIENT ONLY: public showreel cutdown — not Museum of Almost camera masters'
   ),
   shot('project-el-batron', 'el-batron', 24, 'project', 'EL-BATRON', 'EL-BATRON node cutdown from El Batron showreel'),
-  // Gondwana removed from cinematic journey; catalog entry retained as ambient-only with explicit note.
-  shot(
-    'project-gondwana',
-    'laliga',
-    110,
-    'project',
-    'GONDWANA',
-    'EXCLUDED FROM CINEMATIC JOURNEY · ambient LaLiga cutdown only — not Gondwana project proof'
-  ),
-
   shot('dim-strategy', 'showreel2023', 14, 'dimension', 'strategy', 'CDE dimension strategy cutdown'),
   shot('dim-production', 'laliga', 56, 'dimension', 'production', 'CDE dimension production cutdown'),
   shot('dim-talent', 'el-batron', 100, 'dimension', 'talent', 'CDE dimension talent cutdown'),

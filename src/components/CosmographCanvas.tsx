@@ -10,6 +10,7 @@ import {
   CEREBRO_STATIONS,
   CDE_DIMENSIONS,
   PROJECTS_DATA,
+  VISIBLE_PROJECTS_DATA,
   ProjectHealth,
 } from '../data/sourceData';
 import { PUBLIC_BRAND_MEDIA } from '../data/publicBrandMedia';
@@ -2736,11 +2737,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       ...(hqAssembly.root.userData || {}),
       masterSphere: true,
       masterRadius: MASTER_SPHERE.radius,
-      portalCountLabel: projectPortalCountLabel(PROJECTS_DATA.length),
+      portalCountLabel: projectPortalCountLabel(VISIBLE_PROJECTS_DATA.length),
     };
     masterRootRef.current = hqAssembly.root;
 
-    const allProjectIds = PROJECTS_DATA.map((p) => p.id);
+    const allProjectIds = VISIBLE_PROJECTS_DATA.map((p) => p.id);
     CEREBRO_STATIONS.forEach((st, idx) => {
       buildNodeWithSignal(
         hqAssembly.root,
@@ -2759,10 +2760,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       );
     });
 
-    PROJECTS_DATA.forEach((proj, idx) => {
+    VISIBLE_PROJECTS_DATA.forEach((proj, idx) => {
       const healthCol = getProjectHealthColour(proj.health);
-      const nextProj = PROJECTS_DATA[(idx + 1) % PROJECTS_DATA.length];
-      const prevProj = PROJECTS_DATA[(idx + PROJECTS_DATA.length - 1) % PROJECTS_DATA.length];
+      const nextProj = VISIBLE_PROJECTS_DATA[(idx + 1) % VISIBLE_PROJECTS_DATA.length];
+      const prevProj =
+        VISIBLE_PROJECTS_DATA[(idx + VISIBLE_PROJECTS_DATA.length - 1) % VISIBLE_PROJECTS_DATA.length];
       buildNodeWithSignal(
         hqAssembly.root,
         HQ_CENTER,
@@ -2826,9 +2828,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       });
     });
 
-    PROJECTS_DATA.forEach((proj, idx) => {
+    VISIBLE_PROJECTS_DATA.forEach((proj, idx) => {
       const healthCol = getProjectHealthColour(proj.health);
-      const nextProj = PROJECTS_DATA[(idx + 1) % PROJECTS_DATA.length];
+      const nextProj = VISIBLE_PROJECTS_DATA[(idx + 1) % VISIBLE_PROJECTS_DATA.length];
       buildNodeWithSignal(
         cdeAssembly.root,
         CDE_CENTER,
@@ -4179,13 +4181,28 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       introBridge.update?.(elapsedTotal);
 
-      // Never apply setViewOffset in the live frame loop.
-      // EffectComposer + UnrealBloomPass mishandles it and paints a clear-color slab /
-      // vertical seam that reads as a second tiled page of the workspace.
-      // Labels still clamp into the safe rect below without shifting the framebuffer.
+      // Never apply setViewOffset (EffectComposer + bloom seam). Instead, soft-pan the
+      // camera so the look-at projects into sceneSafeRect when a drawer/sheet is open.
       const curW = domEl.clientWidth || window.innerWidth;
       const curH = domEl.clientHeight || window.innerHeight;
       camera.clearViewOffset();
+      const safeRect = unobstructedRectRef.current;
+      if (
+        !introBridge.enabled &&
+        safeRect &&
+        safeRect.w > 40 &&
+        safeRect.h > 40 &&
+        (safeRect.w < curW * 0.92 || safeRect.h < curH * 0.92)
+      ) {
+        const safeCx = safeRect.x + safeRect.w * 0.5;
+        const safeCy = safeRect.y + safeRect.h * 0.5;
+        const ndcBiasX = (safeCx / curW - 0.5) * 2;
+        const ndcBiasY = -(safeCy / curH - 0.5) * 2;
+        const shiftScale = Math.min(4.5, s.radius * 0.22);
+        camera.translateX(ndcBiasX * shiftScale);
+        camera.translateY(ndcBiasY * shiftScale);
+        camera.updateMatrixWorld();
+      }
 
       if (isSoftwareGl || !composer) {
         renderer.render(scene, camera);
@@ -4225,6 +4242,21 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           const distToCam = _scratchVec.distanceTo(camera.position);
           const centerDistToCam = s.currentCenter.distanceTo(camera.position);
           const zDepth = distToCam - centerDistToCam;
+
+          // Hide back-facing labels (far side of the sphere).
+          const toCamX = camera.position.x - entry.worldPos.x;
+          const toCamY = camera.position.y - entry.worldPos.y;
+          const toCamZ = camera.position.z - entry.worldPos.z;
+          const outX = entry.worldPos.x - s.currentCenter.x;
+          const outY = entry.worldPos.y - s.currentCenter.y;
+          const outZ = entry.worldPos.z - s.currentCenter.z;
+          const outLen = Math.hypot(outX, outY, outZ) || 1;
+          const toLen = Math.hypot(toCamX, toCamY, toCamZ) || 1;
+          const facing =
+            (outX / outLen) * (toCamX / toLen) +
+            (outY / outLen) * (toCamY / toLen) +
+            (outZ / outLen) * (toCamZ / toLen);
+          if (facing <= 0.05 && entry.nodeType !== 'core') return;
 
           _scratchVec.project(camera);
           if (_scratchVec.z > 1) return;
@@ -4274,11 +4306,19 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           });
         });
 
+        // Distance LOD — orbit shows title only; focus/macro reveals secondary metadata.
+        const macroView = s.radius < 14 || Boolean(s.focusedNodeId);
+        for (const item of projected) {
+          if (!macroView && !item.isFocused && item.nodeType !== 'core') {
+            item.sublabel = undefined;
+          }
+        }
+
         projected.sort((a, b) => a.y - b.y);
-        // Responsive motion-graph packing — tighter on phone/tablet so chips don't collide
+        // Responsive motion-graph packing — min 28px vertical displacement between anchors
         const isPhone = width < 768;
         const isTablet = width >= 768 && width < 1100;
-        const minLabelGapY = isPhone ? 30 : isTablet ? 38 : 46;
+        const minLabelGapY = isPhone ? 28 : isTablet ? 32 : 40;
         const minLabelGapX = isPhone ? 98 : isTablet ? 128 : 168;
         const safe = unobstructedRectRef.current;
         const dockClear = isPhone ? Math.max(128, height * 0.22) : isTablet ? 112 : 120;
@@ -4323,6 +4363,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
         // Spatial 3D billboards for stations/dimensions/core — depth-sorted in WebGL.
         const billboardSpecs = [];
+        const showBillboardMeta = s.radius < 14 || Boolean(s.focusedNodeId);
         for (const entry of nodeRegistryRef.current.values()) {
           if (entry.sphere !== s.activeSphere) continue;
           if (
@@ -4335,9 +4376,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           billboardSpecs.push({
             id: `${entry.sphere}:${entry.canonicalId}`,
             label: entry.label,
-            sublabel: entry.nodeType === 'core' ? SPHERE_CAPTION[entry.sphere] : undefined,
+            sublabel:
+              entry.nodeType === 'core'
+                ? SPHERE_CAPTION[entry.sphere]
+                : showBillboardMeta
+                  ? entry.sublabel
+                  : undefined,
             colour: entry.colour,
             worldPos: entry.worldPos.clone(),
+            sphereCenter: s.currentCenter.clone(),
             focused:
               entry.canonicalId === s.focusedNodeId || entry.canonicalId === s.HoveredNodeId,
           });
@@ -4601,7 +4648,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             <div className="pt-2 border-t border-[color:var(--token-divider)]">
               <div className="font-mono text-[12px] text-[#C5CCD6] mb-1.5">PROJECTS</div>
               <div className="flex flex-wrap gap-1.5">
-                {PROJECTS_DATA.map((p) => (
+                {VISIBLE_PROJECTS_DATA.map((p) => (
                   <button
                     key={p.id}
                     type="button"

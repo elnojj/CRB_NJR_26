@@ -202,8 +202,7 @@ export function resolveProjectWorldMediaSlots(project: {
     case 'MHE':
     case 'BSOCIAL':
     case 'AL-AHRAM':
-    case 'MUSEUM-OF-ALMOST':
-    case 'GONDWANA': {
+    case 'MUSEUM-OF-ALMOST': {
       const cut = PROJECT_SHOTS[project.id];
       if (!cut) return [unavailableSlot(project.id)];
       return [

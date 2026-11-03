@@ -146,6 +146,14 @@ export function releaseSharedWebcamStream(): void {
   webcamStream = null;
 }
 
+/** Force-release webcam (iOS Safari green indicator). Ignores refcount. */
+export function forceStopSharedWebcamStream(): void {
+  webcamRefCount = 0;
+  webcamInflight = null;
+  stopStreamTracks(webcamStream);
+  webcamStream = null;
+}
+
 export async function getSharedMicrophoneStream(
   constraints: MicConstraints = DEFAULT_MIC
 ): Promise<MediaStream> {
