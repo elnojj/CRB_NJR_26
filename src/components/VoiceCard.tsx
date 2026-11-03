@@ -418,12 +418,12 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   };
 
   const callLabel = voiceLive ? 'End call' : 'Call';
-  const handsLabel = handsActive ? 'Turn off camera' : 'Hands';
+  const handsLabel = 'Hands';
   const chatLabel = chatOpen ? 'Close chat' : 'Chat';
   const statusLine = voiceLive
     ? bridgeDetail || bridgeStatus
     : handsActive
-      ? 'Camera on · hand tracking'
+      ? 'Hands on · camera tracking'
       : chatOpen
         ? 'Chat with Cerebro'
         : 'Call · Hands · Chat';
@@ -594,7 +594,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
             data-testid="cerebro-btn-hands"
             data-active={handsActive ? 'true' : 'false'}
             aria-pressed={handsActive}
-            aria-label={handsLabel}
+            aria-label={handsActive ? 'Turn off hand camera' : 'Turn on hand camera'}
             onClick={onToggleHands}
           >
             <IconHands active={handsActive} />

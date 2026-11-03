@@ -668,59 +668,19 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
             </g>
           ))}
 
+          {/* Tracking only — camera on/off lives solely on the Call · Hands · Chat dock. */}
           {leftPts && (handMode === 'two-hands' || handMode === 'left-only') &&
             renderTrackingRig(leftPts, 'left')}
           {rightPts && (handMode === 'two-hands' || handMode === 'right-only') &&
             renderTrackingRig(rightPts, 'right')}
         </svg>
 
-        {/* Slim status strip only — mode controls live on the Voice capsule Camera / Text sheet. */}
-        <div
-          className="mt-auto mx-auto w-full max-w-md pointer-events-auto z-20 px-1"
-          style={{
-            paddingBottom: 'max(0.35rem, env(safe-area-inset-bottom, 0px))',
-            marginBottom: `max(${Math.max(dockClearancePx, 120)}px, calc(env(safe-area-inset-bottom, 0px) + 7.5rem))`,
-          }}
-        >
-          <div
-            className="cerebro-hands-hud cerebro-pill cj-glass-card px-3 py-2 flex items-center justify-between gap-2"
-            data-chrome="glass"
-            data-chrome-state={hasLiveCam ? 'active' : 'cold'}
-            data-testid="hands-gesture-hud"
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <span
-                className="w-2 h-2 rounded-full shrink-0"
-                style={{
-                  backgroundColor: hasLiveCam
-                    ? COLOUR_TOKENS.trackingValid
-                    : COLOUR_TOKENS.sphereWireframe,
-                  opacity: hasLiveCam ? 1 : 0.55,
-                }}
-              />
-              <span className="cerebro-chrome-meta truncate">
-                {hasLiveCam
-                  ? `Hand camera tracking · ${gestureMeta[activeGesture].title}`
-                  : cvStatusLabel}
-              </span>
-              <span
-                className="cerebro-status-chip shrink-0"
-                data-state={hasLiveCam ? 'live' : 'wait'}
-              >
-                {hasLiveCam ? 'Camera live' : 'Camera waiting'}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={onCloseHands}
-              className="cerebro-chrome-btn min-h-[40px] shrink-0 font-medium"
-              aria-label="Turn off hand camera tracking"
-              data-testid="hands-exit-camera"
-            >
-              Turn off camera
-            </button>
-          </div>
-        </div>
+        {/* No second camera HUD — Call · Hands · Chat dock is the only on/off control. */}
+        <p className="sr-only" aria-live="polite" data-testid="hands-gesture-hud">
+          {hasLiveCam
+            ? `Hand camera tracking · ${gestureMeta[activeGesture].title}`
+            : cvStatusLabel}
+        </p>
       </div>
     </>
   );
