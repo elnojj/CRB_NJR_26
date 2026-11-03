@@ -64,6 +64,8 @@ export const COLOUR_TOKENS = {
   healthOnTrack: '#36E88D',
   healthAtRisk: '#F2B66D',
   healthBlocked: '#5CC8D7',
+  /** Boot / chrome gold accent (AI Studio BootLoader) */
+  activeGold: '#D4AF37',
 
   // CDE Dimensions mapped strictly to the 15-token script (Zero Gold / Zero Off-Palette)
   cdeStrategy: '#4C8DFF',

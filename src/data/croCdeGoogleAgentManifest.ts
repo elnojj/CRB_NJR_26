@@ -1,38 +1,48 @@
 /**
- * CRO-CDE-GOOGLE ElevenLabs Conversational AI Agent Manifest (22 Client Tools)
+ * CRO-CDE-GOOGLE Cerebro voice agent manifest (27 client tools).
+ * Primary runtime: Google AI Studio / Gemini voice bridge.
+ * ElevenLabs payload retained for legacy export only — not the live primary path.
  * Grounded in 01_CEREBRO_KB_HANDOFF_2026-10-21_206f5667 & Master PRD v1.1
  */
 
 export const CRO_CDE_GOOGLE_AGENT_NAME = 'Cro-cde-google';
+/** Legacy ElevenLabs agent id — disconnected from the live VoiceCard primary path. */
 export const DEFAULT_INTERNAL_AGENT_ID = 'agent_7201m53ed3kred6ba17rvzmyv9q4';
-/** Voice runtime provider tag used by diagnostics + agent modal copy. */
-export const CEREBRO_VOICE_PROVIDER = 'elevenlabs';
+export const CRO_CDE_GOOGLE_FIRST_MESSAGE = 'Welcome back, sir. Anyone with you?';
+/** Active voice provider for the Cerebro capsule. */
+export const CEREBRO_VOICE_PROVIDER = 'google-ai-studio' as const;
 
-export const CRO_CDE_GOOGLE_SYSTEM_PROMPT = `You are CEREBRO (Cro-cde-google), the voice and spatial operating assistant for Tarek Nojara (internal shorthand "39", Founder and Culture and Design Engineer of NOJARA Studios, est. 2016, Cairo–Riyadh).
+export const CRO_CDE_GOOGLE_SYSTEM_PROMPT = `You are CEREBRO (Cro-cde-google), the voice and spatial operating assistant for Tarek Mojara (internal shorthand "39", Founder and Culture and Design Engineer of NOJARA Studios, est. 2016, Cairo–Riyadh).
 
 CRITICAL IDENTITY & OPERATIONAL RULES (cerebro-ui/4):
-1. Tarek Nojara's internal shorthand in tables is "39", and his formal title is ALWAYS "Founder and Culture and Design Engineer" — NEVER call him "CEO".
+1. Tarek Mojara's internal shorthand in tables is "39", and his formal title is ALWAYS "Founder and Culture and Design Engineer" — NEVER call him "CEO".
 2. When speaking Arabic or Egyptian Masri to the owner, NEVER address him as the number "39" (تسعة وتلاتين). Address him naturally as "يا فندم" or "يا طارق". In English, address him as "sir" or "Tarek".
 3. Speak naturally in English or Egyptian Arabic matching the user's language. Never read raw IDs, tool names, JSON keys, CSS tokens, coordinates, or receipts aloud.
 4. Before acting on any screen, rely on the live UI manifest from get_page_state() (schema: "cerebro-ui/4"). Only reference or trigger targets that are currently mounted, visible, enabled, and permitted for the active audience mode.
-5. Distinguish between the two spheres:
+5. Distinguish between the four live spheres (Industry & Making / إصطمبة remains proposed only):
    - HQ Sphere [0, 0, 0]: 5 stations — Projects (17 portfolio projects), Tasks, People (12 Crew & AI), Files (Google Drive/Docs/Sheets), Media (Showreels).
-   - CDE Sphere [38, 4, -22]: 4 dimensions — Creative Strategy, Production Leadership, Talent & Culture, Media Technology (NJR+), plus 8 subdomains and 8 story chapters.
+   - CDE Sphere [14, 2.5, -8]: 4 dimensions — Creative Strategy, Production Leadership, Talent & Culture, Media Technology (NJR+), plus 8 subdomains and 8 story chapters.
+   - Campaign OS [-34, 3, -18]: public campaign films and activation programmes (LaLiga, El Batron, BSocial, MHE, SEVEN).
+   - About Us [22, 2, 28]: NOJARA Studios identity, founder bio, gallery, and crew pointers.
 6. Disambiguate projects vs. showreels: if the user asks to open a project (e.g., "open El Batron project"), call focus_project with projectId="EL-BATRON", never open_showreel or media_control. On S05 Project Detail, use open_project_tube or dispatch_ui_action({ actionId: "project.open_tube" }) to open the 24-tile 3D cylindrical project media tube.
-7. During a tour (start_tour / step_tour), move one screen or target at a time: highlight the target, execute the real UI action, wait for the visual state and camera to settle, explain what is actually on screen, finish speaking before advancing, and never trigger external sends, approvals, purchases, camera permissions, or domain creation unless the user explicitly asks and confirms.`;
+7. During a tour (start_tour / step_tour), move one screen or target at a time: highlight the target, execute the real UI action, wait for the visual state and camera to settle, explain what is actually on screen, finish speaking before advancing, and never trigger external sends, approvals, purchases, camera permissions, or domain creation unless the user explicitly asks and confirms.
+8. Visual editions: the default cinematic intro is 180 seconds (10800 frames). An optional 60-second explainer is separately selectable via ?explainer=60 / ?edition=60. get_page_state().activeEdition reports which edition or workspace mode is active. Do not claim a spoken 90-second journey is synchronized with either visual edition until live agent + client-tool integration tests pass.
+9. open_station accepts station or place; get_project accepts projectId or name_or_code; tour_control(back) maps to previous stop. Never claim ok for a no-op. Read capabilities.* from get_page_state before advertising features.
+10. Design KB documents dated 21 October that refer to the older Cerebro-core repository or feat/ds-v1-1 branch are outdated for this client — prefer live get_page_state and this repository's design-system registries.`;
 
 export const CRO_CDE_GOOGLE_TOOLS_SCHEMA = [
   {
     type: 'client',
     name: 'switch_sphere',
-    description: 'Switch active sphere focus between HQ [0,0,0] and CDE [38,4,-22].',
+    description:
+      'Switch active sphere focus among HQ [0,0,0], CDE [14,2.5,-8], Campaign OS [-13,2,-7], and About Us [8,1.5,12].',
     parameters: {
       type: 'object',
       properties: {
         sphere: {
           type: 'string',
-          enum: ['hq', 'cde'],
-          description: 'Target sphere: hq or cde.',
+          enum: ['hq', 'cde', 'campaign-os', 'about-us'],
+          description: 'Target live sphere id.',
         },
       },
       required: ['sphere'],
@@ -634,13 +644,48 @@ export const CRO_CDE_GOOGLE_TOOLS_SCHEMA = [
   },
 ] as const;
 
+export function buildGoogleAiStudioFunctionDeclarations() {
+  return CRO_CDE_GOOGLE_TOOLS_SCHEMA.map((tool) => ({
+    name: tool.name,
+    description: tool.description,
+    parameters: tool.parameters,
+  }));
+}
+
+/** Google AI Studio / Gemini import pack — system prompt, greeting, and all client tools. */
+export function buildGoogleAiStudioAgentPayload() {
+  return {
+    name: CRO_CDE_GOOGLE_AGENT_NAME,
+    provider: CEREBRO_VOICE_PROVIDER,
+    firstMessage: CRO_CDE_GOOGLE_FIRST_MESSAGE,
+    systemInstruction: CRO_CDE_GOOGLE_SYSTEM_PROMPT,
+    modelHint: 'gemini-2.5-flash',
+    temperature: 0.35,
+    functionDeclarations: buildGoogleAiStudioFunctionDeclarations(),
+    clientControls: {
+      connect: true,
+      mute: true,
+      stop: true,
+      contextualUpdate: 'cerebro-ui/4',
+      toolExecutor: 'handleExecuteToolCall → parseStructuredToolCall → executeTypedAction',
+    },
+    notes: [
+      'Tools are client-executed inside Cerebro OS; Gemini proposes function calls only.',
+      'ElevenLabs ConvAI is disconnected from the primary VoiceCard path.',
+      'Paste systemInstruction + functionDeclarations into Google AI Studio / Gemini.',
+    ],
+  };
+}
+
+/** @deprecated Legacy ElevenLabs export — not used by the live VoiceCard. */
 export function buildElevenLabsAgentPayload(voiceId?: string) {
   return {
     name: CRO_CDE_GOOGLE_AGENT_NAME,
     default_agent_id: DEFAULT_INTERNAL_AGENT_ID,
+    status: 'disconnected_from_primary_voice_path',
     conversation_config: {
       agent: {
-        first_message: 'Welcome back, sir. Anyone with you?',
+        first_message: CRO_CDE_GOOGLE_FIRST_MESSAGE,
         language: 'en',
         prompt: {
           prompt: CRO_CDE_GOOGLE_SYSTEM_PROMPT,
@@ -652,12 +697,9 @@ export function buildElevenLabsAgentPayload(voiceId?: string) {
       tts: {
         model_id: 'eleven_turbo_v2_5',
         voice_id: voiceId || 'r5MIwbFAImi03aWNBjQN',
-        // Calm measured delivery — higher stability, softer similarity, slightly slower feel
-        optimize_streaming_latency: 2,
-        stability: 0.7,
-        similarity_boost: 0.65,
-        style: 0.15,
-        use_speaker_boost: false,
+        optimize_streaming_latency: 3,
+        stability: 0.55,
+        similarity_boost: 0.8,
       },
       asr: {
         quality: 'high',
@@ -668,4 +710,4 @@ export function buildElevenLabsAgentPayload(voiceId?: string) {
   };
 }
 
-export const CRO_CDE_GOOGLE_AGENT_MANIFEST = buildElevenLabsAgentPayload();
+export const CRO_CDE_GOOGLE_AGENT_MANIFEST = buildGoogleAiStudioAgentPayload();

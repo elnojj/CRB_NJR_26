@@ -7,11 +7,13 @@ interface BootLoaderProps {
   initialPhase?: 'keypad' | 'loader';
   lockOnComplete?: boolean;
   onTakeOff: () => void;
+  /** Optional health telemetry strip (offline / WebGL / voice). */
+  healthLine?: string | null;
 }
 
 const STATUS_LINES = [
-  'Preparing HQ [0,0,0] and CDE [38,4,-22] dual-sphere spatial workspace',
-  'Loading 18-screen Wireframe tour (S01–S18), 5 HQ stations, and 4 CDE dimensions',
+  'Preparing four-sphere constellation: HQ · CDE · Campaign OS · About Us',
+  'Loading 17 Wireframes v1.1 panels, 5 HQ stations, and 4 CDE dimensions',
   'Reading NOJARA project register snapshot (23 Oct 2026 · 52 records · 17 projects)',
   'Initializing 22-tool Cro-cde-google voice bridge and camera controls',
 ];
@@ -21,10 +23,21 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
   initialPhase = 'loader',
   lockOnComplete = false,
   onTakeOff,
+  healthLine = null,
 }) => {
   const [phase, setPhase] = useState<'keypad' | 'loader'>(initialPhase);
   const [pinCode, setPinCode] = useState<string>('');
   const [pinError, setPinError] = useState<string | null>(null);
+  const onTakeOffRef = useRef(onTakeOff);
+  const lockOnCompleteRef = useRef(lockOnComplete);
+
+  useEffect(() => {
+    onTakeOffRef.current = onTakeOff;
+  }, [onTakeOff]);
+
+  useEffect(() => {
+    lockOnCompleteRef.current = lockOnComplete;
+  }, [lockOnComplete]);
 
   useEffect(() => {
     setPhase(initialPhase);
@@ -33,14 +46,21 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
   const totalDurationMs = reducedMotion ? 800 : 8000;
   const [elapsedMs, setElapsedMs] = useState(0);
 
-  // Keep a stable ref so App re-renders (inline onTakeOff) cannot reset the 8s timer.
-  const onTakeOffRef = useRef(onTakeOff);
-  onTakeOffRef.current = onTakeOff;
-
   useEffect(() => {
     if (phase !== 'loader') return;
     const start = performance.now();
     let completed = false;
+
+    // 12-second watchdog timeout: entry never stalls on desktop or phone
+    const watchdog = window.setTimeout(() => {
+      if (!completed && !lockOnCompleteRef.current) {
+        completed = true;
+        window.clearInterval(interval);
+        console.warn('[BootLoader] 12s watchdog timeout reached — invoking onTakeOff immediately');
+        onTakeOffRef.current();
+      }
+    }, 12000);
+
     const interval = window.setInterval(() => {
       const now = performance.now();
       const diff = Math.min(totalDurationMs, now - start);
@@ -48,13 +68,20 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
       if (diff >= totalDurationMs && !completed) {
         completed = true;
         window.clearInterval(interval);
-        if (!lockOnComplete) {
+        window.clearTimeout(watchdog);
+        if (!lockOnCompleteRef.current) {
           onTakeOffRef.current();
         }
       }
     }, 50);
-    return () => window.clearInterval(interval);
-  }, [phase, totalDurationMs, lockOnComplete]);
+
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(watchdog);
+    };
+    // Intentionally omit onTakeOff/lockOnComplete: parent re-renders (telemetry,
+    // layout) would otherwise restart the loader and pin progress near 1%.
+  }, [phase, totalDurationMs]);
 
   const handleDigitPress = (digit: string) => {
     setPinError(null);
@@ -76,24 +103,14 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
         data-testid="owner-gate-keypad"
         className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 select-none safe-top safe-bottom pointer-events-auto"
         style={{
-          backgroundColor: 'rgba(16, 29, 39, 0.36)',
+          backgroundColor: 'rgba(16, 22, 34, 0.45)',
         }}
       >
-        <div
-          className="w-full max-w-sm rounded-xl p-5 flex flex-col items-center gap-4 border neural-reveal"
-          style={{
-            background: 'rgba(16, 29, 39, 0.84)',
-            backdropFilter: 'blur(12px) saturate(1.2)',
-            WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-            borderColor: 'rgba(255, 255, 255, 0.14)',
-            boxShadow:
-              'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-          }}
-        >
+        <div className="cj-glass-card w-full max-w-sm rounded-xl p-5 flex flex-col items-center gap-4 neural-reveal">
           {/* Standardized Panel Header Bar (#17) */}
           <div
             className="w-full flex items-center justify-between gap-2 pb-2.5 border-b"
-            style={{ borderColor: 'rgba(255, 255, 255, 0.14)' }}
+            style={{ borderColor: 'rgba(197, 204, 214, 0.22)' }}
           >
             <div className="flex items-center gap-2 min-w-0">
               <span
@@ -107,47 +124,22 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
             <span
               className="font-mono tabular-nums text-[10px] px-2 py-0.5 rounded border shrink-0"
               style={{
-                backgroundColor: '#142632',
-                borderColor: 'rgba(180, 221, 255, 0.16)',
-                color: '#B4DDFF',
+                backgroundColor: '#101622',
+                borderColor: 'rgba(197, 204, 214, 0.22)',
+                color: '#C5CCD6',
               }}
             >
               LIVE
             </span>
           </div>
 
-          {/* Square-Kufic Bismillah SVG + Brand Lockup */}
-          <svg
-            width="136"
-            height="28"
-            viewBox="0 0 136 28"
-            fill="none"
-            aria-label="Square-Kufic Bismillah"
-            className="opacity-95"
-          >
-            <rect
-              x="2"
-              y="4"
-              width="132"
-              height="20"
-              rx="2"
-              stroke="#B4DDFF"
-              strokeOpacity="0.45"
-              strokeWidth="1"
-            />
-            <path
-              d="M12 18H28V10H34V18H48V8H54V18H70V10H76V18H92V8H98V18H114V10H124"
-              stroke="#F2F6F8"
-              strokeWidth="2"
-              strokeLinecap="square"
-            />
-          </svg>
+          {/* Official NOJARA Brand Lockup */}
           <BrandLockup mode="loader" />
 
           <div className="text-center">
-            <div className="text-xs text-[#BDCBD3]">
+            <div className="text-xs text-[#C5CCD6]">
               Enter 4-digit Owner Code (
-              <span className="font-mono tabular-nums text-[#FFF1D4]">3939</span>) to
+              <span className="font-mono tabular-nums text-[#FFF4D0]">3939</span>) to
               unlock CEREBRO HQ
             </div>
           </div>
@@ -162,13 +154,13 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
                   className="w-11 h-12 rounded-lg border flex items-center justify-center font-mono tabular-nums text-lg font-bold transition-all"
                   style={{
                     backgroundColor: filled
-                      ? 'rgba(20, 38, 50, 0.92)'
-                      : 'rgba(20, 38, 50, 0.72)',
+                      ? 'rgba(27, 34, 48, 0.92)'
+                      : 'rgba(16, 22, 34, 0.78)',
                     borderColor: pinError
                       ? COLOUR_TOKENS.systemErrorRed
                       : filled
                       ? COLOUR_TOKENS.focusRing
-                      : 'rgba(180, 221, 255, 0.16)',
+                      : 'rgba(197, 204, 214, 0.22)',
                     color: COLOUR_TOKENS.textPrimary,
                   }}
                 >
@@ -199,10 +191,10 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
                 type="button"
                 data-testid={`keypad-digit-${d}`}
                 onClick={() => handleDigitPress(d)}
-                className="h-11 rounded-lg border font-mono tabular-nums text-base font-semibold text-[#F2F6F8] hover:border-[#65ACFF] active:scale-95 transition-all cursor-pointer"
+                className="h-11 rounded-lg border font-mono tabular-nums text-base font-semibold text-[#F2F6F8] hover:border-[#D4AF37] active:scale-95 transition-all cursor-pointer"
                 style={{
-                  backgroundColor: 'rgba(20, 38, 50, 0.72)',
-                  borderColor: 'rgba(180, 221, 255, 0.16)',
+                  backgroundColor: 'rgba(16, 22, 34, 0.78)',
+                  borderColor: 'rgba(197, 204, 214, 0.22)',
                 }}
               >
                 {d}
@@ -214,10 +206,10 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
                 setPinCode('');
                 setPinError(null);
               }}
-              className="h-11 rounded-lg border font-mono text-xs text-[#BDCBD3] hover:text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
+              className="h-11 rounded-lg border font-mono text-xs text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
               style={{
-                backgroundColor: 'rgba(20, 38, 50, 0.72)',
-                borderColor: 'rgba(180, 221, 255, 0.16)',
+                backgroundColor: 'rgba(16, 22, 34, 0.78)',
+                borderColor: 'rgba(197, 204, 214, 0.22)',
               }}
             >
               CLR
@@ -226,10 +218,10 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
               type="button"
               data-testid="keypad-digit-0"
               onClick={() => handleDigitPress('0')}
-              className="h-11 rounded-lg border font-mono tabular-nums text-base font-semibold text-[#F2F6F8] hover:border-[#65ACFF] active:scale-95 transition-all cursor-pointer"
+              className="h-11 rounded-lg border font-mono tabular-nums text-base font-semibold text-[#F2F6F8] hover:border-[#D4AF37] active:scale-95 transition-all cursor-pointer"
               style={{
-                backgroundColor: 'rgba(20, 38, 50, 0.72)',
-                borderColor: 'rgba(180, 221, 255, 0.16)',
+                backgroundColor: 'rgba(16, 22, 34, 0.78)',
+                borderColor: 'rgba(197, 204, 214, 0.22)',
               }}
             >
               0
@@ -244,7 +236,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
               className="h-11 rounded-lg border font-mono tabular-nums text-xs font-bold cursor-pointer"
               style={{
                 backgroundColor: COLOUR_TOKENS.cobaltAccent,
-                color: '#101D27',
+                color: '#101622',
                 borderColor: COLOUR_TOKENS.focusRing,
               }}
             >
@@ -257,10 +249,10 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
             data-testid="boot-take-off"
             data-cta-id="loader-take-off"
             onClick={onTakeOff}
-            className="w-full py-2.5 rounded-lg font-mono text-xs uppercase tracking-wider text-[#BDCBD3] hover:text-[#F2F6F8] hover:border-[#65ACFF] border cursor-pointer"
+            className="w-full py-2.5 rounded-lg font-mono text-xs uppercase tracking-wider text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] border cursor-pointer"
             style={{
-              backgroundColor: 'rgba(20, 38, 50, 0.72)',
-              borderColor: 'rgba(180, 221, 255, 0.16)',
+              backgroundColor: 'rgba(16, 22, 34, 0.78)',
+              borderColor: 'rgba(197, 204, 214, 0.22)',
             }}
           >
             Instant Take off Bypass ›
@@ -272,187 +264,205 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
 
   const progressRatio = Math.min(1, elapsedMs / totalDurationMs);
   const activeLineIndex = Math.min(3, Math.floor(progressRatio * 4));
+  const isExiting = progressRatio >= 0.96;
+
+  const KINETIC_SUPERS = [
+    { title: 'INITIALIZING SPATIAL WORKSPACE', subtitle: 'HQ · CDE · Campaign OS · About Us' },
+    { title: 'CALIBRATING OPTICAL SPHERES', subtitle: 'Refractive liquid glass & cinematic presence' },
+    { title: 'CONNECTING PROJECT KINEMATICS', subtitle: 'Curated portfolio & creative systems' },
+    { title: 'CEREBRO ACTIVE · WELCOME', subtitle: 'Founder and Culture & Design Engineering' },
+  ];
 
   return (
     <div
       data-testid="boot-loader-screen"
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 select-none safe-top safe-bottom pointer-events-auto"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-between p-6 select-none safe-top safe-bottom pointer-events-auto overflow-hidden"
       style={{
-        backgroundColor: 'rgba(16, 29, 39, 0.36)',
+        backgroundColor: 'rgba(10, 18, 24, 0.72)',
+        backdropFilter: 'blur(16px) saturate(1.25)',
+        WebkitBackdropFilter: 'blur(16px) saturate(1.25)',
       }}
     >
-      <div
-        className="w-full max-w-xl rounded-xl p-6 flex flex-col items-center gap-5 border neural-reveal"
-        style={{
-          background: 'rgba(16, 29, 39, 0.84)',
-          backdropFilter: 'blur(12px) saturate(1.2)',
-          WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-          borderColor: 'rgba(255, 255, 255, 0.14)',
-          boxShadow:
-            'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-        }}
-      >
-        {/* Standardized Panel Header Bar (#17) */}
-        <div
-          className="w-full flex items-center justify-between gap-2 pb-2.5 border-b"
-          style={{ borderColor: 'rgba(255, 255, 255, 0.14)' }}
+      {/* Background Spatial Optical Compass / Orbital Ring Infographics */}
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
+        <svg
+          className="w-[900px] h-[900px] max-w-[95vw] max-h-[95vh] opacity-35"
+          viewBox="0 0 800 800"
+          fill="none"
         >
-          <div className="flex items-center gap-2 min-w-0">
-            <span
-              className="w-2 h-2 rounded-full shrink-0"
-              style={{ backgroundColor: COLOUR_TOKENS.cobaltAccent }}
-            />
-            <span className="font-display font-semibold text-xs tracking-[0.08em] uppercase text-[#F2F6F8] truncate">
-              #17 · S02 TELEMETRY BOOT LOADER
-            </span>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="font-mono tabular-nums text-[11px] text-[#FFF1D4]">
-              {(elapsedMs / 1000).toFixed(1)}s / 8.0s
-            </span>
-            <button
-              type="button"
-              onClick={() => setPhase('keypad')}
-              className="px-2 py-0.5 rounded-lg text-[10px] font-mono tabular-nums border text-[#BDCBD3] hover:text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
-              style={{
-                backgroundColor: '#142632',
-                borderColor: 'rgba(180, 221, 255, 0.16)',
-              }}
-            >
-              3939 Gate
-            </button>
-            <span
-              className="font-mono tabular-nums text-[10px] px-2 py-0.5 rounded border"
-              style={{
-                backgroundColor: '#142632',
-                borderColor: 'rgba(180, 221, 255, 0.16)',
-                color: '#B4DDFF',
-              }}
-            >
-              LIVE
-            </span>
+          <circle
+            cx="400"
+            cy="400"
+            r="320"
+            stroke="#D4AF37"
+            strokeOpacity="0.22"
+            strokeWidth="1"
+            strokeDasharray="4 8"
+            className="animate-spin"
+            style={{ animationDuration: '60s' }}
+          />
+          <circle
+            cx="400"
+            cy="400"
+            r="240"
+            stroke="#B4DDFF"
+            strokeOpacity="0.18"
+            strokeWidth="0.8"
+          />
+          <circle
+            cx="400"
+            cy="400"
+            r="160"
+            stroke="#D4AF37"
+            strokeOpacity="0.28"
+            strokeWidth="1.2"
+            strokeDasharray="8 6"
+          />
+          <line x1="400" y1="40" x2="400" y2="760" stroke="#FFF4D0" strokeOpacity="0.12" strokeWidth="0.8" />
+          <line x1="40" y1="400" x2="760" y2="400" stroke="#FFF4D0" strokeOpacity="0.12" strokeWidth="0.8" />
+          <line x1="160" y1="160" x2="640" y2="640" stroke="#B4DDFF" strokeOpacity="0.08" strokeWidth="0.8" />
+          <line x1="160" y1="640" x2="640" y2="160" stroke="#B4DDFF" strokeOpacity="0.08" strokeWidth="0.8" />
+        </svg>
+      </div>
+
+      {/* Top Header Bar — Clean, Cinematic & Minimal */}
+      <header
+        className={`w-full max-w-5xl flex items-center justify-between gap-4 py-2 z-10 transition-opacity duration-500 ${
+          isExiting ? 'opacity-0' : 'opacity-100'
+        }`}
+      >
+        <div className="flex items-center gap-2.5">
+          <span
+            className="w-2.5 h-2.5 rounded-full"
+            style={{ backgroundColor: COLOUR_TOKENS.activeGold, boxShadow: '0 0 10px rgba(212, 175, 55, 0.6)' }}
+          />
+          <span className="font-display font-semibold text-xs tracking-[0.2em] uppercase text-[#FFF4D0]">
+            NOJARA CEREBRO
+          </span>
+          <span className="hidden sm:inline font-mono text-[10px] text-[#C5CCD6]/70 px-2 py-0.5 rounded border border-white/5 bg-[#101622]/40 tracking-wider">
+            Spatial Constellation
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span className="hidden font-mono tabular-nums text-xs text-[#FFF4D0]">
+            {(elapsedMs / 1000).toFixed(1)}s
+          </span>
+          <button
+            type="button"
+            onClick={() => setPhase('keypad')}
+            className="min-h-[38px] px-3 py-1 rounded-lg text-[11px] font-mono border text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] bg-[#101622]/80 cursor-pointer transition-colors"
+            style={{ borderColor: 'rgba(197, 204, 214, 0.22)' }}
+          >
+            Access Gate
+          </button>
+          <span
+            className="font-mono tabular-nums text-[10px] px-2 py-0.5 rounded border bg-[#101622]/80"
+            style={{ borderColor: 'rgba(197, 204, 214, 0.22)', color: '#D4AF37' }}
+          >
+            ONLINE
+          </span>
+        </div>
+      </header>
+
+      {/* Central Spatial Floating Composition: Decoupled 3D NOJARA Logo + Kinetic Supers */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-8 z-10 my-auto text-center px-4 max-w-2xl">
+        {/* Floating Decoupled 3D Logo Layer */}
+        <div className="relative group transition-transform duration-700 hover:scale-105">
+          <div className="absolute -inset-8 bg-gradient-to-r from-[#D4AF37]/15 via-[#65ACFF]/15 to-[#D4AF37]/15 rounded-3xl blur-2xl opacity-60 pointer-events-none" />
+          <div className="relative z-10">
+            <BrandLockup mode="loader" />
           </div>
         </div>
 
-        {/* Center Square-Kufic Bismillah SVG + Brand Lockup */}
-        <svg
-          width="156"
-          height="32"
-          viewBox="0 0 156 32"
-          fill="none"
-          aria-label="Locked Square-Kufic Bismillah SVG"
-          className="opacity-95"
-        >
-          <rect
-            x="2"
-            y="4"
-            width="152"
-            height="24"
-            rx="3"
-            stroke="#B4DDFF"
-            strokeOpacity="0.45"
-            strokeWidth="1.2"
-          />
-          <path
-            d="M14 22H32V11H40V22H56V9H64V22H82V11H90V22H108V9H116V22H134V11H144"
-            stroke="#F2F6F8"
-            strokeWidth="2.2"
-            strokeLinecap="square"
-          />
-        </svg>
-
-        <BrandLockup mode="loader" />
-
-        {/* Progress Bar */}
-        <div className="w-full flex flex-col gap-1.5">
+        {/* Kinetic Typography: Single Focused Animated Super (3-7 words) */}
+        <div className="flex flex-col items-center gap-2 min-h-[76px] transition-all duration-300">
           <div
-            className="w-full h-1.5 rounded-full overflow-hidden border"
+            key={activeLineIndex}
+            className="font-display text-base md:text-xl font-bold tracking-[0.12em] uppercase text-[#F2F6F8] animate-fadeIn"
+            style={{ textShadow: '0 2px 14px rgba(0, 0, 0, 0.8)' }}
+          >
+            {KINETIC_SUPERS[activeLineIndex].title}
+          </div>
+          <div className="font-mono text-xs text-[#BDCBD3] tracking-wide">
+            {KINETIC_SUPERS[activeLineIndex].subtitle}
+          </div>
+        </div>
+
+        {/* Spatial Micro-Trajectory Progress Ring & Precision Filament */}
+        <div className="w-full max-w-md flex flex-col items-center gap-2">
+          <div
+            className="w-full h-1 rounded-full overflow-hidden border"
             style={{
-              backgroundColor: '#142632',
-              borderColor: 'rgba(180, 221, 255, 0.16)',
+              backgroundColor: 'rgba(16, 22, 34, 0.75)',
+              borderColor: 'rgba(197, 204, 214, 0.25)',
             }}
           >
             <div
-              className="h-full transition-all duration-75"
+              className="h-full transition-all duration-100 ease-out"
               style={{
                 width: `${Math.round(progressRatio * 100)}%`,
-                backgroundColor: COLOUR_TOKENS.trackingValid,
+                background: 'linear-gradient(90deg, #4C8DFF 0%, #D4AF37 100%)',
+                boxShadow: '0 0 12px rgba(212, 175, 55, 0.65)',
               }}
             />
           </div>
-        </div>
 
-        {/* Four Sequential Telemetry Lines in Inner Optical Sub-Pocket */}
-        <div
-          className="w-full rounded-lg p-4 flex flex-col gap-2.5 border"
-          style={{
-            backgroundColor: 'rgba(20, 38, 50, 0.72)',
-            borderColor: 'rgba(180, 221, 255, 0.16)',
-          }}
-        >
-          {STATUS_LINES.map((line, idx) => {
-            const isReached = idx <= activeLineIndex || progressRatio >= 1;
-            const isCurrent = idx === activeLineIndex && progressRatio < 1;
-            return (
-              <div
-                key={line}
-                className={`text-xs flex items-center justify-between transition-opacity duration-200 ${
-                  isReached
-                    ? 'opacity-100 text-[#F2F6F8]'
-                    : 'opacity-45 text-[#BDCBD3]'
-                }`}
-              >
-                <span className="truncate pr-3">
-                  0{idx + 1}. {line}
-                </span>
-                <span
-                  className="text-[11px] shrink-0 font-mono tabular-nums"
-                  style={{
-                    color:
-                      progressRatio >= 1 || idx < activeLineIndex
-                        ? COLOUR_TOKENS.trackingValid
-                        : isCurrent
-                        ? COLOUR_TOKENS.focusRing
-                        : '#BDCBD3',
-                  }}
-                >
-                  {progressRatio >= 1 || idx < activeLineIndex
-                    ? 'Ready'
-                    : isCurrent
-                    ? 'Loading'
-                    : 'Pending'}
-                </span>
-              </div>
-            );
-          })}
+          <div className="w-full flex items-center justify-between font-mono text-[10px] text-[#C5CCD6]">
+            <span>ORBIT: DUAL-SPHERE</span>
+            <span>{Math.round(progressRatio * 100)}% LOADED</span>
+            <span>SPATIAL AUDIO: ARMED</span>
+          </div>
+          {healthLine && (
+            <div
+              role="status"
+              aria-live="polite"
+              data-testid="boot-health-line"
+              className="w-full mt-2 font-mono text-[10px] text-[#9AFFE0] text-center"
+            >
+              {healthLine}
+            </div>
+          )}
         </div>
+      </div>
 
-        {/* Take off button + Arabic greeting */}
-        <div className="w-full flex flex-wrap items-center justify-between gap-3 pt-1">
+      {/* Bottom Action Bar — Negative Space, Clear Controls, Arabic Greeting */}
+      <footer className="w-full max-w-5xl flex flex-wrap items-center justify-between gap-4 py-3 z-10">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             data-testid="boot-take-off"
             data-cta-id="loader-take-off"
             onClick={onTakeOff}
-            className="min-h-[42px] min-w-[140px] px-7 py-2 rounded-lg font-display font-semibold text-xs tracking-[0.08em] uppercase transition-transform active:scale-95 cursor-pointer border"
+            className="min-h-[44px] min-w-[150px] px-6 py-2.5 rounded-xl font-display font-semibold text-xs tracking-[0.1em] uppercase transition-all duration-200 active:scale-95 cursor-pointer border shadow-lg hover:shadow-[#D4AF37]/20"
             style={{
-              backgroundColor: COLOUR_TOKENS.cobaltAccent,
-              color: '#101D27',
-              borderColor: COLOUR_TOKENS.focusRing,
+              backgroundColor: '#D4AF37',
+              color: '#101622',
+              borderColor: '#FFF4D0',
             }}
           >
-            Take off →
+            Enter Cerebro →
           </button>
-
-          <span
-            dir="rtl"
-            lang="ar"
-            className="font-arabic text-[15px] text-[#F2F6F8]"
+          <button
+            type="button"
+            data-testid="boot-skip"
+            data-cta-id="boot.skip"
+            onClick={onTakeOff}
+            className="min-h-[44px] px-4 py-2.5 rounded-xl font-mono text-xs text-[#D0DCE3] hover:text-[#F2F6F8] border border-[rgba(197,204,214,0.22)] bg-[#101622]/80 hover:bg-[#142632] cursor-pointer transition-colors"
           >
-            أهلاً بيك يا فندم · Cerebro معاك
-          </span>
+            Skip
+          </button>
         </div>
-      </div>
+
+        <span
+          dir="rtl"
+          lang="ar"
+          className="font-arabic text-base md:text-lg text-[#F2F6F8] font-medium"
+          style={{ textShadow: '0 2px 8px rgba(0,0,0,0.7)' }}
+        >
+          أهلاً بيك يا فندم · Cerebro معاك
+        </span>
+      </footer>
     </div>
   );
 };

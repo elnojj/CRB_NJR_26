@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, useSpring, useTransform } from 'motion/react';
 import { motionTokens } from '../motionTokens';
-import { GUI_Z_LAYERS } from '../gui/guiTokens';
 
 export type ConnectionLivenessState =
   | 'Live'
@@ -128,9 +127,8 @@ export const BuildActivityHeader: React.FC<BuildActivityHeaderProps> = ({
     <div
       data-testid="build-activity-header"
       onPointerDown={(e) => e.stopPropagation()}
-      className="fixed top-16 left-4 right-4 pointer-events-auto flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl border text-xs"
+      className="fixed top-16 left-4 right-4 z-30 pointer-events-auto flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl border text-xs"
       style={{
-        zIndex: GUI_Z_LAYERS.stickyHeader,
         backgroundColor: 'rgba(16, 29, 39, 0.84)',
         backdropFilter: 'blur(12px) saturate(1.2)',
         WebkitBackdropFilter: 'blur(12px) saturate(1.2)',

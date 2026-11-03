@@ -216,15 +216,9 @@ export const EditorialMonograph: React.FC<EditorialMonographProps> = ({
             reducedMotion={reducedMotion || tier === 'low'}
             forceWebglFallback={false}
             cameraCommand={cameraCommand}
-            editorialMode={false}
-            editorialCameraPose={null}
             onSelectNode={onSelectNode}
             onUserTouchPauseTour={() => undefined}
             onTelemetryChange={setTelemetry}
-            onWebglUnavailable={() => {
-              setWebglFailed(true);
-              setTier('fallback');
-            }}
           />
         ) : (
           <div className="editorial-fallback">

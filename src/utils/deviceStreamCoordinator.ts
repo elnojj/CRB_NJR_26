@@ -3,8 +3,44 @@
  * Prevents orphaned mic tracks and duplicate getUserMedia calls across Hands + Voice.
  */
 
-type WebcamConstraints = MediaTrackConstraints | boolean;
-type MicConstraints = MediaTrackConstraints | boolean;
+type WebcamConstraints =
+  | MediaTrackConstraints
+  | MediaStreamConstraints
+  | boolean;
+type MicConstraints =
+  | MediaTrackConstraints
+  | MediaStreamConstraints
+  | boolean;
+
+function asVideoTrackConstraints(
+  constraints: WebcamConstraints
+): MediaTrackConstraints | boolean {
+  if (typeof constraints === 'boolean') return constraints;
+  if ('video' in constraints || 'audio' in constraints) {
+    const video = (constraints as MediaStreamConstraints).video;
+    if (typeof video === 'boolean') return video;
+    if (video && typeof video === 'object') return video;
+    return DEFAULT_WEBCAM;
+  }
+  return constraints as MediaTrackConstraints;
+}
+
+function asAudioTrackConstraints(
+  constraints: MicConstraints
+): MediaTrackConstraints | boolean {
+  if (typeof constraints === 'boolean') return constraints;
+  if ('video' in constraints || 'audio' in constraints) {
+    const audio = (constraints as MediaStreamConstraints).audio;
+    if (typeof audio === 'boolean') return audio;
+    if (audio && typeof audio === 'object') return audio;
+    return DEFAULT_MIC;
+  }
+  return constraints as MediaTrackConstraints;
+}
+
+export function hasActiveWebcamStream(): boolean {
+  return Boolean(webcamStream && webcamStream.getVideoTracks().some((t) => t.readyState === 'live'));
+}
 
 let webcamStream: MediaStream | null = null;
 let webcamRefCount = 0;
@@ -54,7 +90,9 @@ export async function getSharedWebcamStream(
   }
 
   if (!webcamInflight) {
-    const video = typeof constraints === 'boolean' ? constraints : { ...DEFAULT_WEBCAM, ...constraints };
+    const track = asVideoTrackConstraints(constraints);
+    const video =
+      typeof track === 'boolean' ? track : { ...DEFAULT_WEBCAM, ...track };
     webcamInflight = navigator.mediaDevices
       .getUserMedia({ video, audio: false })
       .then((stream) => {
@@ -97,7 +135,9 @@ export async function getSharedMicrophoneStream(
   }
 
   if (!microphoneInflight) {
-    const audio = typeof constraints === 'boolean' ? constraints : { ...DEFAULT_MIC, ...constraints };
+    const track = asAudioTrackConstraints(constraints);
+    const audio =
+      typeof track === 'boolean' ? track : { ...DEFAULT_MIC, ...track };
     microphoneInflight = navigator.mediaDevices
       .getUserMedia({ audio, video: false })
       .then((stream) => {

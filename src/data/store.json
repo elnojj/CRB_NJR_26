@@ -47,7 +47,7 @@
       "status": "Waiting on 39",
       "health": "At risk",
       "ownerCode": "39",
-      "leadName": "Tarek Nojara (39) · Khalid Al-Shaalan",
+      "leadName": "Tarek Mojara (39) · Khalid Al-Shaalan",
       "sunIndex": 0
     },
     {
@@ -73,7 +73,7 @@
       "status": "Waiting on 39",
       "health": "On track",
       "ownerCode": "39",
-      "leadName": "Mohammed Alhamdan · Tarek Nojara (39)",
+      "leadName": "Mohammed Alhamdan · Tarek Mojara (39)",
       "sunIndex": 2
     },
     {
@@ -125,7 +125,7 @@
       "status": "Waiting on 39",
       "health": "At risk",
       "ownerCode": "39",
-      "leadName": "Tarek Nojara (39) · Katib (KT)"
+      "leadName": "Tarek Mojara (39) · Katib (KT)"
     },
     {
       "id": "GONDWANA",
@@ -161,7 +161,7 @@
       "status": "Active",
       "health": "On track",
       "ownerCode": "39",
-      "leadName": "Tarek Nojara (39) · Baghira (BG)"
+      "leadName": "Tarek Mojara (39) · Baghira (BG)"
     },
     {
       "id": "MISSION-LOTUS",
@@ -221,7 +221,7 @@
       "status": "Waiting on 39",
       "health": "On track",
       "ownerCode": "39",
-      "leadName": "Tarek Nojara (39) · Fakir (FK)"
+      "leadName": "Tarek Mojara (39) · Fakir (FK)"
     },
     {
       "id": "SOUND-OF-NILE",
@@ -252,7 +252,7 @@
     {
       "code": "39",
       "id": "p-39",
-      "name": "Tarek Nojara (39)",
+      "name": "Tarek Mojara (39)",
       "nameAr": "طارق نوجارا",
       "title": "Founder and Culture and Design Engineer",
       "tier": "Owner",
@@ -480,7 +480,7 @@
       "opId": "OP-TSK-101",
       "title": "Lock Arabic NOJARA orthography (نوجارا vs نوچارا) on SEVEN cover",
       "projectCode": "SEVEN",
-      "owner": "39 (Tarek Nojara)",
+      "owner": "39 (Tarek Mojara)",
       "status": "PENDING",
       "priority": "HIGH",
       "createdAt": "2026-10-23T20:00:00.000Z"

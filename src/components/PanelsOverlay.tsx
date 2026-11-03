@@ -9,6 +9,7 @@ import {
   FILES_DATA,
   MEDIA_ITEMS,
   SHOWREEL_ITEMS,
+  CDE_STUDY_DOCUMENTS,
   CDE_DIMENSIONS,
   STORY_CHAPTERS,
   SOURCE_MAP,
@@ -25,6 +26,7 @@ import {
   TeamRoomMessage,
 } from '../data/sourceData';
 import { WireframesV11PanelContent } from './WireframesV11Panels';
+import { AboutUsDrivePanel } from './AboutUsDrivePanel';
 import { ScreenElementAmendment } from '../utils/geminiScreenOrchestrator';
 import {
   ComputedGuiLayout,
@@ -32,10 +34,13 @@ import {
   PhoneSheetExpansion,
   computeGuiLayout,
 } from '../gui/layoutEngine';
-import { GUI_GLASS_TOKENS, GUI_Z_LAYERS } from '../gui/guiTokens';
-import { SpatialMediaPanel } from './SpatialMediaPanel';
-import type { MediaFilterKind, SpatialMediaAsset } from '../media';
-import { BlueprintViews, isBlueprintOwnedPanel } from '../blueprint';
+import {
+  GUI_GLASS_TOKENS,
+  GUI_Z_LAYERS,
+  resolveOpenPanelAccent,
+} from '../gui/guiTokens';
+import { PublicShowreelPlayer } from './PublicShowreelPlayer';
+import { PUBLIC_BRAND_MEDIA } from '../data/publicBrandMedia';
 
 export interface StatefulCheckpointItem extends TeamCheckpointItem {
   status?: 'Pending 39 Sign-off' | 'Approved' | 'Revision Requested' | 'Rejected';
@@ -142,6 +147,10 @@ interface PanelsOverlayProps {
   onSelectChapter: (chapterIdx: number) => void;
   onFileSearchChange: (q: string) => void;
   onOpenFullscreenMedia: (item: MediaAssetItem | null) => void;
+  onVideoRefReady?: (video: HTMLVideoElement | null) => void;
+  onVideoTimeUpdate?: (currentTime: number, duration: number) => void;
+  onVideoPlayChange?: (playing: boolean) => void;
+  onVideoMuteChange?: (muted: boolean) => void;
   onChangeAudience?: (level: AudienceLevel) => void;
   onToggleReducedMotion?: () => void;
   onToggleSoundMuted?: () => void;
@@ -154,15 +163,6 @@ interface PanelsOverlayProps {
   phoneSheetState?: PhoneSheetExpansion;
   onChangePhoneSheetState?: (state: PhoneSheetExpansion) => void;
   isCameraInFlight?: boolean;
-  /** Hotspot 26 Spatial Media System hooks */
-  onOpenHotspot26SpatialGrid?: () => void;
-  onOpenSpatialMediaAsset?: (asset: SpatialMediaAsset) => void;
-  onSpatialMediaFilterChange?: (kind: MediaFilterKind) => void;
-  googleAccessToken?: string | null;
-  onVideoRefReady?: (el: HTMLVideoElement | null) => void;
-  onVideoTimeUpdate?: (currentTime: number, duration: number) => void;
-  onVideoPlayChange?: (playing: boolean) => void;
-  onVideoMuteChange?: (muted: boolean) => void;
 }
 
 const KNOWN_RECIPIENT_ALIASES: Record<string, string> = {
@@ -170,7 +170,7 @@ const KNOWN_RECIPIENT_ALIASES: Record<string, string> = {
   me: 'me@nojara.com',
   self: 'me@nojara.com',
   tarek: 'me@nojara.com',
-  'tarek nojara': 'me@nojara.com',
+  'tarek mojara': 'me@nojara.com',
   'me@nojara.com': 'me@nojara.com',
   shweekar: 'shweekar@nojara.com',
   khalid: 'khalid@nojara.com',
@@ -218,7 +218,7 @@ export const HealthIndicator: React.FC<{ health: ProjectHealth }> = ({ health })
 
   return (
     <span
-      className="inline-flex items-center gap-1.5 font-mono text-[11px] font-medium"
+      className="inline-flex items-center gap-1.5 font-mono text-[13px] font-medium"
       style={{ color: colour }}
     >
       {health === 'On track' && (
@@ -288,6 +288,10 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
   onSelectChapter,
   onFileSearchChange,
   onOpenFullscreenMedia,
+  onVideoRefReady,
+  onVideoTimeUpdate,
+  onVideoPlayChange,
+  onVideoMuteChange,
   onChangeAudience,
   onToggleReducedMotion,
   onToggleSoundMuted,
@@ -300,10 +304,6 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
   phoneSheetState: externalPhoneSheetState,
   onChangePhoneSheetState,
   isCameraInFlight = false,
-  onOpenHotspot26SpatialGrid,
-  onOpenSpatialMediaAsset,
-  onSpatialMediaFilterChange,
-  googleAccessToken = null,
 }) => {
   const [localProjectTab, setLocalProjectTab] = useState<ProjectWorkspaceTab>('tasks');
   const [phoneSheetSnap92, setPhoneSheetSnap92] = useState<boolean>(false);
@@ -473,7 +473,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           'Idempotency-Key': optimisticId,
         },
         body: JSON.stringify({
-          sender: '39 (Tarek Nojara)',
+          sender: '39 (Tarek Mojara)',
           text,
           channel: activeChannel,
           projectCode: selectedProjectId,
@@ -485,7 +485,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
         const newMsg: TeamRoomMessage = {
           id: data.receipt.id,
           channel: activeChannel,
-          sender: '39 (Tarek Nojara)',
+          sender: '39 (Tarek Mojara)',
           role: 'Founder and Culture and Design Engineer',
           text,
           timestamp: new Date().toTimeString().slice(0, 5),
@@ -548,9 +548,26 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
 
   // Full-Screen Media View — preserves playback position & context on enter and exit
   if (fullscreenMedia) {
+    const isVideoItem =
+      fullscreenMedia.kind === 'video' ||
+      fullscreenMedia.type === 'Direct Public MP4 Video' ||
+      Boolean(fullscreenMedia.videoUrl) ||
+      (typeof fullscreenMedia.url === 'string' && fullscreenMedia.url.endsWith('.mp4'));
+    const resolvedVideoSrc =
+      fullscreenMedia.videoUrl ||
+      (fullscreenMedia.url?.endsWith('.mp4') ? fullscreenMedia.url : '');
+    const resolvedPoster =
+      fullscreenMedia.posterUrl ||
+      (fullscreenMedia.url && !fullscreenMedia.url.endsWith('.mp4')
+        ? fullscreenMedia.url
+        : PUBLIC_BRAND_MEDIA.showreel2023.posterUrl);
+
     const pct =
       mediaPlayback.durationSec > 0
-        ? Math.min(100, Math.round((mediaPlayback.currentTimeSec / mediaPlayback.durationSec) * 100))
+        ? Math.min(
+            100,
+            Math.round((mediaPlayback.currentTimeSec / mediaPlayback.durationSec) * 100)
+          )
         : 0;
 
     return (
@@ -559,12 +576,9 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
         onPointerDown={(e) => e.stopPropagation()}
         onWheel={(e) => e.stopPropagation()}
         className="fixed inset-0 flex flex-col justify-between p-5 md:p-8 neural-reveal"
-        style={{ backgroundColor: '#05090E', zIndex: GUI_Z_LAYERS.mediaFullscreenChrome }}
+        style={{ backgroundColor: '#05090E', zIndex: GUI_Z_LAYERS.modalContent }}
       >
-        <div
-          className="flex items-center justify-between gap-4 flex-wrap"
-          style={{ zIndex: GUI_Z_LAYERS.mediaFullscreenChrome }}
-        >
+        <div className="flex items-center justify-between gap-4 z-10 flex-wrap">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -585,8 +599,10 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 color: COLOUR_TOKENS.stationMedia,
               }}
             >
-              {fullscreenMedia.isSample
-                ? 'Source file not attached in 09 Media — interactive preview active'
+              {isVideoItem
+                ? 'Official Public Showreel MP4'
+                : fullscreenMedia.isSample
+                ? 'Source file not attached in 09 Media'
                 : 'Verified attached render (06)'}
             </span>
           </div>
@@ -599,7 +615,22 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
         </div>
 
         <div className="relative flex-1 my-4 rounded-2xl overflow-hidden border border-white/25 bg-[#101D27] flex items-center justify-center">
-          {fullscreenMedia.url ? (
+          {isVideoItem && resolvedVideoSrc ? (
+            <PublicShowreelPlayer
+              id={fullscreenMedia.id}
+              title={fullscreenMedia.title}
+              src={resolvedVideoSrc}
+              poster={resolvedPoster}
+              autoPlay={mediaPlayback.playing}
+              initialTimeSec={mediaPlayback.currentTimeSec}
+              isMuted={mediaPlayback.muted}
+              onVideoReady={onVideoRefReady}
+              onTimeUpdate={onVideoTimeUpdate}
+              onPlayStateChange={onVideoPlayChange}
+              onMuteStateChange={onVideoMuteChange}
+              className="w-full h-full"
+            />
+          ) : fullscreenMedia.url && !fullscreenMedia.url.endsWith('.mp4') ? (
             <img
               src={fullscreenMedia.url}
               alt={fullscreenMedia.title}
@@ -669,7 +700,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             <input
               type="range"
               min={0}
-              max={mediaPlayback.durationSec}
+              max={mediaPlayback.durationSec || 100}
               value={mediaPlayback.currentTimeSec}
               onChange={(e) => onMediaControl?.('seek', Number(e.target.value))}
               aria-label="Seek media timeline"
@@ -689,26 +720,18 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
   // Overview Mode ("Overview" / dashboardCollapsed) — All 5 HQ Stations rendered as compact Optical HUD cards
   if (dashboardCollapsed) {
     return (
-      <div className="fixed inset-0 z-20 pointer-events-none flex flex-col md:flex-row items-start justify-between p-4 pt-24 pb-32 gap-3">
-        <div className="pointer-events-none self-start flex flex-col gap-2.5 w-full md:w-[min(420px,42vw)]">
+      <div className="fixed inset-0 z-20 pointer-events-none flex flex-col md:flex-row items-start justify-between p-4 pt-20 pb-28 gap-3">
+        <div className="pointer-events-none self-start flex flex-col gap-2.5 w-full md:w-[330px]">
           {CEREBRO_STATIONS.slice(0, 3).map((st) => (
             <div
               key={st.id}
               data-panel-id={`pocket-${st.id}`}
               onPointerDown={(e) => e.stopPropagation()}
               onWheel={(e) => e.stopPropagation()}
-              className="pointer-events-auto rounded-xl px-4 py-3 border neural-reveal flex items-center justify-between gap-3"
-              style={{
-                backgroundColor: 'rgba(16, 29, 39, 0.84)',
-                backdropFilter: 'blur(12px) saturate(1.2)',
-                WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-                borderColor: 'rgba(255, 255, 255, 0.14)',
-                boxShadow:
-                  'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-              }}
+              className="cj-glass-card pointer-events-auto rounded-xl px-4 py-3 neural-reveal flex items-center justify-between gap-3"
             >
               <div className="min-w-0">
-                <div className="flex items-center gap-2 font-mono tabular-nums text-[10px] text-[#BDCBD3]">
+                <div className="flex items-center gap-2 font-mono tabular-nums text-[12px] text-[#C5CCD6]">
                   <span
                     className="w-2 h-2 rounded-full shrink-0"
                     style={{ backgroundColor: st.colour }}
@@ -720,14 +743,14 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 <div className="font-display text-xs font-semibold tracking-[0.08em] uppercase text-[#F2F6F8] truncate mt-0.5">
                   {st.label} ({st.labelAr})
                 </div>
-                <div className="font-sans text-[11px] text-[#BDCBD3] truncate">
+                <div className="font-sans text-[13px] text-[#C5CCD6] truncate">
                   {st.summary}
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => onExpandStationFromDashboard?.(st.id)}
-                className="min-h-[38px] px-3.5 rounded-lg font-mono text-[11px] font-semibold bg-[#142632] border border-[rgba(180,221,255,0.16)] text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer shrink-0"
+                className="min-h-[38px] px-3.5 rounded-lg font-mono text-[13px] font-semibold bg-[#101622] border border-[color:var(--token-divider)] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer shrink-0"
               >
                 Open
               </button>
@@ -735,25 +758,17 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           ))}
         </div>
 
-        <div className="pointer-events-none self-start flex flex-col gap-2.5 w-full md:w-[min(420px,42vw)]">
+        <div className="pointer-events-none self-start flex flex-col gap-2.5 w-full md:w-[330px]">
           {CEREBRO_STATIONS.slice(3).map((st) => (
             <div
               key={st.id}
               data-panel-id={`pocket-${st.id}`}
               onPointerDown={(e) => e.stopPropagation()}
               onWheel={(e) => e.stopPropagation()}
-              className="pointer-events-auto rounded-xl px-4 py-3 border neural-reveal flex items-center justify-between gap-3"
-              style={{
-                backgroundColor: 'rgba(16, 29, 39, 0.84)',
-                backdropFilter: 'blur(12px) saturate(1.2)',
-                WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-                borderColor: 'rgba(255, 255, 255, 0.14)',
-                boxShadow:
-                  'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-              }}
+              className="cj-glass-card pointer-events-auto rounded-xl px-4 py-3 neural-reveal flex items-center justify-between gap-3"
             >
               <div className="min-w-0">
-                <div className="flex items-center gap-2 font-mono tabular-nums text-[10px] text-[#BDCBD3]">
+                <div className="flex items-center gap-2 font-mono tabular-nums text-[12px] text-[#C5CCD6]">
                   <span
                     className="w-2 h-2 rounded-full shrink-0"
                     style={{ backgroundColor: st.colour }}
@@ -765,14 +780,14 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 <div className="font-display text-xs font-semibold tracking-[0.08em] uppercase text-[#F2F6F8] truncate mt-0.5">
                   {st.label} ({st.labelAr})
                 </div>
-                <div className="font-sans text-[11px] text-[#BDCBD3] truncate">
+                <div className="font-sans text-[13px] text-[#C5CCD6] truncate">
                   {st.summary}
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => onExpandStationFromDashboard?.(st.id)}
-                className="min-h-[38px] px-3.5 rounded-lg font-mono text-[11px] font-semibold bg-[#142632] border border-[rgba(180,221,255,0.16)] text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer shrink-0"
+                className="min-h-[38px] px-3.5 rounded-lg font-mono text-[13px] font-semibold bg-[#101622] border border-[color:var(--token-divider)] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer shrink-0"
               >
                 Open
               </button>
@@ -864,16 +879,28 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
   ) => {
     const { panelNum, honestyBadge } = resolvePanelNumberAndHonesty(panelId, kicker);
     const { rect, tabPanelIds, slotId } = slot;
+    const openIndex = Math.max(0, openPanels.indexOf(panelId));
+    const accent = resolveOpenPanelAccent(openIndex >= 0 ? openIndex : 0);
+    const edgeColour =
+      topEdgeColour === COLOUR_TOKENS.stationProjects ||
+      topEdgeColour === COLOUR_TOKENS.focusRing ||
+      !topEdgeColour
+        ? accent.hex
+        : topEdgeColour;
     return (
       <section
         key={`${slotId}-${panelId}`}
         data-panel-id={panelId}
         data-slot-id={slotId}
+        data-accent={accent.id}
+        data-chrome-state="active"
         aria-label={title}
         dir={languageRtl === 'ar' ? 'rtl' : 'ltr'}
         onPointerDown={(e) => e.stopPropagation()}
         onWheel={(e) => e.stopPropagation()}
-        className="lg-panel fixed pointer-events-auto flex flex-col overflow-hidden neural-reveal cerebro-stellar-glass transition-opacity duration-200"
+        className={`fixed pointer-events-auto flex flex-col overflow-hidden neural-reveal cj-glass-card cerebro-stellar-glass cj-panel-shell transition-opacity duration-200${
+          isCameraInFlight ? ' is-camera-flight' : ''
+        }`}
         style={{
           left: `${rect.x}px`,
           top: `${rect.y}px`,
@@ -882,20 +909,15 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           backgroundColor: GUI_GLASS_TOKENS.background,
           backdropFilter: GUI_GLASS_TOKENS.backdropFilter,
           WebkitBackdropFilter: GUI_GLASS_TOKENS.backdropFilter,
-          border: GUI_GLASS_TOKENS.border,
-          borderRadius: `${GUI_GLASS_TOKENS.radiusPx}px`,
-          boxShadow: GUI_GLASS_TOKENS.shadow,
-          opacity: isCameraInFlight ? 0.62 : 1,
-          // Above sticky telemetry (40) so titles/close stay reachable (V03).
-          zIndex: GUI_Z_LAYERS.activePanel,
-          padding: 0,
+          borderRadius: `${GUI_GLASS_TOKENS.panelRadiusPx}px`,
+          zIndex: GUI_Z_LAYERS.panels,
         }}
       >
         {/* Multi-Panel Slot Tab Bar (when 2+ open panels share this single layout slot) */}
         {tabPanelIds.length > 1 && (
           <div
             className="px-3 pt-2 pb-1.5 border-b flex items-center gap-1.5 overflow-x-auto shrink-0"
-            style={{ borderColor: 'rgba(232, 251, 255, 0.16)' }}
+            style={{ borderColor: 'var(--token-divider)' }}
             role="tablist"
             aria-label={`${slotId} panel tabs`}
           >
@@ -914,10 +936,10 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       [slotId]: tid,
                     }))
                   }
-                  className={`min-h-[36px] px-2.5 py-1 rounded-lg font-mono text-[11px] uppercase tracking-wider shrink-0 transition-colors cursor-pointer ${
+                  className={`min-h-[36px] px-2.5 py-1 rounded-lg font-mono text-[13px] uppercase tracking-wider shrink-0 transition-colors cursor-pointer ${
                     isTabActive
-                      ? 'bg-[#65ACFF]/25 border border-[#65ACFF] text-[#F2F6F8] font-semibold'
-                      : 'bg-[#101D27]/65 border border-[rgba(232,251,255,0.16)] text-[#A9BAC6] hover:text-[#F2F6F8]'
+                      ? 'bg-[#D4AF37]/25 border border-[#D4AF37] text-[#F2F6F8] font-semibold'
+                      : 'bg-[#101622]/75 border border-[color:var(--token-divider)] text-[#C5CCD6] hover:text-[#F2F6F8]'
                   }`}
                 >
                   {tid}
@@ -932,41 +954,56 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           className="px-4 py-2 border-b flex items-center justify-between gap-2 shrink-0"
           style={{
             minHeight: `${GUI_GLASS_TOKENS.headerH}px`,
-            borderColor: 'rgba(232, 251, 255, 0.24)',
+            borderColor: 'var(--token-divider)',
           }}
         >
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span
                 className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ backgroundColor: topEdgeColour }}
+                style={{ backgroundColor: edgeColour }}
+                aria-hidden
               />
-              <h2 className="font-display font-semibold text-[15px] md:text-[17px] tracking-[0.04em] uppercase text-[#F2F6F8] truncate">
+              <h2 className="font-display font-semibold text-[17px] tracking-[0.04em] uppercase text-[#F2F6F8] truncate">
                 {panelNum} · {title}
               </h2>
             </div>
-            <div className="font-mono tabular-nums text-[12px] text-[#A9BAC6] truncate mt-0.5 pl-4">
+            <div className="font-mono tabular-nums text-[12px] text-[#C5CCD6] truncate mt-0.5 pl-4">
               {kicker}
             </div>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <span
-              className="font-mono tabular-nums text-[11px] px-2 py-0.5 rounded border"
+              className="font-mono tabular-nums text-[12px] px-2 py-0.5 rounded border"
               style={{
-                backgroundColor: '#142632',
-                borderColor: 'rgba(232, 251, 255, 0.24)',
+                backgroundColor: '#101622',
+                borderColor: 'var(--token-divider)',
                 color:
                   honestyBadge === 'LIVE'
-                    ? '#5CE0A0'
+                    ? '#36E88D'
                     : honestyBadge === 'DRAFT ONLY'
-                    ? '#F2B66D'
+                    ? '#D4AF37'
                     : honestyBadge === 'PROPOSED'
-                    ? '#5CC8D7'
-                    : '#B4DDFF',
+                    ? '#65ACFF'
+                    : '#C5CCD6',
               }}
             >
               {honestyBadge}
             </span>
+            {slot.slotId === 'bottomSheet' && (
+              <button
+                type="button"
+                data-testid="phone-sheet-snap-toggle"
+                onClick={() => {
+                  const nextSnap = !phoneSheetSnap92;
+                  setPhoneSheetSnap92(nextSnap);
+                  onChangePhoneSheetState?.(nextSnap ? 'expanded' : 'default');
+                }}
+                className="min-h-[44px] px-3 py-1 rounded-xl font-mono tabular-nums text-[12px] bg-[#D4AF37]/20 border border-[#D4AF37] text-[#FFF4D0] font-semibold shrink-0 cursor-pointer"
+              >
+                {effectivePhoneSheetState === 'expanded' ? 'Default ▾' : 'Expand ▴'}
+              </button>
+            )}
             {onMinimisePanel && (
               <button
                 type="button"
@@ -978,7 +1015,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 }}
                 aria-label={`Minimise ${title} panel`}
                 title="Minimise to dock (preserves project, tab, scroll & unsent draft)"
-                className="min-w-[44px] min-h-[44px] rounded-xl border border-[rgba(232,251,255,0.24)] bg-[#142632] text-[#A9BAC6] hover:text-[#F2F6F8] hover:border-[#65ACFF] flex items-center justify-center font-mono text-sm cursor-pointer"
+                className="min-w-[44px] min-h-[44px] rounded-xl border border-[color:var(--token-divider)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] flex items-center justify-center font-mono text-sm cursor-pointer"
               >
                 –
               </button>
@@ -988,14 +1025,14 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               data-testid={`close-${panelId}`}
               onClick={() => onClosePanel(panelId)}
               aria-label={`Close ${title} panel`}
-              className="min-w-[44px] min-h-[44px] rounded-xl border border-[rgba(232,251,255,0.24)] bg-[#142632] text-[#A9BAC6] hover:text-[#F2F6F8] hover:border-[#65ACFF] flex items-center justify-center font-mono text-sm cursor-pointer"
+              className="min-w-[44px] min-h-[44px] rounded-xl border border-[color:var(--token-divider)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] flex items-center justify-center font-mono text-sm cursor-pointer"
             >
               ×
             </button>
           </div>
         </div>
 
-        {/* Independent Scrollable Glass Body (16px padding, >=14px body text) */}
+        {/* Independent Scrollable Glass Body (16px padding, ≥14px supporting / 16px body) */}
         <div
           ref={(el) => {
             scrollContainerRefs.current[panelId] = el;
@@ -1009,7 +1046,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             }
           }}
           onScroll={(e) => onPanelScrollChange?.(panelId, e.currentTarget.scrollTop)}
-          className="p-4 overflow-y-auto overscroll-contain flex-1 space-y-3 text-[14px]"
+          className="p-4 overflow-y-auto overscroll-contain flex-1 space-y-3 text-[14px] cj-type-support"
         >
           {children}
         </div>
@@ -1032,75 +1069,15 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           top: `${effectiveGuiLayout.centerSafeRect.y}px`,
           width: `${effectiveGuiLayout.centerSafeRect.w}px`,
           height: `${effectiveGuiLayout.centerSafeRect.h}px`,
-          zIndex: GUI_Z_LAYERS.avoidanceRing,
-          pointerEvents: 'none',
+          zIndex: GUI_Z_LAYERS.ambientHUD,
         }}
       />
-
-      {/* Persistent Project Health Strip (Top-Center Below Header) */}
-      <div
-        onPointerDown={(e) => e.stopPropagation()}
-        className="fixed top-16 left-1/2 -translate-x-1/2 z-25 pointer-events-auto hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl border"
-        style={{
-          backgroundColor: 'rgba(16, 29, 39, 0.84)',
-          backdropFilter: 'blur(12px) saturate(1.2)',
-          WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-          borderColor: 'rgba(255, 255, 255, 0.14)',
-          boxShadow:
-            'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-        }}
-      >
-        <span className="font-mono text-[10px] text-[#BDCBD3] uppercase tracking-wider">
-          Overview:
-        </span>
-        <span className="font-mono tabular-nums text-[10px] text-[#36E88D]">
-          ● {onTrackCount} On track
-        </span>
-        <span className="font-mono tabular-nums text-[10px] text-[#F2B66D]">
-          ▲ {atRiskCount} At risk
-        </span>
-        <span className="font-mono tabular-nums text-[10px] text-[#FF5666]">
-          ⧠ {blockedCount} Blocked
-        </span>
-        <span className="text-white/20">|</span>
-        <button
-          type="button"
-          data-testid="chip-whats-urgent"
-          onClick={() => {
-            onToggleUrgentFilter?.(true);
-            onOpenPanel?.('tasks');
-          }}
-          className="px-2.5 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#142632] border border-[#F2B66D]/50 text-[#F2B66D] hover:bg-[#F2B66D]/15 cursor-pointer"
-        >
-          Urgent ({atRiskCount})
-        </button>
-        <button
-          type="button"
-          data-testid="chip-approve-pending"
-          onClick={() => onOpenPanel?.('decisions')}
-          className="px-2.5 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#142632] border border-[#7CE0B8]/50 text-[#7CE0B8] hover:bg-[#7CE0B8]/15 cursor-pointer"
-        >
-          Reviews ({pendingDecisionCount})
-        </button>
-        <button
-          type="button"
-          data-testid="chip-unblock-this"
-          onClick={() => {
-            onSelectProject('BSOCIAL');
-            onChangeProjectTab?.('BSOCIAL', 'decisions');
-            onOpenPanel?.('decisions');
-          }}
-          className="px-2.5 py-1 rounded-lg font-mono tabular-nums text-[10px] bg-[#142632] border border-[#FF5666]/50 text-[#FF5666] hover:bg-[#FF5666]/15 cursor-pointer"
-        >
-          Blocked ({blockedCount})
-        </button>
-      </div>
 
       {/* Minimised Panel Chips Dock (Restores Exact Project, Active Tab, Scroll & Unsent Draft) */}
       {minimisedChips.length > 0 && (
         <div
           onPointerDown={(e) => e.stopPropagation()}
-          className="fixed bottom-24 left-4 z-30 pointer-events-auto flex flex-wrap items-center gap-1.5 max-w-md"
+          className="fixed bottom-20 left-4 z-30 pointer-events-auto flex flex-wrap items-center gap-1.5 max-w-md"
         >
           {minimisedChips.map((chip) => (
             <button
@@ -1108,59 +1085,19 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               type="button"
               data-testid={`restore-chip-${chip.panelId}`}
               onClick={() => onRestoreChip?.(chip)}
-              className="min-h-[40px] px-3.5 py-1.5 rounded-lg font-mono text-[11px] bg-[#142632] border border-[#65ACFF] text-[#F2F6F8] flex items-center gap-2 hover:bg-[#4C8DFF] hover:text-[#101D27] transition-colors cursor-pointer"
+              className="cj-glass-card min-h-[38px] px-3 py-1 rounded-lg font-mono text-[13px] text-[#F2F6F8] flex items-center gap-2 hover:bg-[#D4AF37] hover:text-[#101622] transition-colors cursor-pointer"
             >
               <span>▢ {chip.label}</span>
               {chip.subTab && (
-                <span className="text-[9px] opacity-80">[{chip.subTab.toUpperCase()}]</span>
+                <span className="text-[12px] opacity-80">[{chip.subTab.toUpperCase()}]</span>
               )}
               {chip.unsentDraft && (
-                <span className="text-[9px] text-[#F2B66D]">[DRAFT SAVED]</span>
+                <span className="text-[12px] text-[#FFF4D0]">[DRAFT SAVED]</span>
               )}
             </button>
           ))}
         </div>
       )}
-
-      {/* Phone Top Minimised Station Chips + Wireframes v1.1 Quick Dock */}
-      <div
-        onPointerDown={(e) => e.stopPropagation()}
-        className="fixed top-14 left-3 right-3 z-25 pointer-events-auto flex md:hidden items-center gap-1.5 overflow-x-auto py-1"
-      >
-        {[
-          { id: 'portfolio', label: '#2 Portfolio (17)' },
-          { id: 'tasks', label: '#4 Tasks' },
-          { id: 'insights', label: '#5 Signals (6)' },
-          { id: 'briefing', label: '#6 Briefing' },
-          { id: 'gmail', label: '#7 Gmail' },
-          { id: 'calendar', label: '#8 Calendar' },
-          { id: 'files', label: '#9 Drive' },
-          { id: 'crew', label: '#13 Crew SSE' },
-        ].map((st) => (
-          <button
-            key={st.id}
-            type="button"
-            onClick={() => onOpenPanel?.(st.id)}
-            className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#142632] border border-[rgba(180,221,255,0.16)] text-[#F2F6F8] shrink-0 cursor-pointer"
-          >
-            {st.label}
-          </button>
-        ))}
-        {openPanels.length > 0 && (
-          <button
-            type="button"
-            data-testid="phone-sheet-snap-toggle"
-            onClick={() => {
-              const nextSnap = !phoneSheetSnap92;
-              setPhoneSheetSnap92(nextSnap);
-              onChangePhoneSheetState?.(nextSnap ? 'expanded' : 'default');
-            }}
-            className="min-h-[44px] px-3 py-1 rounded-lg font-mono tabular-nums text-[11px] bg-[#4C8DFF] text-[#101D27] font-semibold shrink-0 cursor-pointer"
-          >
-            Sheet {effectivePhoneSheetState === 'expanded' ? 'Expanded' : 'Default'}
-          </button>
-        )}
-      </div>
 
       {/* Single-Owner Responsive Layout Slots (Phone: 1 bottom sheet; Tablet: 1 left inspector; Desktop/Wide: max 2 left/right inspectors with tabs) */}
       {effectiveGuiLayout.panelSlots.map((slot) => {
@@ -1203,51 +1140,6 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           onToggleHands: () => onToggleHands?.(),
           onOpenProjectMediaTube: () => onSimulateCommand?.('project.open_tube'),
         };
-
-        // Blueprint v2.0 dedicated screens (H03/H05/H07/L4–L6/G3/S2–S3/W*/X*/J*)
-        if (isBlueprintOwnedPanel(panelId)) {
-          const titleMap: Record<string, { title: string; kicker: string; color: string }> = {
-            today: { title: 'Today', kicker: 'H03 · AFRICA/CAIRO · REGISTER + CALENDAR', color: COLOUR_TOKENS.stationTasks },
-            blockers: { title: 'Blockers and risks', kicker: 'H05 · SOURCE-BACKED ONLY', color: COLOUR_TOKENS.systemErrorRed },
-            activity: { title: 'Activity', kicker: 'H07 · TIMELINE MILESTONES', color: COLOUR_TOKENS.cobaltAccent },
-            'project-edit': { title: 'Create and edit', kicker: 'L5 · LOCAL DRAFT · NO REMOTE WRITE', color: COLOUR_TOKENS.stationProjects },
-            archive: { title: 'Archive and restore', kicker: 'L6 · REGISTER SNAPSHOT', color: COLOUR_TOKENS.stationFiles },
-            'voice-result': { title: 'Action evidence', kicker: 'V3 / PM3 · RECEIPTS', color: COLOUR_TOKENS.voiceOrbMint },
-            youtube: { title: 'YouTube', kicker: 'G3 · PROVIDER EVENTS', color: COLOUR_TOKENS.stationMedia },
-            'status-words': { title: 'Status words', kicker: 'S2 · CANONICAL VOCABULARY', color: COLOUR_TOKENS.focusRing },
-            charts: { title: 'Charts and numbers', kicker: 'S3 · N/D BARS ONLY', color: COLOUR_TOKENS.trackingValid },
-            widgets: { title: 'Widget grid', kicker: 'W1 · LOCAL LAYOUT', color: COLOUR_TOKENS.cobaltAccent },
-            'widget-catalogue': { title: 'Widget catalogue', kicker: 'W2 · ALLOWED ONLY', color: COLOUR_TOKENS.cobaltAccent },
-            planning: { title: 'Planning workspace', kicker: 'X3 · MILESTONES', color: COLOUR_TOKENS.stationTasks },
-            'crew-runtime': { title: 'Crew runtime', kicker: 'X4 · NO FABRICATED PRESENCE', color: COLOUR_TOKENS.stationPeople },
-            'pdf-viewer': { title: 'PDF viewer', kicker: 'X5 · SOURCE URI REQUIRED', color: COLOUR_TOKENS.stationFiles },
-            'image-viewer': { title: 'Image viewer', kicker: 'X6 · HOTSPOT26 CACHE', color: COLOUR_TOKENS.stationMedia },
-            'audio-player': { title: 'Audio player', kicker: 'X7 · HTML AUDIO', color: COLOUR_TOKENS.stationMedia },
-            'called-in': { title: 'Called-in stack', kicker: 'J2 · INTERRUPTS', color: COLOUR_TOKENS.highlight },
-            background: { title: 'Background chooser', kicker: 'J4 · QUALITY TIERS', color: COLOUR_TOKENS.sphereWireframe },
-            upload: { title: 'Upload and classify', kicker: 'J5 · WRITE GATE', color: COLOUR_TOKENS.stationFiles },
-            'task-detail': { title: 'Task detail', kicker: 'L4 · INSPECTOR BRIDGE', color: COLOUR_TOKENS.stationTasks },
-            'crew-workspaces': { title: 'Crew workspaces', kicker: 'X2 · TEXT-ONLY AGENTS', color: COLOUR_TOKENS.stationPeople },
-          };
-          const meta = titleMap[panelId] || {
-            title: panelId,
-            kicker: 'BLUEPRINT VIEW',
-            color: COLOUR_TOKENS.cobaltAccent,
-          };
-          return renderPanelFrame(
-            panelId,
-            meta.title,
-            meta.kicker,
-            meta.color,
-            posClass,
-            <BlueprintViews
-              panelId={panelId}
-              selectedProjectId={selectedProjectId}
-              onOpenPanel={onOpenPanel}
-              onSelectProject={onSelectProject}
-            />
-          );
-        }
 
         // Dedicated Wireframes v1.1 Panels (#2 Portfolio, #6 Morning Briefing, #7 Gmail, #8 Calendar, #11 FileViewer, #13 Crew SSE, #14 Baghira, #15 Kinzo)
         if (
@@ -1329,7 +1221,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             posClass,
             <>
               <WireframesV11PanelContent {...sharedV11Props} panelId="portfolio" />
-              <div className="flex items-center justify-between font-mono text-[11px] text-[#BDCBD3] px-1 pt-2 border-t border-white/15">
+              <div className="flex items-center justify-between font-mono text-[13px] text-[#BDCBD3] px-1 pt-2 border-t border-white/15">
                 <span>4 REGISTER WORKSTREAMS · 4 SAMPLE</span>
                 <span>SELECT PROJECT TO INSPECT</span>
               </div>
@@ -1381,12 +1273,12 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                                 {proj.name}
                               </h3>
                               {proj.isSample && (
-                                <span className="font-mono text-[10px] text-[#F2B66D]">
+                                <span className="font-mono text-[12px] text-[#F2B66D]">
                                   · SAMPLE
                                 </span>
                               )}
                             </div>
-                            <p className="font-sans text-[11px] text-[#BDCBD3] truncate">
+                            <p className="font-sans text-[13px] text-[#BDCBD3] truncate">
                               {proj.subtitle}
                             </p>
                           </div>
@@ -1395,7 +1287,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       </div>
 
                       <div className="mt-2.5">
-                        <div className="flex items-center justify-between font-mono text-[10px] text-[#BDCBD3] mb-1">
+                        <div className="flex items-center justify-between font-mono text-[12px] text-[#BDCBD3] mb-1">
                           <span>Progress: {proj.progressLabel}</span>
                           <span>Open Tasks: {proj.openTaskCount}</span>
                         </div>
@@ -1410,7 +1302,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                         </div>
                       </div>
 
-                      <div className="mt-2 pt-2 border-t border-white/10 grid grid-cols-2 gap-1.5 font-mono text-[10px] text-[#BDCBD3]">
+                      <div className="mt-2 pt-2 border-t border-white/10 grid grid-cols-2 gap-1.5 font-mono text-[12px] text-[#BDCBD3]">
                         <span className="truncate">Owner: {proj.owner}</span>
                         <span className="truncate text-right">Due: {proj.nextDeadline}</span>
                         <span className="col-span-2 truncate text-[#D0DCE3]">
@@ -1430,10 +1322,49 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           return renderPanelFrame(
             'project-detail',
             `${activeProject.name} — Workspace`,
-            `PANEL #3 · 9 TABS & 3 KPI CARDS · ${activeProject.code}`,
+            `PANEL #3 · WORKSPACE · ${activeProject.code}`,
             COLOUR_TOKENS.stationProjectDetail,
             posClass,
             <>
+              <label className="block space-y-1.5">
+                <span className="font-mono text-[12px] uppercase tracking-wider text-[#BDCBD3]">
+                  Project switcher
+                </span>
+                <input
+                  type="search"
+                  list="cerebro-project-switcher"
+                  defaultValue={activeProject.name}
+                  placeholder="Search projects…"
+                  aria-label="Search and switch project"
+                  className="w-full min-h-[44px] px-3 py-1.5 rounded-xl bg-[#05090E] border border-white/30 font-sans text-sm text-[#F2F6F8] placeholder-[#BDCBD3]/60 focus:outline-none focus:border-[#D4AF37]"
+                  onChange={(e) => {
+                    const q = e.target.value.trim().toLowerCase();
+                    const match = PROJECTS_DATA.find(
+                      (p) =>
+                        p.id.toLowerCase() === q ||
+                        p.code.toLowerCase() === q ||
+                        p.name.toLowerCase() === q
+                    );
+                    if (match) onSelectProject(match.id);
+                  }}
+                  onBlur={(e) => {
+                    const q = e.target.value.trim().toLowerCase();
+                    const match = PROJECTS_DATA.find(
+                      (p) =>
+                        p.name.toLowerCase().includes(q) ||
+                        p.code.toLowerCase().includes(q)
+                    );
+                    if (match) onSelectProject(match.id);
+                  }}
+                />
+                <datalist id="cerebro-project-switcher">
+                  {PROJECTS_DATA.map((p) => (
+                    <option key={p.id} value={p.name}>
+                      {p.code}
+                    </option>
+                  ))}
+                </datalist>
+              </label>
               <WireframesV11PanelContent {...sharedV11Props} panelId="project-detail" />
               <div
                 className="rounded-xl p-3 border space-y-2"
@@ -1453,14 +1384,14 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                     <button
                       type="button"
                       onClick={() => onOpenFullscreenMedia(MEDIA_ITEMS[0])}
-                      className="absolute bottom-2 right-2 min-h-[36px] px-3 py-1 rounded-lg font-mono text-[10px] bg-[#101D27]/90 text-[#F2F6F8] border border-white/40 cursor-pointer"
+                      className="absolute bottom-2 right-2 min-h-[36px] px-3 py-1 rounded-lg font-mono text-[12px] bg-[#101D27]/90 text-[#F2F6F8] border border-white/40 cursor-pointer"
                     >
                       Open Fullscreen
                     </button>
                   </div>
                 ) : (
                   <div className="h-16 rounded-lg border border-dashed border-white/25 flex flex-col items-center justify-center text-center p-2">
-                    <span className="font-mono text-[11px] text-[#BDCBD3]">
+                    <span className="font-mono text-[13px] text-[#BDCBD3]">
                       Project cover not attached in source archive (Sample entry)
                     </span>
                   </div>
@@ -1468,7 +1399,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
 
                 <div className="flex items-center justify-between pt-1">
                   <HealthIndicator health={activeProject.health} />
-                  <span className="font-mono text-[11px] text-[#BDCBD3]">
+                  <span className="font-mono text-[13px] text-[#BDCBD3]">
                     {activeProject.lastActivity}
                   </span>
                 </div>
@@ -1494,7 +1425,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                     type="button"
                     data-testid={`project-tab-${t.id}`}
                     onClick={() => handleSetProjectTab(t.id)}
-                    className={`min-h-[38px] py-1.5 px-2 rounded-lg font-mono text-[10px] transition-colors cursor-pointer whitespace-nowrap ${
+                    className={`min-h-[38px] py-1.5 px-2 rounded-lg font-mono text-[12px] transition-colors cursor-pointer whitespace-nowrap ${
                       effectiveProjectTab === t.id
                         ? 'bg-[#4C8DFF] text-[#101D27] font-semibold'
                         : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
@@ -1544,7 +1475,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       className="rounded-xl p-2.5 border border-white/20 bg-[#101D27]/85 space-y-1"
                     >
                       <div className="font-mono text-xs text-[#3DDC97]">{file.name}</div>
-                      <div className="font-mono text-[10px] text-[#BDCBD3]">
+                      <div className="font-mono text-[12px] text-[#BDCBD3]">
                         {file.folder} · {file.pagesOrSize}
                       </div>
                     </div>
@@ -1572,7 +1503,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                           key={rec.id}
                           className="rounded-xl p-2.5 border border-white/20 bg-[#101D27]/85 space-y-1"
                         >
-                          <div className="flex items-center justify-between font-mono text-[10px] text-[#4C8DFF]">
+                          <div className="flex items-center justify-between font-mono text-[12px] text-[#4C8DFF]">
                             <span>
                               {rec.recordType.toUpperCase()} · {rec.workstream}
                             </span>
@@ -1581,10 +1512,10 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                           <div className="font-sans text-xs font-medium text-[#F2F6F8]">
                             {rec.summary}
                           </div>
-                          <p className="font-sans text-[11px] text-[#BDCBD3] leading-snug">
+                          <p className="font-sans text-[13px] text-[#BDCBD3] leading-snug">
                             {rec.detail}
                           </p>
-                          <div className="font-mono text-[10px] text-[#D0DCE3] pt-1 border-t border-white/10 truncate">
+                          <div className="font-mono text-[12px] text-[#D0DCE3] pt-1 border-t border-white/10 truncate">
                             Source: {rec.evidenceLocator}
                           </div>
                         </div>
@@ -1626,13 +1557,14 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             posClass,
             <>
               <WireframesV11PanelContent {...sharedV11Props} panelId="people" />
+              <AboutUsDrivePanel />
               <div className="flex items-center gap-1 p-1 rounded-xl bg-[#101D27] border border-white/25">
                 {(['HQ', 'Team and Contracts', 'RACI'] as const).map((tab) => (
                   <button
                     key={tab}
                     type="button"
                     onClick={() => onChangePeopleSubTab(tab)}
-                    className={`min-h-[40px] flex-1 py-1.5 px-2 rounded-lg font-mono text-[11px] transition-colors cursor-pointer whitespace-nowrap ${
+                    className={`min-h-[40px] flex-1 py-1.5 px-2 rounded-lg font-mono text-[13px] transition-colors cursor-pointer whitespace-nowrap ${
                       peopleSubTab === tab
                         ? 'bg-[#E6A2B4] text-[#101D27] font-semibold'
                         : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
@@ -1651,20 +1583,20 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <div className="font-mono text-[10px] text-[#E6A2B4]">
+                      <div className="font-mono text-[12px] text-[#E6A2B4]">
                         SELECTED PERSON · {selectedPersonObj.subGroup.toUpperCase()}
                       </div>
                       <h3 className="font-display text-sm font-semibold text-[#F2F6F8]">
                         {selectedPersonObj.name}
                       </h3>
-                      <div className="font-mono text-[11px] text-[#4C8DFF]">
+                      <div className="font-mono text-[13px] text-[#4C8DFF]">
                         {selectedPersonObj.title}
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => onSelectPerson?.(null)}
-                      className="px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#101D27] border border-white/25 text-[#BDCBD3] cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg font-mono text-[12px] bg-[#101D27] border border-white/25 text-[#BDCBD3] cursor-pointer"
                     >
                       Clear
                     </button>
@@ -1677,7 +1609,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                     );
                     return (
                       <div className="space-y-2 pt-1 border-t border-white/15">
-                        <div className="font-mono text-[10px] text-[#9AFFE0]">
+                        <div className="font-mono text-[12px] text-[#9AFFE0]">
                           ASSIGNED WORK ({records.length} items) & REVIEWS ({personCheckpoints.length})
                         </div>
                         {personCheckpoints.slice(0, 2).map((chk) => (
@@ -1686,7 +1618,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                             className="rounded-lg p-2 bg-[#101D27] border border-white/15 flex items-center justify-between gap-2"
                           >
                             <div className="min-w-0">
-                              <div className="font-mono text-[10px] text-[#F2B66D]">
+                              <div className="font-mono text-[12px] text-[#F2B66D]">
                                 [{chk.projectId}] {chk.status || chk.defaultStatus}
                               </div>
                               <div className="font-sans text-xs text-[#F2F6F8] truncate">
@@ -1697,7 +1629,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                               type="button"
                               data-testid={`person-open-review-${chk.id}`}
                               onClick={() => onOpenPanel?.('decisions')}
-                              className="px-2.5 py-1 rounded bg-[#4C8DFF] text-[#101D27] font-mono text-[10px] font-semibold shrink-0 cursor-pointer"
+                              className="px-2.5 py-1 rounded bg-[#4C8DFF] text-[#101D27] font-mono text-[12px] font-semibold shrink-0 cursor-pointer"
                             >
                               Review
                             </button>
@@ -1709,7 +1641,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                             onClick={() => onSelectProject(rec.projectId)}
                             className="rounded-lg p-2 bg-[#101D27] border border-white/15 hover:border-[#4C8DFF] cursor-pointer"
                           >
-                            <div className="font-mono text-[10px] text-[#4C8DFF]">
+                            <div className="font-mono text-[12px] text-[#4C8DFF]">
                               [{rec.projectId}] {rec.recordType} · {rec.reviewStatus}
                             </div>
                             <div className="font-sans text-xs text-[#F2F6F8] truncate">
@@ -1725,7 +1657,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
 
               {peopleSubTab === 'RACI' ? (
                 <div className="space-y-2.5">
-                  <div className="font-mono text-[11px] text-[#BDCBD3]">
+                  <div className="font-mono text-[13px] text-[#BDCBD3]">
                     Ask by voice: "Who is accountable on SEVEN?" or "Who is responsible on MHE?"
                   </div>
                   {RACI_MATRIX.filter(
@@ -1745,10 +1677,10 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                         <span className="font-display text-xs font-semibold text-[#F2F6F8]">
                           {row.projectName}
                         </span>
-                        <span className="font-mono text-[10px] text-[#E6A2B4]">RACI MATRIX</span>
+                        <span className="font-mono text-[12px] text-[#E6A2B4]">RACI MATRIX</span>
                       </div>
-                      <p className="font-sans text-[11px] text-[#BDCBD3]">{row.deliverable}</p>
-                      <div className="grid grid-cols-1 gap-1 pt-1 border-t border-white/10 font-mono text-[11px]">
+                      <p className="font-sans text-[13px] text-[#BDCBD3]">{row.deliverable}</p>
+                      <div className="grid grid-cols-1 gap-1 pt-1 border-t border-white/10 font-mono text-[13px]">
                         <div>
                           <span className="text-[#4C8DFF]">R (Responsible): </span>
                           <span className="text-[#F2F6F8]">{row.responsible}</span>
@@ -1766,7 +1698,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                           <span className="text-[#BDCBD3]">{row.informed}</span>
                         </div>
                       </div>
-                      <div className="font-mono text-[10px] text-[#BDCBD3] pt-1">
+                      <div className="font-mono text-[12px] text-[#BDCBD3] pt-1">
                         Source: {row.sourceStatus}
                       </div>
                     </div>
@@ -1806,14 +1738,14 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                             <h3 className="font-display text-xs font-semibold text-[#F2F6F8] truncate">
                               {person.name}
                             </h3>
-                            <span className="font-mono text-[10px] text-[#E6A2B4] shrink-0">
+                            <span className="font-mono text-[12px] text-[#E6A2B4] shrink-0">
                               {person.subGroup}
                             </span>
                           </div>
-                          <div className="font-mono text-[11px] text-[#4C8DFF] mt-0.5">
+                          <div className="font-mono text-[13px] text-[#4C8DFF] mt-0.5">
                             {person.title}
                           </div>
-                          <p className="font-sans text-[11px] text-[#BDCBD3] mt-1 leading-snug">
+                          <p className="font-sans text-[13px] text-[#BDCBD3] mt-1 leading-snug">
                             {person.notes}
                           </p>
                         </div>
@@ -1847,7 +1779,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             posClass,
             <>
               <WireframesV11PanelContent {...sharedV11Props} panelId="tasks" />
-              <div className="font-mono text-[11px] text-[#BDCBD3] flex items-center justify-between gap-2 pt-2 border-t border-white/15">
+              <div className="font-mono text-[13px] text-[#BDCBD3] flex items-center justify-between gap-2 pt-2 border-t border-white/15">
                 <span>
                   {urgentFilterOnly
                     ? 'URGENT ITEMS FILTER ACTIVE'
@@ -1858,7 +1790,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                     <button
                       type="button"
                       onClick={() => onToggleUrgentFilter?.(false)}
-                      className="px-2 py-0.5 rounded bg-[#142632] border border-[#F2B66D] text-[#F2B66D] text-[10px] cursor-pointer"
+                      className="px-2 py-0.5 rounded bg-[#142632] border border-[#F2B66D] text-[#F2B66D] text-[12px] cursor-pointer"
                     >
                       Show All ({REGISTER_RECORDS.length})
                     </button>
@@ -1873,13 +1805,13 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                   className="rounded-xl p-3 border bg-[#101D27] space-y-1"
                   style={{ borderColor: COLOUR_TOKENS.stationTasks }}
                 >
-                  <div className="flex items-center justify-between font-mono text-[10px] text-[#B8F04A]">
+                  <div className="flex items-center justify-between font-mono text-[12px] text-[#B8F04A]">
                     <span>SAVED TASK · {ct.projectCode}</span>
                     <span>{ct.createdAt}</span>
                   </div>
                   <div className="font-sans text-xs font-semibold text-[#F2F6F8]">{ct.title}</div>
                   {ct.attachmentName && (
-                    <div className="font-mono text-[10px] text-[#BDCBD3]">
+                    <div className="font-mono text-[12px] text-[#BDCBD3]">
                       Attached file: {ct.attachmentName}
                     </div>
                   )}
@@ -1893,7 +1825,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                     onClick={() => onSelectProject(rec.projectId)}
                     className="rounded-xl p-2.5 border border-white/20 bg-[#101D27]/85 hover:border-[#B8F04A] transition-colors cursor-pointer space-y-1"
                   >
-                    <div className="flex items-center justify-between font-mono text-[10px]">
+                    <div className="flex items-center justify-between font-mono text-[12px]">
                       <span style={{ color: COLOUR_TOKENS.stationTasks }}>
                         [{rec.projectId}] {rec.recordType.toUpperCase()}
                       </span>
@@ -1902,13 +1834,13 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                     <div className="font-sans text-xs font-medium text-[#F2F6F8]">
                       {rec.summary}
                     </div>
-                    <p className="font-sans text-[11px] text-[#BDCBD3] line-clamp-2">
+                    <p className="font-sans text-[13px] text-[#BDCBD3] line-clamp-2">
                       {rec.detail}
                     </p>
-                    <div className="font-mono text-[10px] text-[#9AFFE0] truncate">
+                    <div className="font-mono text-[12px] text-[#9AFFE0] truncate">
                       Source: {rec.evidenceLocator}
                     </div>
-                    <div className="flex items-center justify-between font-mono text-[10px] text-[#D0DCE3] pt-1 border-t border-white/10">
+                    <div className="flex items-center justify-between font-mono text-[12px] text-[#D0DCE3] pt-1 border-t border-white/10">
                       <span className="truncate">Owner: {rec.owner}</span>
                       <span className="shrink-0">{rec.updatedAt.slice(0, 10)}</span>
                     </div>
@@ -1933,7 +1865,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           return renderPanelFrame(
             'files',
             'Drive Files · Docs & Sheets',
-            'PANEL #9 · LIVE BADGE AFTER loadDrive() · BREADCRUMB SEARCH',
+            'PANEL #9 · REFRESH FILES · BREADCRUMB SEARCH',
             COLOUR_TOKENS.stationFiles,
             posClass,
             <>
@@ -1946,7 +1878,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                   placeholder="Search files (e.g. 'blueprint', 'seven', 'register', 'bio')..."
                   className="w-full min-h-[44px] px-3 py-1.5 rounded-xl bg-[#05090E] border border-white/30 font-sans text-xs text-[#F2F6F8] placeholder-[#BDCBD3]/60 focus:outline-none focus:border-[#65ACFF]"
                 />
-                <div className="font-mono text-[10px] text-[#BDCBD3] flex justify-between">
+                <div className="font-mono text-[12px] text-[#BDCBD3] flex justify-between">
                   <span>MATCHES: {filteredFiles.length}</span>
                   <span>AUDIENCE: {audienceLevel.toUpperCase()}</span>
                 </div>
@@ -1960,17 +1892,17 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       key={file.id}
                       className="rounded-xl p-2.5 border border-white/20 bg-[#101D27]/85 space-y-1"
                     >
-                      <div className="flex items-center justify-between font-mono text-[10px]">
+                      <div className="flex items-center justify-between font-mono text-[12px]">
                         <span style={{ color: COLOUR_TOKENS.stationFiles }}>{file.type}</span>
                         <span className="text-[#BDCBD3]">Last saved: {file.lastSaved}</span>
                       </div>
                       <div className="font-mono text-xs font-medium text-[#F2F6F8] break-all">
                         {withheld ? 'Owner only — Restricted PMO File' : file.name}
                       </div>
-                      <div className="font-sans text-[11px] text-[#BDCBD3]">
+                      <div className="font-sans text-[13px] text-[#BDCBD3]">
                         Location: {file.folder}
                       </div>
-                      <div className="flex items-center justify-between font-mono text-[10px] text-[#D0DCE3] pt-1 border-t border-white/10">
+                      <div className="flex items-center justify-between font-mono text-[12px] text-[#D0DCE3] pt-1 border-t border-white/10">
                         <span>{file.pagesOrSize}</span>
                         <span>{file.status}</span>
                       </div>
@@ -1982,74 +1914,56 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
           );
         }
 
-        // 6. MEDIA & SHOWREEL PANEL (With Interactive Playback, Seek, Mute & Fullscreen Controls)
+        // 6. MEDIA & SHOWREEL PANEL (With Interactive Real HTML5 Video, Seek, Mute & Fullscreen Controls)
         if (panelId === 'media') {
-          const customUrl = customEmbeds[activeReel.id] || activeReel.embedUrl || '';
+          // User custom iframe from localStorage only if not one of the 3 canonical public MP4 items
+          const userCustomEmbed = !activeReel.videoUrl && customEmbeds[activeReel.id] ? customEmbeds[activeReel.id] : '';
 
           return renderPanelFrame(
             'media',
             'Media & Showreel',
-            'HQ · HOTSPOT 26 TEST + 5 SHOWREELS',
+            'HQ · NOJARA SHOWREELS & CDE STUDIES',
             COLOUR_TOKENS.stationMedia,
             posClass,
             <>
-              <SpatialMediaPanel
-                onOpenSpatialGrid={onOpenHotspot26SpatialGrid}
-                onOpenAsset={onOpenSpatialMediaAsset}
-                onFilterChange={onSpatialMediaFilterChange}
-                googleAccessToken={googleAccessToken}
-              />
               <div
                 className="rounded-xl p-3 border border-[#F2B66D]/50 bg-[#101D27]/95 space-y-2.5"
                 style={{ perspective: '1100px' }}
               >
-                <div className="flex items-center justify-between font-mono text-[10px]">
+                <div className="flex items-center justify-between font-mono text-[12px]">
                   <span className="text-token-amber font-semibold">
-                    SHOWREEL 0{safeShowreelIdx + 1}/0{SHOWREEL_ITEMS.length}
+                    OFFICIAL REEL 0{safeShowreelIdx + 1}/0{SHOWREEL_ITEMS.length}
                   </span>
                   <span className="text-[#BDCBD3]" data-testid="panel-media-timecode">
                     {formatTimecode(mediaPlayback.currentTimeSec)} /{' '}
-                    {formatTimecode(mediaPlayback.durationSec)}
+                    {formatTimecode(mediaPlayback.durationSec || activeReel.expectedDurationSec || 120)}
                   </span>
                 </div>
 
-                <div className="rounded-xl overflow-hidden border border-white/25 bg-[#05090E]">
-                  {customUrl ? (
-                    <iframe
-                      src={customUrl}
+                {/* Primary 16:9 Video Viewport */}
+                <div className="public-showreel-panel-viewport">
+                  {activeReel.videoUrl ? (
+                    <PublicShowreelPlayer
+                      id={activeReel.id}
                       title={activeReel.title}
-                      className="w-full h-36 border-0"
+                      src={activeReel.videoUrl}
+                      poster={activeReel.posterUrl || ''}
+                      autoPlay={mediaPlayback.playing}
+                      initialTimeSec={mediaPlayback.currentTimeSec}
+                      isMuted={mediaPlayback.muted}
+                      onVideoReady={onVideoRefReady}
+                      onTimeUpdate={onVideoTimeUpdate}
+                      onPlayStateChange={onVideoPlayChange}
+                      onMuteStateChange={onVideoMuteChange}
+                      className="w-full h-full"
+                    />
+                  ) : userCustomEmbed ? (
+                    <iframe
+                      src={userCustomEmbed}
+                      title={activeReel.title}
+                      className="w-full h-full border-0"
                       allow="autoplay; fullscreen; picture-in-picture"
                     />
-                  ) : activeReel.posterUrl ? (
-                    <div
-                      onClick={() => {
-                        onMediaControl?.('fullscreen_enter');
-                        onOpenFullscreenMedia({
-                          id: activeReel.id,
-                          title: activeReel.title,
-                          subtitle: activeReel.subtitle,
-                          type: 'Render JPG',
-                          url: activeReel.posterUrl,
-                          aspect: '16:9',
-                          companionSticker: activeReel.companionSticker,
-                          isSample: false,
-                        });
-                      }}
-                      className="relative h-36 cursor-pointer group"
-                    >
-                      <img
-                        src={activeReel.posterUrl}
-                        alt={activeReel.title}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-[#05090E]/45 flex items-center justify-center">
-                        <span className="px-3 py-1.5 rounded-lg font-mono text-[11px] bg-[#101D27]/90 border border-[#F2B66D] text-[#F2B66D]">
-                          {mediaPlayback.playing ? '▶ Playing · Fullscreen' : '▶ Open Fullscreen'}
-                        </span>
-                      </div>
-                    </div>
                   ) : (
                     <div
                       onClick={() => {
@@ -2065,15 +1979,15 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                           isSample: true,
                         });
                       }}
-                      className="h-32 p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-[#142632]/50 transition-colors"
+                      className="w-full h-full p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-[#142632]/50 transition-colors"
                     >
-                      <span className="font-mono text-[10px] text-token-amber">
+                      <span className="font-mono text-[12px] text-token-amber">
                         Source file not attached in 09 Media — interactive preview
                       </span>
                       <span className="font-display text-xs font-semibold text-[#F2F6F8] mt-1">
                         {activeReel.title}
                       </span>
-                      <span className="font-mono text-[10px] text-[#BDCBD3] mt-1">
+                      <span className="font-mono text-[12px] text-[#BDCBD3] mt-1">
                         "{activeReel.companionSticker}" · Tap for Fullscreen
                       </span>
                     </div>
@@ -2087,7 +2001,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       type="button"
                       data-testid="media-play-toggle"
                       onClick={() => onMediaControl?.('toggle_play')}
-                      className="min-h-[38px] px-3 rounded-lg font-mono text-[11px] font-semibold bg-[#F2B66D] text-[#101D27] cursor-pointer"
+                      className="min-h-[44px] px-3.5 rounded-lg font-mono text-[13px] font-semibold bg-[#F2B66D] text-[#101D27] cursor-pointer"
                     >
                       {mediaPlayback.playing ? 'Pause' : 'Play'}
                     </button>
@@ -2095,7 +2009,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       type="range"
                       data-testid="media-seek-slider"
                       min={0}
-                      max={mediaPlayback.durationSec}
+                      max={mediaPlayback.durationSec || activeReel.expectedDurationSec || 100}
                       value={mediaPlayback.currentTimeSec}
                       onChange={(e) => onMediaControl?.('seek', Number(e.target.value))}
                       aria-label="Seek showreel timeline"
@@ -2105,7 +2019,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       type="button"
                       data-testid="media-mute-toggle"
                       onClick={() => onMediaControl?.('toggle_mute')}
-                      className="min-h-[38px] px-2.5 rounded-lg font-mono text-[10px] bg-[#142632] border border-white/25 text-[#F2F6F8] cursor-pointer"
+                      className="min-h-[44px] px-3 rounded-lg font-mono text-[12px] bg-[#142632] border border-white/25 text-[#F2F6F8] cursor-pointer"
                     >
                       {mediaPlayback.muted ? 'Muted' : 'Audio'}
                     </button>
@@ -2118,14 +2032,17 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                           id: activeReel.id,
                           title: activeReel.title,
                           subtitle: activeReel.subtitle,
-                          type: activeReel.posterUrl ? 'Render JPG' : 'Showreel Video [SAMPLE]',
-                          url: activeReel.posterUrl,
+                          type: activeReel.videoUrl ? 'Direct Public MP4 Video' : 'Render JPG',
+                          kind: activeReel.videoUrl ? 'video' : 'image',
+                          videoUrl: activeReel.videoUrl,
+                          url: activeReel.videoUrl || activeReel.posterUrl,
+                          posterUrl: activeReel.posterUrl,
                           aspect: '16:9',
                           companionSticker: activeReel.companionSticker,
-                          isSample: !activeReel.posterUrl,
+                          isSample: !activeReel.videoUrl && !activeReel.posterUrl,
                         });
                       }}
-                      className="min-h-[38px] px-2.5 rounded-lg font-mono text-[10px] bg-[#142632] border border-[#F2B66D]/60 text-[#F2B66D] cursor-pointer"
+                      className="min-h-[44px] px-3 rounded-lg font-mono text-[12px] bg-[#142632] border border-[#F2B66D]/60 text-[#F2B66D] cursor-pointer"
                     >
                       Fullscreen
                     </button>
@@ -2134,26 +2051,12 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                   <div className="font-display text-xs font-semibold text-[#F2F6F8]">
                     {activeReel.title}
                   </div>
-                  <div className="font-mono text-[10px] text-[#BDCBD3] truncate">
-                    Path: {activeReel.drivePath}
+                  <div className="font-mono text-[12px] text-[#BDCBD3] truncate">
+                    {activeReel.subtitle} · {activeReel.timecodePreview}
                   </div>
-                  <input
-                    type="text"
-                    value={customUrl}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const next = { ...customEmbeds, [activeReel.id]: val };
-                      setCustomEmbeds(next);
-                      try {
-                        localStorage.setItem('cerebro_showreel_embeds_v1', JSON.stringify(next));
-                      } catch {}
-                    }}
-                    placeholder="Optional: Paste live Vimeo / Drive embed URL..."
-                    className="w-full min-h-[38px] px-2.5 py-1 rounded-lg bg-[#05090E] border border-white/25 font-mono text-[10px] text-[#F2F6F8] placeholder-[#BDCBD3]/50 focus:outline-none focus:border-[#F2B66D]"
-                  />
                 </div>
 
-                <div className="flex items-center justify-between gap-2 pt-1">
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/10">
                   <button
                     type="button"
                     data-testid="media-prev-reel"
@@ -2162,11 +2065,11 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                         (safeShowreelIdx - 1 + SHOWREEL_ITEMS.length) % SHOWREEL_ITEMS.length
                       )
                     }
-                    className="min-h-[40px] px-3 py-1 rounded-lg font-mono text-[11px] bg-[#142632] border border-white/30 text-[#F2F6F8] hover:border-[#F2B66D] cursor-pointer"
+                    className="min-h-[44px] px-3.5 py-1 rounded-lg font-mono text-[13px] bg-[#142632] border border-white/30 text-[#F2F6F8] hover:border-[#F2B66D] cursor-pointer"
                   >
                     ‹ Prev
                   </button>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     {SHOWREEL_ITEMS.map((r, rIdx) => (
                       <button
                         key={r.id}
@@ -2174,7 +2077,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                         onClick={() => onChangeShowreelIndex?.(rIdx)}
                         className="h-2.5 rounded-full transition-all cursor-pointer"
                         style={{
-                          width: rIdx === safeShowreelIdx ? '18px' : '8px',
+                          width: rIdx === safeShowreelIdx ? '20px' : '8px',
                           backgroundColor:
                             rIdx === safeShowreelIdx
                               ? COLOUR_TOKENS.stationMedia
@@ -2189,17 +2092,108 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                     onClick={() =>
                       onChangeShowreelIndex?.((safeShowreelIdx + 1) % SHOWREEL_ITEMS.length)
                     }
-                    className="min-h-[40px] px-3 py-1 rounded-lg font-mono text-[11px] bg-[#F2B66D] text-[#101D27] font-semibold cursor-pointer"
+                    className="min-h-[44px] px-3.5 py-1 rounded-lg font-mono text-[13px] bg-[#F2B66D] text-[#101D27] font-semibold cursor-pointer"
                   >
                     Next ›
                   </button>
                 </div>
               </div>
 
-              <div className="font-mono text-[11px] text-[#F2B66D] pt-1">
-                SEVEN Tabuk Concept Renders (Attached in 06) + Sculptural Specs
+              {/* Three Official Showreels Selection List */}
+              <div className="space-y-2 pt-1">
+                <div className="font-mono text-[13px] text-[#F2B66D] font-semibold uppercase tracking-wider">
+                  Verified Public Showreels
+                </div>
+                {SHOWREEL_ITEMS.map((reel, rIdx) => {
+                  const isSelected = rIdx === safeShowreelIdx;
+                  return (
+                    <div
+                      key={reel.id}
+                      onClick={() => onChangeShowreelIndex?.(rIdx)}
+                      className={`rounded-xl p-2.5 border transition-all cursor-pointer flex items-center gap-3 ${
+                        isSelected
+                          ? 'border-[#F2B66D] bg-[#142632]'
+                          : 'border-white/20 bg-[#101D27]/80 hover:border-white/40'
+                      }`}
+                    >
+                      {reel.posterUrl ? (
+                        <img
+                          src={reel.posterUrl}
+                          alt={reel.title}
+                          referrerPolicy="no-referrer"
+                          className="w-16 h-12 rounded-lg object-cover border border-white/20 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-16 h-12 rounded-lg bg-[#142632] border border-white/20 flex items-center justify-center font-mono text-[12px] text-[#F2B66D] shrink-0">
+                          VIDEO
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="font-display text-xs font-semibold text-[#F2F6F8] truncate">
+                          {reel.title}
+                        </div>
+                        <div className="font-sans text-[13px] text-[#BDCBD3] truncate">
+                          {reel.subtitle}
+                        </div>
+                        <div className="font-mono text-[12px] text-[#F2B66D] mt-0.5">
+                          {isSelected ? '▶ Active in Player' : 'Tap to load in player →'}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <div className="space-y-2.5">
+
+              {/* Studies and Source Documents Section */}
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <div className="font-mono text-[13px] text-[#BDCBD3] font-semibold uppercase tracking-wider">
+                  Studies and source documents (CDE Blueprint & Concept Stills)
+                </div>
+
+                {CDE_STUDY_DOCUMENTS.map((doc) => (
+                  <div
+                    key={doc.id}
+                    onClick={() => {
+                      onOpenFullscreenMedia({
+                        id: doc.id,
+                        title: doc.title,
+                        subtitle: doc.subtitle,
+                        type: doc.posterUrl ? 'Render JPG' : 'Showreel Video [SAMPLE]',
+                        aspect: '16:9',
+                        url: doc.posterUrl,
+                        material: `CDE Treatment & Spec: ${doc.drivePath}`,
+                        companionSticker: doc.companionSticker,
+                        isSample: !doc.posterUrl,
+                      });
+                    }}
+                    className="rounded-xl p-2.5 border border-white/15 bg-[#101D27]/70 hover:border-[#BDCBD3] transition-colors cursor-pointer flex items-center gap-3"
+                  >
+                    {doc.posterUrl ? (
+                      <img
+                        src={doc.posterUrl}
+                        alt={doc.title}
+                        referrerPolicy="no-referrer"
+                        className="w-16 h-12 rounded-lg object-cover border border-white/20 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-16 h-12 rounded-lg bg-[#142632] border border-white/20 flex items-center justify-center font-mono text-[12px] text-[#BDCBD3] shrink-0">
+                        DOC
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="font-display text-xs font-semibold text-[#F2F6F8] truncate">
+                        {doc.title}
+                      </div>
+                      <div className="font-sans text-[13px] text-[#BDCBD3] truncate">
+                        {doc.subtitle}
+                      </div>
+                      <div className="font-mono text-[12px] text-[#C5CCD6] mt-0.5">
+                        {doc.timecodePreview} · Tap to inspect
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
                 {MEDIA_ITEMS.map((item) => (
                   <div
                     key={item.id}
@@ -2207,7 +2201,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       onMediaControl?.('fullscreen_enter');
                       onOpenFullscreenMedia(item);
                     }}
-                    className="rounded-xl p-2.5 border border-white/25 bg-[#101D27]/90 hover:border-[#F2B66D] transition-colors cursor-pointer flex items-center gap-3"
+                    className="rounded-xl p-2.5 border border-white/15 bg-[#101D27]/70 hover:border-[#BDCBD3] transition-colors cursor-pointer flex items-center gap-3"
                   >
                     {item.url ? (
                       <img
@@ -2218,7 +2212,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       />
                     ) : (
                       <div
-                        className="w-16 h-12 rounded-lg border flex items-center justify-center font-mono text-[10px] text-center shrink-0"
+                        className="w-16 h-12 rounded-lg border flex items-center justify-center font-mono text-[12px] text-center shrink-0"
                         style={{
                           borderColor: COLOUR_TOKENS.stationMedia,
                           color: COLOUR_TOKENS.stationMedia,
@@ -2232,13 +2226,13 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       <div className="font-display text-xs font-semibold text-[#F2F6F8] truncate">
                         {item.title}
                       </div>
-                      <div className="font-sans text-[11px] text-[#BDCBD3] truncate">
+                      <div className="font-sans text-[13px] text-[#BDCBD3] truncate">
                         {item.subtitle}
                       </div>
-                      <div className="font-mono text-[10px] text-[#F2B66D] mt-0.5">
+                      <div className="font-mono text-[12px] text-[#C5CCD6] mt-0.5">
                         {item.isSample
                           ? 'Source file not attached in 09 Media'
-                          : 'Verified attached render — Open fullscreen →'}
+                          : 'Attached render plate — Open fullscreen →'}
                       </div>
                     </div>
                   </div>
@@ -2317,7 +2311,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                           {sub.name}
                         </span>
                         <span
-                          className="font-mono text-[10px]"
+                          className="font-mono text-[12px]"
                           style={{ color: activeDim.colour }}
                         >
                           SUBDOMAIN
@@ -2334,7 +2328,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                                 e.stopPropagation();
                                 onSelectProject(pid);
                               }}
-                              className="min-h-[36px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#142632] border border-white/30 text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer"
+                              className="min-h-[36px] px-2.5 py-1 rounded-lg font-mono text-[13px] bg-[#142632] border border-white/30 text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer"
                             >
                               {pObj ? pObj.name : pid} →
                             </button>
@@ -2387,7 +2381,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 className="rounded-xl p-3.5 border bg-[#101D27]/90 space-y-2.5"
                 style={{ borderColor: ch.colour }}
               >
-                <div className="font-mono text-[10px] uppercase tracking-wider text-[#BDCBD3]">
+                <div className="font-mono text-[12px] uppercase tracking-wider text-[#BDCBD3]">
                   {ch.kicker}
                 </div>
                 <h3 className="font-display text-sm md:text-base font-semibold text-[#F2F6F8]">
@@ -2398,7 +2392,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 </p>
 
                 <div className="rounded-lg p-2.5 bg-[#142632] border border-white/20 space-y-1">
-                  <div className="font-mono text-[10px] text-[#F2B66D]">
+                  <div className="font-mono text-[12px] text-[#F2B66D]">
                     SCULPTURAL ARTIFACT · {ch.sculpturalAssetName}
                   </div>
                   <div className="font-sans text-xs italic text-[#F2F6F8]">
@@ -2407,7 +2401,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 </div>
 
                 {ch.sampleNote && (
-                  <div className="font-mono text-[10px] text-[#BDCBD3] pt-1 border-t border-white/10">
+                  <div className="font-mono text-[12px] text-[#BDCBD3] pt-1 border-t border-white/10">
                     Note: {ch.sampleNote}
                   </div>
                 )}
@@ -2442,7 +2436,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             COLOUR_TOKENS.stationFiles,
             posClass,
             <>
-              <div className="font-mono text-[11px] text-[#BDCBD3]">
+              <div className="font-mono text-[13px] text-[#BDCBD3]">
                 Decisions by 39 (Founder and Culture and Design Engineer) are saved to local server storage.
               </div>
               <div className="space-y-2.5">
@@ -2453,7 +2447,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       key={chk.id}
                       className="rounded-xl p-3 border border-white/20 bg-[#101D27]/90 space-y-2"
                     >
-                      <div className="flex items-center justify-between font-mono text-[10px]">
+                      <div className="flex items-center justify-between font-mono text-[12px]">
                         <span className="text-[#4C8DFF] font-semibold">
                           [{chk.projectId}] {chk.id.toUpperCase()}
                         </span>
@@ -2473,8 +2467,8 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       <div className="font-display text-xs font-semibold text-[#F2F6F8]">
                         {chk.title}
                       </div>
-                      <p className="font-sans text-[11px] text-[#BDCBD3]">{chk.summary}</p>
-                      <div className="font-mono text-[10px] text-[#BDCBD3]">
+                      <p className="font-sans text-[13px] text-[#BDCBD3]">{chk.summary}</p>
+                      <div className="font-mono text-[12px] text-[#BDCBD3]">
                         Lead: {chk.agentOrPerson} ({chk.role}) · Ref: {chk.evidenceLocator}
                       </div>
                       <input
@@ -2487,10 +2481,10 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                           }))
                         }
                         placeholder={`Feedback note for ${chk.agentOrPerson}...`}
-                        className="w-full min-h-[38px] px-2.5 py-1 rounded-lg bg-[#05090E] border border-white/20 font-sans text-[11px] text-[#F2F6F8] placeholder-[#BDCBD3]/50"
+                        className="w-full min-h-[38px] px-2.5 py-1 rounded-lg bg-[#05090E] border border-white/20 font-sans text-[13px] text-[#F2F6F8] placeholder-[#BDCBD3]/50"
                       />
                       {chk.decisionReceiptId && (
-                        <div className="font-mono text-[10px] text-[#9AFFE0] bg-[#142632] px-2 py-1 rounded border border-[#9AFFE0]/30">
+                        <div className="font-mono text-[12px] text-[#9AFFE0] bg-[#142632] px-2 py-1 rounded border border-[#9AFFE0]/30">
                           Saved review: {chk.decisionReceiptId} · {chk.decidedAt?.slice(0, 19)}
                         </div>
                       )}
@@ -2499,21 +2493,21 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                           type="button"
                           data-testid={`approve-${chk.id}`}
                           onClick={() => handleDecisionAction(chk, 'Approve')}
-                          className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-[10px] bg-[#3DDC97] text-[#101D27] font-semibold cursor-pointer"
+                          className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-[12px] bg-[#3DDC97] text-[#101D27] font-semibold cursor-pointer"
                         >
                           Approve
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDecisionAction(chk, 'Request Revision')}
-                          className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-[10px] bg-[#F2B66D] text-[#101D27] font-semibold cursor-pointer"
+                          className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-[12px] bg-[#F2B66D] text-[#101D27] font-semibold cursor-pointer"
                         >
                           Request Revision
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDecisionAction(chk, 'Reject')}
-                          className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-[10px] bg-[#142632] border border-white/30 text-[#F2F6F8] cursor-pointer"
+                          className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-[12px] bg-[#142632] border border-white/30 text-[#F2F6F8] cursor-pointer"
                         >
                           Reject
                         </button>
@@ -2554,7 +2548,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       onChangeTeamChannel?.(ch);
                       setChannelSumUp(null);
                     }}
-                    className={`min-h-[36px] px-2.5 py-1 rounded-lg font-mono text-[10px] cursor-pointer ${
+                    className={`min-h-[36px] px-2.5 py-1 rounded-lg font-mono text-[12px] cursor-pointer ${
                       activeChannel === ch
                         ? 'bg-[#E6A2B4] text-[#101D27] font-semibold'
                         : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
@@ -2566,7 +2560,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] text-[#BDCBD3]">
+                <span className="font-mono text-[12px] text-[#BDCBD3]">
                   CHANNEL: #{activeChannel.toUpperCase()} ({filteredMsgs.length} messages)
                 </span>
                 <button
@@ -2577,7 +2571,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                     setChannelSumUp(draftSummary);
                     updateTeamDraft(draftSummary);
                   }}
-                  className="min-h-[36px] px-3 py-1 rounded-lg font-mono text-[10px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
+                  className="min-h-[36px] px-3 py-1 rounded-lg font-mono text-[12px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
                 >
                   Summarise channel
                 </button>
@@ -2595,7 +2589,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                     key={m.id}
                     className="rounded-xl p-2.5 border border-white/15 bg-[#101D27]/90 space-y-1"
                   >
-                    <div className="flex items-center justify-between font-mono text-[10px]">
+                    <div className="flex items-center justify-between font-mono text-[12px]">
                       <span className="text-[#E6A2B4] font-semibold">{m.sender}</span>
                       <span className="text-[#BDCBD3]">{m.timestamp}</span>
                     </div>
@@ -2636,7 +2630,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             posClass,
             <>
               <div className="space-y-2">
-                <label className="block font-mono text-[10px] text-[#BDCBD3]">
+                <label className="block font-mono text-[12px] text-[#BDCBD3]">
                   RECIPIENT ("39", "me", "self" resolve to me@nojara.com; unknown aliases are rejected):
                 </label>
                 <input
@@ -2651,20 +2645,20 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                   className="w-full min-h-[44px] px-3 py-1 rounded-xl bg-[#05090E] border border-white/30 font-mono text-xs text-[#F2F6F8]"
                 />
                 {recipientCheck.valid ? (
-                  <div className="font-mono text-[11px] text-[#3DDC97]">
+                  <div className="font-mono text-[13px] text-[#3DDC97]">
                     Resolved Recipient: <strong>{recipientCheck.resolved}</strong>
                   </div>
                 ) : (
                   <div
                     data-testid="minutes-recipient-error"
-                    className="font-mono text-[11px]"
+                    className="font-mono text-[13px]"
                     style={{ color: COLOUR_TOKENS.systemErrorRed }}
                   >
                     {recipientCheck.error}
                   </div>
                 )}
 
-                <label className="block font-mono text-[10px] text-[#BDCBD3] pt-1">SUBJECT:</label>
+                <label className="block font-mono text-[12px] text-[#BDCBD3] pt-1">SUBJECT:</label>
                 <input
                   type="text"
                   value={minutesSubjectInput}
@@ -2672,7 +2666,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                   className="w-full min-h-[44px] px-3 py-1 rounded-xl bg-[#05090E] border border-white/30 font-sans text-xs text-[#F2F6F8]"
                 />
 
-                <label className="block font-mono text-[10px] text-[#BDCBD3] pt-1">
+                <label className="block font-mono text-[12px] text-[#BDCBD3] pt-1">
                   MEETING NOTES SUMMARY:
                 </label>
                 <textarea
@@ -2709,7 +2703,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 </button>
               ) : (
                 <div className="rounded-xl p-3 border border-[#B8F04A] bg-[#142632] space-y-2">
-                  <div className="font-mono text-[11px] text-[#B8F04A]">
+                  <div className="font-mono text-[13px] text-[#B8F04A]">
                     CONFIRM RECIPIENT · SAVE DRAFT FOR {recipientCheck.resolved?.toUpperCase()}?
                   </div>
                   <div className="flex items-center gap-2">
@@ -2735,7 +2729,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               {minutesReceipt && (
                 <div
                   data-testid="minutes-receipt"
-                  className="rounded-xl p-3 border border-[#F2B66D] bg-[#101D27] font-mono text-[11px] text-[#F2F6F8] space-y-1"
+                  className="rounded-xl p-3 border border-[#F2B66D] bg-[#101D27] font-mono text-[13px] text-[#F2F6F8] space-y-1"
                 >
                   <div className="text-[#F2B66D] font-semibold">{minutesReceipt.statusMessage}</div>
                   <div>Recipient: {minutesReceipt.recipientResolved}</div>
@@ -2770,7 +2764,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                     onClick={() => onSelectProject(ms.projectId)}
                     className="rounded-xl p-3 border border-white/20 bg-[#101D27]/90 cursor-pointer space-y-1.5"
                   >
-                    <div className="flex items-center justify-between font-mono text-[10px]">
+                    <div className="flex items-center justify-between font-mono text-[12px]">
                       <span className="text-[#4C8DFF] font-semibold">
                         [{ms.projectId}] {ms.dateLabel}
                       </span>
@@ -2789,7 +2783,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                         }}
                       />
                     </div>
-                    <div className="flex items-center justify-between font-mono text-[10px] text-[#BDCBD3]">
+                    <div className="flex items-center justify-between font-mono text-[12px] text-[#BDCBD3]">
                       <span>Owner: {ms.owner}</span>
                       <span className="truncate max-w-[160px]">{ms.sourceRef}</span>
                     </div>
@@ -2830,11 +2824,11 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                 <div className="space-y-2.5 pt-2 border-t border-white/15">
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded-xl p-3 border border-white/20 bg-[#101D27]">
-                      <div className="font-mono text-[10px] text-[#BDCBD3]">REGISTER RECORDS</div>
+                      <div className="font-mono text-[12px] text-[#BDCBD3]">REGISTER RECORDS</div>
                       <div className="font-display text-lg font-semibold text-[#3DDC97]">52</div>
                     </div>
                     <div className="rounded-xl p-3 border border-white/20 bg-[#101D27]">
-                      <div className="font-mono text-[10px] text-[#BDCBD3]">PENDING REVIEWS</div>
+                      <div className="font-mono text-[12px] text-[#BDCBD3]">PENDING REVIEWS</div>
                       <div className="font-display text-lg font-semibold text-[#F2B66D]">
                         {pendingDecisionCount}
                       </div>
@@ -2910,7 +2904,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                         key={lvl}
                         type="button"
                         onClick={() => onChangeAudience?.(lvl)}
-                        className={`min-h-[38px] px-2.5 py-1 rounded-lg text-[10px] cursor-pointer ${
+                        className={`min-h-[38px] px-2.5 py-1 rounded-lg text-[12px] cursor-pointer ${
                           audienceLevel === lvl
                             ? 'bg-[#3DDC97] text-[#101D27] font-semibold'
                             : 'bg-[#142632] text-[#BDCBD3]'
@@ -2935,7 +2929,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
             COLOUR_TOKENS.stationTasks,
             posClass,
             <div className="space-y-2.5">
-              <div className="rounded-xl p-2.5 border border-white/15 bg-[#101D27] font-mono text-[10px] text-[#BDCBD3]">
+              <div className="rounded-xl p-2.5 border border-white/15 bg-[#101D27] font-mono text-[12px] text-[#BDCBD3]">
                 Cursor / external coding webhook: <strong className="text-[#F2B66D]">Not configured</strong> (development tasks are saved to the local workspace queue).
               </div>
               {BUILD_TRACKER_TIERS.map((tier) => (
@@ -2943,14 +2937,14 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                   key={tier.tier}
                   className="rounded-xl p-3 border border-white/20 bg-[#101D27]/90 space-y-1.5"
                 >
-                  <div className="flex items-center justify-between font-mono text-[10px]">
+                  <div className="flex items-center justify-between font-mono text-[12px]">
                     <span className="text-[#B8F04A] font-semibold">{tier.tier}</span>
                     <span className="text-[#3DDC97]">{tier.status}</span>
                   </div>
                   <div className="font-display text-xs font-semibold text-[#F2F6F8]">
                     {tier.title}
                   </div>
-                  <ul className="space-y-1 font-sans text-[11px] text-[#BDCBD3] list-disc pl-4">
+                  <ul className="space-y-1 font-sans text-[13px] text-[#BDCBD3] list-disc pl-4">
                     {tier.items.map((it) => (
                       <li key={it.code}>
                         <span className="font-mono text-[#9AFFE0]">[{it.code}]</span> {it.name} —{' '}
@@ -2996,7 +2990,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                     key={t.id}
                     type="button"
                     onClick={() => setAuditTab(t.id)}
-                    className={`min-h-[38px] flex-1 py-1.5 px-1.5 rounded-lg font-mono text-[10px] transition-colors cursor-pointer whitespace-nowrap ${
+                    className={`min-h-[38px] flex-1 py-1.5 px-1.5 rounded-lg font-mono text-[12px] transition-colors cursor-pointer whitespace-nowrap ${
                       auditTab === t.id
                         ? 'bg-[#4C8DFF] text-[#101D27] font-semibold'
                         : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
@@ -3014,7 +3008,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       key={s.code}
                       className="rounded-xl p-2.5 border border-white/20 bg-[#101D27]/90 space-y-1"
                     >
-                      <div className="flex items-center justify-between font-mono text-[10px]">
+                      <div className="flex items-center justify-between font-mono text-[12px]">
                         <span className="text-[#4C8DFF] font-semibold">
                           [{s.code}] {s.fileName}
                         </span>
@@ -3029,7 +3023,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                           {s.status}
                         </span>
                       </div>
-                      <p className="font-sans text-[11px] text-[#BDCBD3] leading-snug">
+                      <p className="font-sans text-[13px] text-[#BDCBD3] leading-snug">
                         {s.usageInApp}
                       </p>
                     </div>
@@ -3053,7 +3047,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                           <div className="font-sans text-xs text-[#F2F6F8] truncate">
                             {row.entity}
                           </div>
-                          <div className="font-mono text-[10px] text-[#BDCBD3] truncate">
+                          <div className="font-mono text-[12px] text-[#BDCBD3] truncate">
                             {row.sourceFile}
                           </div>
                         </div>
@@ -3071,13 +3065,13 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
                       key={m.id}
                       className="rounded-xl p-2.5 border border-[#F2B66D]/40 bg-[#101D27]/90 space-y-1"
                     >
-                      <div className="font-mono text-[10px] text-[#F2B66D]">
+                      <div className="font-mono text-[12px] text-[#F2B66D]">
                         {m.id} · UNATTACHED SOURCE ITEM
                       </div>
                       <div className="font-sans text-xs font-semibold text-[#F2F6F8]">
                         {m.item}
                       </div>
-                      <p className="font-sans text-[11px] text-[#BDCBD3]">
+                      <p className="font-sans text-[13px] text-[#BDCBD3]">
                         Status: {m.currentFallbackInPhase0}
                       </p>
                     </div>
@@ -3086,7 +3080,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               )}
 
               {auditTab === 'page-state' && (
-                <pre className="rounded-xl p-3 bg-[#05090E] border border-white/20 font-mono text-[10px] text-[#9AFFE0] overflow-x-auto leading-relaxed">
+                <pre className="rounded-xl p-3 bg-[#05090E] border border-white/20 font-mono text-[12px] text-[#9AFFE0] overflow-x-auto leading-relaxed">
                   {JSON.stringify(pageStateSnapshot, null, 2)}
                 </pre>
               )}

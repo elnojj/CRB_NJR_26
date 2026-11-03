@@ -4,12 +4,13 @@ import { introBridge } from './bridge';
 
 export interface CerebroIntroProps {
   embedCanvas?: boolean;
-  onEnterWorkspace: () => void;
+  onEnterWorkspace?: (context?: unknown) => void;
+  renderWorkspace?: (context?: unknown) => React.ReactNode;
 }
 
 /**
  * 180s intro overlay on the shared ExperienceCanvas (embedCanvas=false).
- * Does not create a second WebGL root.
+ * Does not create a second WebGL root — continuous canvas stays mounted underneath.
  */
 export const CerebroIntro: React.FC<CerebroIntroProps> = ({
   embedCanvas = false,
@@ -55,7 +56,7 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
       <BootLoader
         reducedMotion={false}
         initialPhase="loader"
-        onTakeOff={onEnterWorkspace}
+        onTakeOff={() => onEnterWorkspace?.()}
       />
     </div>
   );

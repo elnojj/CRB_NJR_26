@@ -1,66 +1,104 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
+import { DiskArHealthDashboard } from './DiskArHealthDashboard';
+import { AngledWallCalendar } from './AngledWallCalendar';
+import { InteractiveProjectPlan } from './InteractiveProjectPlan';
+import { VectorExpandShape } from '../chrome/VectorExpandShape';
+import './spatialHealth.css';
 
-export type SpatialHealthMode = 'dashboard' | 'project';
-export type SpatialHealthFilter = 'onTrack' | 'attention' | 'open';
+type SpatialMode = 'dashboard' | 'project';
 
-export interface SpatialHealthLayoutProps {
-  mode: SpatialHealthMode;
-  selectedProjectId: string;
-  onSelectProject: (projectId: string) => void;
-  onCloseProject: () => void;
-  onCloseCalendar: () => void;
-  onOpenFilteredProjects: (filter: SpatialHealthFilter, projectId?: string) => void;
-  onOpenPerson: (personId: string) => void;
-  onOpenRegisterRecord: (recordId: string) => void;
-}
-
-export const SpatialHealthLayout: React.FC<SpatialHealthLayoutProps> = ({
+/**
+ * Spatial Health shell:
+ * - Desk AR floating cards = main portfolio health dashboard
+ * - Angled recessed wall calendar on the right (agenda on phone)
+ * - Interactive project plan when a project is focused
+ * Modes enter/exit with a short cinematic veil so tools feel present, not bolted on.
+ */
+export function SpatialHealthLayout({
   mode,
   selectedProjectId,
   onSelectProject,
   onCloseProject,
   onCloseCalendar,
   onOpenFilteredProjects,
-}) => (
-  <div
-    className="pointer-events-auto fixed inset-x-4 top-24 z-[35] mx-auto max-w-3xl rounded-2xl border border-white/15 bg-black/55 p-4 backdrop-blur-xl"
-    data-testid="spatial-health-layout"
-    data-mode={mode}
-  >
-    <div className="mb-3 flex items-center justify-between gap-2">
-      <h2 className="font-mono text-xs uppercase tracking-wider text-[#F2F6F8]">
-        Spatial Health · {mode === 'project' ? selectedProjectId : 'Dashboard'}
-      </h2>
-      <div className="flex gap-1">
-        <button
-          type="button"
-          className="min-h-[36px] rounded-lg border border-white/15 px-2 text-[11px]"
-          onClick={() => onOpenFilteredProjects('onTrack')}
-        >
-          On track
-        </button>
-        <button
-          type="button"
-          className="min-h-[36px] rounded-lg border border-white/15 px-2 text-[11px]"
-          onClick={() => onOpenFilteredProjects('attention')}
-        >
-          Attention
-        </button>
-        <button
-          type="button"
-          className="min-h-[36px] rounded-lg border border-white/15 px-2 text-[11px]"
-          onClick={mode === 'project' ? onCloseProject : onCloseCalendar}
-        >
-          Close
-        </button>
-      </div>
-    </div>
-    <button
-      type="button"
-      className="rounded-lg border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-3 py-2 font-mono text-xs text-[#FFF4D0]"
-      onClick={() => onSelectProject(selectedProjectId)}
+  onOpenPerson,
+  onOpenRegisterRecord,
+}: {
+  mode: SpatialMode;
+  selectedProjectId: string;
+  onSelectProject?: (projectId: string) => void;
+  onCloseProject?: () => void;
+  onCloseCalendar?: () => void;
+  onOpenFilteredProjects?: (filter: 'all' | 'onTrack' | 'attention', projectId?: string) => void;
+  onOpenPerson?: (personId: string) => void;
+  onOpenRegisterRecord?: (recordId: string) => void;
+}) {
+  const [mountedMode, setMountedMode] = useState<SpatialMode>(mode);
+  const [phase, setPhase] = useState<'in' | 'out'>('in');
+  const [planExpanded, setPlanExpanded] = useState(false);
+
+  useEffect(() => {
+    if (mode === mountedMode) {
+      setPhase('in');
+      return;
+    }
+    setPhase('out');
+    const t = window.setTimeout(() => {
+      setMountedMode(mode);
+      setPhase('in');
+      setPlanExpanded(false);
+    }, 280);
+    return () => window.clearTimeout(t);
+  }, [mode, mountedMode]);
+
+  return (
+    <div
+      className={`spatial-health-shell is-${phase}`}
+      data-testid="spatial-health-shell"
+      data-mode={mountedMode}
+      data-phase={phase}
     >
-      Focus {selectedProjectId}
-    </button>
-  </div>
-);
+      <div className="spatial-health-veil" aria-hidden="true" />
+      {mountedMode === 'dashboard' && (
+        <div className="spatial-health-layer is-dashboard" key="dashboard">
+          <DiskArHealthDashboard
+            onSelectProject={onSelectProject}
+            onOpenFilteredProjects={onOpenFilteredProjects}
+          />
+          <AngledWallCalendar
+            onClose={onCloseCalendar}
+            onOpenProject={onSelectProject}
+          />
+          <div className="spatial-plan-launch-wrap">
+            <VectorExpandShape
+              label="Plan"
+              tone="gold"
+              expanded={planExpanded}
+              onToggle={() => {
+                if (planExpanded) {
+                  setPlanExpanded(false);
+                  return;
+                }
+                setPlanExpanded(true);
+                onSelectProject?.(selectedProjectId);
+              }}
+              testId="spatial-plan-launch"
+              title="Expand project plan"
+            />
+          </div>
+        </div>
+      )}
+      {mountedMode === 'project' && (
+        <div className="spatial-health-layer is-project" key="project">
+          <InteractiveProjectPlan
+            projectId={selectedProjectId}
+            onClose={onCloseProject}
+            onSelectRelated={onSelectProject}
+            onOpenPerson={onOpenPerson}
+            onOpenTaskPanel={onOpenRegisterRecord}
+          />
+        </div>
+      )}
+    </div>
+  );
+}

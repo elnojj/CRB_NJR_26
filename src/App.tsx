@@ -343,11 +343,11 @@ export default function App() {
   // Hydration: session snapshot restores panels/sphere; tour always starts inactive (cerebroSessionStore).
   const [activeSphere, setActiveSphere] = useState<ConnectedSphereId>(() => {
     const snap = readSessionSnapshot();
-    return isConnectedSphereId(snap?.activeSphere) ? (snap!.activeSphere as ConnectedSphereId) : 'hq';
+    return isConnectedSphereId(snap.activeSphere) ? snap.activeSphere : 'hq';
   });
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [openPanels, setOpenPanels] = useState<string[]>(
-    () => readSessionSnapshot()?.openPanels ?? []
+    () => readSessionSnapshot().openPanels
   );
   const [voiceAuthFailed, setVoiceAuthFailed] = useState(false);
   const [hydrationPhase, setHydrationPhase] = useState(() => hydrationSequence()[0]);
@@ -597,8 +597,8 @@ export default function App() {
     setHydrationPhase(phases[1]);
     const snap = readSessionSnapshot();
     setHydrationPhase(phases[2]);
-    setOpenPanels(snap?.openPanels ?? []);
-    if (snap?.navigation?.language === 'ar' || snap?.navigation?.language === 'en') {
+    setOpenPanels(snap.openPanels);
+    if (snap.navigation?.language === 'ar' || snap.navigation?.language === 'en') {
       setLanguageRtl(snap.navigation.language);
     }
     setHydrationPhase(phases[3]);
