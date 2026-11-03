@@ -64,8 +64,23 @@ export const SHOT_ENTRIES: ShotEntry[] = [
 
   shot('project-seven', 'showreel2023', 20, 'project', 'SEVEN', 'SEVEN node cutdown from public showreel'),
   shot('project-yah', 'showreel2023', 36, 'project', 'YAH', 'YAH node cutdown from public showreel'),
-  shot('project-mhe', 'laliga', 40, 'project', 'MHE', 'MHE node cutdown from LaLiga film'),
-  shot('project-bsocial', 'laliga', 72, 'project', 'BSOCIAL', 'BSOCIAL node cutdown from LaLiga film'),
+  // Ambient studio cutdowns only — NOT proof of MHE / BSocial / Museum of Almost delivery.
+  shot(
+    'project-mhe',
+    'laliga',
+    40,
+    'project',
+    'MHE',
+    'AMBIENT ONLY: LaLiga studio cutdown filling MHE node — not Abu Hamdan project footage'
+  ),
+  shot(
+    'project-bsocial',
+    'laliga',
+    72,
+    'project',
+    'BSOCIAL',
+    'AMBIENT ONLY: LaLiga studio cutdown filling BSocial node — not BSocial project footage'
+  ),
   shot('project-al-ahram', 'showreel2023', 84, 'project', 'AL-AHRAM', 'AL-AHRAM node cutdown from public showreel'),
   shot(
     'project-museum-of-almost',
@@ -73,10 +88,18 @@ export const SHOT_ENTRIES: ShotEntry[] = [
     108,
     'project',
     'MUSEUM-OF-ALMOST',
-    'Museum of Almost node cutdown from public showreel'
+    'AMBIENT ONLY: public showreel cutdown — not Museum of Almost camera masters'
   ),
   shot('project-el-batron', 'el-batron', 24, 'project', 'EL-BATRON', 'EL-BATRON node cutdown from El Batron showreel'),
-  shot('project-gondwana', 'laliga', 110, 'project', 'GONDWANA', 'GONDWANA node cutdown from LaLiga film'),
+  // Gondwana removed from cinematic journey; catalog entry retained as ambient-only with explicit note.
+  shot(
+    'project-gondwana',
+    'laliga',
+    110,
+    'project',
+    'GONDWANA',
+    'EXCLUDED FROM CINEMATIC JOURNEY · ambient LaLiga cutdown only — not Gondwana project proof'
+  ),
 
   shot('dim-strategy', 'showreel2023', 14, 'dimension', 'strategy', 'CDE dimension strategy cutdown'),
   shot('dim-production', 'laliga', 56, 'dimension', 'production', 'CDE dimension production cutdown'),

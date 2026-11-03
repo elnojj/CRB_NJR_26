@@ -1,10 +1,21 @@
 /**
- * Trailer-style Cerebro explainer — cascading supers + NOJARA media cutdowns.
- * Skip or end-of-film both advance to the Owner Gate (access code), not the workspace.
+ * Cerebro 180s cinematic introduction — single film clock, attributable media,
+ * continuous handover into Owner Gate → workspace.
+ * Editorial: 24 fps / 4,320 frames. Runtime: rAF playhead (not throttled to 24).
  */
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { PUBLIC_BRAND_MEDIA } from '../data/publicBrandMedia';
-import { BrandLockup } from '../components/BrandLockup';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { CINEMATIC_BRAND, cinematicMediaById } from './cinematicManifest';
+import {
+  CINEMATIC_BEATS,
+  CINEMATIC_DURATION_SEC,
+  CINEMATIC_FPS,
+  CINEMATIC_MOTION,
+  CINEMATIC_TOTAL_FRAMES,
+  beatAtFrame,
+  frameFromSeconds,
+  secondsFromFrame,
+  type FilmLang,
+} from './cinematicTimeline';
 import './explainerFilm.css';
 
 export type ExplainerFilmProps = {
@@ -12,252 +23,336 @@ export type ExplainerFilmProps = {
   reducedMotion?: boolean;
 };
 
-type TrailerBeat = {
-  id: string;
-  /** Seconds this beat holds on screen */
-  holdSec: number;
-  /** Cascading lines (appear one after another) */
-  lines: string[];
-  /** Optional Arabic line under the cascade */
-  lineAr?: string;
-  /** B-roll source */
-  videoUrl: string;
-  posterUrl?: string;
-  /** Transition out style */
-  transition: 'whip' | 'fade-black' | 'iris' | 'cut';
-};
-
-const BEATS: TrailerBeat[] = [
-  {
-    id: 'cold-open',
-    holdSec: 4.2,
-    lines: ['NOJARA STUDIOS', 'PRESENTS'],
-    lineAr: 'نُچارة',
-    videoUrl: PUBLIC_BRAND_MEDIA.showreel2023.url,
-    posterUrl: PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
-    transition: 'fade-black',
-  },
-  {
-    id: 'what-cerebro',
-    holdSec: 5.4,
-    lines: ['CEREBRO', 'A dual-sphere spatial workspace', 'HQ · CDE · Campaign · About'],
-    lineAr: 'سيريبو — فضاء عمل بصري',
-    videoUrl: PUBLIC_BRAND_MEDIA.laligaFilm.url,
-    posterUrl: PUBLIC_BRAND_MEDIA.laligaFilm.posterUrl,
-    transition: 'whip',
-  },
-  {
-    id: 'what-nojara',
-    holdSec: 5.2,
-    lines: ['NOJARA', 'Culture · Design · Entertainment', 'Films, campaigns, and live worlds'],
-    lineAr: 'نُچارة — ثقافة · تصميم · ترفيه',
-    videoUrl: PUBLIC_BRAND_MEDIA.elBatron.url,
-    posterUrl: PUBLIC_BRAND_MEDIA.elBatron.posterUrl,
-    transition: 'iris',
-  },
-  {
-    id: 'media',
-    holdSec: 5.0,
-    lines: ['MEDIA', 'Showreels · registers · live voice', 'One glass chrome · one spatial map'],
-    videoUrl: PUBLIC_BRAND_MEDIA.showreel2023.url,
-    posterUrl: PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
-    transition: 'fade-black',
-  },
-  {
-    id: 'title-card',
-    holdSec: 3.6,
-    lines: ['ENTER CEREBRO'],
-    lineAr: 'ادخل سيريبو',
-    videoUrl: PUBLIC_BRAND_MEDIA.laligaFilm.url,
-    posterUrl: PUBLIC_BRAND_MEDIA.laligaFilm.posterUrl,
-    transition: 'cut',
-  },
-];
+type PlaybackDiag =
+  | 'READY'
+  | 'BUFFERING'
+  | 'AUTOPLAY_REJECTED'
+  | 'HTTP_ERROR'
+  | 'NETWORK_ERROR'
+  | 'UNSUPPORTED_SOURCE_OR_CODEC'
+  | 'DECODE_ERROR'
+  | 'GAP_BLOCKED';
 
 export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
   onComplete,
   reducedMotion = false,
 }) => {
-  const [beatIndex, setBeatIndex] = useState(0);
-  const [lineVisible, setLineVisible] = useState(0);
-  const [transitioning, setTransitioning] = useState(false);
-  const [transitionKind, setTransitionKind] = useState<TrailerBeat['transition']>('fade-black');
+  const totalSec = reducedMotion ? Math.min(48, CINEMATIC_DURATION_SEC) : CINEMATIC_DURATION_SEC;
+  const totalFrames = reducedMotion
+    ? Math.round(totalSec * CINEMATIC_FPS)
+    : CINEMATIC_TOTAL_FRAMES;
+
+  const [lang, setLang] = useState<FilmLang>('en');
+  const [playing, setPlaying] = useState(true);
+  const [frame, setFrame] = useState(0);
+  const [soundOn, setSoundOn] = useState(false);
+  const [diag, setDiag] = useState<PlaybackDiag>('READY');
+  const [completed, setCompleted] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const playheadRef = useRef(0);
+  const playingRef = useRef(true);
+  const lastTsRef = useRef<number | null>(null);
+  const rafRef = useRef(0);
   const completedRef = useRef(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
 
-  // Autoplay trailer bed on mount (no click required; browsers may mute until gesture).
+  // In reduced motion, map shortened playhead across full editorial beats proportionally.
+  const editorialFrame = reducedMotion
+    ? Math.min(
+        CINEMATIC_TOTAL_FRAMES - 1,
+        Math.floor((frame / Math.max(1, totalFrames)) * CINEMATIC_TOTAL_FRAMES)
+      )
+    : frame;
+  const activeBeat = beatAtFrame(editorialFrame);
+  const media = activeBeat.mediaId ? cinematicMediaById(activeBeat.mediaId) : undefined;
+  const mediaBlocked = Boolean(media?.blocked || !media?.src);
+
+  const finish = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    setCompleted(true);
+    setPlaying(false);
+    playingRef.current = false;
+    onComplete();
+  }, [onComplete]);
+
+  // Single film clock
   useEffect(() => {
-    if (reducedMotion || typeof window === 'undefined') return;
+    playingRef.current = playing;
+  }, [playing]);
+
+  useEffect(() => {
+    const tick = (ts: number) => {
+      if (lastTsRef.current == null) lastTsRef.current = ts;
+      const dt = Math.min(0.05, (ts - lastTsRef.current) / 1000);
+      lastTsRef.current = ts;
+      if (playingRef.current) {
+        playheadRef.current = Math.min(totalSec, playheadRef.current + dt);
+        const nextFrame = Math.min(totalFrames - 1, frameFromSeconds(playheadRef.current));
+        setFrame(nextFrame);
+        if (playheadRef.current >= totalSec - 0.02) {
+          finish();
+          return;
+        }
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [finish, totalFrames, totalSec]);
+
+  // Sync video to film clock + media in-point
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el || mediaBlocked || !media?.src) {
+      setDiag(mediaBlocked ? 'GAP_BLOCKED' : 'READY');
+      return;
+    }
+    const wantTime = activeBeat.mediaInSec + (secondsFromFrame(editorialFrame) - secondsFromFrame(activeBeat.startFrame));
+    const apply = () => {
+      if (!Number.isFinite(el.duration) || el.duration <= 0) return;
+      const t = Math.max(0, Math.min(el.duration - 0.05, wantTime));
+      if (Math.abs(el.currentTime - t) > 0.35) {
+        try {
+          el.currentTime = t;
+        } catch {
+          setDiag('DECODE_ERROR');
+        }
+      }
+    };
+
+    if (el.src !== media.src && !el.src.endsWith(media.src.replace(/^\//, ''))) {
+      el.src = media.src;
+      el.load();
+      setDiag('BUFFERING');
+    }
+
+    const onMeta = () => {
+      apply();
+      if (playingRef.current) {
+        const p = el.play();
+        if (p && typeof p.catch === 'function') {
+          p.catch(() => setDiag('AUTOPLAY_REJECTED'));
+        } else {
+          setDiag('READY');
+        }
+      }
+    };
+    const onErr = () => setDiag('HTTP_ERROR');
+    const onWait = () => setDiag('BUFFERING');
+    const onPlay = () => setDiag('READY');
+
+    el.addEventListener('loadedmetadata', onMeta);
+    el.addEventListener('error', onErr);
+    el.addEventListener('waiting', onWait);
+    el.addEventListener('playing', onPlay);
+    el.muted = !soundOn;
+    if (el.readyState >= 1) onMeta();
+    else apply();
+
+    return () => {
+      el.removeEventListener('loadedmetadata', onMeta);
+      el.removeEventListener('error', onErr);
+      el.removeEventListener('waiting', onWait);
+      el.removeEventListener('playing', onPlay);
+    };
+  }, [activeBeat, editorialFrame, media, mediaBlocked, soundOn]);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    el.muted = !soundOn;
+    if (soundOn && playingRef.current) {
+      void el.play().catch(() => setDiag('AUTOPLAY_REJECTED'));
+    }
+  }, [soundOn]);
+
+  // Soft bed only after explicit unmute (never auto-start loud)
+  useEffect(() => {
+    if (!soundOn || reducedMotion || typeof window === 'undefined') return;
     const AC =
       window.AudioContext ||
       (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AC) return;
     const ctx = new AC();
     audioCtxRef.current = ctx;
-    const master = ctx.createGain();
-    master.gain.value = 0.07;
-    master.connect(ctx.destination);
-
-    const hum = ctx.createOscillator();
-    hum.type = 'sine';
-    hum.frequency.value = 55;
-    const humGain = ctx.createGain();
-    humGain.gain.value = 0.55;
-    hum.connect(humGain);
-    humGain.connect(master);
-
-    const shimmer = ctx.createOscillator();
-    shimmer.type = 'triangle';
-    shimmer.frequency.value = 220;
-    const shimmerGain = ctx.createGain();
-    shimmerGain.gain.value = 0.12;
-    shimmer.connect(shimmerGain);
-    shimmerGain.connect(master);
-
+    const gain = ctx.createGain();
+    gain.gain.value = 0.04;
+    gain.connect(ctx.destination);
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = 48;
+    osc.connect(gain);
     try {
-      hum.start();
-      shimmer.start();
+      osc.start();
       void ctx.resume();
     } catch {
-      /* ignore autoplay blocks */
+      /* ignore */
     }
-
     return () => {
       try {
-        hum.stop();
-        shimmer.stop();
+        osc.stop();
         void ctx.close();
       } catch {
         /* ignore */
       }
       audioCtxRef.current = null;
     };
-  }, [reducedMotion]);
+  }, [soundOn, reducedMotion]);
 
-  const beat = BEATS[Math.min(beatIndex, BEATS.length - 1)];
-  const totalSec = useMemo(
-    () => BEATS.reduce((s, b) => s + (reducedMotion ? Math.min(1.2, b.holdSec) : b.holdSec), 0),
-    [reducedMotion]
-  );
+  const headline = lang === 'ar' ? activeBeat.headlineAr : activeBeat.headlineEn;
+  const support = lang === 'ar' ? activeBeat.supportAr : activeBeat.supportEn;
+  const narration = lang === 'ar' ? activeBeat.narrationAr : activeBeat.narrationEn;
+  const credit = lang === 'ar' ? activeBeat.creditAr : activeBeat.creditEn;
+  const gap = lang === 'ar' ? activeBeat.gapAr : activeBeat.gapEn;
+  const progress = Math.min(1, frame / Math.max(1, totalFrames - 1));
 
-  const finish = () => {
-    if (completedRef.current) return;
-    completedRef.current = true;
-    onComplete();
-  };
-
-  // Cascading line reveal within a beat
-  useEffect(() => {
-    setLineVisible(0);
-    if (reducedMotion) {
-      setLineVisible(beat.lines.length);
-      return;
-    }
-    const timers: number[] = [];
-    beat.lines.forEach((_, i) => {
-      timers.push(
-        window.setTimeout(() => setLineVisible(i + 1), 280 + i * 420)
-      );
-    });
-    return () => timers.forEach((t) => window.clearTimeout(t));
-  }, [beat, reducedMotion]);
-
-  // Advance beats with trailer transitions
-  useEffect(() => {
-    const hold = reducedMotion ? Math.min(1.2, beat.holdSec) : beat.holdSec;
-    const advanceAt = window.setTimeout(() => {
-      if (beatIndex >= BEATS.length - 1) {
-        finish();
-        return;
-      }
-      setTransitionKind(beat.transition);
-      setTransitioning(true);
-      const wipeMs = reducedMotion ? 120 : beat.transition === 'cut' ? 80 : 520;
-      window.setTimeout(() => {
-        setBeatIndex((i) => i + 1);
-        setTransitioning(false);
-      }, wipeMs);
-    }, hold * 1000);
-    return () => window.clearTimeout(advanceAt);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- finish is stable via ref
-  }, [beatIndex, beat, reducedMotion]);
-
-  // Keep B-roll playing (muted autoplay for trailer underlay)
-  useEffect(() => {
-    const el = videoRef.current;
-    if (!el) return;
-    el.load();
-    const play = el.play();
-    if (play && typeof play.catch === 'function') play.catch(() => {});
-  }, [beat.videoUrl]);
+  const words = headline.split(/\s+/).filter(Boolean);
 
   return (
     <div
-      className="explainer-film"
+      className="explainer-film cinematic-180"
       data-testid="explainer-film"
-      data-beat={beat.id}
-      data-transitioning={transitioning ? '1' : '0'}
+      data-beat={activeBeat.id}
+      data-diag={diag}
+      data-lang={lang}
       role="dialog"
-      aria-label="Cerebro explainer film"
+      aria-label="Cerebro cinematic introduction"
+      style={
+        {
+          '--cinematic-ease': CINEMATIC_MOTION.cameraEase,
+        } as React.CSSProperties
+      }
     >
-      <video
-        ref={videoRef}
-        className="explainer-film__video"
-        src={beat.videoUrl}
-        poster={beat.posterUrl}
-        muted
-        playsInline
-        autoPlay
-        loop
-        preload="auto"
-      />
+      {!mediaBlocked && media?.src ? (
+        <video
+          key={media.id}
+          ref={videoRef}
+          className="explainer-film__video"
+          src={media.src}
+          poster={media.poster || undefined}
+          playsInline
+          muted={!soundOn}
+          preload="metadata"
+          autoPlay={false}
+          loop
+        />
+      ) : (
+        <div className="explainer-film__gap" data-testid="cinematic-gap">
+          <p className="explainer-film__gap-title">
+            {lang === 'ar' ? 'أصل غير متوفر بعد' : 'Asset not on this host yet'}
+          </p>
+          <p className="explainer-film__gap-body">{gap || media?.evidenceLimit}</p>
+        </div>
+      )}
+
       <div className="explainer-film__grade" aria-hidden="true" />
       <div className="explainer-film__vignette" aria-hidden="true" />
 
-      <header className="explainer-film__brand">
-        <BrandLockup mode="loader" />
+      <header className="explainer-film__brand cinematic-180__brand">
+        <img
+          src={CINEMATIC_BRAND.localUrl}
+          alt="NOJARA"
+          width={160}
+          height={40}
+          className="cinematic-180__logo"
+          draggable={false}
+        />
+        <span className="cinematic-180__mark" lang="ar" dir="rtl">
+          {CINEMATIC_BRAND.markAr}
+        </span>
       </header>
 
-      <div className="explainer-film__supers" key={beat.id}>
-        {beat.lines.map((line, i) => (
-          <p
-            key={`${beat.id}-${i}`}
-            className={`explainer-film__line explainer-film__line--${i === 0 ? 'hero' : 'support'} ${
-              i < lineVisible ? 'is-in' : ''
-            }`}
-            style={{ transitionDelay: `${i * 40}ms` }}
-          >
-            {line}
+      <div className="explainer-film__supers cinematic-180__supers" key={`${activeBeat.id}-${lang}`}>
+        <h1 className="cinematic-180__headline" dir={lang === 'ar' ? 'rtl' : 'ltr'} lang={lang}>
+          {words.map((w, i) => (
+            <span
+              key={`${w}-${i}`}
+              className="cinematic-180__word is-in"
+              style={{
+                animationDelay: `${Math.min(i, 8) * CINEMATIC_MOTION.wordStaggerMs}ms`,
+                transitionDuration: `${CINEMATIC_MOTION.headlineRevealMs}ms`,
+              }}
+            >
+              {w}
+              {i < words.length - 1 ? '\u00A0' : ''}
+            </span>
+          ))}
+        </h1>
+        {support && (
+          <p className="cinematic-180__support" dir={lang === 'ar' ? 'rtl' : 'ltr'} lang={lang}>
+            {support}
           </p>
-        ))}
-        {beat.lineAr && lineVisible >= beat.lines.length && (
-          <p className="explainer-film__line explainer-film__line--ar is-in" dir="rtl" lang="ar">
-            {beat.lineAr}
-          </p>
+        )}
+        <p className="cinematic-180__narration" dir={lang === 'ar' ? 'rtl' : 'ltr'} lang={lang}>
+          {narration}
+        </p>
+        {credit && !mediaBlocked && (
+          <p className="cinematic-180__credit">{credit}</p>
         )}
       </div>
 
-      <div
-        className={`explainer-film__wipe explainer-film__wipe--${transitionKind} ${
-          transitioning ? 'is-active' : ''
-        }`}
-        aria-hidden="true"
-      />
-
-      <footer className="explainer-film__bar">
-        <button
-          type="button"
-          data-testid="explainer-skip"
-          data-cta-id="explainer.skip"
-          className="explainer-film__skip"
-          onClick={finish}
+      <footer className="explainer-film__bar cinematic-180__bar">
+        <div className="cinematic-180__transport">
+          <button
+            type="button"
+            className="explainer-film__skip"
+            data-testid="cinematic-play-pause"
+            aria-label={playing ? 'Pause film' : 'Play film'}
+            onClick={() => setPlaying((p) => !p)}
+          >
+            {playing ? 'Pause' : 'Play'}
+          </button>
+          <button
+            type="button"
+            className="explainer-film__skip"
+            data-testid="cinematic-sound"
+            aria-label={soundOn ? 'Mute film' : 'Unmute film'}
+            onClick={() => setSoundOn((s) => !s)}
+          >
+            {soundOn ? 'Sound on' : 'Sound off'}
+          </button>
+          <button
+            type="button"
+            className="explainer-film__skip"
+            data-testid="cinematic-lang"
+            aria-label="Toggle English or Arabic"
+            onClick={() => setLang((l) => (l === 'en' ? 'ar' : 'en'))}
+          >
+            {lang === 'en' ? 'عربي' : 'EN'}
+          </button>
+          <button
+            type="button"
+            data-testid="explainer-skip"
+            data-cta-id="explainer.skip"
+            className="explainer-film__skip cinematic-180__skip-primary"
+            onClick={finish}
+          >
+            Skip
+          </button>
+        </div>
+        <div className="cinematic-180__meta">
+          <span>
+            {Math.floor(secondsFromFrame(editorialFrame) / 60)}:
+            {String(Math.floor(secondsFromFrame(editorialFrame) % 60)).padStart(2, '0')} / 3:00
+          </span>
+          <span className="cinematic-180__diag">{diag}</span>
+          {!completed && (
+            <span>
+              Frame {editorialFrame} · {CINEMATIC_BEATS.length} beats
+            </span>
+          )}
+        </div>
+        <div
+          className="cinematic-180__progress"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress * 100)}
         >
-          Skip
-        </button>
-        <span className="explainer-film__meta">
-          Trailer · ~{Math.round(totalSec)}s · then access code
-        </span>
+          <div style={{ width: `${Math.min(100, progress * 100)}%` }} />
+        </div>
       </footer>
     </div>
   );

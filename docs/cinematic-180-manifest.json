@@ -1,0 +1,53 @@
+{
+  "baseline": {
+    "branch": "main",
+    "commitAtAuthoring": "db8f6f5",
+    "recordedAt": "2026-11-03T16:10:00Z",
+    "host": "https://cerebro-core.vercel.app"
+  },
+  "clock": {
+    "durationSec": 180,
+    "editorialFps": 24,
+    "totalFrames": 4320,
+    "runtime": "requestAnimationFrame playhead — not throttled to 24fps"
+  },
+  "brand": {
+    "id": "nojara-logo-white",
+    "localUrl": "/assets/brand/nojara-logo-white.png",
+    "deliveryCheck": "HTTP_206_IMAGE_VERIFIED_2026-11-03"
+  },
+  "media": [
+    {
+      "id": "med-nojara-showreel-2023",
+      "deliveryCheck": "HTTP_200_VIDEO_MP4_VERIFIED_2026-11-03",
+      "blocked": false
+    },
+    {
+      "id": "med-nojara-laliga",
+      "deliveryCheck": "HTTP_200_VIDEO_MP4_VERIFIED_2026-11-03",
+      "blocked": false
+    },
+    {
+      "id": "med-el-batron",
+      "deliveryCheck": "HTTP_200_VIDEO_MP4_VERIFIED_2026-11-03",
+      "blocked": false
+    },
+    {
+      "id": "tarek",
+      "src": "/assets/media/tarek.mp4",
+      "deliveryCheck": "MISSING_PUBLIC_URL_404",
+      "blocked": true,
+      "gap": "Founder beat shows blocked gap card — no substitute footage"
+    },
+    {
+      "id": "young-human",
+      "src": "/assets/media/young-human.mp4",
+      "deliveryCheck": "MISSING_PUBLIC_URL_404",
+      "blocked": true,
+      "gap": "YAH beat shows blocked gap card — no showreel substitute"
+    }
+  ],
+  "peopleGaps": ["shweekar", "khaled"],
+  "exclusions": ["gondwana-from-journey", "false-laliga-as-mhe-bsocial", "istanbul-for-istamba"],
+  "handover": "Skip or end → Owner Gate keypad (3939) → dual-sphere workspace (existing architecture preserved)"
+}
