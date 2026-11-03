@@ -482,6 +482,8 @@ export interface MountedSphereInstance {
   frontShellMat: THREE.MeshPhysicalMaterial;
   backShellMat: THREE.MeshPhysicalMaterial;
   coreCrystalMat: THREE.MeshPhysicalMaterial;
+  /** Back + front outer shell meshes; geometry may be swapped via masterSphereShape. */
+  shellMeshes?: THREE.Mesh[];
 }
 
 const mountedSphereRegistry = new Map<ConnectedSphereId, MountedSphereInstance>();

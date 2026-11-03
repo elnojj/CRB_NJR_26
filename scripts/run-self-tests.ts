@@ -73,7 +73,28 @@ async function main(): Promise<void> {
     `spatialNavigation-math: ${mathOk ? '1/1 passed' : '0/1 FAILED'} (points=${loop.points.length}, fov=${pose.fov}, ms=${ms})`
   );
 
-  if (gui.failed > 0 || streams.failed > 0 || !plan.ok || !mathOk) {
+  const reg = await import('../src/three/geometryRegistry.ts');
+  const THREE = await import('three');
+  const regFails: string[] = [];
+  for (const key of reg.PRIMITIVE_SHAPE_KEYS) {
+    const g = reg.getShellGeometry(key);
+    const r = g?.boundingSphere?.radius ?? (g?.computeBoundingSphere(), g?.boundingSphere?.radius);
+    if (!g || !r || Math.abs(r - reg.BASE_SHELL_RADIUS) > 0.05) regFails.push(`${key} radius=${r}`);
+    if (reg.getShellGeometry(key) !== g) regFails.push(`${key} not cached`);
+  }
+  if (reg.getShellGeometry('teddyBear') !== null) regFails.push('unloaded custom key should be null');
+  const seeded = new THREE.SphereGeometry(6.2, 8, 6);
+  reg.disposeShellGeometryCache();
+  reg.seedShellGeometry('sphere', seeded);
+  if (reg.getShellGeometry('sphere') !== seeded) regFails.push('seed not honoured');
+  reg.disposeShellGeometryCache([seeded]);
+  const regOk = regFails.length === 0;
+  console.log(
+    `geometryRegistry: ${regOk ? `${reg.PRIMITIVE_SHAPE_KEYS.length + 2} checks passed` : 'FAILED'}`
+  );
+  for (const f of regFails) console.log(`  FAIL ${f}`);
+
+  if (gui.failed > 0 || streams.failed > 0 || !plan.ok || !mathOk || !regOk) {
     process.exit(1);
   }
   console.log('All self-tests passed.');

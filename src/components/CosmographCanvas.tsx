@@ -1,6 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { disposeShellGeometryCache, seedShellGeometry } from '../three/geometryRegistry';
+import { applyNeutralStudioEnvironment } from '../three/studioEnvironment';
+import {
+  SPHERE_SHAPE_EVENT,
+  resetSphereShapes,
+  setMasterSphereShape,
+  type SphereShapeRequest,
+} from '../three/masterSphereShape';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
@@ -160,17 +168,6 @@ export function getD0Materials(): D0Materials {
     }),
   };
   return cachedD0Materials;
-}
-
-export function setupLights(scene: THREE.Scene): THREE.Light[] {
-  const key = new THREE.DirectionalLight(0xfff4d0, 0.85);
-  key.position.set(12, 18, 14);
-  key.castShadow = true;
-  const rim = new THREE.DirectionalLight(0xa4cbff, 0.55);
-  rim.position.set(-14, -10, -8);
-  const fill = new THREE.HemisphereLight(0x3a516e, 0x101622, 0.45);
-  scene.add(key, rim, fill);
-  return [key, rim, fill];
 }
 
 export function applyMaterial(mesh: THREE.Mesh, next: THREE.Material): void {
@@ -1853,33 +1850,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     // Soft fog so blooms and star dust remain readable in workspace (was 0.014 → navy wash).
     scene.fog = new THREE.FogExp2(voidColor, introBridge.enabled ? 0.006 : 0.007);
 
-    const pmremGenerator = new THREE.PMREMGenerator(renderer);
-    pmremGenerator.compileCubemapShader();
-    const neutralStudioScene = new THREE.Scene();
-    neutralStudioScene.background = new THREE.Color(0x05090e);
-    neutralStudioScene.add(new THREE.HemisphereLight(0x142632, 0x05090e, 0.55));
-    const studioDomeGeo = new THREE.SphereGeometry(24, 32, 24);
-    const studioDomeMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(0x0d1822),
-      side: THREE.BackSide,
-    });
-    neutralStudioScene.add(new THREE.Mesh(studioDomeGeo, studioDomeMat));
-    scene.environment = pmremGenerator.fromScene(neutralStudioScene, 0.12).texture;
-    (
-      scene as THREE.Scene & {
-        environmentIntensity?: number;
-        backgroundBlurriness?: number;
-      }
-    ).environmentIntensity = 0.35;
-    (
-      scene as THREE.Scene & {
-        environmentIntensity?: number;
-        backgroundBlurriness?: number;
-      }
-    ).backgroundBlurriness = 0.8;
-    studioDomeGeo.dispose();
-    studioDomeMat.dispose();
-    pmremGenerator.dispose();
+    applyNeutralStudioEnvironment(scene, renderer);
 
     const camera = new THREE.PerspectiveCamera(46, initW / initH, 0.1, 200);
 
@@ -2369,6 +2340,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       return {
         root,
         shellGroup,
+        shellMeshes: [backShellMesh, frontShellMesh],
         frontShellMat,
         backShellMat,
         domeGridMat,
@@ -2950,6 +2922,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         frontShellMat: hqAssembly.frontShellMat,
         backShellMat: hqAssembly.backShellMat,
         coreCrystalMat: hqAssembly.coreCrystalMat,
+        shellMeshes: hqAssembly.shellMeshes,
       },
       cde: {
         id: 'cde',
@@ -2959,6 +2932,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         frontShellMat: cdeAssembly.frontShellMat,
         backShellMat: cdeAssembly.backShellMat,
         coreCrystalMat: cdeAssembly.coreCrystalMat,
+        shellMeshes: cdeAssembly.shellMeshes,
       },
       ...(peerAssemblies['campaign-os']
         ? {
@@ -2970,6 +2944,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               frontShellMat: peerAssemblies['campaign-os'].frontShellMat,
               backShellMat: peerAssemblies['campaign-os'].backShellMat,
               coreCrystalMat: peerAssemblies['campaign-os'].coreCrystalMat,
+              shellMeshes: peerAssemblies['campaign-os'].shellMeshes,
             },
           }
         : {}),
@@ -2983,10 +2958,17 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               frontShellMat: peerAssemblies['about-us'].frontShellMat,
               backShellMat: peerAssemblies['about-us'].backShellMat,
               coreCrystalMat: peerAssemblies['about-us'].coreCrystalMat,
+              shellMeshes: peerAssemblies['about-us'].shellMeshes,
             },
           }
         : {}),
     });
+    seedShellGeometry('sphere', sharedShellGeo);
+    const onSphereShape = (e: Event) => {
+      const detail = (e as CustomEvent<SphereShapeRequest>).detail;
+      if (detail?.shape) void setMasterSphereShape(detail);
+    };
+    window.addEventListener(SPHERE_SHAPE_EVENT, onSphereShape);
     // Procedural إصطمبة mould proof — reconstruction only; parent HQ sphere stays intact.
     let istanbaProof: IstanbaProofHandle | null = null;
     try {
@@ -4477,6 +4459,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       projectWorldHostRef.current = null;
       masterRootRef.current = null;
       clearMountedSphereInstances();
+      window.removeEventListener(SPHERE_SHAPE_EVENT, onSphereShape);
+      resetSphereShapes();
+      disposeShellGeometryCache([sharedShellGeo]);
       introBridge.detach();
       spatialBillboards.dispose();
       renderer.dispose();
