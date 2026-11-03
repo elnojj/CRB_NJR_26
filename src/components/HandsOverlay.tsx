@@ -82,6 +82,8 @@ interface HandsOverlayProps {
   onTrackingLost?: () => void;
   /** Fired when landmarks reappear after a loss. */
   onTrackingAcquired?: () => void;
+  /** Pixels from viewport bottom reserved for Voice capsule + utility bar. */
+  dockClearancePx?: number;
 }
 
 const BASE_LEFT_LANDMARKS: [number, number][] = [
@@ -114,6 +116,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
   onCloseHands,
   onTrackingLost,
   onTrackingAcquired,
+  dockClearancePx = 148,
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const filterXRef = useRef(new OneEuroFilter(60, 1.4, 0.05));
@@ -524,251 +527,90 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
     },
   };
 
-  const renderGlove = (pts: [number, number][], side: 'left' | 'right') => {
+  /** Cryo-glass tracking rig — hairline bones + tip dots. No filled gloves. */
+  const renderTrackingRig = (pts: [number, number][], side: 'left' | 'right') => {
     const isPinchActive = pinchLocked || activeGesture === 'pinch-orbit';
-    // Soft glass glove — ice/gold, never neon skeleton green zigzags.
-    const gloveAccent = isPinchActive ? COLOUR_TOKENS.stationMedia : '#B4DDFF';
-    const iceEdge = '#B4DDFF';
-    const sheen = '#FFF4D0';
-    const uid = `${side}-glove`;
-    const fingertipLabels = ['THUMB', 'INDEX', 'MIDDLE', 'RING', 'PINKY'];
-    const phoneSoft = isPhone;
-
-    const palmIdx = [0, 1, 5, 9, 13, 17];
-    const palmPts = palmIdx.map((i) => pts[i]);
-    const palmCx = palmPts.reduce((s, p) => s + p[0], 0) / palmPts.length;
-    const palmCy = palmPts.reduce((s, p) => s + p[1], 0) / palmPts.length;
-    const expandPalm = (scale: number) =>
-      palmPts
-        .map(([x, y]) => {
-          const dx = x - palmCx;
-          const dy = y - palmCy;
-          return `${palmCx + dx * scale},${palmCy + dy * scale}`;
-        })
-        .join(' ');
-
-    // Thin soft finger ribbons (phone) / glass tubes (desktop) — no bone dots.
-    const fingerChains: { id: string; indices: number[]; width: number }[] = [
-      { id: 'thumb', indices: [1, 2, 3, 4], width: phoneSoft ? 10 : 22 },
-      { id: 'index', indices: [5, 6, 7, 8], width: phoneSoft ? 9 : 18 },
-      { id: 'middle', indices: [9, 10, 11, 12], width: phoneSoft ? 9 : 20 },
-      { id: 'ring', indices: [13, 14, 15, 16], width: phoneSoft ? 8 : 17 },
-      { id: 'pinky', indices: [17, 18, 19, 20], width: phoneSoft ? 7 : 15 },
+    const bones: number[][] = [
+      [0, 1, 2, 3, 4],
+      [0, 5, 6, 7, 8],
+      [0, 9, 10, 11, 12],
+      [0, 13, 14, 15, 16],
+      [0, 17, 18, 19, 20],
+      [5, 9, 13, 17],
     ];
-
+    const tipIdx = [4, 8, 12, 16, 20];
+    const jointIdx = [0, 1, 5, 9, 13, 17];
+    const tipLabels = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky'];
     const chainPath = (indices: number[]) =>
       indices
         .map((i, n) => `${n === 0 ? 'M' : 'L'} ${pts[i][0].toFixed(1)} ${pts[i][1].toFixed(1)}`)
         .join(' ');
-
-    const silhouette = [
-      pts[0],
-      pts[1],
-      pts[2],
-      pts[3],
-      pts[4],
-      pts[8],
-      pts[12],
-      pts[16],
-      pts[20],
-      pts[19],
-      pts[18],
-      pts[17],
-      pts[0],
-    ];
-    const silhouetteD = silhouette
-      .map((p, n) => `${n === 0 ? 'M' : 'L'} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`)
-      .join(' ');
-
-    const xs = pts.map((p) => p[0]);
-    const ys = pts.map((p) => p[1]);
-    const minX = Math.min(...xs) - 28;
-    const maxX = Math.max(...xs) + 28;
-    const minY = Math.min(...ys) - 32;
-    const maxY = Math.max(...ys) + 28;
-    const bracketLen = 14;
-
     const thumbPt = pts[4];
     const indexPt = pts[8];
     const midX = (thumbPt[0] + indexPt[0]) * 0.5;
     const midY = (thumbPt[1] + indexPt[1]) * 0.5;
+    const strokeW = isPhone ? 1.1 : 1.35;
 
     return (
-      <g key={side} className="cursor-pointer" opacity={phoneSoft ? 0.72 : 1}>
-        <defs>
-          <linearGradient id={`${uid}-shell`} x1="18%" y1="8%" x2="82%" y2="92%">
-            <stop offset="0%" stopColor={isPinchActive ? sheen : iceEdge} stopOpacity={phoneSoft ? 0.16 : 0.28} />
-            <stop offset="42%" stopColor={isPinchActive ? '#D4AF37' : iceEdge} stopOpacity={phoneSoft ? 0.08 : 0.12} />
-            <stop offset="100%" stopColor="#03060c" stopOpacity="0.35" />
-          </linearGradient>
-          <radialGradient id={`${uid}-palm`} cx="38%" cy="28%" r="78%">
-            <stop offset="0%" stopColor={isPinchActive ? sheen : iceEdge} stopOpacity={phoneSoft ? 0.32 : 0.5} />
-            <stop
-              offset="45%"
-              stopColor={isPinchActive ? 'rgba(212, 175, 55, 0.4)' : 'rgba(180, 221, 255, 0.28)'}
-            />
-            <stop offset="100%" stopColor="rgba(12, 18, 28, 0.45)" stopOpacity="0.55" />
-          </radialGradient>
-          <linearGradient id={`${uid}-finger`} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={isPinchActive ? sheen : iceEdge} stopOpacity={phoneSoft ? 0.35 : 0.55} />
-            <stop
-              offset="55%"
-              stopColor={isPinchActive ? 'rgba(212, 175, 55, 0.4)' : 'rgba(180, 221, 255, 0.32)'}
-            />
-            <stop offset="100%" stopColor="rgba(8, 14, 22, 0.28)" stopOpacity="0.4" />
-          </linearGradient>
-          {!phoneSoft && (
-            <>
-              <filter id={`${uid}-soft`} x="-35%" y="-35%" width="170%" height="170%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="blur" />
-                <feColorMatrix
-                  in="blur"
-                  type="matrix"
-                  values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.85 0"
-                  result="soft"
-                />
-                <feMerge>
-                  <feMergeNode in="soft" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-              <filter id={`${uid}-glow`} x="-60%" y="-60%" width="220%" height="220%">
-                <feGaussianBlur stdDeviation="3.5" result="g" />
-                <feMerge>
-                  <feMergeNode in="g" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </>
-          )}
-        </defs>
-
-        {!phoneSoft && (
-          <g stroke={gloveAccent} strokeWidth="1.5" fill="none" opacity="0.45">
-            <path d={`M ${minX} ${minY + bracketLen} V ${minY} H ${minX + bracketLen}`} />
-            <path d={`M ${maxX - bracketLen} ${minY} H ${maxX} V ${minY + bracketLen}`} />
-            <path d={`M ${minX} ${maxY - bracketLen} V ${maxY} H ${minX + bracketLen}`} />
-            <path d={`M ${maxX - bracketLen} ${maxY} H ${maxX} V ${maxY - bracketLen}`} />
-          </g>
-        )}
-
-        {!phoneSoft && (
-          <text
-            x={minX}
-            y={minY - 10}
-            fill={isPinchActive ? sheen : iceEdge}
-            fillOpacity="0.72"
-            fontSize="11"
-            fontFamily="JetBrains Mono, monospace"
-          >
-            {side === 'left' ? 'Left' : 'Right'}
-            {handMode === 'two-hands' ? '' : ' · One hand'}
-          </text>
-        )}
-
-        <path
-          d={silhouetteD}
-          fill={`url(#${uid}-shell)`}
-          stroke={isPinchActive ? gloveAccent : iceEdge}
-          strokeOpacity={phoneSoft ? 0.18 : 0.28}
-          strokeWidth={phoneSoft ? 0.8 : 1.1}
-          strokeLinejoin="round"
-          filter={phoneSoft ? undefined : `url(#${uid}-soft)`}
-        />
-
-        <polygon
-          points={expandPalm(phoneSoft ? 1.18 : 1.28)}
-          fill={`url(#${uid}-palm)`}
-          stroke={isPinchActive ? gloveAccent : iceEdge}
-          strokeOpacity={phoneSoft ? 0.28 : 0.42}
-          strokeWidth={phoneSoft ? 1 : 1.35}
-          strokeLinejoin="round"
-          filter={phoneSoft ? undefined : `url(#${uid}-glow)`}
-        />
-        {!phoneSoft && (
-          <ellipse
-            cx={palmCx - 8}
-            cy={palmCy - 14}
-            rx={28}
-            ry={16}
-            fill={isPinchActive ? sheen : iceEdge}
-            fillOpacity="0.22"
-            style={{ mixBlendMode: 'screen' }}
+      <g key={side} className="cerebro-hands-track cursor-pointer" opacity={isPhone ? 0.78 : 0.92}>
+        {bones.map((indices, bi) => (
+          <path
+            key={`${side}-bone-${bi}`}
+            className="bone"
+            d={chainPath(indices)}
+            strokeWidth={strokeW}
           />
-        )}
-        <polygon points={expandPalm(1.05)} fill="rgba(3, 6, 12, 0.14)" />
-
-        {fingerChains.map((finger) => (
-          <g key={`${side}-${finger.id}`}>
-            <path
-              d={chainPath(finger.indices)}
-              fill="none"
-              stroke={`url(#${uid}-finger)`}
-              strokeWidth={finger.width}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              opacity={phoneSoft ? 0.55 : 0.88}
-              filter={phoneSoft ? undefined : `url(#${uid}-soft)`}
-            />
-            {!phoneSoft && (
-              <path
-                d={chainPath(finger.indices)}
-                fill="none"
-                stroke={isPinchActive ? sheen : iceEdge}
-                strokeWidth={finger.width * 0.14}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity="0.35"
-              />
-            )}
-          </g>
         ))}
-
+        {jointIdx.map((idx) => (
+          <circle
+            key={`${side}-joint-${idx}`}
+            className="joint"
+            cx={pts[idx][0]}
+            cy={pts[idx][1]}
+            r={isPhone ? 2.2 : 2.8}
+          />
+        ))}
+        {tipIdx.map((idx, tipOrder) => {
+          const [px, py] = pts[idx];
+          return (
+            <g key={`${side}-tip-${idx}`}>
+              <circle className="tip" cx={px} cy={py} r={isPhone ? 3.4 : 4.2} />
+              <circle
+                cx={px}
+                cy={py}
+                r={isPhone ? 14 : 16}
+                fill="transparent"
+                className="cursor-pointer pointer-events-auto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const panX = px / 1366 - 0.5;
+                  const played = soundEngine.playFingertipNote(tipOrder, panX * 2);
+                  setActiveNote(`${tipLabels[tipOrder]} · ${played.name}`);
+                  spawnSparklesAt(px, py, COLOUR_TOKENS.sphereWireframe);
+                  onTriggerGesture(idx === 4 || idx === 8 ? 'pinch-orbit' : 'point-select');
+                }}
+              />
+            </g>
+          );
+        })}
         <line
+          className={isPinchActive ? 'pinch-chord' : 'bone'}
           x1={thumbPt[0]}
           y1={thumbPt[1]}
           x2={indexPt[0]}
           y2={indexPt[1]}
-          stroke={gloveAccent}
-          strokeWidth={isPinchActive ? (phoneSoft ? 1.6 : 2.2) : 1.1}
-          strokeOpacity={isPinchActive ? 0.75 : 0.28}
-          strokeDasharray={isPinchActive ? undefined : '5 5'}
-          filter={!phoneSoft && isPinchActive ? `url(#${uid}-glow)` : undefined}
+          strokeWidth={isPinchActive ? (isPhone ? 1.6 : 2) : 1}
+          strokeDasharray={isPinchActive ? undefined : '4 6'}
         />
-        <circle
-          cx={midX}
-          cy={midY}
-          r={isPinchActive ? (phoneSoft ? 5 : 8) : 3.5}
-          fill={isPinchActive ? `url(#${uid}-palm)` : 'none'}
-          fillOpacity={isPinchActive ? 0.8 : 0}
-          stroke={gloveAccent}
-          strokeWidth="1.2"
-          strokeOpacity="0.55"
-        />
-
-        {[4, 8, 12, 16, 20].map((idx, tipOrder) => {
-          const [px, py] = pts[idx];
-          return (
-            <circle
-              key={`${side}-tip-${idx}`}
-              cx={px}
-              cy={py}
-              r={phoneSoft ? 12 : 16}
-              fill="transparent"
-              className="cursor-pointer"
-              onClick={(e) => {
-                e.stopPropagation();
-                const panX = px / 1366 - 0.5;
-                const played = soundEngine.playFingertipNote(tipOrder, panX * 2);
-                setActiveNote(
-                  `${side.toUpperCase()} ${fingertipLabels[tipOrder]} · ${played.name} (${played.freq}Hz)`
-                );
-                spawnSparklesAt(px, py, COLOUR_TOKENS.stationMedia);
-                onTriggerGesture(idx === 4 || idx === 8 ? 'pinch-orbit' : 'point-select');
-              }}
-            />
-          );
-        })}
+        {isPinchActive && (
+          <circle
+            cx={midX}
+            cy={midY}
+            r={isPhone ? 3.5 : 4.5}
+            fill={COLOUR_TOKENS.trackingValid}
+            fillOpacity={0.85}
+          />
+        )}
       </g>
     );
   };
@@ -792,27 +634,24 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           // Keep in DOM layout (never display:none) so MediaPipe can sample frames.
           style={{ width: 640, height: 480, maxWidth: '100%', maxHeight: '100%' }}
           className={`absolute inset-0 object-cover scale-x-[-1] transition-opacity duration-300 ${
-            hasLiveCam ? (isPhone ? 'opacity-[0.08]' : 'opacity-14') : 'opacity-0'
+            hasLiveCam ? (isPhone ? 'opacity-[0.04]' : 'opacity-[0.07]') : 'opacity-0'
           }`}
         />
-        {/* Light veil only — must not wash the workspace atmospheric field back to flat navy. */}
+        {/* Soft veil only — no sensor-grid wash; keep cryo void readable. */}
         <svg
-          className={`w-full h-full object-cover scale-x-[-1] ${isPhone ? 'opacity-12' : 'opacity-28'}`}
+          className={`w-full h-full object-cover scale-x-[-1] ${isPhone ? 'opacity-[0.08]' : 'opacity-[0.14]'}`}
           viewBox="0 0 1366 1024"
           preserveAspectRatio="xMidYMid slice"
+          aria-hidden="true"
         >
           <defs>
             <radialGradient id="camFeedField" cx="50%" cy="40%">
-              <stop offset="0%" stopColor="#243848" stopOpacity="0.22" />
-              <stop offset="55%" stopColor="#0a1520" stopOpacity="0.18" />
-              <stop offset="100%" stopColor="#03060c" stopOpacity="0.28" />
+              <stop offset="0%" stopColor="#243848" stopOpacity="0.16" />
+              <stop offset="55%" stopColor="#0a1520" stopOpacity="0.1" />
+              <stop offset="100%" stopColor="#03060c" stopOpacity="0.18" />
             </radialGradient>
-            <pattern id="camSensorGrid" width="48" height="48" patternUnits="userSpaceOnUse">
-              <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#B4DDFF" strokeWidth="0.4" strokeOpacity="0.10" />
-            </pattern>
           </defs>
           <rect width="1366" height="1024" fill="url(#camFeedField)" />
-          <rect width="1366" height="1024" fill="url(#camSensorGrid)" />
         </svg>
       </div>
 
@@ -827,82 +666,71 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           <path
             d="M 410 560 A 295 295 0 0 1 956 560"
             fill="none"
-            stroke={pinchLocked ? COLOUR_TOKENS.stationMedia : '#B4DDFF'}
-            strokeOpacity="0.42"
-            strokeWidth="2"
-            strokeDasharray="8 6"
+            stroke={COLOUR_TOKENS.sphereWireframe}
+            strokeOpacity="0.22"
+            strokeWidth="1.25"
+            strokeDasharray="6 8"
           />
 
           {sparkles.map((sp) => (
-            <g key={sp.id} opacity={sp.opacity}>
-              <circle cx={sp.x} cy={sp.y} r={sp.size} fill={sp.colour} />
+            <g key={sp.id} opacity={sp.opacity * 0.65}>
+              <circle
+                cx={sp.x}
+                cy={sp.y}
+                r={Math.min(3.5, sp.size * 0.55)}
+                fill={COLOUR_TOKENS.sphereWireframe}
+              />
             </g>
           ))}
 
-          {leftPts && (handMode === 'two-hands' || handMode === 'left-only') && renderGlove(leftPts, 'left')}
-          {rightPts && (handMode === 'two-hands' || handMode === 'right-only') && renderGlove(rightPts, 'right')}
+          {leftPts && (handMode === 'two-hands' || handMode === 'left-only') &&
+            renderTrackingRig(leftPts, 'left')}
+          {rightPts && (handMode === 'two-hands' || handMode === 'right-only') &&
+            renderTrackingRig(rightPts, 'right')}
         </svg>
 
         <div
-          className="mt-auto mx-auto w-full max-w-4xl pointer-events-auto z-20 px-1"
+          className="mt-auto mx-auto w-full max-w-3xl pointer-events-auto z-20 px-1"
           style={{
-            // Keep clear of voice dock + home indicator
-            paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0px))',
-            marginBottom: 'max(4.75rem, calc(env(safe-area-inset-bottom, 0px) + 4.25rem))',
+            paddingBottom: 'max(0.35rem, env(safe-area-inset-bottom, 0px))',
+            marginBottom: `max(${dockClearancePx}px, calc(env(safe-area-inset-bottom, 0px) + ${dockClearancePx}px))`,
           }}
         >
           <div
-            className="rounded-[1.1rem] px-3 py-2.5 sm:px-5 sm:py-3.5 border flex flex-wrap items-center justify-between gap-2 sm:gap-4"
-            style={{
-              backgroundColor: 'rgba(16, 24, 36, 0.55)',
-              backdropFilter: 'blur(18px) saturate(1.15)',
-              WebkitBackdropFilter: 'blur(18px) saturate(1.15)',
-              borderColor: pinchLocked
-                ? 'rgba(212, 175, 55, 0.45)'
-                : 'rgba(180, 221, 255, 0.28)',
-              boxShadow:
-                '0 18px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(180, 221, 255, 0.14)',
-            }}
+            className="cerebro-hands-hud cj-glass-card px-3 py-2.5 sm:px-4 sm:py-3 flex flex-wrap items-center justify-between gap-2 sm:gap-3"
+            data-chrome="glass"
+            data-chrome-state={hasLiveCam ? 'active' : 'cold'}
+            data-testid="hands-gesture-hud"
           >
             <div className="flex flex-col gap-0.5 min-w-0 flex-1">
               <div className="flex items-center gap-2 min-w-0">
                 <span
                   className="w-2 h-2 rounded-full shrink-0"
                   style={{
-                    backgroundColor: pinchLocked
-                      ? COLOUR_TOKENS.stationMedia
-                      : COLOUR_TOKENS.trackingValid,
-                    boxShadow: pinchLocked
-                      ? '0 0 10px rgba(212, 175, 55, 0.55)'
-                      : '0 0 10px rgba(54, 232, 141, 0.45)',
+                    backgroundColor: hasLiveCam
+                      ? COLOUR_TOKENS.trackingValid
+                      : COLOUR_TOKENS.sphereWireframe,
+                    opacity: hasLiveCam ? 1 : 0.55,
                   }}
                 />
-                <span className="font-display font-semibold text-[12px] sm:text-xs tracking-[0.08em] uppercase text-[#F2F6F8] truncate">
-                  #11 · {gestureMeta[activeGesture].title}
+                <span className="cerebro-chrome-title text-[12px] sm:text-[13px] truncate">
+                  Gesture · {gestureMeta[activeGesture].title}
                 </span>
                 <span
-                  className="font-mono tabular-nums text-[12px] px-2 py-0.5 rounded-lg text-[#36E88D] border shrink-0"
-                  style={{
-                    backgroundColor: 'rgba(12, 18, 28, 0.72)',
-                    borderColor: 'rgba(180, 221, 255, 0.22)',
-                  }}
+                  className="cerebro-status-chip shrink-0"
+                  data-state={hasLiveCam ? 'live' : 'wait'}
                 >
-                  LIVE
+                  {hasLiveCam ? 'LIVE' : 'WAIT'}
                 </span>
               </div>
-              <span className="hidden sm:block font-mono text-xs text-[#BDCBD3] truncate">
+              <span className="hidden sm:block cerebro-chrome-meta truncate">
                 {gestureMeta[activeGesture].subtitle} · {cvStatusLabel}
+                {activeNote ? ` · ${activeNote}` : ''}
               </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <div
-                className="flex items-center rounded-xl p-0.5 border"
-                style={{
-                  backgroundColor: 'rgba(12, 18, 28, 0.72)',
-                  borderColor: 'rgba(180, 221, 255, 0.22)',
-                }}
-              >
+              <div className="flex items-center gap-0.5 rounded-[10px] p-0.5 border border-[color:var(--token-divider)] bg-[color:var(--token-hud-pocket-bg)]">
                 {(
                   [
                     { id: 'right-only', label: '1×', full: 'One Hand' },
@@ -915,21 +743,11 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                     type="button"
                     title={m.full}
                     aria-label={m.full}
+                    aria-pressed={handMode === m.id}
                     data-testid={`hand-mode-${m.id}`}
+                    data-chrome-state={handMode === m.id ? 'active' : 'cold'}
                     onClick={() => onChangeHandMode(m.id)}
-                    className={`min-h-[40px] sm:min-h-[44px] min-w-[40px] px-2 sm:px-3 py-1.5 rounded-lg font-mono text-xs transition-colors cursor-pointer ${
-                      handMode === m.id
-                        ? 'font-semibold text-[#03060c]'
-                        : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
-                    }`}
-                    style={
-                      handMode === m.id
-                        ? {
-                            background:
-                              'linear-gradient(135deg, #FFF4D0 0%, #D4AF37 72%)',
-                          }
-                        : undefined
-                    }
+                    className="cerebro-chrome-btn min-h-[40px] sm:min-h-[44px]"
                   >
                     <span className="sm:hidden">{m.label}</span>
                     <span className="hidden sm:inline">{m.full}</span>
@@ -946,27 +764,17 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                     { id: 'point-select', label: 'Point', full: 'Point Select' },
                   ] as const
                 ).map((g) => {
-                  const active = activeGesture === g.id;
+                  const pressed = activeGesture === g.id;
                   return (
                     <button
                       key={g.id}
                       type="button"
                       title={g.full}
                       aria-label={g.full}
+                      aria-pressed={pressed}
+                      data-chrome-state={pressed ? 'active' : 'cold'}
                       onClick={() => onTriggerGesture(g.id)}
-                      className={`min-h-[40px] sm:min-h-[44px] px-2 sm:px-3 py-1.5 rounded-xl font-mono text-[12px] sm:text-xs border transition-colors cursor-pointer ${
-                        active
-                          ? 'text-[#F2F6F8] font-semibold'
-                          : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
-                      }`}
-                      style={{
-                        borderColor: active
-                          ? 'rgba(54, 232, 141, 0.55)'
-                          : 'rgba(180, 221, 255, 0.22)',
-                        backgroundColor: active
-                          ? 'rgba(54, 232, 141, 0.16)'
-                          : 'rgba(12, 18, 28, 0.72)',
-                      }}
+                      className="cerebro-chrome-btn min-h-[40px] sm:min-h-[44px]"
                     >
                       <span className="sm:hidden">{g.label}</span>
                       <span className="hidden sm:inline">{g.full}</span>
@@ -978,11 +786,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
               <button
                 type="button"
                 onClick={onCloseHands}
-                className="min-h-[40px] sm:min-h-[44px] px-3 sm:px-4 py-1.5 rounded-xl font-mono text-xs border text-[#F2F6F8] cursor-pointer font-medium hover:border-[rgba(212,175,55,0.55)]"
-                style={{
-                  borderColor: 'rgba(180, 221, 255, 0.22)',
-                  backgroundColor: 'rgba(12, 18, 28, 0.72)',
-                }}
+                className="cerebro-chrome-btn min-h-[40px] sm:min-h-[44px] font-medium"
               >
                 Exit
               </button>

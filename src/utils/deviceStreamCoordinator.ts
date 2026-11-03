@@ -117,7 +117,7 @@ export async function getSharedWebcamStream(
       typeof track === 'boolean' ? track : { ...DEFAULT_WEBCAM, ...track };
     webcamInflight = requestUserMedia(
       { video, audio: false },
-      { timeoutMs: 12000, label: 'webcam' }
+      { timeoutMs: 8000, label: 'webcam' }
     )
       .then((stream) => {
         webcamStream = stream;

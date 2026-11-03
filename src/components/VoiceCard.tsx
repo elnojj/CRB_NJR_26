@@ -121,6 +121,7 @@ function voiceRingScale(level: number, _rising: boolean): number {
 
 export const VoiceCard: React.FC<VoiceCardProps> = ({
   voiceState,
+  handsActive,
   tourState,
   transcripts,
   liveCaption,
@@ -470,23 +471,35 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       voiceState === 'Speaking');
 
   const layoutRect = guiLayout?.voiceRect;
+  // When gesture HUD is open, park the voice capsule lower so Hands chrome stacks cleanly above.
   const capsuleStyle: React.CSSProperties = layoutRect
     ? {
         position: 'fixed',
-        left: layoutRect.x,
-        top: layoutRect.y,
+        left: handsActive
+          ? Math.max(12, layoutRect.x - Math.round(layoutRect.w * 0.15))
+          : layoutRect.x,
+        top: handsActive
+          ? Math.min(
+              layoutRect.y + 8,
+              (guiLayout?.viewportH ?? window.innerHeight) - layoutRect.h - 56
+            )
+          : layoutRect.y,
         width: Math.min(256, Math.max(220, layoutRect.w)),
         height: Math.min(56, Math.max(48, layoutRect.h)),
         zIndex: 100,
+        opacity: handsActive ? 0.92 : 1,
       }
     : {
         position: 'fixed',
-        left: '50%',
-        bottom: 'max(16px, calc((100% - 56px) * 0.12 + env(safe-area-inset-bottom, 0px)))',
-        transform: 'translateX(-50%)',
+        left: handsActive ? 'max(12px, 4vw)' : '50%',
+        bottom: handsActive
+          ? 'max(56px, calc(env(safe-area-inset-bottom, 0px) + 48px))'
+          : 'max(16px, calc((100% - 56px) * 0.12 + env(safe-area-inset-bottom, 0px)))',
+        transform: handsActive ? 'none' : 'translateX(-50%)',
         width: 'min(256px, max(220px, 56vw))',
         height: 52,
         zIndex: 100,
+        opacity: handsActive ? 0.92 : 1,
       };
 
   const lastLine = transcripts[transcripts.length - 1];

@@ -3764,6 +3764,14 @@ export default function App() {
         onCloseHands={() => setHandsActive(false)}
         onTrackingLost={() => setGestureTrackingActive(false)}
         onTrackingAcquired={() => setGestureTrackingActive(true)}
+        dockClearancePx={
+          guiLayout
+            ? Math.max(
+                148,
+                guiLayout.viewportH - guiLayout.voiceRect.y + 16
+              )
+            : 168
+        }
       />
 
       {/* 2C. Unified Intro Overlay (Single shared 3D sphere canvas continuously mounted underneath) */}
@@ -4565,6 +4573,7 @@ export default function App() {
         data-testid="bottom-utility-bar"
         onPointerDown={(e) => e.stopPropagation()}
         onWheel={(e) => e.stopPropagation()}
+        data-chrome="glass"
         className={`fixed bottom-3 left-3 right-3 md:left-5 md:right-5 lg:left-6 lg:right-6 z-[45] pointer-events-none ${
           introMode !== 'workspace' ? 'opacity-0 pointer-events-none' : ''
         } ${
