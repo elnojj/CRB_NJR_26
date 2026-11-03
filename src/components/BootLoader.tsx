@@ -101,9 +101,16 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
     return (
       <div
         data-testid="owner-gate-keypad"
-        className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 select-none safe-top safe-bottom pointer-events-auto"
+        className="fixed inset-0 z-50 flex flex-col items-center justify-center select-none pointer-events-auto overflow-hidden"
         style={{
-          backgroundColor: 'rgba(16, 22, 34, 0.45)',
+          width: '100%',
+          height: '100dvh',
+          minHeight: '100dvh',
+          maxHeight: '100dvh',
+          padding:
+            'max(16px, env(safe-area-inset-top)) 20px max(16px, env(safe-area-inset-bottom))',
+          boxSizing: 'border-box',
+          backgroundColor: '#0a1218',
         }}
       >
         <div className="cj-glass-card w-full max-w-sm rounded-xl p-5 flex flex-col items-center gap-4 neural-reveal">
@@ -276,107 +283,81 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
   return (
     <div
       data-testid="boot-loader-screen"
-      className="fixed inset-0 z-50 flex flex-col items-center justify-between p-6 select-none safe-top safe-bottom pointer-events-auto overflow-hidden"
+      className="fixed inset-0 z-50 flex flex-col select-none pointer-events-auto overflow-hidden"
       style={{
-        backgroundColor: 'rgba(10, 18, 24, 0.72)',
-        backdropFilter: 'blur(16px) saturate(1.25)',
-        WebkitBackdropFilter: 'blur(16px) saturate(1.25)',
+        width: '100%',
+        height: '100dvh',
+        minHeight: '100dvh',
+        maxHeight: '100dvh',
+        padding:
+          'max(16px, env(safe-area-inset-top)) 20px max(16px, env(safe-area-inset-bottom))',
+        boxSizing: 'border-box',
+        backgroundColor: '#0a1218',
       }}
     >
-      {/* Background Spatial Optical Compass / Orbital Ring Infographics */}
+      {/* Full-bleed orbital backdrop — one screen, no half-page gap */}
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
         <svg
-          className="w-[900px] h-[900px] max-w-[95vw] max-h-[95vh] opacity-35"
+          className="w-[min(900px,140vw)] h-[min(900px,140vw)] opacity-35"
           viewBox="0 0 800 800"
           fill="none"
+          aria-hidden="true"
         >
           <circle
             cx="400"
             cy="400"
             r="320"
-            stroke="#D4AF37"
-            strokeOpacity="0.22"
+            stroke="#4C8DFF"
+            strokeOpacity="0.28"
             strokeWidth="1"
             strokeDasharray="4 8"
             className="animate-spin"
             style={{ animationDuration: '60s' }}
           />
-          <circle
-            cx="400"
-            cy="400"
-            r="240"
-            stroke="#B4DDFF"
-            strokeOpacity="0.18"
-            strokeWidth="0.8"
-          />
+          <circle cx="400" cy="400" r="240" stroke="#B4DDFF" strokeOpacity="0.18" strokeWidth="0.8" />
           <circle
             cx="400"
             cy="400"
             r="160"
-            stroke="#D4AF37"
-            strokeOpacity="0.28"
+            stroke="#9AFFE0"
+            strokeOpacity="0.22"
             strokeWidth="1.2"
             strokeDasharray="8 6"
           />
-          <line x1="400" y1="40" x2="400" y2="760" stroke="#FFF4D0" strokeOpacity="0.12" strokeWidth="0.8" />
-          <line x1="40" y1="400" x2="760" y2="400" stroke="#FFF4D0" strokeOpacity="0.12" strokeWidth="0.8" />
+          <line x1="400" y1="40" x2="400" y2="760" stroke="#B4DDFF" strokeOpacity="0.12" strokeWidth="0.8" />
+          <line x1="40" y1="400" x2="760" y2="400" stroke="#B4DDFF" strokeOpacity="0.12" strokeWidth="0.8" />
           <line x1="160" y1="160" x2="640" y2="640" stroke="#B4DDFF" strokeOpacity="0.08" strokeWidth="0.8" />
           <line x1="160" y1="640" x2="640" y2="160" stroke="#B4DDFF" strokeOpacity="0.08" strokeWidth="0.8" />
         </svg>
       </div>
 
-      {/* Top Header Bar — Clean, Cinematic & Minimal */}
-      <header
-        className={`w-full max-w-5xl flex items-center justify-between gap-4 py-2 z-10 transition-opacity duration-500 ${
+      {/* Single centered composition — brand, status, CTAs together (not a split page) */}
+      <div
+        className={`relative z-10 m-auto flex w-full max-w-lg flex-col items-center gap-6 text-center transition-opacity duration-500 ${
           isExiting ? 'opacity-0' : 'opacity-100'
         }`}
       >
         <div className="flex items-center gap-2.5">
           <span
             className="w-2.5 h-2.5 rounded-full"
-            style={{ backgroundColor: COLOUR_TOKENS.activeGold, boxShadow: '0 0 10px rgba(212, 175, 55, 0.6)' }}
+            style={{
+              backgroundColor: COLOUR_TOKENS.activeGold,
+              boxShadow: '0 0 10px rgba(154, 255, 224, 0.55)',
+            }}
           />
-          <span className="font-display font-semibold text-xs tracking-[0.2em] uppercase text-[#FFF4D0]">
+          <span className="font-display font-semibold text-xs tracking-[0.2em] uppercase text-[#F2F6F8]">
             NOJARA CEREBRO
           </span>
-          <span className="hidden sm:inline font-mono text-[10px] text-[#C5CCD6]/70 px-2 py-0.5 rounded border border-white/5 bg-[#101622]/40 tracking-wider">
-            Spatial Constellation
-          </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="hidden font-mono tabular-nums text-xs text-[#FFF4D0]">
-            {(elapsedMs / 1000).toFixed(1)}s
-          </span>
-          <button
-            type="button"
-            onClick={() => setPhase('keypad')}
-            className="min-h-[38px] px-3 py-1 rounded-lg text-[11px] font-mono border text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] bg-[#101622]/80 cursor-pointer transition-colors"
-            style={{ borderColor: 'rgba(197, 204, 214, 0.22)' }}
-          >
-            Access Gate
-          </button>
-          <span
-            className="font-mono tabular-nums text-[10px] px-2 py-0.5 rounded border bg-[#101622]/80"
-            style={{ borderColor: 'rgba(197, 204, 214, 0.22)', color: '#D4AF37' }}
-          >
-            ONLINE
-          </span>
-        </div>
-      </header>
-
-      {/* Central Spatial Floating Composition: Decoupled 3D NOJARA Logo + Kinetic Supers */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-8 z-10 my-auto text-center px-4 max-w-2xl">
-        {/* Floating Decoupled 3D Logo Layer */}
-        <div className="relative group transition-transform duration-700 hover:scale-105">
-          <div className="absolute -inset-8 bg-gradient-to-r from-[#D4AF37]/15 via-[#65ACFF]/15 to-[#D4AF37]/15 rounded-3xl blur-2xl opacity-60 pointer-events-none" />
+        <div className="relative">
+          <div className="absolute -inset-8 bg-gradient-to-r from-[#4C8DFF]/15 via-[#9AFFE0]/12 to-[#4C8DFF]/15 rounded-3xl blur-2xl opacity-60 pointer-events-none" />
           <div className="relative z-10">
             <BrandLockup mode="loader" />
           </div>
         </div>
 
-        {/* Kinetic Typography: Single Focused Animated Super (3-7 words) */}
-        <div className="flex flex-col items-center gap-2 min-h-[76px] transition-all duration-300">
+        <div className="flex flex-col items-center gap-2 min-h-[64px]">
           <div
             key={activeLineIndex}
             className="font-display text-base md:text-xl font-bold tracking-[0.12em] uppercase text-[#F2F6F8] animate-fadeIn"
@@ -389,7 +370,6 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
           </div>
         </div>
 
-        {/* Spatial Micro-Trajectory Progress Ring & Precision Filament */}
         <div className="w-full max-w-md flex flex-col items-center gap-2">
           <div
             className="w-full h-1 rounded-full overflow-hidden border"
@@ -402,13 +382,12 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
               className="h-full transition-all duration-100 ease-out"
               style={{
                 width: `${Math.round(progressRatio * 100)}%`,
-                background: 'linear-gradient(90deg, #4C8DFF 0%, #D4AF37 100%)',
-                boxShadow: '0 0 12px rgba(212, 175, 55, 0.65)',
+                background: 'linear-gradient(90deg, #4C8DFF 0%, #9AFFE0 100%)',
+                boxShadow: '0 0 12px rgba(154, 255, 224, 0.45)',
               }}
             />
           </div>
-
-          <div className="w-full flex items-center justify-between font-mono text-[10px] text-[#C5CCD6]">
+          <div className="w-full flex items-center justify-between gap-2 font-mono text-[10px] text-[#C5CCD6]">
             <span>ORBIT: DUAL-SPHERE</span>
             <span>{Math.round(progressRatio * 100)}% LOADED</span>
             <span>SPATIAL AUDIO: ARMED</span>
@@ -418,27 +397,24 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
               role="status"
               aria-live="polite"
               data-testid="boot-health-line"
-              className="w-full mt-2 font-mono text-[10px] text-[#9AFFE0] text-center"
+              className="w-full mt-1 font-mono text-[10px] text-[#9AFFE0] text-center"
             >
               {healthLine}
             </div>
           )}
         </div>
-      </div>
 
-      {/* Bottom Action Bar — Negative Space, Clear Controls, Arabic Greeting */}
-      <footer className="w-full max-w-5xl flex flex-wrap items-center justify-between gap-4 py-3 z-10">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
           <button
             type="button"
             data-testid="boot-take-off"
             data-cta-id="loader-take-off"
             onClick={onTakeOff}
-            className="min-h-[44px] min-w-[150px] px-6 py-2.5 rounded-xl font-display font-semibold text-xs tracking-[0.1em] uppercase transition-all duration-200 active:scale-95 cursor-pointer border shadow-lg hover:shadow-[#D4AF37]/20"
+            className="min-h-[48px] min-w-[160px] px-6 py-2.5 rounded-xl font-display font-semibold text-xs tracking-[0.1em] uppercase transition-all duration-200 active:scale-95 cursor-pointer border"
             style={{
-              backgroundColor: '#D4AF37',
-              color: '#101622',
-              borderColor: '#FFF4D0',
+              backgroundColor: '#9AFFE0',
+              color: '#0a1218',
+              borderColor: '#B4DDFF',
             }}
           >
             Enter Cerebro →
@@ -448,7 +424,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
             data-testid="boot-skip"
             data-cta-id="boot.skip"
             onClick={onTakeOff}
-            className="min-h-[44px] px-4 py-2.5 rounded-xl font-mono text-xs text-[#D0DCE3] hover:text-[#F2F6F8] border border-[rgba(197,204,214,0.22)] bg-[#101622]/80 hover:bg-[#142632] cursor-pointer transition-colors"
+            className="min-h-[48px] px-4 py-2.5 rounded-xl font-mono text-xs text-[#D0DCE3] hover:text-[#F2F6F8] border border-[rgba(197,204,214,0.22)] bg-[#101622]/80 cursor-pointer transition-colors"
           >
             Skip
           </button>
@@ -462,7 +438,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
         >
           أهلاً بيك يا فندم · Cerebro معاك
         </span>
-      </footer>
+      </div>
     </div>
   );
 };

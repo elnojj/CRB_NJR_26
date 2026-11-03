@@ -84,6 +84,56 @@ export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
   const [transitionKind, setTransitionKind] = useState<TrailerBeat['transition']>('fade-black');
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const completedRef = useRef(false);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  // Autoplay trailer bed on mount (no click required; browsers may mute until gesture).
+  useEffect(() => {
+    if (reducedMotion || typeof window === 'undefined') return;
+    const AC =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    audioCtxRef.current = ctx;
+    const master = ctx.createGain();
+    master.gain.value = 0.07;
+    master.connect(ctx.destination);
+
+    const hum = ctx.createOscillator();
+    hum.type = 'sine';
+    hum.frequency.value = 55;
+    const humGain = ctx.createGain();
+    humGain.gain.value = 0.55;
+    hum.connect(humGain);
+    humGain.connect(master);
+
+    const shimmer = ctx.createOscillator();
+    shimmer.type = 'triangle';
+    shimmer.frequency.value = 220;
+    const shimmerGain = ctx.createGain();
+    shimmerGain.gain.value = 0.12;
+    shimmer.connect(shimmerGain);
+    shimmerGain.connect(master);
+
+    try {
+      hum.start();
+      shimmer.start();
+      void ctx.resume();
+    } catch {
+      /* ignore autoplay blocks */
+    }
+
+    return () => {
+      try {
+        hum.stop();
+        shimmer.stop();
+        void ctx.close();
+      } catch {
+        /* ignore */
+      }
+      audioCtxRef.current = null;
+    };
+  }, [reducedMotion]);
 
   const beat = BEATS[Math.min(beatIndex, BEATS.length - 1)];
   const totalSec = useMemo(

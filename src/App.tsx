@@ -15,6 +15,7 @@ import {
 } from './data/sourceData';
 import { BrandLockup } from './components/BrandLockup';
 import { BootLoader } from './components/BootLoader';
+import { ExplainerFilm } from './intro/ExplainerFilm';
 import { SystemStatusLayer } from './components/SystemStatusLayer';
 import {
   readSessionSnapshot,
@@ -267,6 +268,16 @@ export default function App() {
         return true;
       }
     }
+    return false;
+  });
+  /** Trailer explainer plays before Owner Gate unless skipped via URL. */
+  const [explainerDone, setExplainerDone] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get('view')?.toLowerCase();
+    if (params.get('skipExplainer') === '1') return true;
+    if (v === 'keypad' || v === 'loader' || v === 'boot') return true;
+    if (v && v !== 'boot' && v !== 'loader' && v !== 'keypad') return true;
     return false;
   });
   const [customDomains, setCustomDomains] = useState<CustomDomain3D[]>([]);
@@ -3744,8 +3755,17 @@ export default function App() {
         color: COLOUR_TOKENS.textPrimary,
       }}
     >
-      {/* 1. Panel #17: 3939 Owner Gate Keypad (?view=keypad) & 8.0s Boot Loader (?view=loader) */}
-      {!bootDone && (
+      {/* 1. Trailer explainer → Owner Gate (3939) → dual-sphere workspace */}
+      {!bootDone && !explainerDone && (
+        <ExplainerFilm
+          reducedMotion={reducedMotion}
+          onComplete={() => {
+            setExplainerDone(true);
+            setBootInitialMode('keypad');
+          }}
+        />
+      )}
+      {!bootDone && explainerDone && (
         <BootLoader
           reducedMotion={reducedMotion}
           initialPhase={bootInitialMode}

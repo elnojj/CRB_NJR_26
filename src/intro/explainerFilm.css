@@ -8,10 +8,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
   background: #02050a;
   overflow: hidden;
   pointer-events: auto;
   user-select: none;
+  box-sizing: border-box;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .explainer-film__video {
