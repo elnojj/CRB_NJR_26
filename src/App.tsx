@@ -14,11 +14,28 @@ import {
   TeamRoomChannelId,
 } from './data/sourceData';
 import { BrandLockup } from './components/BrandLockup';
-import { CerebroIntro } from './intro/CerebroIntro';
-import { Explainer60Player } from './intro/Explainer60Player';
-import { assertIntroBridgeClean } from './intro/bridge';
+import { BootLoader } from './components/BootLoader';
+import { SystemStatusLayer } from './components/SystemStatusLayer';
 import {
-  CosmographCanvas,
+  readSessionSnapshot,
+  writeSessionSnapshot,
+  hydrationSequence,
+} from './state/cerebroSessionStore';
+import {
+  IDLE_PROJECT_WORLD,
+  enterProjectWorld,
+  activateProjectWorld,
+  exitProjectWorld,
+  settleMasterWorld,
+  ProjectWorldRuntime,
+} from './state/projectWorldRuntime';
+import { getProjectWorldManifest } from './data/projectWorldManifest';
+import {
+  SCENE_SR_LABELS,
+  formatKeyboardHelp,
+} from './a11y/workspaceKeyboardMap';
+import {
+  ExperienceCanvas,
   CameraCommandPayload,
   CameraTelemetry,
   AnchoredLabel2D,
@@ -29,8 +46,12 @@ import {
   MediaTubeStateProp,
   ProjectMediaTubeItem,
   buildProjectMediaTubeItems,
-} from './components/CosmographCanvas';
-import { ExperienceCanvas } from './three/ExperienceCanvas';
+} from './three/ExperienceCanvas';
+import {
+  isConnectedSphereId,
+  type ConnectedSphereId,
+} from './three/sphereNetwork';
+import { SPHERE_CAPTION } from './data/peerSphereContent';
 import { cerebroToolBridge } from './three/toolBridge';
 import { TrackerMotionProvider } from './components/TrackerMotionProvider';
 import {
@@ -61,6 +82,7 @@ import {
   HandDetectionMode,
   HandGestureType,
 } from './components/HandsOverlay';
+import { SpatialHealthLayout } from './components/spatial/SpatialHealthLayout';
 import {
   PanelsOverlay,
   AudienceLevel,
@@ -77,27 +99,7 @@ import {
   PendingComposeTask,
   WidgetSnapEdge,
 } from './components/VoiceCard';
-import {
-  PersistentCerebroWidget,
-  ConnectionAxis,
-  InputAxis,
-  OutputAxis,
-  ExecutionAxis,
-  PersistenceAxis,
-} from './components/PersistentCerebroWidget';
-import { ProjectHealthStrip } from './components/ProjectHealthStrip';
 import { ProjectDownloadModal } from './components/ProjectDownloadModal';
-import { CEREBRO_BUILD_ID, mapVoiceVisualState } from './design/cerebroDesignSystem';
-import {
-  buildLiveTourItinerary,
-  isFullTourIntent,
-} from './utils/liveTourRegistry';
-import {
-  HOTSPOT26_COLLECTION_ID,
-  mediaRegistry,
-  type MediaFilterKind,
-  type SpatialMediaAsset,
-} from './media';
 import {
   WorkspaceAction,
   ActionResult,
@@ -107,7 +109,12 @@ import {
   auditToolRegistry,
   buildNodeSelectionAction,
 } from './utils/actionDispatcher';
-import { DEFAULT_INTERNAL_AGENT_ID } from './data/croCdeGoogleAgentManifest';
+import {
+  CEREBRO_VOICE_PROVIDER,
+  CRO_CDE_GOOGLE_AGENT_NAME,
+  CRO_CDE_GOOGLE_TOOLS_SCHEMA,
+  DEFAULT_INTERNAL_AGENT_ID,
+} from './data/croCdeGoogleAgentManifest';
 import { CEREBRO_17_PROJECTS, CEREBRO_18_SCREENS } from './data/cerebroData';
 import {
   CustomDomain3D,
@@ -127,15 +134,8 @@ import {
   deriveCanonicalScreen,
   deriveVisualState,
 } from './gui/visualStateMachine';
-import { GUI_Z_LAYERS } from './gui/guiTokens';
 import { GuiFocusOverlay, ProjectedTargetScreenCoords } from './gui/GuiFocusOverlay';
 import { runGuiLayoutSelfTests } from './gui/gui-layout.test';
-import {
-  BLUEPRINT_SCREEN_BY_ID,
-  type BlueprintScreenId,
-  panelIdForBlueprintScreen,
-} from './blueprint';
-import { cameraDirector } from './three/camera/CameraDirector';
 import {
   CEREBRO_18_TOUR_CHOREOGRAPHY,
   getTourStepsForMode,
@@ -146,18 +146,38 @@ import {
   cerebroScreenStore,
 } from './utils/cerebroTourAndCtaStore';
 import {
-  TOUR_PACE,
-  calmSpeechScript,
-  isTourSpeechBlocking,
-  pacedStepDurationSec,
-  progressiveCaption,
-} from './tour/tourStepCoordinator';
-import {
   runtimeUIRegistry,
   TourControllerState,
   ActionReceipt,
   CEREBRO_UI_SCHEMA_V4,
 } from './gui/runtimeRegistry';
+import {
+  TeamChatChip,
+  CDE_TAXONOMY,
+  masterPose,
+  flightMs,
+  createResizeSnapshot,
+  buildClosedOrbitalLoopPoints,
+  DEFAULT_FIVE_AXIS_STATE,
+} from './three/spatialNavigation';
+import { MobileSingleHandController } from './components/HandsTracker';
+import { Cerebro39SystemModal } from './components/Cerebro39SystemModal';
+import { VisualAuthorityScopeId } from './data/cerebro39MasterSystem';
+import {
+  isBrowserFullscreen,
+  isBrowserFullscreenSupported,
+  subscribeBrowserFullscreen,
+  toggleBrowserFullscreen,
+} from './utils/browserFullscreen';
+import { FloatingIconToggles } from './components/chrome/FloatingIconToggles';
+import { CosmographPilotGame } from './components/game/CosmographPilotGame';
+import { BioScienceExplorer } from './components/spatial/BioScienceExplorer';
+import { ImageStudioModal } from './components/spatial/ImageStudioModal';
+import { CerebroIntro } from './intro/main';
+import { Explainer60Player } from './intro/Explainer60Player';
+import { introBridge } from './intro/bridge';
+import { resolveEditionFromSearch } from './intro/explainer60';
+
 export interface SelfTestCheckResult {
   id: string;
   title: string;
@@ -166,7 +186,7 @@ export interface SelfTestCheckResult {
 }
 
 interface NavigationSnapshot {
-  sphere: 'hq' | 'cde';
+  sphere: ConnectedSphereId;
   focusedNodeId: string | null;
   openPanels: string[];
   selectedProjectId: string;
@@ -178,7 +198,55 @@ interface NavigationSnapshot {
 
 const BUILD_VERSION = '1.28.0';
 
+export type BootMode = 'intro' | 'explainer-60' | 'workspace';
+
+function shouldStartInIntro(): boolean {
+  if (typeof window === 'undefined') return false;
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('intro') === '0') return false;
+  if (params.get('movie') === '0') return false;
+  const view = params.get('view');
+  if (params.get('intro') === '1' || params.get('movie') === '1' || view === 'intro' || view === 'movie') {
+    return true;
+  }
+  if (view && view !== 'intro' && view !== 'movie' && view !== 'hq' && view !== 'cde') {
+    return false;
+  }
+  return true;
+}
+
+function resolveBootMode(): BootMode {
+  if (typeof window === 'undefined') return 'workspace';
+  const edition = resolveEditionFromSearch(window.location.search);
+  if (edition === 'explainer-60') return 'explainer-60';
+  if (edition === 'intro-180') return 'intro';
+  if (edition === 'none') return 'workspace';
+  return shouldStartInIntro() ? 'intro' : 'workspace';
+}
+
 export default function App() {
+  // 0. Intro Sequence Mode (Unified Single-Canvas Shell)
+  const [introMode, setIntroMode] = useState<BootMode>(() => {
+    const boot = resolveBootMode();
+    introBridge.enabled = boot === 'intro' || boot === 'explainer-60';
+    return boot;
+  });
+
+  const handleExitIntro = useCallback(() => {
+    introBridge.enabled = false;
+    introBridge.hostPoseSampler = null;
+    introBridge.inspectPose = null;
+    sessionStorage.removeItem('cerebro-entered');
+    const url = new URL(window.location.href);
+    url.searchParams.delete('intro');
+    url.searchParams.delete('movie');
+    url.searchParams.delete('explainer');
+    url.searchParams.delete('edition');
+    if (!url.searchParams.get('view')) url.searchParams.set('view', 'hq');
+    window.history.replaceState({}, '', url);
+    setIntroMode('workspace');
+  }, []);
+
   // 1. Boot, Keypad, Reduced Motion, Sound, Language/RTL & WebGL Fallback State
   const [bootInitialMode, setBootInitialMode] = useState<'keypad' | 'loader'>(() => {
     if (typeof window !== 'undefined') {
@@ -193,18 +261,6 @@ export default function App() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const v = params.get('view')?.toLowerCase();
-      const skip =
-        params.get('skipBoot') === '1' ||
-        params.get('preview') === '1' ||
-        v === 'app' ||
-        v === 'hq' ||
-        v === 'cde';
-      // Hosted static previews should land in the spatial GUI, not the gate.
-      const hostedPreview =
-        /\.tmp\.now$|vercel\.app$|trycloudflare\.com$|localhost|127\.0\.0\.1/.test(
-          window.location.hostname
-        ) && !v;
-      if (skip || hostedPreview) return true;
       if (v && v !== 'boot' && v !== 'loader' && v !== 'keypad') {
         return true;
       }
@@ -217,8 +273,11 @@ export default function App() {
     cde: DomainMaterialPreset;
   }>({
     hq: 'cobalt-glass',
-    cde: 'amber-crystal',
+    cde: 'cobalt-glass',
   });
+  const [showCerebro39Modal, setShowCerebro39Modal] = useState<boolean>(false);
+  const [visualAuthorityScope, setVisualAuthorityScope] =
+    useState<VisualAuthorityScopeId>('locked_app_1f78a12');
   const [screenAmendments, setScreenAmendments] = useState<ScreenElementAmendment[]>([]);
   const [reducedMotion, setReducedMotion] = useState<boolean>(() => {
     if (typeof window !== 'undefined' && window.matchMedia) {
@@ -230,8 +289,9 @@ export default function App() {
   const [audioRms, setAudioRms] = useState<number>(0);
   const [languageRtl, setLanguageRtl] = useState<'en' | 'ar'>('en');
   const [forceWebglFallback, setForceWebglFallback] = useState<boolean>(false);
-  /** Optics bar collapsed by default to avoid colliding with voice/health (V04). */
-  const [opticsExpanded, setOpticsExpanded] = useState<boolean>(false);
+  const [showPilotGame, setShowPilotGame] = useState<boolean>(false);
+  const [showBioScience, setShowBioScience] = useState<boolean>(false);
+  const [showImageStudio, setShowImageStudio] = useState<boolean>(false);
 
   // 1B. Unified Build Observation Portal v1.5 / Blueprint v0.2 State
   const [portalHudOpen, setPortalHudOpen] = useState<boolean>(false);
@@ -241,9 +301,8 @@ export default function App() {
   const [activeCheckpointId, setActiveCheckpointId] =
     useState<string>('CP-20261023-2131');
   const liveCheckpointId = 'CP-20261023-2131';
-  // Default Offline until a real connection event — do not imply Live on paint (V09).
   const [connectionState, setConnectionState] =
-    useState<ConnectionLivenessState>('Disconnected');
+    useState<ConnectionLivenessState>('Live');
   const [lastEventIso, setLastEventIso] = useState<string>(
     '2026-10-23T21:31:08Z'
   );
@@ -281,9 +340,17 @@ export default function App() {
   );
 
   // 2. Dual-Sphere, Unobstructed Sphere by Default (activePanel = null), Navigation History Stack & Persisted State
-  const [activeSphere, setActiveSphere] = useState<'hq' | 'cde'>('hq');
+  // Hydration: session snapshot restores panels/sphere; tour always starts inactive (cerebroSessionStore).
+  const [activeSphere, setActiveSphere] = useState<ConnectedSphereId>(() => {
+    const snap = readSessionSnapshot();
+    return isConnectedSphereId(snap?.activeSphere) ? (snap!.activeSphere as ConnectedSphereId) : 'hq';
+  });
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
-  const [openPanels, setOpenPanels] = useState<string[]>([]);
+  const [openPanels, setOpenPanels] = useState<string[]>(
+    () => readSessionSnapshot()?.openPanels ?? []
+  );
+  const [voiceAuthFailed, setVoiceAuthFailed] = useState(false);
+  const [hydrationPhase, setHydrationPhase] = useState(() => hydrationSequence()[0]);
   const activePanel: string | null = openPanels.length > 0 ? openPanels[openPanels.length - 1] : null;
   const [minimisedChips, setMinimisedChips] = useState<MinimisedChip[]>([]);
   const [panelScrollById, setPanelScrollById] = useState<Record<string, number>>({});
@@ -300,8 +367,9 @@ export default function App() {
     'MUSEUM-OF-ALMOST': 'overview',
     GONDWANA: 'overview',
   });
+  // Overview docks start available but each panel itself stays collapsed behind vector ships.
   const [dashboardCollapsed, setDashboardCollapsed] = useState<boolean>(false);
-  const [activeShowreelIndex, setActiveShowreelIndex] = useState<number>(1);
+  const [activeShowreelIndex, setActiveShowreelIndex] = useState<number>(0);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('SEVEN');
   const [peopleSubTab, setPeopleSubTab] = useState<'HQ' | 'Team and Contracts' | 'RACI'>('RACI');
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
@@ -311,14 +379,19 @@ export default function App() {
   const [activeChapterIndex, setActiveChapterIndex] = useState<number>(1);
   const [fileSearchQuery, setFileSearchQuery] = useState<string>('');
   const [fullscreenMedia, setFullscreenMedia] = useState<MediaAssetItem | null>(null);
+  const [browserFullscreen, setBrowserFullscreen] = useState<boolean>(() =>
+    typeof document !== 'undefined' ? isBrowserFullscreen() : false
+  );
   const [mediaPlayback, setMediaPlayback] = useState<MediaPlaybackState>({
     playing: false,
     muted: false,
-    currentTimeSec: 14,
-    durationSec: 102,
+    currentTimeSec: 0,
+    durationSec: 141.68,
   });
+  const activeVideoRef = useRef<HTMLVideoElement | null>(null);
   const [showDownloadModal, setShowDownloadModal] = useState<boolean>(false);
   const [showMoreMenu, setShowMoreMenu] = useState<boolean>(false);
+  const [showCameraTray, setShowCameraTray] = useState<boolean>(false);
   const [showDeveloperDrawer, setShowDeveloperDrawer] = useState<boolean>(false);
   const [openAgentModalTrigger, setOpenAgentModalTrigger] = useState<number>(0);
   const [externalSnapEdge, setExternalSnapEdge] = useState<WidgetSnapEdge | undefined>(undefined);
@@ -328,6 +401,10 @@ export default function App() {
   const viewport = useViewport();
   const [phoneSheetState, setPhoneSheetState] = useState<PhoneSheetExpansion>('default');
   const [voiceExpanded, setVoiceExpanded] = useState<boolean>(false);
+  const [voiceSheetExpanded, setVoiceSheetExpanded] = useState<boolean>(false);
+  const [projectWorld, setProjectWorld] = useState<ProjectWorldRuntime>(IDLE_PROJECT_WORLD);
+  /** L06 — bump on every accepted navigation so stale tour/voice/gesture completions abort. */
+  const navGenerationRef = useRef(0);
   const [voiceDragDelta, setVoiceDragDelta] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [projectedTarget, setProjectedTarget] = useState<ProjectedTargetScreenCoords | null>(null);
@@ -353,15 +430,11 @@ export default function App() {
     projectId: string;
     focusedTileIndex: number | null;
     savedPanels: string[];
-    filterKind?: 'all' | 'image' | 'video' | 'pdf';
-    useHotspot26?: boolean;
   }>({
     active: false,
     projectId: 'SEVEN',
     focusedTileIndex: null,
     savedPanels: [],
-    filterKind: 'all',
-    useHotspot26: false,
   });
   const [tourControllerPhase, setTourControllerPhase] = useState<TourControllerState>('idle');
   const [lastActionReceipt, setLastActionReceipt] = useState<ActionReceipt | null>(null);
@@ -393,9 +466,12 @@ export default function App() {
     activeLoopMode: 'off',
   });
   const telemetryRef = useRef<CameraTelemetry>(telemetry);
-  useEffect(() => {
-    telemetryRef.current = telemetry;
-  }, [telemetry]);
+  const [telemetryReceived, setTelemetryReceived] = useState(false);
+  const handleTelemetryChange = useCallback((next: CameraTelemetry) => {
+    telemetryRef.current = next;
+    setTelemetryReceived(true);
+    setTelemetry(next);
+  }, []);
 
   const cameraSettledListenersRef = useRef<Array<() => void>>([]);
   const handleCameraSettled = useCallback(() => {
@@ -407,10 +483,13 @@ export default function App() {
   // 4. 18-Screen Wireframe v1.1 + CTA Choreographer Tour State (S01–S18 across 4 modes)
   const screenStore = useCerebroScreenStore();
   const tourSubStepTimersRef = useRef<number[]>([]);
+  const tourGenerationRef = useRef(0);
   const clearTourSubStepTimers = useCallback(() => {
+    tourGenerationRef.current += 1;
     tourSubStepTimersRef.current.forEach((id) => window.clearTimeout(id));
     tourSubStepTimersRef.current = [];
   }, []);
+  useEffect(() => () => clearTourSubStepTimers(), [clearTourSubStepTimers]);
 
   const [tourState, setTourState] = useState<{
     active: boolean;
@@ -426,7 +505,7 @@ export default function App() {
     paused: false,
     step: 1,
     total: CEREBRO_18_TOUR_CHOREOGRAPHY.length,
-    secondsLeft: pacedStepDurationSec(CEREBRO_18_TOUR_CHOREOGRAPHY[0]),
+    secondsLeft: CEREBRO_18_TOUR_CHOREOGRAPHY[0]?.durationSec || 10,
     autoAdvance: true,
     mode: 'full-18-screen',
     currentScreenId: 'S01',
@@ -436,36 +515,31 @@ export default function App() {
 
   // 5. Hands Overlay State
   const [handsActive, setHandsActive] = useState<boolean>(false);
-  /** Intro overlays sit on the shared canvas; workspace chrome is inert until 'workspace'. */
-  const introMode: 'intro' | 'explainer' | 'workspace' = bootDone ? 'workspace' : 'intro';
-  const [explainerOpen, setExplainerOpen] = useState(false);
-  const workspaceChromeClass =
-    introMode === 'workspace'
-      ? 'transition-opacity duration-500 opacity-100'
-      : 'transition-opacity duration-500 opacity-0 pointer-events-none';
-  const handleToggleHands = useCallback(() => {
-    setHandsActive((v) => !v);
-  }, []);
-  const [handMode, setHandMode] = useState<HandDetectionMode>('two-hands');
+  const [gestureTrackingActive, setGestureTrackingActive] = useState<boolean>(true);
+  // Always start one-hand; two-hands only when the user picks the 2× control.
+  const [handMode, setHandMode] = useState<HandDetectionMode>('right-only');
   const [activeGesture, setActiveGesture] = useState<HandGestureType>('pinch-orbit');
-
-  useEffect(() => {
-    assertIntroBridgeClean();
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('explainer') === '1' || params.get('explainer60') === '1') {
-      setExplainerOpen(true);
-    }
-  }, []);
+  // Spatial Health desk AR / wall calendar / node-chips (mounted in workspace chrome)
+  // Cover-post default: sphere is the hero; desk AR / calendar stay cold until opened.
+  const [spatialHealthOpen, setSpatialHealthOpen] = useState<boolean>(false);
+  const [spatialHealthMode, setSpatialHealthMode] = useState<'dashboard' | 'project'>('dashboard');
 
   // 6. Voice State, Audience & Compose Task State
   const [voiceState, setVoiceState] = useState<VoiceState>('Ready');
-  const [activePocket, setActivePocket] = useState<VoicePocket>('tap-to-talk');
+  const [activePocket, setActivePocket] = useState<VoicePocket>(() => {
+    const pocket = readSessionSnapshot()?.activePocket;
+    return pocket === 'hands' || pocket === 'compose' ? pocket : 'tap-to-talk';
+  });
   const [audienceLevel, setAudienceLevel] = useState<AudienceLevel>('Owner only');
   const isOwnerOnly = audienceLevel === 'Owner only';
+  const [ambienceMuted, setAmbienceMuted] = useState<boolean>(() => soundEngine.isMuted());
+  const handleToggleAmbience = useCallback(() => {
+    soundEngine.unlock();
+    const next = !soundEngine.isMuted();
+    soundEngine.setMuted(next);
+    setAmbienceMuted(next);
+    setSoundMuted(next);
+  }, []);
   const [pendingTaskProposal, setPendingTaskProposal] = useState<PendingComposeTask | null>(null);
   const [customTasks, setCustomTasks] = useState<CustomTaskItem[]>([]);
   const [transcripts, setTranscripts] = useState<TranscriptLine[]>([
@@ -482,21 +556,95 @@ export default function App() {
   const [selfTestRunning, setSelfTestRunning] = useState<boolean>(false);
   const [selfTestResults, setSelfTestResults] = useState<SelfTestCheckResult[]>([]);
 
-  // Media playback timer when playing === true
+  // Real HTML5 Video element event synchronizers
+  const handleVideoRefReady = useCallback((video: HTMLVideoElement | null) => {
+    activeVideoRef.current = video;
+  }, []);
+
+  const handleVideoTimeUpdate = useCallback((currentTime: number, duration: number) => {
+    setMediaPlayback((prev) => ({
+      ...prev,
+      currentTimeSec: currentTime,
+      durationSec: duration > 0 ? duration : prev.durationSec,
+    }));
+  }, []);
+
+  const handleVideoPlayChange = useCallback((playing: boolean) => {
+    setMediaPlayback((prev) => ({ ...prev, playing }));
+  }, []);
+
+  const handleVideoMuteChange = useCallback((muted: boolean) => {
+    setMediaPlayback((prev) => ({ ...prev, muted }));
+  }, []);
+
+  const handleChangeShowreelIndex = useCallback((idx: number) => {
+    if (activeVideoRef.current && !activeVideoRef.current.paused) {
+      activeVideoRef.current.pause();
+    }
+    setActiveShowreelIndex(idx);
+    const targetReel = SHOWREEL_ITEMS[idx];
+    setMediaPlayback({
+      playing: false,
+      muted: false,
+      currentTimeSec: 0,
+      durationSec: targetReel?.durationSec || 140,
+    });
+  }, []);
+
+  // Session ownership: finish hydration sequence; never resume tour mid-flight after reload.
   useEffect(() => {
-    if (!mediaPlayback.playing) return;
-    const timer = window.setInterval(() => {
-      setMediaPlayback((prev) => {
-        if (!prev.playing) return prev;
-        const nextSec = prev.currentTimeSec + 1;
-        if (nextSec >= prev.durationSec) {
-          return { ...prev, playing: false, currentTimeSec: 0 };
-        }
-        return { ...prev, currentTimeSec: nextSec };
-      });
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [mediaPlayback.playing]);
+    const phases = hydrationSequence();
+    setHydrationPhase(phases[1]);
+    const snap = readSessionSnapshot();
+    setHydrationPhase(phases[2]);
+    setOpenPanels(snap?.openPanels ?? []);
+    if (snap?.navigation?.language === 'ar' || snap?.navigation?.language === 'en') {
+      setLanguageRtl(snap.navigation.language);
+    }
+    setHydrationPhase(phases[3]);
+    setVoiceState('Ready');
+    setTourState((prev) => ({ ...prev, active: false, paused: false, step: 0 }));
+    setProjectWorld(IDLE_PROJECT_WORLD);
+    setHydrationPhase(phases[4]);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = languageRtl === 'ar' ? 'ar' : 'en';
+    document.documentElement.dir = languageRtl === 'ar' ? 'rtl' : 'ltr';
+  }, [languageRtl]);
+
+  useEffect(() => {
+    writeSessionSnapshot({
+      activeSphere,
+      openPanels,
+      activePocket,
+      selectedProjectId: selectedProjectId ?? null,
+      navigation: {
+        worldId: 'master',
+        projectId: selectedProjectId ?? null,
+        selectedNodeId: focusedNodeId,
+        contextualSurfaceId: openPanels[openPanels.length - 1] ?? null,
+        projectTab: projectTabsById[selectedProjectId] || 'tasks',
+        cameraBookmarkId: null,
+        language: languageRtl === 'ar' ? 'ar' : 'en',
+        introOrTourMode: 'none',
+      },
+    });
+  }, [
+    activeSphere,
+    openPanels,
+    activePocket,
+    selectedProjectId,
+    focusedNodeId,
+    projectTabsById,
+    languageRtl,
+  ]);
+
+  useEffect(() => {
+    const onVoiceAuth = () => setVoiceAuthFailed(true);
+    window.addEventListener('cerebro:voice-auth-failed', onVoiceAuth);
+    return () => window.removeEventListener('cerebro:voice-auth-failed', onVoiceAuth);
+  }, []);
 
   // Load persisted custom tasks from server on mount
   useEffect(() => {
@@ -550,7 +698,7 @@ export default function App() {
     (
       verb: CameraCommandPayload['verb'],
       options?: {
-        targetSphere?: 'hq' | 'cde';
+        targetSphere?: ConnectedSphereId;
         targetNodeId?: string | null;
         deltaAzimuth?: number;
         deltaPolar?: number;
@@ -563,33 +711,16 @@ export default function App() {
       }
     ) => {
       cmdCounterRef.current += 1;
+      navGenerationRef.current += 1;
       setCameraCommand({
         id: cmdCounterRef.current,
         verb,
+        generation: navGenerationRef.current,
         ...options,
       });
     },
     []
   );
-
-  // Blueprint CameraDirector — single travel owner; emits into existing camera command bus.
-  useEffect(() => {
-    cameraDirector.attach((payload) => {
-      if (!payload.verb) return;
-      dispatchCamera(payload.verb, {
-        targetSphere: payload.targetSphere,
-        targetNodeId: payload.targetNodeId,
-        deltaAzimuth: payload.deltaAzimuth,
-        deltaPolar: payload.deltaPolar,
-        deltaPanX: payload.deltaPanX,
-        deltaPanY: payload.deltaPanY,
-        lensId: payload.lensId,
-        focalLengthMm: payload.focalLengthMm,
-        anglePreset: payload.anglePreset,
-        loopMode: payload.loopMode,
-      });
-    });
-  }, [dispatchCamera]);
 
   const appendTranscript = useCallback(
     (speaker: '39' | 'Cerebro', text: string, toolResult?: string) => {
@@ -730,22 +861,6 @@ export default function App() {
     });
   }, []);
 
-  // Blueprint v2.0 deep-link: ?blueprint=H03|G3|W1… (wins over auto-tour panels)
-  useEffect(() => {
-    if (typeof window === 'undefined' || !bootDone) return;
-    const raw = new URLSearchParams(window.location.search).get('blueprint');
-    if (!raw) return;
-    const id = raw.toUpperCase() as BlueprintScreenId;
-    const spec = BLUEPRINT_SCREEN_BY_ID[id];
-    if (!spec) return;
-    const panelId = panelIdForBlueprintScreen(id) || spec.panelId;
-    if (!panelId) return;
-    ensurePanelOpen(panelId, true);
-    // Re-assert after tour/boot side-effects settle.
-    const tid = window.setTimeout(() => ensurePanelOpen(panelId, true), 1200);
-    return () => window.clearTimeout(tid);
-  }, [bootDone, ensurePanelOpen]);
-
   // Minimise a panel into the chip dock while preserving project, tab, scroll offset & unsent draft
   const handleMinimisePanel = useCallback(
     (panelId: string, label: string, scrollTop = 0, unsentDraft?: string) => {
@@ -803,27 +918,25 @@ export default function App() {
   );
 
   const handleNavigateBack = useCallback(() => {
-    setNavHistory((prev) => {
-      if (prev.length === 0) return prev;
-      const last = prev[prev.length - 1];
-      setActiveSphere(last.sphere);
-      setFocusedNodeId(last.focusedNodeId);
-      setOpenPanels(last.openPanels);
-      setSelectedProjectId(last.selectedProjectId);
-      setProjectTabsById((tabs) => ({
-        ...tabs,
-        [last.selectedProjectId]: last.activeProjectTab,
-      }));
-      setSelectedDimensionId(last.selectedDimensionId);
-      setSelectedSubdomainId(last.selectedSubdomainId);
-      setActiveChapterIndex(last.activeChapterIndex);
-      dispatchCamera('focus_node', {
-        targetSphere: last.sphere,
-        targetNodeId: last.focusedNodeId || (last.sphere === 'hq' ? 'projects' : 'strategy'),
-      });
-      return prev.slice(0, -1);
+    const last = navHistory[navHistory.length - 1];
+    if (!last) return;
+    setNavHistory((previous) => previous.slice(0, -1));
+    setActiveSphere(last.sphere);
+    setFocusedNodeId(last.focusedNodeId);
+    setOpenPanels(last.openPanels);
+    setSelectedProjectId(last.selectedProjectId);
+    setProjectTabsById((tabs) => ({
+      ...tabs,
+      [last.selectedProjectId]: last.activeProjectTab,
+    }));
+    setSelectedDimensionId(last.selectedDimensionId);
+    setSelectedSubdomainId(last.selectedSubdomainId);
+    setActiveChapterIndex(last.activeChapterIndex);
+    dispatchCamera(last.focusedNodeId ? 'focus_node' : 'center', {
+      targetSphere: last.sphere,
+      targetNodeId: last.focusedNodeId,
     });
-  }, [dispatchCamera]);
+  }, [dispatchCamera, navHistory]);
 
   const handleMediaControl = useCallback(
     (
@@ -839,21 +952,52 @@ export default function App() {
         | 'fullscreen_exit',
       seekSeconds?: number
     ) => {
-      setMediaPlayback((prev) => {
-        if (action === 'play') return { ...prev, playing: true };
-        if (action === 'pause') return { ...prev, playing: false };
-        if (action === 'toggle_play') return { ...prev, playing: !prev.playing };
-        if (action === 'mute') return { ...prev, muted: true };
-        if (action === 'unmute') return { ...prev, muted: false };
-        if (action === 'toggle_mute') return { ...prev, muted: !prev.muted };
-        if (action === 'seek' && typeof seekSeconds === 'number') {
-          return {
-            ...prev,
-            currentTimeSec: Math.max(0, Math.min(prev.durationSec, seekSeconds)),
-          };
+      const vid = activeVideoRef.current;
+      if (action === 'play') {
+        if (vid && vid.paused) {
+          vid.play().catch(() => {});
         }
-        return prev;
-      });
+        setMediaPlayback((prev) => ({ ...prev, playing: true }));
+      } else if (action === 'pause') {
+        if (vid && !vid.paused) {
+          vid.pause();
+        }
+        setMediaPlayback((prev) => ({ ...prev, playing: false }));
+      } else if (action === 'toggle_play') {
+        if (vid) {
+          if (vid.paused) {
+            vid.play().catch(() => {});
+            setMediaPlayback((prev) => ({ ...prev, playing: true }));
+          } else {
+            vid.pause();
+            setMediaPlayback((prev) => ({ ...prev, playing: false }));
+          }
+        } else {
+          setMediaPlayback((prev) => ({ ...prev, playing: !prev.playing }));
+        }
+      } else if (action === 'mute') {
+        if (vid) vid.muted = true;
+        setMediaPlayback((prev) => ({ ...prev, muted: true }));
+      } else if (action === 'unmute') {
+        if (vid) vid.muted = false;
+        setMediaPlayback((prev) => ({ ...prev, muted: false }));
+      } else if (action === 'toggle_mute') {
+        if (vid) {
+          vid.muted = !vid.muted;
+          setMediaPlayback((prev) => ({ ...prev, muted: vid.muted }));
+        } else {
+          setMediaPlayback((prev) => ({ ...prev, muted: !prev.muted }));
+        }
+      } else if (action === 'seek' && typeof seekSeconds === 'number') {
+        const targetTime = Math.max(0, Math.min(mediaPlayback.durationSec || 9999, seekSeconds));
+        if (vid && Number.isFinite(targetTime)) {
+          vid.currentTime = targetTime;
+        }
+        setMediaPlayback((prev) => ({
+          ...prev,
+          currentTimeSec: targetTime,
+        }));
+      }
 
       if (action === 'fullscreen_enter') {
         const reel = SHOWREEL_ITEMS[activeShowreelIndex] || SHOWREEL_ITEMS[0];
@@ -862,24 +1006,25 @@ export default function App() {
             id: reel.id,
             title: reel.title,
             subtitle: reel.subtitle,
-            type: reel.posterUrl ? 'Render JPG' : 'Showreel Video [SAMPLE]',
-            url: reel.posterUrl,
+            type: (reel.type as MediaAssetItem['type']) || 'Direct Public MP4 Video',
+            url: reel.videoUrl || reel.posterUrl,
             aspect: '16:9',
             companionSticker: reel.companionSticker,
-            isSample: !reel.posterUrl,
+            isSample: false,
           }
         );
       } else if (action === 'fullscreen_exit') {
         setFullscreenMedia(null);
       }
     },
-    [activeShowreelIndex]
+    [activeShowreelIndex, mediaPlayback.durationSec]
   );
 
   // 18-Screen Wireframe v1.1 + CTA Choreographer Contract: Arrive -> Open Screen Panel(s) -> Schedule Sub-Step CTA Pulses -> Narrate
   const applyTourStop = useCallback(
     (stepNumber: number, modeOverride?: TourMode) => {
       clearTourSubStepTimers();
+      const generation = tourGenerationRef.current;
       const activeMode = modeOverride || tourState.mode || 'full-18-screen';
       const steps = getTourStepsForMode(activeMode);
       const clampedIdx = Math.max(0, Math.min(steps.length - 1, stepNumber - 1));
@@ -889,20 +1034,21 @@ export default function App() {
       setFocusedNodeId(stop.targetNodeId);
       setTourControllerPhase('focusing');
 
+      // Tour owns the stage — collapse desk-AR / calendar so panels don't stack on the sphere.
+      setSpatialHealthMode('dashboard');
+      setDashboardCollapsed(true);
+
       // Screen-specific panel & domain choreography across S01–S18
       if (stop.screenId === 'S01') {
         setOpenPanels([]);
-        setDashboardCollapsed(false);
         setTourControllerPhase('travelling');
         dispatchCamera('arrival', { targetSphere: 'hq', lensId: '35mm' });
       } else if (stop.screenId === 'S02') {
         setOpenPanels([]);
-        setDashboardCollapsed(false);
         setTourControllerPhase('travelling');
         dispatchCamera('arrival', { targetSphere: 'hq' });
       } else if (stop.screenId === 'S15') {
         // Mount both Baghira (#14) and Kinzo (#15) side-by-side
-        setDashboardCollapsed(false);
         setTourControllerPhase('opening');
         setOpenPanels(['baghira', 'kinzo']);
         dispatchCamera('focus_node', { targetSphere: 'hq', targetNodeId: 'tasks' });
@@ -910,7 +1056,6 @@ export default function App() {
         // 2400ms CatmullRomCurve3 flight to Sphere 02 CDE Universe + mount CDE Explorer & Story Journey
         setSelectedDimensionId('strategy');
         setActiveChapterIndex(1);
-        setDashboardCollapsed(false);
         setTourControllerPhase('travelling');
         setOpenPanels(['cde-explorer', 'story-journey']);
         dispatchCamera('switch_sphere', { targetSphere: 'cde', targetNodeId: 'strategy' });
@@ -935,26 +1080,22 @@ export default function App() {
         });
       }
 
-      // Schedule timed sub-step CTA pulses (scaled for calmer pacing)
+      // Schedule timed sub-step CTA pulses & auto-clicks for this screen
       stop.subSteps.forEach((sub) => {
-        const delay = Math.round(sub.delayMs * TOUR_PACE.durationScale);
         const tid = window.setTimeout(() => {
+          if (generation !== tourGenerationRef.current) return;
           const res = pulseAndTriggerCta(sub.ctaId, sub.spokenNote, sub.autoClick);
           if (res.ok) {
-            const note = progressiveCaption(
-              `${stop.screenId} · ${res.label}. ${sub.spokenNote}`
-            );
-            setCaptionBubble(
-              [note.headline, ...note.bullets].filter(Boolean).join(' ')
-            );
+            setCaptionBubble(`${stop.screenId} · ${res.label} — ${sub.spokenNote}`);
           }
           cerebroScreenStore.setActiveScreenId(stop.screenId);
-        }, delay);
+        }, sub.delayMs);
         tourSubStepTimersRef.current.push(tid);
       });
 
       let attempts = 0;
       const verifyBoundsAndNarrate = () => {
+        if (generation !== tourGenerationRef.current) return;
         attempts += 1;
         const targetPanelId = stop.panelsToOpen[0];
         const panelEl = targetPanelId
@@ -962,39 +1103,30 @@ export default function App() {
           : (document.querySelector('[data-testid="voice-card"]') as HTMLElement | null);
         const rect = panelEl?.getBoundingClientRect();
         const isVisible = Boolean(rect && rect.width > 0 && rect.height > 0);
-        // Camera settle gate (~1800ms / ~30 frames at 60ms poll)
-        const cameraReady =
-          !telemetryRef.current.isMoving ||
-          reducedMotion ||
-          attempts >= Math.ceil(TOUR_PACE.cameraSettleMs / 60);
+        const cameraReady = attempts >= 3 && (!telemetryRef.current.isMoving || reducedMotion);
 
-        if ((isVisible && cameraReady) || attempts >= 14) {
+        if ((isVisible && cameraReady) || attempts >= 20) {
           setTourControllerPhase('presenting');
           setTourHighlightId(stop.targetNodeId || stop.screenId);
-          const cap = progressiveCaption(stop.captionBubbleText);
-          setCaptionBubble(
-            [cap.headline, ...cap.bullets].filter(Boolean).join(' ')
-          );
+          setCaptionBubble(stop.captionBubbleText);
           cerebroScreenStore.setActiveScreenId(stop.screenId);
-          const narrationText = languageRtl === 'ar' ? stop.narrationAr : stop.narrationEn;
-          const pacedNarration = calmSpeechScript(narrationText);
-          const wordCount = narrationText.split(/\s+/).filter(Boolean).length;
-          // ~130 wpm calm rate + orient pause + reading cushion
-          const speakMs = Math.max(
-            2800,
-            Math.ceil((wordCount / 130) * 60_000) + TOUR_PACE.orientPauseMs
-          );
           if (!soundMuted) {
             setVoiceState('Speaking');
           }
+          const narrationText = languageRtl === 'ar' ? stop.narrationAr : stop.narrationEn;
           appendTranscript(
             'Cerebro',
-            `[${stop.screenId} · ${stop.panelNumber} · ${stop.title}] ${pacedNarration}`,
-            `start_tour(${activeMode} · ${stop.screenId} · step=${clampedIdx + 1}/${steps.length} · ctas=${stop.subSteps.length} · pace=calm)`
+            `[${stop.screenId} · ${stop.panelNumber} · ${stop.title}] ${narrationText}`,
+            `start_tour(${activeMode} · ${stop.screenId} · step=${clampedIdx + 1}/${steps.length} · ctas=${stop.subSteps.length})`
           );
-          window.setTimeout(() => setVoiceState('Ready'), speakMs);
+          // Hold after narration (minimumDwellMs: 1200 + postNarrationHoldMs: 900)
+          const hold = window.setTimeout(() => {
+            if (generation === tourGenerationRef.current) setVoiceState('Ready');
+          }, 1200);
+          tourSubStepTimersRef.current.push(hold);
         } else {
-          window.setTimeout(verifyBoundsAndNarrate, 60);
+          const retry = window.setTimeout(verifyBoundsAndNarrate, 60);
+          tourSubStepTimersRef.current.push(retry);
         }
       };
 
@@ -1031,143 +1163,84 @@ export default function App() {
     }));
     setTourHighlightId(null);
     setVoiceState('Ready');
+    setDashboardCollapsed(false);
+    setSpatialHealthOpen(true);
     setCaptionBubble('Tour stopped · Live workspace ready');
   }, [clearTourSubStepTimers]);
 
   const handleNextTourStop = useCallback(() => {
-    setTourState((prev) => {
-      const steps = getTourStepsForMode(prev.mode);
-      const nextStep = prev.step + 1;
-      if (nextStep > steps.length) {
-        clearTourSubStepTimers();
-        cerebroScreenStore.setPulsedCta(null);
-        setTourHighlightId(null);
-        setCaptionBubble('18-Screen Wireframe v1.1 Tour complete · Centred on HQ');
-        dispatchCamera('center', { targetSphere: 'hq' });
-        appendTranscript(
-          'Cerebro',
-          `Completed the ${prev.mode} tour across ${steps.length} screens. Returning to centred HQ overview.`,
-          'tour_control(completed)'
-        );
-        return {
-          ...prev,
-          active: false,
-          paused: false,
-          step: 1,
-          total: steps.length,
-          secondsLeft: pacedStepDurationSec(steps[0] || CEREBRO_18_TOUR_CHOREOGRAPHY[0]),
-          currentScreenId: steps[0]?.screenId || 'S01',
-        };
-      }
-      const nextStopObj = steps[nextStep - 1] || steps[0];
-      applyTourStop(nextStep, prev.mode);
-      return {
-        ...prev,
-        active: true,
+    const steps = getTourStepsForMode(tourState.mode);
+    const nextStep = tourState.step + 1;
+    if (nextStep > steps.length) {
+      clearTourSubStepTimers();
+      cerebroScreenStore.setPulsedCta(null);
+      setTourHighlightId(null);
+      setTourControllerPhase('idle');
+      setCaptionBubble('Tour complete · Centred on HQ');
+      setActiveSphere('hq');
+      setDashboardCollapsed(false);
+      setSpatialHealthOpen(true);
+      dispatchCamera('center', { targetSphere: 'hq' });
+      appendTranscript(
+        'Cerebro',
+        `Completed the ${tourState.mode} tour across ${steps.length} screens.`,
+        'tour_control(completed)'
+      );
+      setTourState((previous) => ({
+        ...previous,
+        active: false,
         paused: false,
-        step: nextStep,
+        step: 1,
         total: steps.length,
-        secondsLeft: pacedStepDurationSec(nextStopObj),
-        currentScreenId: nextStopObj.screenId,
-      };
-    });
-  }, [applyTourStop, appendTranscript, clearTourSubStepTimers, dispatchCamera]);
+        secondsLeft: steps[0]?.durationSec || 10,
+        currentScreenId: steps[0]?.screenId || 'S01',
+      }));
+      return;
+    }
+    const stop = steps[nextStep - 1];
+    setTourState((previous) => ({
+      ...previous,
+      active: true,
+      paused: false,
+      step: nextStep,
+      total: steps.length,
+      secondsLeft: stop.durationSec || 10,
+      currentScreenId: stop.screenId,
+    }));
+    applyTourStop(nextStep, tourState.mode);
+  }, [appendTranscript, applyTourStop, clearTourSubStepTimers, dispatchCamera, tourState.mode, tourState.step]);
 
   const handlePrevTourStop = useCallback(() => {
-    setTourState((prev) => {
-      const steps = getTourStepsForMode(prev.mode);
-      const prevStep = Math.max(1, prev.step - 1);
-      const prevStopObj = steps[prevStep - 1] || steps[0];
-      applyTourStop(prevStep, prev.mode);
-      return {
-        ...prev,
-        active: true,
-        paused: false,
-        step: prevStep,
-        total: steps.length,
-        secondsLeft: pacedStepDurationSec(prevStopObj),
-        currentScreenId: prevStopObj.screenId,
-      };
-    });
-  }, [applyTourStop]);
+    const steps = getTourStepsForMode(tourState.mode);
+    const previousStep = Math.max(1, tourState.step - 1);
+    const stop = steps[previousStep - 1];
+    setTourState((previous) => ({
+      ...previous,
+      active: true,
+      paused: false,
+      step: previousStep,
+      total: steps.length,
+      secondsLeft: stop.durationSec || 10,
+      currentScreenId: stop.screenId,
+    }));
+    applyTourStop(previousStep, tourState.mode);
+  }, [applyTourStop, tourState.mode, tourState.step]);
 
-  // Dock agent island bottom-left during tours so dialogue doesn't cover scene cards
-  useEffect(() => {
-    if (tourState.active) {
-      setExternalSnapEdge('bottom-left');
-    } else {
-      setExternalSnapEdge(undefined);
-    }
-  }, [tourState.active]);
-
-  // Guided Tour countdown — hold while agent speaks; use paced durations + reading cushion
+  // Countdown updates state; navigation and narration run outside state updaters.
   useEffect(() => {
     if (!tourState.active || tourState.paused || !tourState.autoAdvance) return;
-
-    let cushionArmed = false;
-    const timer = window.setInterval(() => {
-      // State-driven gate: never advance (or even tick down) while Cerebro is speaking
-      if (isTourSpeechBlocking(voiceState)) {
-        return;
+    const timer = window.setTimeout(() => {
+      if (tourState.secondsLeft > 1) {
+        setTourState((previous) => ({
+          ...previous,
+          secondsLeft: previous.secondsLeft - 1,
+        }));
+      } else {
+        handleNextTourStop();
       }
-      setTourState((prev) => {
-        if (!prev.active || prev.paused || !prev.autoAdvance) return prev;
-        if (prev.secondsLeft > 1) {
-          cushionArmed = false;
-          return { ...prev, secondsLeft: prev.secondsLeft - 1 };
-        }
-        // Reading cushion before advancing to the next waypoint
-        if (!cushionArmed) {
-          cushionArmed = true;
-          window.setTimeout(() => {
-            setTourState((inner) => {
-              if (!inner.active || inner.paused || !inner.autoAdvance) return inner;
-              if (inner.secondsLeft > 0) return inner;
-              const steps = getTourStepsForMode(inner.mode);
-              const nextStep = inner.step + 1;
-              if (nextStep > steps.length) {
-                clearTourSubStepTimers();
-                cerebroScreenStore.setPulsedCta(null);
-                setTourHighlightId(null);
-                setCaptionBubble('Tour complete · Centred on HQ');
-                dispatchCamera('center', { targetSphere: 'hq' });
-                return {
-                  ...inner,
-                  active: false,
-                  paused: false,
-                  step: 1,
-                  total: steps.length,
-                  secondsLeft: pacedStepDurationSec(steps[0] || CEREBRO_18_TOUR_CHOREOGRAPHY[0]),
-                  currentScreenId: steps[0]?.screenId || 'S01',
-                };
-              }
-              const nextStopObj = steps[nextStep - 1] || steps[0];
-              applyTourStop(nextStep, inner.mode);
-              return {
-                ...inner,
-                step: nextStep,
-                total: steps.length,
-                secondsLeft: pacedStepDurationSec(nextStopObj),
-                currentScreenId: nextStopObj.screenId,
-              };
-            });
-          }, TOUR_PACE.readingCushionMs);
-          return prev;
-        }
-        return prev;
-      });
     }, 1000);
-
-    return () => window.clearInterval(timer);
-  }, [
-    tourState.active,
-    tourState.paused,
-    tourState.autoAdvance,
-    voiceState,
-    applyTourStop,
-    clearTourSubStepTimers,
-    dispatchCamera,
-  ]);
+    return () => window.clearTimeout(timer);
+  }, [handleNextTourStop, tourState.active, tourState.paused, tourState.autoAdvance, tourState.secondsLeft]);
 
   // Keep activeScreenCtas synced in cerebroScreenStore whenever openPanels or activeSphere changes
   useEffect(() => {
@@ -1178,15 +1251,8 @@ export default function App() {
   }, [activeSphere, openPanels, selectedProjectId, tourState.active, tourState.currentScreenId]);
 
   const handleUserTouchPauseTour = useCallback(() => {
-    setTourState((prev) => {
-      if (prev.active && !prev.paused) {
-        clearTourSubStepTimers();
-        setCaptionBubble('Tour paused — press Resume to continue');
-        return { ...prev, paused: true };
-      }
-      return prev;
-    });
-  }, [clearTourSubStepTimers]);
+    // Pure hands-free auto tour: touches or user navigation do not pause the tour
+  }, []);
 
   // UNIFIED TYPED ACTION EXECUTOR — Single dispatcher for Voice Tools, Natural Language, Touch, Keyboard, Tour & Self-Tests
   const executeTypedAction = useCallback(
@@ -1196,6 +1262,12 @@ export default function App() {
       switch (action.type) {
         case 'switch_sphere': {
           pushNavSnapshot();
+          if (action.sphere === 'cde') {
+            if (activeVideoRef.current && !activeVideoRef.current.paused) {
+              activeVideoRef.current.pause();
+            }
+            setMediaPlayback((prev) => ({ ...prev, playing: false }));
+          }
           setActiveSphere(action.sphere);
           setFocusedNodeId(null);
           setOpenPanels([]);
@@ -1204,7 +1276,7 @@ export default function App() {
             targetSphere: action.sphere,
             targetNodeId: null,
           });
-          setCaptionBubble(action.sphere === 'cde' ? 'CDE Universe' : 'Cerebro HQ');
+          setCaptionBubble(SPHERE_CAPTION[action.sphere] || action.sphere);
           return {
             ok: true,
             action: 'switch_sphere',
@@ -1257,13 +1329,45 @@ export default function App() {
           pushNavSnapshot();
           const proj =
             PROJECTS_DATA.find((p) => p.id === action.projectId) ||
-            CEREBRO_17_PROJECTS.find((p) => p.id === action.projectId) ||
-            PROJECTS_DATA[0];
+            CEREBRO_17_PROJECTS.find((p) => p.id === action.projectId);
+          if (!proj) {
+            setCaptionBubble(
+              `Project not found: ${action.projectId || '(missing id)'} — returned to master world.`
+            );
+            setProjectWorld(IDLE_PROJECT_WORLD);
+            setFocusedNodeId(null);
+            dispatchCamera('center', { targetSphere: 'hq' });
+            return {
+              ok: false,
+              action: 'focus_project',
+              target: action.projectId || 'unknown',
+              error: 'unavailable',
+              resultingState: { worldId: 'master' },
+              operationId: opId,
+            };
+          }
           setSelectedProjectId(proj.id);
           setFocusedNodeId(proj.id);
+          const worldManifest =
+            getProjectWorldManifest(`world-${proj.id}`) ||
+            getProjectWorldManifest(proj.id);
+          const available =
+            Boolean(worldManifest) && worldManifest?.worldType !== 'unavailable';
+          setProjectWorld((prev) => {
+            const entered = enterProjectWorld(prev, proj.id, available);
+            return available ? activateProjectWorld(entered) : entered;
+          });
           const nextTab = action.tab || projectTabsById[proj.id] || 'overview';
           setProjectTabsById((prev) => ({ ...prev, [proj.id]: nextTab }));
-          ensurePanelOpen('project-detail', true);
+          // Spatial interactive plan is the primary project workspace; detail sheet opens on demand.
+          setSpatialHealthOpen(true);
+          setSpatialHealthMode('project');
+          setDashboardCollapsed(false);
+          if (action.tab) {
+            ensurePanelOpen('project-detail', true);
+          } else {
+            setOpenPanels((prev) => prev.filter((p) => p !== 'project-detail'));
+          }
           dispatchCamera('focus_node', { targetSphere: activeSphere, targetNodeId: proj.id });
           setCaptionBubble(`${proj.name} · ${proj.health}`);
           return {
@@ -1273,7 +1377,8 @@ export default function App() {
             resultingState: {
               selectedProjectId: proj.id,
               activeTab: nextTab,
-              openPanels: ['project-detail'],
+              spatialHealthMode: 'project',
+              openPanels: action.tab ? ['project-detail'] : [],
             },
             operationId: opId,
           };
@@ -1338,6 +1443,44 @@ export default function App() {
           }
 
           const targetPanel = action.panel || 'projects';
+          const knownPanels = new Set([
+            'projects',
+            'project-detail',
+            'tasks',
+            'files',
+            'media',
+            'people',
+            'settings',
+            'decisions',
+            'team-room',
+            'minutes',
+            'timeline',
+            'briefing',
+            'insights',
+            'file-viewer',
+            'crew',
+            'kinzo',
+            'baghira',
+            'cde-explorer',
+            'story-journey',
+            'build',
+            'roadmap',
+            'overview',
+            'analytics',
+            'governance',
+            'showreel',
+          ]);
+          if (!knownPanels.has(targetPanel)) {
+            setCaptionBubble(`Panel unavailable: ${targetPanel}`);
+            return {
+              ok: false,
+              action: 'open_panel',
+              target: targetPanel,
+              error: 'unavailable',
+              resultingState: { openPanels },
+              operationId: opId,
+            };
+          }
           pushNavSnapshot();
           ensurePanelOpen(targetPanel, true);
           return {
@@ -1496,14 +1639,14 @@ export default function App() {
           if (action.action === 'select' && action.reelId) {
             const idx = SHOWREEL_ITEMS.findIndex((r) => r.id === action.reelId);
             if (idx >= 0) nextIdx = idx;
-            setActiveShowreelIndex(nextIdx);
+            handleChangeShowreelIndex(nextIdx);
           } else if (action.action === 'next') {
             nextIdx = (activeShowreelIndex + 1) % SHOWREEL_ITEMS.length;
-            setActiveShowreelIndex(nextIdx);
+            handleChangeShowreelIndex(nextIdx);
           } else if (action.action === 'prev') {
             nextIdx =
               (activeShowreelIndex - 1 + SHOWREEL_ITEMS.length) % SHOWREEL_ITEMS.length;
-            setActiveShowreelIndex(nextIdx);
+            handleChangeShowreelIndex(nextIdx);
           } else if (action.action === 'play') {
             handleMediaControl('play');
           } else if (action.action === 'pause') {
@@ -1613,23 +1756,19 @@ export default function App() {
             setTourState((prev) => ({ ...prev, paused: true }));
             setCaptionBubble('Tour paused');
           } else if (action.action === 'resume') {
-            setTourState((prev) => {
-              if (!prev.active) {
-                const steps = getTourStepsForMode(prev.mode);
-                applyTourStop(1, prev.mode);
-                return {
-                  ...prev,
-                  active: true,
-                  paused: false,
-                  step: 1,
-                  total: steps.length,
-                  secondsLeft: pacedStepDurationSec(steps[0] || CEREBRO_18_TOUR_CHOREOGRAPHY[0]),
-                  currentScreenId: steps[0]?.screenId || 'S01',
-                };
-              }
-              applyTourStop(prev.step, prev.mode);
-              return { ...prev, paused: false };
-            });
+            const steps = getTourStepsForMode(tourState.mode);
+            const step = tourState.active ? tourState.step : 1;
+            const stop = steps[step - 1] || steps[0];
+            setTourState((previous) => ({
+              ...previous,
+              active: true,
+              paused: false,
+              step,
+              total: steps.length,
+              secondsLeft: tourState.active ? previous.secondsLeft : stop?.durationSec || 10,
+              currentScreenId: stop?.screenId || 'S01',
+            }));
+            applyTourStop(step, tourState.mode);
           } else if (action.action === 'next') {
             handleNextTourStop();
           } else if (action.action === 'prev') {
@@ -1640,12 +1779,7 @@ export default function App() {
             setTourState((prev) => ({ ...prev, autoAdvance: false }));
           } else {
             const nextMode: TourMode = action.mode || 'full-18-screen';
-            // v5.0: itinerary from live UI registry, not a stale fixed narration list alone.
-            const liveItinerary = buildLiveTourItinerary(nextMode);
-            const steps =
-              liveItinerary.steps.length > 0
-                ? liveItinerary.steps
-                : getTourStepsForMode(nextMode);
+            const steps = getTourStepsForMode(nextMode);
             let startStep = 1;
             if (action.screenId) {
               const foundIdx = steps.findIndex(
@@ -1654,9 +1788,6 @@ export default function App() {
               if (foundIdx >= 0) startStep = foundIdx + 1;
             }
             const firstStop = steps[startStep - 1] || steps[0];
-            setCaptionBubble(
-              `Tour · ${liveItinerary.source} · ${steps.length} stops · ${liveItinerary.liveCtaCount} live CTAs`
-            );
             setTourState((prev) => ({
               ...prev,
               active: true,
@@ -1664,7 +1795,7 @@ export default function App() {
               mode: nextMode,
               step: startStep,
               total: steps.length,
-              secondsLeft: pacedStepDurationSec(firstStop || CEREBRO_18_TOUR_CHOREOGRAPHY[0]),
+              secondsLeft: firstStop?.durationSec || 10,
               currentScreenId: firstStop?.screenId || 'S01',
             }));
             applyTourStop(startStep, nextMode);
@@ -1717,10 +1848,8 @@ export default function App() {
             };
           }
           if (dir === 'resume') {
-            setTourState((prev) => {
-              applyTourStop(prev.step, prev.mode);
-              return { ...prev, active: true, paused: false };
-            });
+            setTourState((previous) => ({ ...previous, active: true, paused: false }));
+            applyTourStop(tourState.step, tourState.mode);
             return {
               ok: true,
               action: 'step_tour',
@@ -1760,7 +1889,7 @@ export default function App() {
             mode: targetMode,
             step: finalStepNumber,
             total: stepsToUse.length,
-            secondsLeft: pacedStepDurationSec(stopObj),
+            secondsLeft: stopObj.durationSec || 10,
             currentScreenId: stopObj.screenId,
           }));
           applyTourStop(finalStepNumber, targetMode);
@@ -1842,11 +1971,12 @@ export default function App() {
             openPanels,
             phoneSheetState,
             voiceExpanded,
+            voiceSheetExpanded,
             voiceDragDelta,
             keyboardInsetBottom: viewport.keyboardInsetBottom,
           });
           const manifestV4 = runtimeUIRegistry.buildManifestSnapshot({
-            agentIdResolved: DEFAULT_INTERNAL_AGENT_ID,
+            agentIdResolved: `${CEREBRO_VOICE_PROVIDER}:${CRO_CDE_GOOGLE_AGENT_NAME}`,
             providerConnection: {
               status:
                 voiceState === 'Listening' || voiceState === 'Speaking' || voiceState === 'Thinking'
@@ -1943,102 +2073,42 @@ export default function App() {
               voiceAgent: 'live_verified',
             },
           });
+          const editionParams = new URLSearchParams(
+            typeof window !== 'undefined' ? window.location.search : ''
+          );
+          const activeEdition =
+            editionParams.get('explainer') === '60' || editionParams.get('edition') === '60'
+              ? 'explainer-60'
+              : editionParams.get('intro') === '1' || editionParams.get('edition') === '180'
+                ? 'intro-180'
+                : tourState.active
+                  ? 'tour-18'
+                  : 'workspace';
+          // Truthful capability flags — do not advertise features this client cannot evidence.
+          const capabilities = {
+            voiceTourAuto: Boolean(tourState.active && tourState.autoAdvance),
+            spatialWorld: !forceWebglFallback,
+            mediaControls: true,
+            presentation: audienceLevel === 'Public',
+            sessionCapture: false,
+            explainer60: true,
+            intro180: true,
+            projectWorldIstanba: true,
+            tarekPortraitAperture: false,
+            fifthSphereIndustryMaking: false,
+            liveAgentToolParityVerified: false,
+          };
           return {
             ok: true,
             action: 'get_page_state',
             target: manifestV4.activeScreenId,
-            resultingState: manifestV4 as unknown as Record<string, unknown>,
-            operationId: opId,
-          };
-        }
-
-        case 'spatial_media': {
-          const collectionId = action.collectionId || HOTSPOT26_COLLECTION_ID;
-          const filterKind = action.filterKind || 'all';
-          if (action.action === 'close') {
-            setMediaTubeState((prev) => ({
-              ...prev,
-              active: false,
-              focusedTileIndex: null,
-              useHotspot26: false,
-            }));
-            setFullscreenMedia(null);
-            setCaptionBubble('Closed spatial media grid');
-          } else if (action.action === 'filter') {
-            setMediaTubeState((prev) => ({
-              ...prev,
-              filterKind,
-              useHotspot26: true,
-              projectId: collectionId,
-            }));
-            setCaptionBubble(`Media filter · ${filterKind}`);
-          } else if (action.action === 'open' || action.action === 'focus') {
-            const asset = action.assetId
-              ? mediaRegistry.getAsset(action.assetId)
-              : mediaRegistry.getHotspot26Assets(filterKind)[0];
-            if (asset?.localCacheUrl && asset.type === 'image') {
-              setFullscreenMedia({
-                id: asset.id,
-                title: asset.title,
-                subtitle: `Hotspot 26 Test · ${asset.type} · rights ${asset.rightsStatus}`,
-                type: 'Render JPG',
-                aspect: '16:9',
-                url: asset.localCacheUrl,
-                isSample: false,
-              });
-            }
-            setCaptionBubble(
-              asset
-                ? `Spatial media · ${asset.title} (${asset.playbackStatus}/${asset.accessStatus})`
-                : 'Spatial media asset not found'
-            );
-          } else if (action.action === 'open_grid' || action.action === 'open_collection') {
-            ensurePanelOpen('media', true);
-            setMediaTubeState({
-              active: true,
-              projectId: collectionId,
-              focusedTileIndex: 0,
-              savedPanels: [...openPanels],
-              filterKind,
-              useHotspot26: true,
-            });
-            dispatchCamera('focus_node', {
-              targetSphere: 'hq',
-              targetNodeId: 'st-media',
-            });
-            setCaptionBubble(
-              'Hotspot 26 Media Test · Spatial glass grid armed (rights pending · not a portfolio claim)'
-            );
-          } else if (action.action === 'next' || action.action === 'previous') {
-            const list = mediaRegistry.getHotspot26Assets(filterKind);
-            const cur = Math.max(0, mediaTubeState.focusedTileIndex ?? 0);
-            const next =
-              action.action === 'next'
-                ? (cur + 1) % Math.max(1, list.length)
-                : (cur - 1 + list.length) % Math.max(1, list.length);
-            setMediaTubeState((prev) => ({
-              ...prev,
-              active: true,
-              focusedTileIndex: next,
-              useHotspot26: true,
-              projectId: collectionId,
-            }));
-            setCaptionBubble(list[next]?.title || `Tile ${next + 1}`);
-          } else if (action.action === 'play' || action.action === 'pause') {
-            setCaptionBubble(
-              action.action === 'play'
-                ? 'Video play requires authorized stream proxy — Drive /view is not a stream'
-                : 'Media paused'
-            );
-          }
-          return {
-            ok: true,
-            action: `spatial_media_${action.action}`,
-            target: action.assetId || collectionId,
             resultingState: {
-              collectionId,
-              filterKind,
-              tubeActive: mediaTubeState.active || action.action === 'open_grid',
+              ...(manifestV4 as unknown as Record<string, unknown>),
+              activeEdition,
+              capabilities,
+              sceneSafeRect: computedLayout.sceneSafeRect,
+              connectedSpheres: ['hq', 'cde', 'campaign-os', 'about-us'],
+              proposedSpheres: ['industry-making'],
             },
             operationId: opId,
           };
@@ -2132,21 +2202,23 @@ export default function App() {
 
         case 'create_domain': {
           const domId = `dom-${action.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+          // Voice-spawned domains attach to HQ/CDE containment only.
+          const hostSphere: 'hq' | 'cde' = action.sphere === 'cde' ? 'cde' : 'hq';
           const newDomain: CustomDomain3D = {
             id: domId,
             name: action.name,
-            sphere: action.sphere,
+            sphere: hostSphere,
             colour: action.colour,
             parentNodeId: action.parentNodeId,
-            position: computeNewDomainPosition(customDomains.length, action.sphere),
-            materialPreset: action.sphere === 'cde' ? 'amber-crystal' : 'cobalt-glass',
+            position: computeNewDomainPosition(customDomains.length, hostSphere),
+            materialPreset: hostSphere === 'cde' ? 'amber-crystal' : 'cobalt-glass',
             createdAt: new Date().toISOString(),
           };
           setCustomDomains((prev) => [...prev.filter((d) => d.id !== newDomain.id), newDomain]);
-          setActiveSphere(action.sphere);
+          setActiveSphere(hostSphere);
           setFocusedNodeId(newDomain.id);
           dispatchCamera('focus_node', {
-            targetSphere: action.sphere,
+            targetSphere: hostSphere,
             targetNodeId: newDomain.id,
           });
           setCaptionBubble(`Spawned 3D Domain · ${newDomain.name} (${newDomain.sphere.toUpperCase()})`);
@@ -2247,6 +2319,57 @@ export default function App() {
           };
         }
 
+        case 'open_pilot_game': {
+          const isOpen = action.action !== 'close';
+          setShowPilotGame(isOpen);
+          setCaptionBubble(
+            isOpen
+              ? 'Station 18 Cosmograph Pilot Simulator Engaged'
+              : 'Pilot Simulator Disengaged'
+          );
+          return {
+            ok: true,
+            action: 'open_pilot_game',
+            target: 'pilot_simulator',
+            resultingState: { showPilotGame: isOpen },
+            operationId: opId,
+          };
+        }
+
+        case 'open_bioscience': {
+          const isOpen = action.action !== 'close';
+          setShowBioScience(isOpen);
+          setCaptionBubble(
+            isOpen
+              ? 'AlphaFold 3D Molecular Biology Explorer Initialized'
+              : 'BioScience Explorer Closed'
+          );
+          return {
+            ok: true,
+            action: 'open_bioscience',
+            target: 'bioscience_explorer',
+            resultingState: { showBioScience: isOpen },
+            operationId: opId,
+          };
+        }
+
+        case 'open_image_studio': {
+          const isOpen = action.action !== 'close';
+          setShowImageStudio(isOpen);
+          setCaptionBubble(
+            isOpen
+              ? 'Creative Image Studio (gemini-nano-banana-2.1) Opened'
+              : 'Image Studio Closed'
+          );
+          return {
+            ok: true,
+            action: 'open_image_studio',
+            target: 'image_studio',
+            resultingState: { showImageStudio: isOpen },
+            operationId: opId,
+          };
+        }
+
         default: {
           return {
             ok: false,
@@ -2311,7 +2434,7 @@ export default function App() {
     ]
   );
 
-  // Structured Client Tool Executor for ElevenLabsConvaiBridge (Never flattens named parameters!)
+  // Structured Client Tool Executor for GoogleAiStudioVoiceBridge (Never flattens named parameters!)
   const handleExecuteToolCall = useCallback(
     (toolName: string, parameters: Record<string, unknown>): string => {
       const parsed = parseStructuredToolCall(toolName, parameters);
@@ -2356,9 +2479,9 @@ export default function App() {
         return;
       }
 
-      // Live WebSocket transcript separation (rawTranscriptExecutesCommands: false):
-      // When the live ElevenLabs ConvAI WebSocket is open, user transcripts update conversation history ONLY
-      // while live client_tool_call frames execute actions, preventing duplicate local command execution.
+      // Live Google Voice transcript separation (rawTranscriptExecutesCommands: false):
+      // When the Google AI Studio voice session is live, user transcripts update conversation history ONLY
+      // while Gemini-proposed client tool calls execute actions, preventing duplicate local command execution.
       if (text.startsWith('__user_voice_live__:')) {
         const liveSpeech = text.replace('__user_voice_live__:', '').trim();
         if (liveSpeech) {
@@ -2372,16 +2495,6 @@ export default function App() {
         ? text.replace('__user_voice__:', '').trim()
         : text;
       if (!cleanInput) return;
-
-      // v5.0: "Cerebro, take me on a full tour" → live registry itinerary (interruptible).
-      if (isFullTourIntent(cleanInput)) {
-        appendTranscript('39', cleanInput);
-        executeTypedAction(
-          { type: 'tour_control', action: 'start', mode: 'full-18-screen' },
-          'voice_nl'
-        );
-        return;
-      }
 
       appendTranscript('39', cleanInput);
 
@@ -2426,7 +2539,13 @@ export default function App() {
     ]
   );
 
-  // Global Keyboard Navigation (Escape closes fullscreen/panel; Arrow keys orbit/tilt when not typing in input/textarea)
+  // Keep browser Fullscreen API state in sync (workspace + intro share the same helpers)
+  useEffect(() => {
+    setBrowserFullscreen(isBrowserFullscreen());
+    return subscribeBrowserFullscreen(() => setBrowserFullscreen(isBrowserFullscreen()));
+  }, []);
+
+  // Global Keyboard Navigation (Escape closes media/panel; F toggles browser fullscreen; Arrow keys orbit/tilt when not typing)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -2438,12 +2557,44 @@ export default function App() {
         Boolean(target?.isContentEditable);
 
       if (e.key === 'Escape') {
+        // L11 — close top contextual surface before navigating back.
         if (fullscreenMedia) {
           setFullscreenMedia(null);
           return;
         }
         if (showDeveloperDrawer) {
           setShowDeveloperDrawer(false);
+          return;
+        }
+        if (showDownloadModal) {
+          setShowDownloadModal(false);
+          return;
+        }
+        if (voiceSheetExpanded) {
+          setVoiceSheetExpanded(false);
+          return;
+        }
+        if (voiceExpanded) {
+          setVoiceExpanded(false);
+          return;
+        }
+        if (mediaTubeState.active) {
+          executeTypedAction(
+            {
+              type: 'project_media_tube',
+              action: 'close',
+              projectId: mediaTubeState.projectId,
+            },
+            'escape_tube'
+          );
+          return;
+        }
+        if (projectWorld.projectId) {
+          setProjectWorld((prev) => settleMasterWorld(exitProjectWorld(prev)));
+          return;
+        }
+        if (tourState.active) {
+          handleStopTourImmediately?.();
           return;
         }
         if (openPanels.length > 0) {
@@ -2454,6 +2605,52 @@ export default function App() {
 
       // Never trigger 3D camera shortcuts while typing inside an input/textarea
       if (isEditable) return;
+
+      if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+        e.preventDefault();
+        window.alert(formatKeyboardHelp());
+        return;
+      }
+      if (e.key.toLowerCase() === 'm' && !e.metaKey && !e.ctrlKey) {
+        const muteBtn = document.querySelector(
+          '[data-testid="voice-mute"]'
+        ) as HTMLButtonElement | null;
+        muteBtn?.click();
+        return;
+      }
+      if (e.key.toLowerCase() === 'x' && !e.metaKey && !e.ctrlKey) {
+        const stopBtn = document.querySelector(
+          '[data-testid="voice-stop"]'
+        ) as HTMLButtonElement | null;
+        stopBtn?.click();
+        return;
+      }
+      if (e.key === '[') {
+        e.preventDefault();
+        setActiveSphere('hq');
+        return;
+      }
+      if (e.key === ']') {
+        e.preventDefault();
+        setActiveSphere('cde');
+        return;
+      }
+      if (e.key.toLowerCase() === 'v' && !e.metaKey && !e.ctrlKey) {
+        const voice = document.querySelector(
+          '[data-testid="voice-card"]'
+        ) as HTMLElement | null;
+        voice?.focus?.();
+        (
+          document.querySelector('[data-testid="voice-connect"], [data-testid="voice-orb-button"]') as HTMLElement | null
+        )?.focus?.();
+        return;
+      }
+
+      if (e.key.toLowerCase() === 'f' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        void toggleBrowserFullscreen();
+        return;
+      }
 
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
@@ -2472,30 +2669,20 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [dispatchCamera, fullscreenMedia, openPanels.length, showDeveloperDrawer]);
-
-  // Tour is intentional only: ?tour=1 or ?preview=1. Bare production hosts must not auto-start (V07).
-  // Skip when ?blueprint= is present so screen deep-links remain inspectable.
-  const previewTourStartedRef = useRef(false);
-  useEffect(() => {
-    if (typeof window === 'undefined' || !bootDone || previewTourStartedRef.current) return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('blueprint')) return;
-    const wantsPreviewTour =
-      params.get('preview') === '1' || params.get('tour') === '1';
-    if (!wantsPreviewTour) return;
-    previewTourStartedRef.current = true;
-    const tid = window.setTimeout(() => {
-      executeTypedAction(
-        { type: 'tour_control', action: 'start', mode: 'full-18-screen' },
-        'preview_boot'
-      );
-      setCaptionBubble(
-        'Neural Observatory v1.1 · 18-Screen Wireframe tour armed · say “tour” or “next”'
-      );
-    }, 900);
-    return () => window.clearTimeout(tid);
-  }, [bootDone, executeTypedAction]);
+  }, [
+    dispatchCamera,
+    executeTypedAction,
+    fullscreenMedia,
+    mediaTubeState.active,
+    mediaTubeState.projectId,
+    openPanels.length,
+    projectWorld.projectId,
+    showDeveloperDrawer,
+    showDownloadModal,
+    tourState.active,
+    voiceExpanded,
+    voiceSheetExpanded,
+  ]);
 
   // All 12 ?view=... URL State Inspectors + Morning Briefing 06:00–10:30 Africa/Cairo Auto-Window
   useEffect(() => {
@@ -2505,8 +2692,6 @@ export default function App() {
 
     if (!view) {
       // Check if current time in Africa/Cairo is between 06:00 and 10:30 to auto-open Panel #6 Morning Briefing
-      // Skip briefing auto-open when preview/tour mode owns the viewport.
-      if (params.get('preview') === '1' || params.get('tour') === '1') return;
       try {
         const cairoTimeStr = new Intl.DateTimeFormat('en-GB', {
           timeZone: 'Africa/Cairo',
@@ -2559,6 +2744,16 @@ export default function App() {
       setActiveSphere('cde');
       setOpenPanels(['cde-explorer']);
       dispatchCamera('switch_sphere', { targetSphere: 'cde' });
+    } else if (view === 'campaign' || view === 'campaign-os' || view === 'campaigns') {
+      setActiveSphere('campaign-os');
+      setOpenPanels([]);
+      setCaptionBubble(SPHERE_CAPTION['campaign-os']);
+      dispatchCamera('switch_sphere', { targetSphere: 'campaign-os' });
+    } else if (view === 'about' || view === 'about-us') {
+      setActiveSphere('about-us');
+      setOpenPanels([]);
+      setCaptionBubble(SPHERE_CAPTION['about-us']);
+      dispatchCamera('switch_sphere', { targetSphere: 'about-us' });
     } else if (view === 'dashboard' || view === 'pockets') {
       setDashboardCollapsed(true);
     } else if (view === 'showreel' || view === 'media') {
@@ -2570,6 +2765,7 @@ export default function App() {
       setActiveSphere('cde');
       setOpenPanels(['story-journey']);
     } else if (view === 'hands') {
+      setHandMode('right-only');
       setHandsActive(true);
     } else if (view === 'audit' || view === 'developer') {
       setShowDeveloperDrawer(true);
@@ -2600,27 +2796,29 @@ export default function App() {
 
   // Handle 3D node or floating label click from CosmographCanvas — flies camera & dispatches actionDispatcher action
   const handleSelectNode = useCallback(
-    (id: string, nodeType: AnchoredLabel2D['nodeType'], sphere: 'hq' | 'cde') => {
+    (id: string, nodeType: AnchoredLabel2D['nodeType'], sphere: ConnectedSphereId) => {
       handleUserTouchPauseTour();
-      setActiveSphere(sphere);
-      const action = buildNodeSelectionAction(id, nodeType, sphere);
-      executeTypedAction(action, 'sphere_node');
       if (nodeType === 'core') {
+        pushNavSnapshot();
+        setActiveSphere(sphere);
         setFocusedNodeId(null);
+        setOpenPanels([]);
         dispatchCamera('center', { targetSphere: sphere });
-      } else {
-        dispatchCamera('focus_node', { targetSphere: sphere, targetNodeId: id });
+        return;
       }
+      executeTypedAction(buildNodeSelectionAction(id, nodeType, sphere), 'sphere_node');
     },
-    [dispatchCamera, executeTypedAction, handleUserTouchPauseTour]
+    [dispatchCamera, executeTypedAction, handleUserTouchPauseTour, pushNavSnapshot]
   );
 
   // Live Page State Snapshot for Developer View & `get_page_state` (cerebro-ui/4)
   const pageStateSnapshot: Record<string, unknown> = {
     schema: CEREBRO_UI_SCHEMA_V4,
     version: BUILD_VERSION,
-    agent: 'Cro-cde-google',
-    defaultAgentId: DEFAULT_INTERNAL_AGENT_ID,
+    agent: CRO_CDE_GOOGLE_AGENT_NAME,
+    voiceProvider: CEREBRO_VOICE_PROVIDER,
+    toolCount: CRO_CDE_GOOGLE_TOOLS_SCHEMA.length,
+    legacyElevenLabsAgentId: DEFAULT_INTERNAL_AGENT_ID,
     owner: '39 (Tarek Nojara) — Founder and Culture and Design Engineer',
     activeSphere,
     focusedNodeId,
@@ -2661,14 +2859,14 @@ export default function App() {
     totalPortfolioProjects: CEREBRO_17_PROJECTS.length,
   };
 
-  // Debounced (250ms, max 4Hz) cerebro-ui/4 contextual updates to active ElevenLabs session
+  // Debounced (250ms, max 4Hz) cerebro-ui/4 contextual updates to active Google AI Studio voice session
   useEffect(() => {
     runtimeUIRegistry.scheduleContextualUpdate(
       'navigation',
       () =>
         JSON.stringify(
           runtimeUIRegistry.buildManifestSnapshot({
-            agentIdResolved: DEFAULT_INTERNAL_AGENT_ID,
+            agentIdResolved: `${CEREBRO_VOICE_PROVIDER}:${CRO_CDE_GOOGLE_AGENT_NAME}`,
             providerConnection: {
               status: 'connected',
               liveWebSocketOpen:
@@ -2854,9 +3052,11 @@ export default function App() {
               attachmentName: pendingTaskProposal.attachmentName,
             }),
           });
+          if (!res.ok) throw new Error(`Task save failed (HTTP ${res.status})`);
           const data = await res.json();
+          if (!data?.task?.id) throw new Error('Task save returned no task ID');
           const newTask: CustomTaskItem = {
-            id: data?.task?.id || `task-${Date.now()}`,
+            id: String(data.task.id),
             title: pendingTaskProposal.summary,
             projectCode: pendingTaskProposal.projectCode,
             owner: '39 (Tarek Nojara) — Founder and Culture and Design Engineer',
@@ -2869,33 +3069,90 @@ export default function App() {
             'Cerebro',
             `Created task "${newTask.title}" under ${newTask.projectCode}.`
           );
-        } catch {}
+          setPendingTaskProposal(null);
+        } catch (error) {
+          appendTranscript(
+            'Cerebro',
+            error instanceof Error ? error.message : 'Task save failed. Please retry.'
+          );
+        }
       } else {
         appendTranscript('Cerebro', 'Kept as a saved note without creating a task.');
+        setPendingTaskProposal(null);
       }
-      setPendingTaskProposal(null);
     },
     [audienceLevel, pendingTaskProposal, appendTranscript, ensurePanelOpen]
   );
+
+  const handleToggleHands = useCallback(() => {
+    setHandsActive((wasActive) => {
+      if (!wasActive) {
+        // Fresh session always starts one-hand until the user picks 2×.
+        setHandMode('right-only');
+      }
+      return !wasActive;
+    });
+  }, []);
 
   const handleTriggerHandGesture = useCallback(
     (gesture: HandGestureType) => {
       setActiveGesture(gesture);
       handleUserTouchPauseTour();
-      if (gesture === 'pinch-orbit') {
-        dispatchCamera('orbit', { deltaAzimuth: 0.55, deltaPolar: -0.08 });
-      } else if (gesture === 'spread-zoom') {
-        dispatchCamera('zoom_in');
-      } else if (gesture === 'palm-stop') {
-        dispatchCamera('stop');
-      } else if (gesture === 'point-select') {
-        ensurePanelOpen(activeSphere === 'hq' ? 'projects' : 'cde-explorer', true);
+      switch (gesture) {
+        case 'pinch-orbit':
+          dispatchCamera('orbit', { deltaAzimuth: 0.55, deltaPolar: -0.08 });
+          break;
+        case 'spread-zoom':
+          setSpatialHealthOpen(true);
+          setSpatialHealthMode('dashboard');
+          dispatchCamera('zoom_in');
+          break;
+        case 'palm-stop':
+          dispatchCamera('stop');
+          if (spatialHealthMode === 'project') {
+            setSpatialHealthMode('dashboard');
+          }
+          break;
+        case 'point-select': {
+          const targetId = focusedNodeId || hoveredNodeId || selectedProjectId || 'SEVEN';
+          setSelectedProjectId(targetId);
+          setSpatialHealthOpen(true);
+          setSpatialHealthMode('project');
+          ensurePanelOpen(activeSphere === 'hq' ? 'projects' : 'cde-explorer', true);
+          break;
+        }
+        default: {
+          const _exhaustive: never = gesture;
+          void _exhaustive;
+          break;
+        }
       }
     },
-    [activeSphere, dispatchCamera, ensurePanelOpen, handleUserTouchPauseTour]
+    [
+      activeSphere,
+      dispatchCamera,
+      ensurePanelOpen,
+      focusedNodeId,
+      handleUserTouchPauseTour,
+      hoveredNodeId,
+      selectedProjectId,
+      spatialHealthMode,
+    ]
   );
 
-  // 16-Point Real Assertion-Based Self-Test Suite (Runs inside Developer View using isolated isTest: true data + cleanup)
+  const handleBootTakeOff = useCallback(() => {
+    soundEngine.unlock();
+    soundEngine.setMuted(false);
+    setSoundMuted(false);
+    setAmbienceMuted(false);
+    setBootDone(true);
+    setOpenPanels([]);
+    setFocusedNodeId(null);
+    setDashboardCollapsed(false);
+    dispatchCamera('arrival', { targetSphere: 'hq' });
+  }, [dispatchCamera]);
+
+  // 21-Point Assertion-Based Self-Test Suite (Runs inside Developer View using isolated isTest: true data + cleanup)
   const runAutomatedJourneySelfTest = useCallback(async () => {
     setShowDeveloperDrawer(true);
     setSelfTestRunning(true);
@@ -2911,7 +3168,7 @@ export default function App() {
       { id: '07', title: 'Panel Minimise & Restore (Preserves Project, Tab, Scroll & Draft)', status: 'PENDING', detail: 'Waiting...' },
       { id: '08', title: 'People Inspection -> Linked Work & Review Checkpoints', status: 'PENDING', detail: 'Waiting...' },
       { id: '09', title: 'Interactive Media Player (Play, Seek, Mute, Fullscreen Enter/Exit)', status: 'PENDING', detail: 'Waiting...' },
-      { id: '10', title: 'Grounded Tour DOM Bounds & Pause/Resume/Prev/Stop Controls', status: 'PENDING', detail: 'Waiting...' },
+      { id: '10', title: 'Grounded Tour DOM Bounds & Hands-Free Automatic Advance', status: 'PENDING', detail: 'Waiting...' },
       { id: '11', title: 'Persistent Note, Task & Message Storage (Isolated isTest=true)', status: 'PENDING', detail: 'Waiting...' },
       { id: '12', title: 'Real Binary File Upload with Byte Size & SHA-256 Verification', status: 'PENDING', detail: 'Waiting...' },
       { id: '13', title: 'Failed Send Error Handling & Unsent Draft Preservation', status: 'PENDING', detail: 'Waiting...' },
@@ -2922,6 +3179,7 @@ export default function App() {
       { id: '18', title: '10x Shader, Bokeh Galaxy, Living Lens & Core Crystal RMS Sync', status: 'PENDING', detail: 'Waiting...' },
       { id: '19', title: 'GUI Amendment v3.0 Zero-Overlap Layout & 36x24mm Optical Matrix', status: 'PENDING', detail: 'Waiting...' },
       { id: '20', title: 'v4.0 cerebro-ui/4 Read-Only get_page_state, ActionReceipt & 3D Media Tube', status: 'PENDING', detail: 'Waiting...' },
+      { id: '21', title: 'PR #130 (8e8cf6d) Spatial Navigation, Closed Orbital Loops & TeamChatChip', status: 'PENDING', detail: 'Waiting...' },
     ];
     setSelfTestResults(initialChecks);
 
@@ -3036,8 +3294,8 @@ export default function App() {
       await wait(100);
       updateCheck(
         '06',
-        'PASS',
-        'Switched HQ -> CDE and restored previous HQ context via navigation history stack'
+        telemetryRef.current.sphere === 'hq' ? 'PASS' : 'FAIL',
+        `Camera sphere after back: ${telemetryRef.current.sphere}`
       );
 
       // 07: Panel Minimise & Restore with Unsent Draft, Tab & Scroll Preservation
@@ -3150,7 +3408,7 @@ export default function App() {
       updateCheck(
         '11',
         persistedOk ? 'PASS' : 'FAIL',
-        `Verified in .cerebro-data/store.json (notes=${stateData?.notes?.length}, tasks=${stateData?.tasks?.length})`
+        `API state returned notes=${stateData?.notes?.length}, tasks=${stateData?.tasks?.length}`
       );
 
       // 12: Real Binary File Upload with SHA-256 Verification
@@ -3191,7 +3449,7 @@ export default function App() {
       updateCheck(
         '13',
         failRes.status === 503 ? 'PASS' : 'FAIL',
-        `Server returned HTTP ${failRes.status} on simulated failure (client preserves draft)`
+        `Server returned HTTP ${failRes.status}; UI draft preservation needs separate verification`
       );
 
       // 14: Truthful Meeting Notes Recipient Validation & Draft Status
@@ -3291,7 +3549,7 @@ export default function App() {
       updateCheck(
         '18',
         Boolean(orbEl) && orbLines === 16 ? 'PASS' : 'FAIL',
-        `Living Lens radial bars=${orbLines}/16 · 6,400-particle GPU Bokeh Galaxy & Bloom active`
+        `Living Lens radial bars=${orbLines}/16; particle count and bloom are unverified here`
       );
 
       // 19: GUI Amendment v3.0 Zero-Overlap Layout & 36x24mm Optical Matrix
@@ -3323,6 +3581,29 @@ export default function App() {
         schemaOk && receiptOk ? 'PASS' : 'FAIL',
         `schema=${stateCallParsed?.resultingState?.schema} · receipt=${tubeParsed?.resultingState?.receipt?.runId} · 24-tile 3D Tube verified`
       );
+
+      // 21: PR #130 (Commit 8e8cf6d) Spatial Navigation, Closed Orbital Loops & TeamChatChip
+      updateCheck('21', 'RUNNING', 'Verifying spatialNavigation.tsx, closed orbital loops, 5-axis widget & TeamChatChip...');
+      const poseDesktop = masterPose(16 / 9);
+      const poseMobile = masterPose(9 / 16);
+      const snap = createResizeSnapshot(1440, 900);
+      const closedLoop = buildClosedOrbitalLoopPoints(6.24, 6.24, 72);
+      const fiveAxesCount = Object.keys(DEFAULT_FIVE_AXIS_STATE).length;
+      const chatChipEl = document.querySelector('[data-testid="sphere-open-chat"]');
+      const pr130Ok =
+        CDE_TAXONOMY.glass.ior === 1.48 &&
+        poseDesktop.fov === 46 &&
+        poseMobile.fov === 52 &&
+        flightMs(10) === 1400 &&
+        snap.aspect === 1440 / 900 &&
+        closedLoop.curve.closed === true &&
+        fiveAxesCount === 5 &&
+        Boolean(chatChipEl);
+      updateCheck(
+        '21',
+        pr130Ok ? 'PASS' : 'FAIL',
+        `IOR=${CDE_TAXONOMY.glass.ior} · FOV=${poseDesktop.fov}°/${poseMobile.fov}° · closedCurve=${closedLoop.curve.closed} · 5-axis=${fiveAxesCount} · TeamChatChip=${Boolean(chatChipEl)}`
+      );
     } finally {
       // Clean up isolated test records so user workspace stays clean
       await fetch('/api/test/reset', { method: 'POST' }).catch(() => {});
@@ -3346,6 +3627,7 @@ export default function App() {
     openPanels,
     phoneSheetState,
     voiceExpanded,
+    voiceSheetExpanded,
     voiceDragDelta,
     keyboardInsetBottom: viewport.keyboardInsetBottom,
   });
@@ -3360,6 +3642,25 @@ export default function App() {
       : voiceState === 'Error'
       ? 'error'
       : 'idle';
+
+  // L08 — idle orbit only when no interaction surface owns the stage.
+  const idleOrbitAllowed =
+    bootDone &&
+    !projectWorld.projectId &&
+    openPanels.length === 0 &&
+    !mediaTubeState.active &&
+    !tourState.active &&
+    !voiceExpanded &&
+    !voiceSheetExpanded &&
+    !fullscreenMedia &&
+    !showDeveloperDrawer &&
+    !showDownloadModal &&
+    voiceState !== 'Listening' &&
+    voiceState !== 'Speaking' &&
+    voiceState !== 'Thinking' &&
+    voiceState !== 'Connecting' &&
+    voiceState !== 'Reconnecting' &&
+    !mediaPlayback.playing;
 
   const currentVisualState = deriveVisualState({
     hasError: voiceState === 'Error',
@@ -3406,9 +3707,9 @@ export default function App() {
       } else if (screenId === 'S03') {
         ensurePanelOpen('projects', true);
       } else if (screenId === 'S04') {
-        dispatchCamera('switch_sphere', {
-          targetSphere: activeSphere === 'hq' ? 'cde' : 'hq',
-        });
+        const targetSphere = activeSphere === 'hq' ? 'cde' : 'hq';
+        setActiveSphere(targetSphere);
+        dispatchCamera('switch_sphere', { targetSphere });
       } else if (screenId === 'S05') {
         ensurePanelOpen('project-detail', true);
       } else if (screenId === 'S08') {
@@ -3423,103 +3724,26 @@ export default function App() {
     setExplicitScreenOverride(screenId);
   };
 
-  // Blueprint V2.0 PersistentCerebroWidget — five axes as readable text.
-  const widgetConnection: ConnectionAxis =
-    voiceState === 'Connecting'
-      ? 'connecting'
-      : voiceState === 'Reconnecting'
-        ? 'reconnecting'
-        : voiceState === 'Disconnected' || voiceState === 'Error'
-          ? 'disconnected'
-          : connectionState === 'Live' ||
-              voiceState === 'Ready' ||
-              voiceState === 'Listening' ||
-              voiceState === 'Speaking' ||
-              voiceState === 'Thinking' ||
-              voiceState === 'Muted' ||
-              voiceState === 'Idle'
-            ? 'connected'
-            : 'disconnected';
-
-  const widgetInput: InputAxis =
-    voiceState === 'Listening'
-      ? 'listening'
-      : voiceState === 'Thinking'
-        ? 'tentative'
-        : voiceState === 'Muted'
-          ? 'mic-off'
-          : 'mic-off';
-
-  const widgetOutput: OutputAxis =
-    voiceState === 'Speaking' ? 'speaking' : 'silent';
-
-  const widgetExecution: ExecutionAxis =
-    voiceState === 'Thinking'
-      ? 'running'
-      : voiceState === 'Connecting' || voiceState === 'Reconnecting'
-        ? 'waiting'
-        : voiceState === 'Error'
-          ? 'failed'
-          : 'idle';
-
-  const widgetPersistence: PersistenceAxis = pendingTaskProposal
-    ? 'submitting'
-    : 'draft';
-
-  const widgetActionLine = pendingTaskProposal
-    ? `Compose · ${pendingTaskProposal.summary}`
-    : tourState.active
-      ? `Tour · step ${tourState.step}/${tourState.total}`
-      : 'No active operation';
-
-  const latestTranscript =
-    transcripts.length > 0 ? transcripts[transcripts.length - 1]?.text || '' : '';
-
-  const healthProject =
-    PROJECTS_DATA.find((p) => p.id === selectedProjectId) || PROJECTS_DATA[0];
-  const healthProgress = healthProject?.progressLabel || 'unknown';
-  const healthBlockers = healthProject
-    ? healthProject.health === 'Blocked'
-      ? healthProject.healthNote || 'Blocked'
-      : healthProject.health === 'At risk'
-        ? healthProject.healthNote || 'At risk'
-        : 'none'
-    : 'unknown';
-  const healthDue = healthProject?.nextDeadline || 'unknown';
-
   return (
     <div
       dir={languageRtl === 'ar' ? 'rtl' : 'ltr'}
-      className="relative w-screen h-screen overflow-hidden select-none"
+      data-skin="cerebro-02"
+      className="cj-viewport-container relative w-screen h-screen overflow-hidden select-none"
       style={{
         backgroundColor: COLOUR_TOKENS.canvas,
         color: COLOUR_TOKENS.textPrimary,
       }}
     >
-      {/* 1. Intro overlay (embedCanvas=false) — keypad / boot on shared ExperienceCanvas */}
-      {introMode !== 'workspace' && (
-        <CerebroIntro
-          embedCanvas={false}
+      {/* 1. Panel #17: 3939 Owner Gate Keypad (?view=keypad) & 8.0s Boot Loader (?view=loader) */}
+      {!bootDone && (
+        <BootLoader
           reducedMotion={reducedMotion}
           initialPhase={bootInitialMode}
-          onComplete={() => {
-            setBootDone(true);
-            setOpenPanels([]);
-            setFocusedNodeId(null);
-            setDashboardCollapsed(false);
-            dispatchCamera('arrival', { targetSphere: 'hq' });
-          }}
+          onTakeOff={handleBootTakeOff}
         />
       )}
 
-      <Explainer60Player
-        embedCanvas={false}
-        open={explainerOpen}
-        onSkip={() => setExplainerOpen(false)}
-        onComplete={() => setExplainerOpen(false)}
-      />
-
-      {/* 2. Camera + Hands — single HandsWireframeRig owns the shared webcam stream */}
+      {/* 2. Camera + Hands Overlay (Single shared MediaStream inside HandsWireframeRig, requested ONLY when handsActive is true) */}
       <HandsCameraBackdrop active={handsActive} />
       <HandsWireframeRig
         active={handsActive}
@@ -3528,9 +3752,78 @@ export default function App() {
         onChangeHandMode={setHandMode}
         onTriggerGesture={handleTriggerHandGesture}
         onCloseHands={() => setHandsActive(false)}
+        onTrackingLost={() => setGestureTrackingActive(false)}
+        onTrackingAcquired={() => setGestureTrackingActive(true)}
       />
 
-      {/* 3. Single continuous ExperienceCanvas — dual liquid-glass spheres + RoomEnvironment HDR */}
+      {/* 2C. Unified Intro Overlay (Single shared 3D sphere canvas continuously mounted underneath) */}
+      {introMode === 'intro' && (
+        <CerebroIntro onEnterWorkspace={handleExitIntro} embedCanvas={false} />
+      )}
+      {introMode === 'explainer-60' && (
+        <Explainer60Player onEnterWorkspace={handleExitIntro} embedCanvas={false} />
+      )}
+
+      {/* 2B. Desk AR health + angled wall calendar + project plan.
+          Hidden during guided tour, and dashboard overlays yield when a panel owns focus. */}
+      {bootDone &&
+        spatialHealthOpen &&
+        !dashboardCollapsed &&
+        !tourState.active &&
+        (spatialHealthMode === 'project' || openPanels.length === 0) && (
+        <SpatialHealthLayout
+          mode={spatialHealthMode}
+          selectedProjectId={selectedProjectId}
+          onSelectProject={(pid) => {
+            setOpenPanels((prev) => prev.filter((p) => p !== 'project-detail'));
+            setSpatialHealthOpen(true);
+            setSpatialHealthMode('project');
+            executeTypedAction({ type: 'focus_project', projectId: pid }, 'spatial');
+          }}
+          onCloseProject={() => {
+            setSpatialHealthMode('dashboard');
+            setOpenPanels((prev) => prev.filter((p) => p !== 'project-detail'));
+            setFocusedNodeId(null);
+            setCaptionBubble(null);
+          }}
+          onCloseCalendar={() => setSpatialHealthOpen(false)}
+          onOpenFilteredProjects={(filter, projectId) => {
+            if (projectId) {
+              setOpenPanels((prev) => prev.filter((p) => p !== 'project-detail'));
+              setSpatialHealthOpen(true);
+              setSpatialHealthMode('project');
+              executeTypedAction({ type: 'focus_project', projectId }, 'spatial');
+              return;
+            }
+            setSpatialHealthMode('dashboard');
+            setOpenPanels(['projects']);
+            setCaptionBubble(
+              filter === 'onTrack'
+                ? 'Portfolio health · on-track programmes'
+                : filter === 'attention'
+                  ? 'Blocked / at risk · Owner 39 attention'
+                  : `Open register work · ${PROJECTS_DATA.reduce((n, p) => n + p.openTaskCount, 0)} (sum of openTaskCount; distinct from 52-record CSV index)`
+            );
+          }}
+          onOpenPerson={(personId) => {
+            setOpenPanels(['people']);
+            setCaptionBubble(`People · ${personId}`);
+          }}
+          onOpenRegisterRecord={(recordId) => {
+            setProjectTabsById((prev) => ({
+              ...prev,
+              [selectedProjectId]: 'tasks',
+            }));
+            executeTypedAction(
+              { type: 'focus_project', projectId: selectedProjectId, tab: 'tasks' },
+              'plan'
+            );
+            setCaptionBubble(`Register record · ${recordId}`);
+          }}
+        />
+      )}
+
+      {/* 3. Main 3D WebGL ExperienceCanvas — four live spheres (HQ, CDE, Campaign OS, About Us) */}
       <ExperienceCanvas
         activeSphere={activeSphere}
         focusedNodeId={focusedNodeId}
@@ -3543,15 +3836,17 @@ export default function App() {
         customDomains={customDomains}
         sphereMaterials={sphereMaterials}
         selectedBlueprintTaskId={selectedBlueprintTaskId}
+        projectWorldId={projectWorld.projectId}
+        projectWorldState={projectWorld.projectId ? projectWorld.state : null}
         onSelectNode={handleSelectNode}
         onSelectPortalStation={(st) => {
           setSelectedBlueprintTaskId(st.linkedTaskId);
           setPortalHudOpen(true);
         }}
         onUserTouchPauseTour={handleUserTouchPauseTour}
-        onTelemetryChange={setTelemetry}
+        onTelemetryChange={handleTelemetryChange}
         onCameraSettled={handleCameraSettled}
-        unobstructedRect={guiLayout.centerSafeRect}
+        unobstructedRect={guiLayout.sceneSafeRect}
         guiCameraPreset={guiCameraPreset}
         onProjectedTargetChange={setProjectedTarget}
         onHoverNodeChange={setHoveredNodeId}
@@ -3588,6 +3883,8 @@ export default function App() {
             'tube_close'
           )
         }
+        gestureTrackingActive={gestureTrackingActive}
+        idleOrbitAllowed={idleOrbitAllowed}
       />
 
       {/* 3A. Z-35 Focus Pointer, Projected 3D Target Ring, S04 Flight Route & GUI v3.0 QA Inspector */}
@@ -3598,7 +3895,7 @@ export default function App() {
         breakpoint={viewport.breakpoint}
         viewportW={viewport.width}
         viewportH={viewport.height}
-        centerSafeRect={guiLayout.centerSafeRect}
+        centerSafeRect={guiLayout.sceneSafeRect}
         projectedTarget={projectedTarget}
         isCameraInFlight={telemetry.isMoving}
         flightDestinationTitle={focusedNodeId || (activeSphere === 'cde' ? 'CDE Universe' : 'CEREBRO HQ')}
@@ -3648,48 +3945,49 @@ export default function App() {
 
           return (
             <>
-              <BuildActivityHeader
-                projectName="Cerebro Core HQ"
-                checkpointId={activeCp.id}
-                gitHash={activeCp.gitHash}
-                connectionState={connectionState}
-                lastEventIso={lastEventIso}
-                recordedStartTimeMs={recordedStartTimeMs}
-                recordedPausedDurationMs={recordedPausedDurationMs}
-                verifiedCriteriaCount={verifiedCount}
-                totalCriteriaCount={activeCp.totalCriteriaCount}
-                isHistoricalMode={activeCheckpointId !== liveCheckpointId}
-                portalHudOpen={portalHudOpen}
-                rtl={languageRtl === 'ar'}
-                onChangeConnectionState={setConnectionState}
-                onTogglePortalHud={() => setPortalHudOpen((v) => !v)}
-                onReturnToLive={() => setActiveCheckpointId(liveCheckpointId)}
-              />
+              {portalHudOpen && (
+                <BuildActivityHeader
+                  projectName="Cerebro Core HQ"
+                  checkpointId={activeCp.id}
+                  gitHash={activeCp.gitHash}
+                  connectionState={connectionState}
+                  lastEventIso={lastEventIso}
+                  recordedStartTimeMs={recordedStartTimeMs}
+                  recordedPausedDurationMs={recordedPausedDurationMs}
+                  verifiedCriteriaCount={verifiedCount}
+                  totalCriteriaCount={activeCp.totalCriteriaCount}
+                  isHistoricalMode={activeCheckpointId !== liveCheckpointId}
+                  portalHudOpen={portalHudOpen}
+                  rtl={languageRtl === 'ar'}
+                  onChangeConnectionState={setConnectionState}
+                  onTogglePortalHud={() => setPortalHudOpen((v) => !v)}
+                  onReturnToLive={() => setActiveCheckpointId(liveCheckpointId)}
+                />
+              )}
 
-              {/* Primary Visual Toast AlertStack — Neural Observatory Layer 11 (z-300) */}
+              {/* Primary Visual Toast AlertStack (Standing Hold #1: visual alerts primary, audio opt-in) */}
               {alertStack.length > 0 && (
                 <div
                   data-testid="alert-stack"
-                  className="fixed top-28 right-4 flex flex-col gap-1.5 pointer-events-auto max-w-sm"
-                  style={{ zIndex: GUI_Z_LAYERS.systemToast }}
+                  className="fixed top-20 right-4 z-40 flex flex-col gap-1.5 pointer-events-auto max-w-sm"
                 >
                   {alertStack.map((al) => (
                     <div
                       key={al.id}
-                      className="cerebro-hud-elevated px-3 py-2 text-xs border-l-4 shadow-lg"
+                      className="cj-glass-card cerebro-hud-elevated px-3 py-2 text-xs border-l-4 shadow-lg"
                       style={{
                         borderLeftColor:
                           al.tone === 'verified'
-                            ? '#36E88D'
+                            ? '#78D3B2'
                             : al.tone === 'warn'
-                            ? '#F2B66D'
-                            : '#4C8DFF',
+                            ? '#D4AF37'
+                            : '#C5CCD6',
                       }}
                     >
-                      <div className="font-mono text-[10px] font-semibold text-[#F2F6F8]">
+                      <div className="font-mono text-[12px] font-semibold text-[#F2F6F8]">
                         {al.title}
                       </div>
-                      <div className="font-mono text-[10px] text-[#BDCBD3]">
+                      <div className="font-mono text-[12px] text-[#C5CCD6]">
                         {al.detail}
                       </div>
                     </div>
@@ -3699,10 +3997,7 @@ export default function App() {
 
               {/* Non-Blocking Tracker-First Portal HUD Regions */}
               {portalHudOpen && (
-                <div
-                  className="fixed inset-x-4 top-28 bottom-28 pointer-events-none flex flex-col gap-3 overflow-hidden"
-                  style={{ zIndex: GUI_Z_LAYERS.executiveBar }}
-                >
+                <div className="fixed inset-x-4 top-28 bottom-28 z-30 pointer-events-none flex flex-col gap-3 overflow-hidden">
                   <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 pointer-events-none overflow-hidden">
                     <div className="lg:col-span-7 h-full min-h-0 pointer-events-auto overflow-hidden">
                       <BlueprintMap
@@ -3760,10 +4055,7 @@ export default function App() {
               )}
 
               {visualFeedbackOpen && (
-                <div
-                  className="fixed inset-0 bg-[#101D27]/80 backdrop-blur-sm flex items-center justify-center p-4 pointer-events-auto"
-                  style={{ zIndex: GUI_Z_LAYERS.modalBackdrop }}
-                >
+                <div className="fixed inset-0 z-50 bg-[#101D27]/80 backdrop-blur-sm flex items-center justify-center p-4 pointer-events-auto">
                   <div className="w-full max-w-3xl">
                     <VisualFeedbackMap
                       projectId={selectedProjectId}
@@ -3804,270 +4096,175 @@ export default function App() {
         })()}
       </TrackerMotionProvider>
 
-      {/* 4. Sticky Telemetry Header — Neural Observatory Layer 5 (z-40) */}
+      {/* 4. Clear fixed header — centered NOJARA + CEREBRO only */}
       <header
-        className="fixed top-0 left-0 right-0 pointer-events-none flex flex-wrap items-center justify-between gap-2 px-3 md:px-5 pt-3 pb-2 safe-area-top"
-        style={{ zIndex: GUI_Z_LAYERS.stickyHeader }}
-        data-testid="sticky-telemetry-header"
+        data-testid="workspace-header"
+        className={`fixed top-0 left-0 right-0 z-30 pointer-events-none flex items-start justify-center px-4 pt-4 pb-2 safe-area-top ${
+          introMode !== 'workspace' ? 'opacity-0' : 'opacity-100'
+        } transition-opacity duration-300`}
       >
-        {/* Top-Left: Bismillah + CEREBRO Lockup + HQ / CDE Switcher + Back Button */}
-        <div className="pointer-events-none flex items-center gap-2 flex-wrap max-w-full">
-          <div className="pointer-events-auto px-3 py-1.5 rounded-xl bg-[#101D27]/90 border border-white/25 backdrop-blur-md">
-            <BrandLockup
-              mode="header"
-              activeSphere={activeSphere}
-              onSwitchSphere={(target) =>
-                executeTypedAction({ type: 'switch_sphere', sphere: target }, 'header')
-              }
-            />
-          </div>
+        <div className="pointer-events-auto">
+          <BrandLockup
+            mode="header"
+            activeSphere={activeSphere}
+            onSwitchSphere={(target) =>
+              executeTypedAction({ type: 'switch_sphere', sphere: target }, 'header')
+            }
+          />
+        </div>
+      </header>
 
-          {navHistory.length > 0 && (
-            <button
-              type="button"
-              data-testid="header-back-btn"
-              onClick={handleNavigateBack}
-              title="Return to previous workspace context"
-              className="pointer-events-auto min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs bg-[#142632]/90 border border-white/30 text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer"
-            >
-              ← Back
-            </button>
-          )}
-
-          {/* Primary Station / Dimension Pills */}
-          <nav
-            aria-label="Primary Stations and Dimensions"
-            className="hidden pointer-events-auto items-center gap-1.5 p-1 rounded-xl bg-[#142632]/90 border border-white/30 backdrop-blur-md overflow-x-auto max-w-[92vw] sm:max-w-none"
-          >
-            {activeSphere === 'hq' ? (
-              CEREBRO_STATIONS.map((st) => {
-                const isOpen = openPanels.includes(st.id) && !dashboardCollapsed;
-                return (
-                  <button
-                    key={st.id}
-                    type="button"
-                    onClick={() => {
-                      handleUserTouchPauseTour();
-                      executeTypedAction({ type: 'open_station', station: st.id }, 'header');
-                    }}
-                    className="min-h-[38px] px-2.5 py-1 rounded-lg font-mono text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-                    style={{
-                      backgroundColor: isOpen ? 'rgba(76, 141, 255, 0.22)' : 'transparent',
-                      border: `1px solid ${isOpen ? st.colour : 'rgba(255,255,255,0.18)'}`,
-                      color: COLOUR_TOKENS.textPrimary,
-                    }}
-                  >
-                    <span
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: st.colour }}
-                    />
-                    <span>{st.label}</span>
-                  </button>
-                );
-              })
-            ) : (
-              <>
-                {CDE_DIMENSIONS.map((dim) => {
-                  const isSel =
-                    selectedDimensionId === dim.id && openPanels.includes('cde-explorer');
-                  return (
-                    <button
-                      key={dim.id}
-                      type="button"
-                      onClick={() => {
-                        handleUserTouchPauseTour();
-                        executeTypedAction(
-                          { type: 'open_dimension', dimension: dim.id },
-                          'header'
-                        );
-                      }}
-                      className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-xs flex items-center gap-2 transition-colors cursor-pointer"
-                      style={{
-                        backgroundColor: isSel ? 'rgba(76, 141, 255, 0.22)' : 'transparent',
-                        border: `1px solid ${isSel ? dim.colour : 'rgba(255,255,255,0.18)'}`,
-                        color: COLOUR_TOKENS.textPrimary,
-                      }}
-                    >
-                      <span
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: dim.colour }}
-                      />
-                      <span>{dim.label.split('&')[0].trim()}</span>
-                    </button>
-                  );
-                })}
+      {/* Floating icon-only toggles (phone / iPad / desktop) — kept out of the brand header */}
+      <div
+        data-testid="header-controls-region"
+        className={`fixed top-0 right-0 z-40 pointer-events-none px-4 pt-4 safe-area-top ${
+          introMode !== 'workspace' ? 'opacity-0' : 'opacity-100'
+        } transition-opacity duration-300`}
+      >
+        <FloatingIconToggles
+          moreOpen={showMoreMenu}
+          toggles={[
+            {
+              id: 'back',
+              label: 'Back',
+              visible: navHistory.length > 0,
+              testId: 'header-back-btn',
+              onClick: handleNavigateBack,
+            },
+            {
+              id: 'hq',
+              label: 'HQ',
+              active: activeSphere === 'hq',
+              testId: 'switch-sphere-hq',
+              onClick: () =>
+                executeTypedAction({ type: 'switch_sphere', sphere: 'hq' }, 'header'),
+            },
+            {
+              id: 'cde',
+              label: 'CDE',
+              active: activeSphere === 'cde',
+              testId: 'switch-sphere-cde',
+              onClick: () =>
+                executeTypedAction({ type: 'switch_sphere', sphere: 'cde' }, 'header'),
+            },
+            {
+              id: 'campaign-os',
+              label: 'Campaign',
+              active: activeSphere === 'campaign-os',
+              testId: 'switch-sphere-campaign-os',
+              onClick: () =>
+                executeTypedAction(
+                  { type: 'switch_sphere', sphere: 'campaign-os' },
+                  'header'
+                ),
+            },
+            {
+              id: 'about-us',
+              label: 'About',
+              active: activeSphere === 'about-us',
+              testId: 'switch-sphere-about-us',
+              onClick: () =>
+                executeTypedAction({ type: 'switch_sphere', sphere: 'about-us' }, 'header'),
+            },
+            {
+              id: 'overview',
+              label: dashboardCollapsed ? 'Show overview docks' : 'Hide overview docks',
+              active: !dashboardCollapsed,
+              onClick: () =>
+                executeTypedAction({ type: 'open_dashboard', mode: 'toggle' }, 'header'),
+            },
+            {
+              id: 'tour',
+              label: tourState.active
+                ? `Stop tour ${tourState.step}/${tourState.total}`
+                : 'Take a tour',
+              active: tourState.active,
+              testId: tourState.active ? 'stop-tour-btn' : 'start-tour-btn',
+              onClick: () =>
+                executeTypedAction(
+                  { type: 'tour_control', action: tourState.active ? 'stop' : 'start' },
+                  'header'
+                ),
+            },
+            {
+              id: 'fullscreen',
+              label: browserFullscreen ? 'Exit fullscreen' : 'Fullscreen',
+              active: browserFullscreen,
+              visible: isBrowserFullscreenSupported(),
+              testId: 'browser-fullscreen-toggle',
+              onClick: () => void toggleBrowserFullscreen(),
+            },
+            {
+              id: 'more',
+              label: 'More',
+              active: showMoreMenu,
+              testId: 'header-more-btn',
+              onClick: () => setShowMoreMenu((v) => !v),
+            },
+          ]}
+          moreMenu={
+            <>
+              <div className="fim-section">Stations & Views</div>
+              {CEREBRO_STATIONS.map((st) => (
                 <button
+                  key={st.id}
                   type="button"
+                  className="fim-item"
                   onClick={() => {
-                    handleUserTouchPauseTour();
-                    executeTypedAction({ type: 'open_chapter', chapterIndex: activeChapterIndex }, 'header');
-                  }}
-                  className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-xs border cursor-pointer"
-                  style={{
-                    backgroundColor: openPanels.includes('story-journey')
-                      ? COLOUR_TOKENS.cobaltAccent
-                      : '#101D27',
-                    color: openPanels.includes('story-journey')
-                      ? COLOUR_TOKENS.cobaltLabel
-                      : COLOUR_TOKENS.textPrimary,
-                    borderColor: COLOUR_TOKENS.outlineControl,
+                    setShowMoreMenu(false);
+                    executeTypedAction({ type: 'open_station', station: st.id }, 'header');
                   }}
                 >
-                  Story Journey
+                  <span>{st.label}</span>
+                  <span className="fim-meta">{st.badgeCount}</span>
                 </button>
-              </>
-            )}
-          </nav>
-        </div>
-
-        {/* Top-Right Workspace Controls: Clean Product Language + Progressive Disclosure */}
-        <div
-          onPointerDown={(e) => e.stopPropagation()}
-          className="hidden pointer-events-auto flex-wrap items-center justify-end gap-1.5 relative"
-        >
-          {/* Primary Workspace Views: Reviews, Team, Meeting notes, Timeline */}
-          {(
-            [
-              { id: 'decisions', label: 'Reviews' },
-              { id: 'team-room', label: 'Team' },
-              { id: 'minutes', label: 'Meeting notes' },
-              { id: 'timeline', label: 'Timeline' },
-            ] as const
-          ).map((surf) => (
-            <button
-              key={surf.id}
-              type="button"
-              onClick={() =>
-                executeTypedAction(
-                  { type: 'open_panel', action: 'open', panel: surf.id },
-                  'header'
-                )
-              }
-              className={`hidden md:inline-flex items-center min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] border cursor-pointer ${
-                openPanels.includes(surf.id)
-                  ? 'bg-[#4C8DFF] text-[#101D27] border-white font-semibold'
-                  : 'bg-[#142632]/90 text-[#F2F6F8] border-white/25 hover:border-[#4C8DFF]'
-              }`}
-            >
-              {surf.label}
-            </button>
-          ))}
-
-          {/* Overview Toggle (Clean label: "Overview" instead of "Telemetry Pockets") */}
-          <button
-            type="button"
-            onClick={() => executeTypedAction({ type: 'open_dashboard', mode: 'toggle' }, 'header')}
-            className="min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] border bg-[#142632]/90 text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer"
-            style={{
-              borderColor: dashboardCollapsed
-                ? COLOUR_TOKENS.cobaltAccent
-                : COLOUR_TOKENS.outlineControl,
-            }}
-          >
-            Overview
-          </button>
-
-          {/* Direct Sphere Switcher (Clean label: "CDE" / "HQ") */}
-          <button
-            type="button"
-            onClick={() =>
-              executeTypedAction(
-                { type: 'switch_sphere', sphere: activeSphere === 'hq' ? 'cde' : 'hq' },
-                'header'
-              )
-            }
-            className="min-h-[44px] px-3.5 py-1 rounded-xl font-mono text-[11px] font-semibold border cursor-pointer transition-colors"
-            style={{
-              backgroundColor: COLOUR_TOKENS.cobaltAccent,
-              color: COLOUR_TOKENS.cobaltLabel,
-              borderColor: COLOUR_TOKENS.outlineControl,
-            }}
-          >
-            {activeSphere === 'hq' ? 'CDE →' : '← HQ'}
-          </button>
-
-          {/* Guided Tour Control (Clean label: "Take a tour" instead of "Tour (6×30s)") */}
-          {!tourState.active ? (
-            <button
-              type="button"
-              data-testid="start-tour-btn"
-              onClick={() => executeTypedAction({ type: 'tour_control', action: 'start' }, 'header')}
-              className="min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] border bg-[#142632]/90 text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer"
-              style={{ borderColor: COLOUR_TOKENS.outlineControl }}
-            >
-              Take a tour
-            </button>
-          ) : (
-            <div
-              className="min-h-[44px] px-2.5 py-1 rounded-xl border bg-[#142632]/95 flex items-center gap-1.5 font-mono text-[11px]"
-              style={{ borderColor: COLOUR_TOKENS.focusRing }}
-            >
-              <span className="text-[#B4DDFF]">
-                {tourState.step}/{tourState.total} ·{' '}
-                {tourState.paused ? 'Paused' : `${tourState.secondsLeft}s`}
-              </span>
+              ))}
+              <div className="fim-rule" />
               <button
                 type="button"
-                onClick={handlePrevTourStop}
-                className="px-2 py-1 rounded bg-[#101D27] border border-white/30 text-[#F2F6F8] cursor-pointer"
+                className="fim-item"
+                data-testid="chip-whats-urgent"
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  ensurePanelOpen('tasks');
+                }}
               >
-                ‹ Back
+                <span>Urgent</span>
+                <span className="fim-meta">
+                  {PROJECTS_DATA.filter((p) => p.health === 'At risk').length}
+                </span>
               </button>
               <button
                 type="button"
-                onClick={handleNextTourStop}
-                className="px-2 py-1 rounded bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
+                className="fim-item"
+                data-testid="chip-approve-pending"
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  ensurePanelOpen('decisions');
+                }}
               >
-                Next ›
+                <span>Reviews</span>
+                <span className="fim-meta">
+                  {decisions.filter((d) => d.status === 'PENDING').length}
+                </span>
               </button>
               <button
                 type="button"
-                onClick={() =>
-                  executeTypedAction(
-                    {
-                      type: 'tour_control',
-                      action: tourState.paused ? 'resume' : 'pause',
-                    },
-                    'header'
-                  )
-                }
-                className="px-2 py-1 rounded bg-[#101D27] border border-white/30 text-[#F2F6F8] cursor-pointer"
+                className="fim-item"
+                data-testid="chip-unblock-this"
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  setSelectedProjectId('BSOCIAL');
+                  setProjectTabsById((prev) => ({ ...prev, BSOCIAL: 'decisions' }));
+                  ensurePanelOpen('decisions');
+                }}
               >
-                {tourState.paused ? 'Resume' : 'Pause'}
+                <span>Blocked</span>
+                <span className="fim-meta">
+                  {PROJECTS_DATA.filter((p) => p.health === 'Blocked').length}
+                </span>
               </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setTourState((prev) => ({ ...prev, autoAdvance: !prev.autoAdvance }))
-                }
-                title="Toggle automatic step advancement vs manual step mode"
-                className="px-2 py-1 rounded bg-[#101D27] border border-white/25 text-[#BDCBD3] cursor-pointer"
-              >
-                {tourState.autoAdvance ? 'Auto' : 'Manual'}
-              </button>
-              <button
-                type="button"
-                onClick={() => executeTypedAction({ type: 'tour_control', action: 'stop' }, 'header')}
-                className="px-2 py-1 rounded bg-[#101D27] border border-white/30 text-[#F2B66D] cursor-pointer"
-              >
-                Stop
-              </button>
-            </div>
-          )}
-
-          {/* Progressive Disclosure "More" Menu (Development, Settings, Developer View) */}
-          <button
-            type="button"
-            data-testid="header-more-btn"
-            onClick={() => setShowMoreMenu((v) => !v)}
-            className="min-h-[44px] px-3 py-1 rounded-xl font-mono text-[11px] border bg-[#101D27]/90 text-[#F2F6F8] hover:border-[#4C8DFF] cursor-pointer"
-            style={{ borderColor: COLOUR_TOKENS.outlineControl }}
-          >
-            More ▾
-          </button>
-
-          {showMoreMenu && (
-            <div className="absolute right-0 top-14 w-56 rounded-2xl border border-white/30 bg-[#101D27]/95 backdrop-blur-md p-2 shadow-2xl flex flex-col gap-1 z-50">
+              <div className="fim-rule" />
               {(
                 [
                   { id: 'decisions', label: 'Reviews' },
@@ -4081,6 +4278,7 @@ export default function App() {
                 <button
                   key={item.id}
                   type="button"
+                  className="fim-item"
                   onClick={() => {
                     setShowMoreMenu(false);
                     executeTypedAction(
@@ -4088,569 +4286,593 @@ export default function App() {
                       'more_menu'
                     );
                   }}
-                  className="min-h-[40px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#F2F6F8] hover:bg-[#142632] cursor-pointer"
                 >
                   {item.label}
                 </button>
               ))}
-              <div className="border-t border-white/15 my-1" />
+              <div className="fim-rule" />
+              <div className="fim-section">Simulators & Intelligence</div>
               <button
                 type="button"
+                className="fim-item text-[#9AFFE0]"
+                data-testid="open-pilot-game-btn"
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  setShowPilotGame(true);
+                }}
+              >
+                <span>Station 18 Pilot Simulator</span>
+                <span className="fim-meta">3D</span>
+              </button>
+              <button
+                type="button"
+                className="fim-item text-[#65ACFF]"
+                data-testid="open-bioscience-btn"
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  setShowBioScience(true);
+                }}
+              >
+                <span>AlphaFold BioScience</span>
+                <span className="fim-meta">PDB</span>
+              </button>
+              <button
+                type="button"
+                className="fim-item text-[#F2F6F8]"
+                data-testid="open-image-studio-btn"
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  setShowImageStudio(true);
+                }}
+              >
+                <span>Creative Image Studio</span>
+                <span className="fim-meta">Nano</span>
+              </button>
+              <div className="fim-rule" />
+              <div className="sr-only" data-testid="header-overview-status" aria-hidden="true" />
+              <button
+                type="button"
+                className="fim-item"
                 data-testid="open-developer-view-btn"
                 onClick={() => {
                   setShowMoreMenu(false);
                   setShowDeveloperDrawer(true);
                 }}
-                className="min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#B4DDFF] hover:bg-[#142632] cursor-pointer"
               >
                 Developer View & Self-Tests
               </button>
               <button
                 type="button"
+                className="fim-item"
                 data-testid="open-gui-qa-hud-btn"
                 onClick={() => {
                   setShowMoreMenu(false);
                   setShowGuiQaHud((v) => !v);
                 }}
-                className="min-h-[44px] px-3 py-1.5 rounded-xl font-mono text-xs text-left text-[#9AFFE0] hover:bg-[#142632] cursor-pointer"
               >
                 GUI v3.0 Layout & Lens QA
               </button>
-            </div>
-          )}
-        </div>
-      </header>
-
-      {/* 5. Compact 3D Cinema Optics — collapsed by default (V04 collision budget) */}
-      <div
-        onPointerDown={(e) => e.stopPropagation()}
-        className="fixed left-4 bottom-28 z-[28] pointer-events-auto hidden lg:flex flex-col gap-1.5 p-2.5 rounded-xl bg-[#101D27]/88 border border-white/20 backdrop-blur-md font-mono text-[10px] text-[#D0DCE3] max-w-[min(680px,46vw)]"
-      >
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <button
-            type="button"
-            data-testid="optics-toggle"
-            aria-expanded={opticsExpanded}
-            onClick={() => setOpticsExpanded((v) => !v)}
-            className="flex items-center gap-1.5 text-[10px] text-[#B4DDFF] min-h-[36px] px-1 rounded-lg hover:text-[#F2F6F8] cursor-pointer"
-          >
-            <span className="font-semibold text-[#F2F6F8]">OPTICS</span>
-            <span aria-hidden="true">{opticsExpanded ? '▾' : '▸'}</span>
-            <span data-testid="camera-telemetry-readout">
-              {telemetry.focalLengthMm ?? 35}mm · FOV {telemetry.vFovDeg ?? 37.8}° · {telemetry.distance}u
-            </span>
-          </button>
-          {!opticsExpanded && (
-            <span className="text-[9px] text-[#7A8B96]">Camera via touch · voice · tour</span>
-          )}
-        </div>
-        {opticsExpanded && (
-        <>
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-white/10">
-          <div className="flex items-center gap-1.5 text-[10px] text-[#B4DDFF]">
-            <span className="sr-only">Lens presets</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-1">
-            {(
-              [
-                { id: '5mm', label: '5mm' },
-                { id: '14mm', label: '14mm' },
-                { id: '24mm', label: '24mm' },
-                { id: '35mm', label: '35mm' },
-                { id: '50mm', label: '50mm' },
-                { id: '85mm', label: '85mm' },
-                { id: '100mm-macro', label: '100mm Macro' },
-                { id: '135mm', label: '135mm' },
-                { id: '200mm', label: '200mm' },
-                { id: '300mm', label: '300mm' },
-              ] as { id: CinemaLensId; label: string }[]
-            ).map((lens) => {
-              const isActive = (telemetry.activeLens || '35mm') === lens.id;
-              return (
-                <button
-                  key={lens.id}
-                  type="button"
-                  onClick={() =>
-                    executeTypedAction(
-                      { type: 'camera', verb: 'set_lens', lensId: lens.id },
-                      'optics_bar'
-                    )
-                  }
-                  className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
-                    isActive
-                      ? 'bg-[#4C8DFF] text-[#081118] font-semibold'
-                      : 'bg-[#142632] text-[#D0DCE3] hover:text-[#F2F6F8] border border-white/15'
-                  }`}
-                >
-                  {lens.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Row 2: Numeric Angle Presets & Ongoing Kinematic Loops + Manual Controls */}
-        <div className="flex flex-wrap items-center gap-1">
-          {(
-            [
-              { id: 'gods_eye', label: "God's Eye" },
-              { id: 'high_crane', label: 'Crane' },
-              { id: 'low_hero', label: 'Hero Low' },
-              { id: 'dutch_cant', label: 'Dutch 14°' },
-              { id: 'interior_dome', label: 'Interior Dome' },
-            ] as { id: CameraAnglePresetId; label: string }[]
-          ).map((ang) => {
-            const isAngActive = telemetry.activeAnglePreset === ang.id;
-            return (
-              <button
-                key={ang.id}
-                type="button"
-                onClick={() =>
-                  executeTypedAction(
-                    { type: 'camera', verb: 'set_angle', anglePreset: ang.id },
-                    'optics_bar'
-                  )
-                }
-                className={`min-h-[30px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
-                  isAngActive
-                    ? 'bg-[#1B3444] border-[#4C8DFF] text-[#B4DDFF]'
-                    : 'bg-[#142632] border-white/20 hover:border-[#4C8DFF] text-[#F2F6F8]'
-                }`}
-              >
-                {ang.label}
-              </button>
-            );
-          })}
-
-          <span className="text-white/25 px-0.5" aria-hidden="true">
-            |
-          </span>
-
-          {(
-            [
-              { id: 'lemniscate', label: '∞ Figure-8' },
-              { id: 'helix', label: 'Helix' },
-              { id: 'vertigo', label: 'Vertigo' },
-              { id: 'macro_orbit', label: 'Macro Orbit' },
-            ] as { id: CameraLoopMode; label: string }[]
-          ).map((lp) => {
-            const isLoopActive = telemetry.activeLoopMode === lp.id;
-            return (
-              <button
-                key={lp.id}
-                type="button"
-                onClick={() =>
-                  executeTypedAction(
-                    {
-                      type: 'camera',
-                      verb: 'set_loop',
-                      loopMode: isLoopActive ? 'off' : lp.id,
-                    },
-                    'optics_bar'
-                  )
-                }
-                className={`min-h-[30px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
-                  isLoopActive
-                    ? 'bg-[#5CC8D7]/20 border-[#5CC8D7] text-[#5CC8D7] font-semibold'
-                    : 'bg-[#142632] border-[rgba(180,221,255,0.16)] hover:border-[#65ACFF] text-[#F2F6F8]'
-                }`}
-              >
-                {lp.label}
-              </button>
-            );
-          })}
-
-          <span className="text-white/25 px-0.5" aria-hidden="true">
-            |
-          </span>
-
-          <button
-            type="button"
-            onClick={() => dispatchCamera('zoom_in')}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#142632] border border-white/25 hover:border-[#4C8DFF] text-[#F2F6F8] cursor-pointer"
-          >
-            + Zoom
-          </button>
-          <button
-            type="button"
-            onClick={() => dispatchCamera('zoom_out')}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#142632] border border-white/25 hover:border-[#4C8DFF] text-[#F2F6F8] cursor-pointer"
-          >
-            - Zoom
-          </button>
-          <button
-            type="button"
-            onClick={() => dispatchCamera('pan', { deltaPanX: -2.2, deltaPanY: 0 })}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#142632] border border-white/25 hover:border-[#4C8DFF] text-[#F2F6F8] cursor-pointer"
-          >
-            Pan Left
-          </button>
-          <button
-            type="button"
-            onClick={() => dispatchCamera('pan', { deltaPanX: 2.2, deltaPanY: 0 })}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#142632] border border-white/25 hover:border-[#4C8DFF] text-[#F2F6F8] cursor-pointer"
-          >
-            Pan Right
-          </button>
-          <button
-            type="button"
-            onClick={() => dispatchCamera('stop')}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#142632] border border-white/25 hover:border-[#F2B66D] text-[#F2B66D] cursor-pointer"
-          >
-            Stop
-          </button>
-          <button
-            type="button"
-            onClick={() => dispatchCamera('center', { targetSphere: activeSphere })}
-            className="min-h-[30px] px-2 py-0.5 rounded-lg bg-[#142632] border border-white/25 hover:border-[#4C8DFF] text-[#F2F6F8] cursor-pointer"
-          >
-            Center
-          </button>
-        </div>
-        </>
-        )}
-      </div>
-
-      {/* 6. Translucent Glass Panels Overlay — inert until introMode === workspace */}
-      <div className={workspaceChromeClass}>
-      <PanelsOverlay
-        openPanels={openPanels}
-        minimisedChips={minimisedChips}
-        dashboardCollapsed={dashboardCollapsed}
-        activeShowreelIndex={activeShowreelIndex}
-        selectedProjectId={selectedProjectId}
-        activeProjectTab={projectTabsById[selectedProjectId] || 'tasks'}
-        peopleSubTab={peopleSubTab}
-        selectedPersonId={selectedPersonId}
-        raciFilterProject={raciFilterProject}
-        selectedDimensionId={selectedDimensionId}
-        selectedSubdomainId={selectedSubdomainId}
-        activeChapterIndex={activeChapterIndex}
-        fileSearchQuery={fileSearchQuery}
-        fullscreenMedia={fullscreenMedia}
-        mediaPlayback={mediaPlayback}
-        audienceLevel={audienceLevel}
-        customTasks={customTasks}
-        pageStateSnapshot={pageStateSnapshot}
-        reducedMotion={reducedMotion}
-        soundMuted={soundMuted}
-        languageRtl={languageRtl}
-        urgentFilterOnly={urgentFilterOnly}
-        panelScrollById={panelScrollById}
-        panelDraftsById={panelDraftsById}
-        activeTeamChannel={activeTeamChannel}
-        onClosePanel={(id) => {
-          soundEngine.playPanelToggle(false);
-          setOpenPanels((prev) => prev.filter((p) => p !== id));
-        }}
-        onMinimisePanel={handleMinimisePanel}
-        onRestoreChip={handleRestoreChip}
-        onOpenPanel={(id) => ensurePanelOpen(id, true)}
-        onToggleUrgentFilter={(urgent) => setUrgentFilterOnly(urgent)}
-        onPanelScrollChange={(pid, st) =>
-          setPanelScrollById((prev) => ({ ...prev, [pid]: st }))
-        }
-        onPanelDraftChange={(pid, draft) =>
-          setPanelDraftsById((prev) => ({ ...prev, [pid]: draft }))
-        }
-        onChangeTeamChannel={(ch) => setActiveTeamChannel(ch)}
-        onExpandStationFromDashboard={(stationId) => {
-          executeTypedAction(
-            { type: 'open_station', station: stationId as StationId },
-            'overview'
-          );
-        }}
-        onChangeShowreelIndex={(idx) => setActiveShowreelIndex(idx)}
-        onMediaControl={handleMediaControl}
-        onSelectProject={(pid) => {
-          executeTypedAction({ type: 'focus_project', projectId: pid }, 'panel');
-        }}
-        onChangeProjectTab={(pid, tab) =>
-          setProjectTabsById((prev) => ({ ...prev, [pid]: tab }))
-        }
-        onChangePeopleSubTab={(tab) => setPeopleSubTab(tab)}
-        onSelectPerson={(personId) => setSelectedPersonId(personId)}
-        onSelectDimension={(dimId) => {
-          executeTypedAction({ type: 'open_dimension', dimension: dimId }, 'panel');
-        }}
-        onSelectSubdomain={(subId) => {
-          executeTypedAction({ type: 'open_subdomain', subdomainId: subId }, 'panel');
-        }}
-        onSelectChapter={(idx) => setActiveChapterIndex(idx)}
-        onFileSearchChange={(q) => setFileSearchQuery(q)}
-        onOpenFullscreenMedia={(item) => setFullscreenMedia(item)}
-        onChangeAudience={setAudienceLevel}
-        onToggleReducedMotion={() => setReducedMotion((v) => !v)}
-        onToggleSoundMuted={() => setSoundMuted((v) => !v)}
-        onToggleLanguageRtl={(lang) => setLanguageRtl(lang)}
-        onSimulateCommand={handleSimulateCommand}
-        handsActive={handsActive}
-        screenAmendments={screenAmendments}
-        onToggleHands={handleToggleHands}
-        guiLayout={guiLayout}
-        phoneSheetState={phoneSheetState}
-        onChangePhoneSheetState={setPhoneSheetState}
-        isCameraInFlight={telemetry.isMoving}
-        onOpenHotspot26SpatialGrid={() => {
-          executeTypedAction(
-            {
-              type: 'spatial_media',
-              action: 'open_grid',
-              collectionId: HOTSPOT26_COLLECTION_ID,
-            },
-            'media_panel'
-          );
-        }}
-        onOpenSpatialMediaAsset={(asset: SpatialMediaAsset) => {
-          executeTypedAction(
-            {
-              type: 'spatial_media',
-              action: 'open',
-              assetId: asset.id,
-              collectionId: HOTSPOT26_COLLECTION_ID,
-            },
-            'media_panel'
-          );
-        }}
-        onSpatialMediaFilterChange={(kind: MediaFilterKind) => {
-          executeTypedAction(
-            {
-              type: 'spatial_media',
-              action: 'filter',
-              filterKind: kind,
-              collectionId: HOTSPOT26_COLLECTION_ID,
-            },
-            'media_panel'
-          );
-        }}
-      />
-      </div>
-
-      {/* 6B. Persistent Floating 18-Screen Wireframe v1.1 Tour Scrubber Pill (Synced with VoiceCard & Stop Interrupt) */}
-      {tourState.active && (() => {
-        const modeSteps = getTourStepsForMode(tourState.mode);
-        const currentStop =
-          modeSteps[Math.max(0, Math.min(modeSteps.length - 1, tourState.step - 1))] ||
-          CEREBRO_18_TOUR_CHOREOGRAPHY[0];
-        return (
-          <div
-            data-testid="tour-scrubber-pill"
-            onPointerDown={(e) => e.stopPropagation()}
-            onWheel={(e) => e.stopPropagation()}
-            className="fixed top-16 left-1/2 -translate-x-1/2 z-40 pointer-events-auto flex flex-wrap items-center gap-2 px-3.5 py-2 rounded-2xl border backdrop-blur-xl shadow-2xl max-w-[95vw]"
-            style={{
-              backgroundColor: 'rgba(16, 29, 39, 0.90)',
-              borderColor: COLOUR_TOKENS.focusRing,
-              boxShadow:
-                'inset 0 1px 0 rgba(180, 221, 255, 0.24), 0 14px 36px rgba(0, 0, 0, 0.65)',
-            }}
-          >
-            {/* Stage Badge S01..S18 + Screen Title */}
-            <div className="flex items-center gap-2 pr-2 border-r border-white/15">
-              <span
-                data-testid="tour-stage-badge"
-                className="px-2 py-0.5 rounded-md font-mono text-[11px] font-bold bg-[#65ACFF] text-[#101D27]"
-              >
-                {currentStop.screenId} · {tourState.step}/{tourState.total}
-              </span>
-              <div className="min-w-0 max-w-[220px] sm:max-w-[280px]">
-                <div className="font-display text-xs font-semibold text-[#F2F6F8] truncate">
-                  {currentStop.title}
-                </div>
-                <div className="font-mono text-[10px] text-[#B4DDFF] truncate">
-                  {currentStop.panelNumber} ·{' '}
-                  {tourState.paused ? 'PAUSED' : `Next in ${tourState.secondsLeft}s`}
-                  {screenStore.activePulsedCta?.ctaId
-                    ? ` · CTA: ${screenStore.activePulsedCta.ctaId}`
-                    : ''}
-                </div>
-              </div>
-            </div>
-
-            {/* Tour Mode Selector */}
-            <select
-              aria-label="Tour Choreography Mode"
-              data-testid="tour-mode-select"
-              value={tourState.mode}
-              onChange={(e) =>
-                executeTypedAction(
-                  {
-                    type: 'tour_control',
-                    action: 'start',
-                    mode: e.target.value as TourMode,
-                  },
-                  'tour_hud'
-                )
-              }
-              className="min-h-[34px] px-2 py-1 rounded-lg bg-[#142632] border border-white/20 font-mono text-[10px] text-[#F2F6F8] cursor-pointer"
-            >
-              <option value="full-18-screen">Full 18-Screen (S01–S18)</option>
-              <option value="hq-ops">HQ Ops (S02–S16)</option>
-              <option value="cde-bio">CDE & Bio (S17–S18)</option>
-              <option value="executive-fast">Executive Fast (7 Stops)</option>
-            </select>
-
-            {/* Quick Screen Jump S01..S18 */}
-            <select
-              aria-label="Jump to Canonical Screen"
-              data-testid="tour-screen-jump-select"
-              value={currentStop.screenId}
-              onChange={(e) =>
-                executeTypedAction(
-                  {
-                    type: 'step_tour',
-                    directionOrScreen: e.target.value,
-                  },
-                  'tour_hud'
-                )
-              }
-              className="min-h-[34px] px-2 py-1 rounded-lg bg-[#142632] border border-white/20 font-mono text-[10px] text-[#9AFFE0] cursor-pointer"
-            >
-              {CEREBRO_18_TOUR_CHOREOGRAPHY.map((s) => (
-                <option key={s.screenId} value={s.screenId}>
-                  {s.screenId} · {s.title}
-                </option>
-              ))}
-            </select>
-
-            {/* Transport Controls: Prev ‹, Pause/Resume, Next ›, Exit Tour */}
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                data-cta-id="tour-hud-prev"
-                onClick={handlePrevTourStop}
-                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#142632] border border-white/25 text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
-              >
-                Prev ‹
-              </button>
-              <button
-                type="button"
-                data-cta-id="tour-hud-pause-resume"
-                onClick={() =>
-                  executeTypedAction(
-                    {
-                      type: 'tour_control',
-                      action: tourState.paused ? 'resume' : 'pause',
-                    },
-                    'tour_hud'
-                  )
-                }
-                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#142632] border border-[#65ACFF] text-[#B4DDFF] hover:bg-[#4C8DFF] hover:text-[#101D27] cursor-pointer"
-              >
-                {tourState.paused ? 'Resume' : 'Pause'}
-              </button>
-              <button
-                type="button"
-                data-cta-id="tour-hud-next"
-                onClick={handleNextTourStop}
-                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
-              >
-                Next ›
-              </button>
-              <button
-                type="button"
-                data-cta-id="tour-hud-exit"
-                onClick={handleStopTourImmediately}
-                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#142632] border border-[#FF5666] text-[#FF5666] hover:bg-[#FF5666]/15 cursor-pointer"
-              >
-                Exit Tour
-              </button>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* 6C. v5.0 persistent CEREBRO voice status dock — bottom-center, outside scene safe frame */}
-      <div
-        className="fixed z-[28] pointer-events-none px-3"
-        style={{
-          insetInlineStart: '50%',
-          transform: 'translateX(-50%)',
-          bottom: '56px',
-          width: 'min(560px, calc(100% - 24px))',
-        }}
-        data-cerebro-build={CEREBRO_BUILD_ID}
-        data-voice-visual={mapVoiceVisualState(voiceState, {
-          tourActive: tourState.active && !tourState.paused,
-          cameraMoving: telemetry.isMoving,
-        })}
-      >
-        <div className="pointer-events-auto cerebro-glass-panel p-2.5">
-          <PersistentCerebroWidget
-            connection={widgetConnection}
-            inputState={widgetInput}
-            outputState={widgetOutput}
-            execution={widgetExecution}
-            persistence={widgetPersistence}
-            actionLine={widgetActionLine}
-            transcriptPreview={latestTranscript || captionBubble || ''}
-            transcriptProvisional={voiceState === 'Listening' || voiceState === 'Thinking'}
-            readinessLabel={mapVoiceVisualState(voiceState, {
-              tourActive: tourState.active && !tourState.paused,
-              cameraMoving: telemetry.isMoving,
-            })}
-            onMicToggle={() => {
-              setActivePocket('tap-to-talk');
-              setVoiceState((prev) =>
-                prev === 'Listening' || prev === 'Speaking' ? 'Muted' : 'Listening'
-              );
-            }}
-            onStop={() => {
-              handleStopTourImmediately();
-              setVoiceState('Ready');
-              setPendingTaskProposal(null);
-            }}
-            onFullTranscript={() => {
-              setActivePocket('compose');
-              setVoiceExpanded(true);
-            }}
-          />
-        </div>
-      </div>
-
-      {/* 6D–7. Health strip + VoiceCard — inert until introMode === workspace */}
-      <div className={workspaceChromeClass}>
-      <div className="fixed inset-x-0 bottom-0 z-[26] pointer-events-auto">
-        <ProjectHealthStrip
-          progress={healthProgress}
-          blockers={healthBlockers}
-          due={healthDue}
-          onExpand={() => {
-            ensurePanelOpen('project-detail', true);
-          }}
+            </>
+          }
         />
       </div>
 
-      <VoiceCard
-        voiceState={voiceState}
-        activePocket={activePocket}
-        handsActive={handsActive}
-        tourState={tourState}
-        audienceLevel={audienceLevel}
-        selectedProjectId={selectedProjectId}
-        transcripts={transcripts}
-        liveCaption={captionBubble}
-        pendingTaskProposal={pendingTaskProposal}
-        externalSnapEdge={externalSnapEdge}
-        openAgentModalTrigger={openAgentModalTrigger}
-        onChangePocket={setActivePocket}
-        onToggleHands={handleToggleHands}
-        onSimulateCommand={handleSimulateCommand}
-        onExecuteToolCall={handleExecuteToolCall}
-        onSendCompose={handleSendCompose}
-        onCreateDirectTask={handleCreateDirectTask}
-        onConfirmMakeTask={handleConfirmMakeTask}
-        onChangeAudience={setAudienceLevel}
-        onOpenFullDownloadModal={() => setShowDownloadModal(true)}
-        onNextTourStop={handleNextTourStop}
-        onPrevTourStop={handlePrevTourStop}
-        onStopTour={handleStopTourImmediately}
-        onAudioLevel={setAudioRms}
-        guiLayout={guiLayout}
-        onVoiceDragDeltaChange={setVoiceDragDelta}
-        onVoiceExpandedChange={setVoiceExpanded}
-        contextualUpdateJson={contextualUpdateJson}
-      />
+      {/* 6. Translucent Glass Panels Overlay (Event-Isolated from 3D Canvas) */}
+      <div
+        className={
+          introMode !== 'workspace'
+            ? 'opacity-0 pointer-events-none transition-opacity duration-300'
+            : 'transition-opacity duration-300'
+        }
+      >
+        <PanelsOverlay
+          openPanels={openPanels}
+          minimisedChips={minimisedChips}
+          dashboardCollapsed={dashboardCollapsed}
+          activeShowreelIndex={activeShowreelIndex}
+          selectedProjectId={selectedProjectId}
+          activeProjectTab={projectTabsById[selectedProjectId] || 'tasks'}
+          peopleSubTab={peopleSubTab}
+          selectedPersonId={selectedPersonId}
+          raciFilterProject={raciFilterProject}
+          selectedDimensionId={selectedDimensionId}
+          selectedSubdomainId={selectedSubdomainId}
+          activeChapterIndex={activeChapterIndex}
+          fileSearchQuery={fileSearchQuery}
+          fullscreenMedia={fullscreenMedia}
+          mediaPlayback={mediaPlayback}
+          audienceLevel={audienceLevel}
+          customTasks={customTasks}
+          pageStateSnapshot={pageStateSnapshot}
+          reducedMotion={reducedMotion}
+          soundMuted={soundMuted}
+          languageRtl={languageRtl}
+          urgentFilterOnly={urgentFilterOnly}
+          panelScrollById={panelScrollById}
+          panelDraftsById={panelDraftsById}
+          activeTeamChannel={activeTeamChannel}
+          onClosePanel={(id) => {
+            soundEngine.playPanelToggle(false);
+            setOpenPanels((prev) => prev.filter((p) => p !== id));
+          }}
+          onMinimisePanel={handleMinimisePanel}
+          onRestoreChip={handleRestoreChip}
+          onOpenPanel={(id) => ensurePanelOpen(id, true)}
+          onToggleUrgentFilter={(urgent) => setUrgentFilterOnly(urgent)}
+          onPanelScrollChange={(pid, st) =>
+            setPanelScrollById((prev) => ({ ...prev, [pid]: st }))
+          }
+          onPanelDraftChange={(pid, draft) =>
+            setPanelDraftsById((prev) => ({ ...prev, [pid]: draft }))
+          }
+          onChangeTeamChannel={(ch) => setActiveTeamChannel(ch)}
+          onExpandStationFromDashboard={(stationId) => {
+            executeTypedAction(
+              { type: 'open_station', station: stationId as StationId },
+              'overview'
+            );
+          }}
+          onChangeShowreelIndex={handleChangeShowreelIndex}
+          onMediaControl={handleMediaControl}
+          onVideoRefReady={handleVideoRefReady}
+          onVideoTimeUpdate={handleVideoTimeUpdate}
+          onVideoPlayChange={handleVideoPlayChange}
+          onVideoMuteChange={handleVideoMuteChange}
+          onSelectProject={(pid) => {
+            executeTypedAction({ type: 'focus_project', projectId: pid }, 'panel');
+          }}
+          onChangeProjectTab={(pid, tab) =>
+            setProjectTabsById((prev) => ({ ...prev, [pid]: tab }))
+          }
+          onChangePeopleSubTab={(tab) => setPeopleSubTab(tab)}
+          onSelectPerson={(personId) => setSelectedPersonId(personId)}
+          onSelectDimension={(dimId) => {
+            executeTypedAction({ type: 'open_dimension', dimension: dimId }, 'panel');
+          }}
+          onSelectSubdomain={(subId) => {
+            executeTypedAction({ type: 'open_subdomain', subdomainId: subId }, 'panel');
+          }}
+          onSelectChapter={(idx) => setActiveChapterIndex(idx)}
+          onFileSearchChange={(q) => setFileSearchQuery(q)}
+          onOpenFullscreenMedia={(item) => setFullscreenMedia(item)}
+          onChangeAudience={setAudienceLevel}
+          onToggleReducedMotion={() => setReducedMotion((v) => !v)}
+          onToggleSoundMuted={() => setSoundMuted((v) => !v)}
+          onToggleLanguageRtl={(lang) => setLanguageRtl(lang)}
+          onSimulateCommand={handleSimulateCommand}
+          handsActive={handsActive}
+          screenAmendments={screenAmendments}
+          onToggleHands={handleToggleHands}
+          guiLayout={guiLayout}
+          phoneSheetState={phoneSheetState}
+          onChangePhoneSheetState={setPhoneSheetState}
+          isCameraInFlight={telemetry.isMoving}
+        />
+      </div>
+
+
+
+      {/* 7. C06 Voice capsule + C07 listening rings (Mounted once at application shell; state-driven visibility during intro) */}
+      <div
+        className={
+          introMode !== 'workspace'
+            ? 'opacity-0 pointer-events-none transition-opacity duration-300'
+            : 'transition-opacity duration-300'
+        }
+      >
+        <SystemStatusLayer
+          webglUnavailable={false}
+          voiceAuthFailed={voiceAuthFailed}
+          projectCount={PROJECTS_DATA.length}
+          onRetryVoice={() => {
+            setVoiceAuthFailed(false);
+            setOpenAgentModalTrigger((n) => (n || 0) + 1);
+          }}
+          onRetryWebgl={() => window.location.reload()}
+        />
+        {projectWorld.projectId && (
+          <div
+            className="cerebro-status-banner cerebro-status-banner--info"
+            data-testid="project-world-runtime"
+            role="status"
+            style={{
+              position: 'fixed',
+              top: 'max(64px, env(safe-area-inset-top))',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 'var(--z-ambient-status, 20)',
+              width: 'min(480px, calc(100vw - 24px))',
+              pointerEvents: 'auto',
+            }}
+          >
+            <div className="cerebro-status-banner__copy">
+              <strong>
+                {projectWorld.state === 'unavailable'
+                  ? 'Project world unavailable'
+                  : `Project world · ${projectWorld.state}`}
+              </strong>
+              <span>
+                {projectWorld.reason ||
+                  `${projectWorld.projectId} — return restores master-sphere pose.`}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="cerebro-status-banner__action"
+              data-testid="return-master-world"
+              onClick={() => {
+                setProjectWorld((prev) => settleMasterWorld(exitProjectWorld(prev)));
+                setSpatialHealthOpen(false);
+                setFocusedNodeId(null);
+                dispatchCamera('center', { targetSphere: 'hq' });
+              }}
+            >
+              Return to master
+            </button>
+          </div>
+        )}
+        <div className="sr-only" aria-live="polite" data-testid="a11y-hydration">
+          {hydrationPhase === 'ready'
+            ? SCENE_SR_LABELS.canvas
+            : `Hydrating workspace phase ${hydrationPhase}`}
+        </div>
+        <VoiceCard
+          voiceState={voiceState}
+          activePocket={activePocket}
+          handsActive={handsActive}
+          tourState={tourState}
+          audienceLevel={audienceLevel}
+          selectedProjectId={selectedProjectId}
+          transcripts={transcripts}
+          liveCaption={captionBubble}
+          pendingTaskProposal={pendingTaskProposal}
+          externalSnapEdge={externalSnapEdge}
+          openAgentModalTrigger={openAgentModalTrigger}
+          onChangePocket={setActivePocket}
+          onToggleHands={handleToggleHands}
+          onSimulateCommand={handleSimulateCommand}
+          onExecuteToolCall={handleExecuteToolCall}
+          onSendCompose={handleSendCompose}
+          onCreateDirectTask={handleCreateDirectTask}
+          onConfirmMakeTask={handleConfirmMakeTask}
+          onChangeAudience={setAudienceLevel}
+          onOpenFullDownloadModal={() => setShowDownloadModal(true)}
+          onNextTourStop={handleNextTourStop}
+          onPrevTourStop={handlePrevTourStop}
+          onStopTour={handleStopTourImmediately}
+          onAudioLevel={setAudioRms}
+          guiLayout={guiLayout}
+          onVoiceDragDeltaChange={setVoiceDragDelta}
+          onVoiceExpandedChange={setVoiceExpanded}
+          onVoiceSheetExpandedChange={setVoiceSheetExpanded}
+          contextualUpdateJson={contextualUpdateJson}
+        />
+      </div>
+
+      {/* 7B. Shared Layout Grid Region 5: Consolidated Bottom Utility Area (Camera Control + Ambience, Gesture & Team Chat) */}
+      <div
+        data-testid="bottom-utility-bar"
+        onPointerDown={(e) => e.stopPropagation()}
+        onWheel={(e) => e.stopPropagation()}
+        className={`fixed bottom-3 left-3 right-3 md:left-5 md:right-5 lg:left-6 lg:right-6 z-[45] pointer-events-none ${
+          introMode !== 'workspace' ? 'opacity-0 pointer-events-none' : ''
+        } ${
+          openPanels.length > 0 ? 'hidden md:flex' : 'flex'
+        } items-center justify-between gap-2 transition-opacity duration-300`}
+      >
+        {/* Left Utility: Single Collapsible "Camera" Control + Scrollable Expandable Tray */}
+        <div className="relative pointer-events-auto flex items-center">
+          <button
+            type="button"
+            data-testid="camera-control-toggle"
+            aria-expanded={showCameraTray || showGuiQaHud}
+            onClick={() => {
+              setShowCameraTray((v) => !v);
+              if (showGuiQaHud) setShowGuiQaHud(false);
+            }}
+            data-chrome-state={showCameraTray || showGuiQaHud ? 'active' : 'cold'}
+            className={`cj-glass-card min-h-[40px] px-3 py-1.5 rounded-full font-mono text-[13px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              showCameraTray || showGuiQaHud
+                ? 'border-[color:var(--token-active-gold)] text-[#FFF4D0] bg-[color-mix(in_srgb,var(--token-active-gold)_20%,transparent)]'
+                : 'text-[color:var(--token-cold-text)] hover:border-[color:var(--token-active-gold)]'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-[color:var(--token-active-gold)]" />
+            <span>Camera</span>
+            <span className="text-[12px] text-[#C5CCD6] font-normal">
+              {telemetry.focalLengthMm ?? 35}mm
+            </span>
+            <span className="text-[12px] text-[#C5CCD6]">
+              {showCameraTray || showGuiQaHud ? '▾' : '▴'}
+            </span>
+          </button>
+
+          {/* Expandable, Scrollable Camera Optics & Movement Tray (Kept in DOM as sr-only when closed so all lens/telemetry selectors remain reachable) */}
+          <div
+            data-testid="camera-control-tray"
+            onPointerDown={(e) => e.stopPropagation()}
+            onWheel={(e) => e.stopPropagation()}
+            className={
+              showCameraTray || showGuiQaHud
+                ? `cj-glass-card fixed ${
+                    openPanels.length > 0
+                      ? 'left-3 right-3 md:left-auto md:right-5 bottom-[144px] md:w-[360px]'
+                      : 'left-3 right-3 md:left-5 md:right-auto lg:left-6 bottom-[144px] md:bottom-[64px] md:w-[304px] lg:w-[420px]'
+                  } max-h-[240px] overflow-y-auto overscroll-contain p-3 rounded-2xl font-mono text-[12px] text-[#C5CCD6] flex flex-col gap-2.5 z-[48] shadow-2xl`
+                : 'sr-only'
+            }
+          >
+            <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-[color:var(--token-divider)] shrink-0">
+              <div className="flex items-center gap-1.5 text-[12px] text-[#C5CCD6] min-w-0">
+                <span className="font-semibold text-[#F2F6F8]">CAMERA OPTICS</span>
+                <span aria-hidden="true">·</span>
+                <span data-testid="camera-telemetry-readout" className="truncate">
+                  {telemetry.focalLengthMm ?? 35}mm · FOV {telemetry.vFovDeg ?? 37.8}° · {telemetry.distance}u
+                </span>
+              </div>
+              <button
+                type="button"
+                data-testid="camera-tray-close"
+                onClick={() => {
+                  setShowCameraTray(false);
+                  setShowGuiQaHud(false);
+                }}
+                className="min-w-[28px] min-h-[28px] px-2 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer shrink-0"
+              >
+                Close ×
+              </button>
+            </div>
+
+            {/* Section 1: Cinema Prime / Macro Lens Selector */}
+            <div className="space-y-1">
+              <div className="text-[12px] uppercase tracking-wider text-[#C5CCD6]/80">Lenses</div>
+              <div className="flex flex-wrap items-center gap-1">
+                {(
+                  [
+                    { id: '5mm', label: '5mm' },
+                    { id: '14mm', label: '14mm' },
+                    { id: '24mm', label: '24mm' },
+                    { id: '35mm', label: '35mm' },
+                    { id: '50mm', label: '50mm' },
+                    { id: '85mm', label: '85mm' },
+                    { id: '100mm-macro', label: '100mm Macro' },
+                    { id: '135mm', label: '135mm' },
+                    { id: '200mm', label: '200mm' },
+                    { id: '300mm', label: '300mm' },
+                  ] as { id: CinemaLensId; label: string }[]
+                ).map((lens) => {
+                  const isActive = (telemetry.activeLens || '35mm') === lens.id;
+                  return (
+                    <button
+                      key={lens.id}
+                      type="button"
+                      onClick={() =>
+                        executeTypedAction(
+                          { type: 'camera', verb: 'set_lens', lensId: lens.id },
+                          'optics_bar'
+                        )
+                      }
+                      className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+                        isActive
+                          ? 'bg-[#D4AF37] text-[#101622] font-semibold'
+                          : 'bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] border border-[color:var(--token-divider)]'
+                      }`}
+                    >
+                      {lens.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Section 2: Numeric Angle Presets & Kinematic Loops */}
+            <div className="space-y-1">
+              <div className="text-[12px] uppercase tracking-wider text-[#C5CCD6]/80">
+                Angles & Loops
+              </div>
+              <div className="flex flex-wrap items-center gap-1">
+                {(
+                  [
+                    { id: 'gods_eye', label: "God's Eye" },
+                    { id: 'high_crane', label: 'Crane' },
+                    { id: 'low_hero', label: 'Hero Low' },
+                    { id: 'dutch_cant', label: 'Dutch 14°' },
+                    { id: 'interior_dome', label: 'Interior Dome' },
+                  ] as { id: CameraAnglePresetId; label: string }[]
+                ).map((ang) => {
+                  const isAngActive = telemetry.activeAnglePreset === ang.id;
+                  return (
+                    <button
+                      key={ang.id}
+                      type="button"
+                      onClick={() =>
+                        executeTypedAction(
+                          { type: 'camera', verb: 'set_angle', anglePreset: ang.id },
+                          'optics_bar'
+                        )
+                      }
+                      className={`min-h-[28px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
+                        isAngActive
+                          ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#FFF4D0]'
+                          : 'bg-[#101622] border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8]'
+                      }`}
+                    >
+                      {ang.label}
+                    </button>
+                  );
+                })}
+
+                {(
+                  [
+                    { id: 'lemniscate', label: '∞ Figure-8' },
+                    { id: 'helix', label: 'Helix' },
+                    { id: 'vertigo', label: 'Vertigo' },
+                    { id: 'macro_orbit', label: 'Macro Orbit' },
+                  ] as { id: CameraLoopMode; label: string }[]
+                ).map((lp) => {
+                  const isLoopActive = telemetry.activeLoopMode === lp.id;
+                  return (
+                    <button
+                      key={lp.id}
+                      type="button"
+                      onClick={() =>
+                        executeTypedAction(
+                          {
+                            type: 'camera',
+                            verb: 'set_loop',
+                            loopMode: isLoopActive ? 'off' : lp.id,
+                          },
+                          'optics_bar'
+                        )
+                      }
+                      className={`min-h-[28px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
+                        isLoopActive
+                          ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#FFF4D0] font-semibold'
+                          : 'bg-[#101622] border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8]'
+                      }`}
+                    >
+                      {lp.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Section 3: Manual Movement Actions */}
+            <div className="space-y-1">
+              <div className="text-[12px] uppercase tracking-wider text-[#C5CCD6]/80">Movement</div>
+              <div className="flex flex-wrap items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => dispatchCamera('zoom_in')}
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                >
+                  + Zoom
+                </button>
+                <button
+                  type="button"
+                  onClick={() => dispatchCamera('zoom_out')}
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                >
+                  - Zoom
+                </button>
+                <button
+                  type="button"
+                  onClick={() => dispatchCamera('pan', { deltaPanX: -2.2, deltaPanY: 0 })}
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                >
+                  Pan Left
+                </button>
+                <button
+                  type="button"
+                  onClick={() => dispatchCamera('pan', { deltaPanX: 2.2, deltaPanY: 0 })}
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                >
+                  Pan Right
+                </button>
+                <button
+                  type="button"
+                  onClick={() => dispatchCamera('stop')}
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#D4AF37] cursor-pointer"
+                >
+                  Stop
+                </button>
+                <button
+                  type="button"
+                  onClick={() => dispatchCamera('center', { targetSphere: activeSphere })}
+                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                >
+                  Center
+                </button>
+                <button
+                  type="button"
+                  data-testid="open-cerebro39-system-btn"
+                  onClick={() => setShowCerebro39Modal(true)}
+                  className="min-h-[28px] px-2.5 py-0.5 rounded-lg bg-[#142632] border border-[#65ACFF] text-[#F2F6F8] hover:bg-[#65ACFF] hover:text-[#05090E] font-semibold cursor-pointer"
+                >
+                  Master 39 · 180s Film & JSON
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Utility Row: Ambience, Single-Hand Gesture & Team Chat in One Non-Overlapping Row */}
+        <div
+          data-testid="bottom-right-utility-group"
+          className="pointer-events-auto flex items-center justify-end gap-1.5 sm:gap-2 shrink-0"
+        >
+          {isBrowserFullscreenSupported() && (
+            <button
+              type="button"
+              data-testid="browser-fullscreen-utility"
+              data-cta-id="browser-fullscreen"
+              onClick={() => void toggleBrowserFullscreen()}
+              data-chrome-state={browserFullscreen ? 'active' : 'cold'}
+              className={`cj-glass-card min-h-[40px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full font-mono text-[13px] font-medium transition-colors cursor-pointer shrink-0 ${
+                browserFullscreen
+                  ? 'border-[color:var(--token-active-gold)] text-[#FFF4D0] bg-[color-mix(in_srgb,var(--token-active-gold)_20%,transparent)]'
+                  : 'text-[color:var(--token-cold-text)] hover:text-[color:var(--token-text-primary)] hover:border-[color:var(--token-active-gold)]'
+              }`}
+              title={browserFullscreen ? 'Exit browser fullscreen (F)' : 'Enter browser fullscreen (F)'}
+              aria-pressed={browserFullscreen}
+            >
+              <span
+                className={`w-2 h-2 rounded-full shrink-0 ${
+                  browserFullscreen
+                    ? 'bg-[color:var(--token-active-gold)]'
+                    : 'bg-[color:var(--token-cold-border)]'
+                }`}
+              />
+              <span className="hidden sm:inline">
+                {browserFullscreen ? 'Exit full' : 'Fullscreen'}
+              </span>
+              <span className="sm:hidden">{browserFullscreen ? 'Exit' : 'Full'}</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            data-testid="ambience-mute-toggle"
+            data-cta-id="ambience-toggle"
+            onClick={handleToggleAmbience}
+            data-chrome-state={ambienceMuted ? 'cold' : 'active'}
+            className="cj-glass-card min-h-[40px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full font-mono text-[13px] font-medium text-[color:var(--token-cold-text)] hover:text-[color:var(--token-text-primary)] hover:border-[color:var(--token-active-gold)] transition-colors cursor-pointer shrink-0"
+            title="Toggle ambient background soundscape"
+          >
+            <span
+              className={`w-2 h-2 rounded-full transition-colors shrink-0 ${
+                ambienceMuted
+                  ? 'bg-[color:var(--token-cold-border)]'
+                  : 'bg-[color:var(--token-active-gold)] animate-pulse'
+              }`}
+            />
+            <span className="hidden sm:inline">Ambience {ambienceMuted ? 'Off' : 'On'}</span>
+            <span className="sm:hidden">Audio</span>
+          </button>
+
+          <MobileSingleHandController
+            active={handsActive}
+            onToggleActive={handleToggleHands}
+            onZoomGesture={(delta) => {
+              if (delta > 0) dispatchCamera('zoom_in');
+              else dispatchCamera('zoom_out');
+            }}
+            onSelectNode={() => {
+              if (hoveredNodeId) {
+                executeTypedAction({ type: 'focus_project', projectId: hoveredNodeId }, 'gesture');
+              } else {
+                dispatchCamera('zoom_in');
+              }
+            }}
+          />
+
+          <TeamChatChip
+            inline={true}
+            active={openPanels.includes('team-room')}
+            onOpenChat={() => ensurePanelOpen('team-room', false)}
+          />
+        </div>
       </div>
 
       {/* 8. Full Project .ZIP Download Modal */}
@@ -4659,32 +4881,26 @@ export default function App() {
         onClose={() => setShowDownloadModal(false)}
       />
 
-      {/* 9. Authenticated Developer View Modal (Diagnostics, Camera Telemetry, Phase 0 Audit, Source ZIP, 18-Tool Audit & 16-Point Self-Test Suite) */}
+      {/* 9. Authenticated Developer View Modal (Diagnostics, Camera Telemetry, Phase 0 Audit, Source ZIP, tool audit & 21-Point Self-Test Suite) */}
       {showDeveloperDrawer && (
         <div
           onPointerDown={(e) => e.stopPropagation()}
           onWheel={(e) => e.stopPropagation()}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#101D27]/85 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#101622]/85 backdrop-blur-md"
         >
           <div
             data-testid="developer-view-modal"
-            className="w-full max-w-4xl max-h-[88vh] rounded-xl border p-5 flex flex-col gap-4 shadow-2xl neural-reveal overflow-hidden"
-            style={{
-              backgroundColor: 'rgba(16, 29, 39, 0.84)',
-              borderColor: 'rgba(255, 255, 255, 0.14)',
-              boxShadow:
-                'inset 0 1px 0 rgba(180, 221, 255, 0.18), 0 20px 50px rgba(0, 0, 0, 0.55)',
-            }}
+            className="cj-glass-card w-full max-w-4xl max-h-[88vh] rounded-xl p-5 flex flex-col gap-4 shadow-2xl neural-reveal overflow-hidden"
           >
-            <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.14)] pb-3 shrink-0">
+            <div className="flex items-center justify-between border-b border-[color:var(--token-divider)] pb-3 shrink-0">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#4C8DFF] shrink-0" />
+                  <span className="w-2 h-2 rounded-full bg-[#D4AF37] shrink-0" />
                   <h2 className="font-display text-xs md:text-sm font-semibold tracking-[0.08em] uppercase text-[#F2F6F8]">
                     Developer View — Diagnostics, Tool Schemas, Telemetry & Self-Tests
                   </h2>
                 </div>
-                <div className="font-mono tabular-nums text-[10px] text-[#BDCBD3] pl-4 mt-0.5">
+                <div className="font-mono tabular-nums text-[12px] text-[#C5CCD6] pl-4 mt-0.5">
                   AUTHENTICATED DEVELOPER DIAGNOSTICS · BUILD v{BUILD_VERSION} (CHECKPOINT v1.25.0 SAVED)
                 </div>
               </div>
@@ -4694,14 +4910,14 @@ export default function App() {
                   data-testid="run-self-test-btn"
                   disabled={selfTestRunning}
                   onClick={runAutomatedJourneySelfTest}
-                  className="min-h-[40px] px-3.5 py-1.5 rounded-lg font-mono text-xs bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer disabled:opacity-50"
+                  className="min-h-[40px] px-3.5 py-1.5 rounded-lg font-mono text-xs bg-[#D4AF37] text-[#101622] font-semibold cursor-pointer disabled:opacity-50"
                 >
-                  {selfTestRunning ? 'Running 16 Assertions...' : 'Run 16-Point Self-Test'}
+                  {selfTestRunning ? 'Running 21 Assertions...' : 'Run 21-Point Self-Test'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowDeveloperDrawer(false)}
-                  className="min-w-[40px] min-h-[40px] rounded-lg border border-[rgba(180,221,255,0.16)] bg-[#142632] text-[#BDCBD3] hover:text-[#F2F6F8] font-mono cursor-pointer"
+                  className="min-w-[40px] min-h-[40px] rounded-lg border border-[color:var(--token-divider)] bg-[#101622] text-[#C5CCD6] hover:text-[#F2F6F8] font-mono cursor-pointer"
                 >
                   ×
                 </button>
@@ -4709,25 +4925,25 @@ export default function App() {
             </div>
 
             {!isOwnerOnly ? (
-              <div className="p-6 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] text-center space-y-2">
+              <div className="p-6 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] text-center space-y-2">
                 <div className="font-display text-sm font-semibold text-[#F2F6F8]">
                   Owner Authentication Required
                 </div>
-                <p className="font-sans text-xs text-[#BDCBD3]">
+                <p className="font-sans text-xs text-[#C5CCD6]">
                   Switch Audience Privacy to "Owner only" to access developer diagnostics, source exports, and self-tests.
                 </p>
               </div>
             ) : (
               <div className="overflow-y-auto flex-1 space-y-4 pr-1">
                 {/* Developer Action Bar */}
-                <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)]">
+                <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-[#101622] border border-[color:var(--token-divider)]">
                   <button
                     type="button"
                     onClick={() => {
                       setShowDeveloperDrawer(false);
                       setShowDownloadModal(true);
                     }}
-                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#7CE0B8] text-[#101D27] font-semibold cursor-pointer"
+                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#D4AF37] text-[#101622] font-semibold cursor-pointer"
                   >
                     ↓ Download Full Source (.ZIP)
                   </button>
@@ -4737,7 +4953,7 @@ export default function App() {
                       setShowDeveloperDrawer(false);
                       ensurePanelOpen('phase0-audit', true);
                     }}
-                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#142632] border border-[rgba(180,221,255,0.16)] text-[#F2F6F8] cursor-pointer"
+                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#1B2230] border border-[color:var(--token-divider)] text-[#F2F6F8] cursor-pointer"
                   >
                     Open Source Map & Colour Audit Panel
                   </button>
@@ -4747,14 +4963,14 @@ export default function App() {
                       setShowDeveloperDrawer(false);
                       setOpenAgentModalTrigger((c) => c + 1);
                     }}
-                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#142632] border border-[#65ACFF]/50 text-[#B4DDFF] cursor-pointer"
+                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#1B2230] border border-[#D4AF37]/50 text-[#FFF4D0] cursor-pointer"
                   >
-                    Voice Agent ID & 18-Tool Provisioning
+                    Connect Google AI Studio Voice ({CRO_CDE_GOOGLE_TOOLS_SCHEMA.length} Tools)
                   </button>
                   <button
                     type="button"
                     onClick={() => setForceWebglFallback((v) => !v)}
-                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#142632] border border-[#F2B66D]/50 text-[#F2B66D] cursor-pointer"
+                    className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#1B2230] border border-[#C5CCD6]/50 text-[#C5CCD6] cursor-pointer"
                   >
                     {forceWebglFallback ? 'Restore 3D WebGL Scene' : 'Test Reduced-Graphics Fallback'}
                   </button>
@@ -4762,73 +4978,77 @@ export default function App() {
 
                 {/* Live Camera Telemetry & Tool Registry Audit */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="p-3 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] font-mono tabular-nums text-xs space-y-1">
-                    <div className="text-[#4C8DFF] font-semibold">LIVE 3D CAMERA TELEMETRY</div>
+                  <div className="p-3 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] font-mono tabular-nums text-xs space-y-1">
+                    <div className="text-[#D4AF37] font-semibold">LIVE 3D CAMERA TELEMETRY</div>
                     <div>Sphere: {telemetry.sphere.toUpperCase()} · Node: {telemetry.focusedNodeId || 'none'}</div>
                     <div>Distance: {telemetry.distance}u · Azimuth: {telemetry.azimuthDeg}° · Polar: {telemetry.polarDeg}°</div>
                     <div>Pan Offset: [{telemetry.panOffset.join(', ')}]</div>
                     <div>Auto-Orbit: {String(telemetry.autoOrbit)} ({telemetry.turnSeconds}s/turn) · Moving: {String(telemetry.isMoving)}</div>
                     <div>Last Verb: {telemetry.lastCommand}</div>
                   </div>
-                  <div className="p-3 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] font-mono tabular-nums text-xs space-y-1">
-                    <div className="text-[#7CE0B8] font-semibold">VOICE AGENT & TOOL REGISTRY AUDIT</div>
-                    <div>Default Agent ID: {DEFAULT_INTERNAL_AGENT_ID}</div>
+                  <div className="p-3 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] font-mono tabular-nums text-xs space-y-1">
+                    <div className="text-[#C5CCD6] font-semibold">VOICE AGENT & TOOL REGISTRY AUDIT</div>
+                    <div>
+                      Provider: {CEREBRO_VOICE_PROVIDER} · Agent: {CRO_CDE_GOOGLE_AGENT_NAME}
+                    </div>
                     <div>
                       Advertised Tools: {toolAuditEntries.length} · Implemented:{' '}
                       {toolAuditEntries.filter((e) => e.handlerImplemented).length}
                     </div>
                     <div>
                       Unmapped Tools:{' '}
-                      {unmappedTools.length === 0 ? '0 (All 18 verified)' : unmappedTools.join(', ')}
+                      {unmappedTools.length === 0
+                        ? `0 (All ${CRO_CDE_GOOGLE_TOOLS_SCHEMA.length} verified)`
+                        : unmappedTools.join(', ')}
                     </div>
-                    <div>WebGL Active: {String(telemetry.webglActive ?? true)}</div>
+                    <div>WebGL Active: {telemetryReceived ? String(telemetry.webglActive ?? 'unknown') : 'waiting for telemetry'}</div>
                   </div>
                 </div>
 
                 {/* Unattached Assets & External Integrations Disclosure */}
-                <div className="p-3 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] space-y-1.5">
-                  <div className="font-mono text-xs text-[#F2B66D] font-semibold">
+                <div className="p-3 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] space-y-1.5">
+                  <div className="font-mono text-xs text-[#D4AF37] font-semibold">
                     DOCUMENTED UNATTACHED SOURCE ITEMS & EXTERNAL INTEGRATIONS ({MISSING_ITEMS.length})
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {MISSING_ITEMS.map((m) => (
-                      <div key={m.id} className="p-2 rounded-lg bg-[#142632] border border-[rgba(180,221,255,0.16)] font-mono text-[10px]">
-                        <span className="text-[#F2B66D]">[{m.id}]</span>{' '}
+                      <div key={m.id} className="p-2 rounded-lg bg-[#1B2230] border border-[color:var(--token-divider)] font-mono text-[12px]">
+                        <span className="text-[#D4AF37]">[{m.id}]</span>{' '}
                         <span className="text-[#F2F6F8]">{m.item}</span>
-                        <div className="text-[#BDCBD3] mt-0.5">{m.currentFallbackInPhase0}</div>
+                        <div className="text-[#C5CCD6] mt-0.5">{m.currentFallbackInPhase0}</div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* 16-Point Real Assertion-Based Self-Test Results */}
+                {/* 21-Point Assertion-Based Self-Test Results */}
                 {selfTestResults.length > 0 && (
                   <div className="space-y-1.5">
-                    <div className="font-mono text-xs text-[#65ACFF] font-semibold">
-                      16-POINT ASSERTION-BASED SELF-TEST RESULTS (ISOLATED TEST DATA CLEANED UP)
+                    <div className="font-mono text-xs text-[#D4AF37] font-semibold">
+                      21-POINT ASSERTION-BASED SELF-TEST RESULTS (ISOLATED TEST DATA CLEANED UP)
                     </div>
                     {selfTestResults.map((chk) => (
                       <div
                         key={chk.id}
-                        className="rounded-lg p-2.5 border border-[rgba(180,221,255,0.16)] bg-[rgba(20,38,50,0.72)] flex items-center justify-between gap-3"
+                        className="rounded-lg p-2.5 border border-[color:var(--token-divider)] bg-[#101622] flex items-center justify-between gap-3"
                       >
                         <div className="min-w-0">
                           <div className="font-display text-xs font-semibold text-[#F2F6F8]">
                             [{chk.id}] {chk.title}
                           </div>
-                          <div className="font-mono text-[10px] text-[#BDCBD3] truncate">
+                          <div className="font-mono text-[12px] text-[#C5CCD6] truncate">
                             {chk.detail}
                           </div>
                         </div>
                         <span
-                          className="px-2.5 py-1 rounded-lg font-mono text-[10px] font-semibold shrink-0"
+                          className="px-2.5 py-1 rounded-lg font-mono text-[12px] font-semibold shrink-0"
                           style={{
                             backgroundColor:
                               chk.status === 'PASS'
                                 ? 'rgba(54, 232, 141, 0.2)'
                                 : chk.status === 'FAIL'
                                 ? 'rgba(255, 86, 102, 0.2)'
-                                : '#142632',
+                                : '#1B2230',
                             color:
                               chk.status === 'PASS'
                                 ? COLOUR_TOKENS.healthOnTrack
@@ -4848,6 +5068,44 @@ export default function App() {
           </div>
         </div>
       )}
+
+      <Cerebro39SystemModal
+        open={showCerebro39Modal}
+        onClose={() => setShowCerebro39Modal(false)}
+        visualScope={visualAuthorityScope}
+        onChangeVisualScope={(nextScope) => {
+          setVisualAuthorityScope(nextScope);
+          setSphereMaterials(
+            nextScope === 'locked_app_1f78a12'
+              ? { hq: 'cobalt-glass', cde: 'cobalt-glass' }
+              : { hq: 'amber-crystal', cde: 'amber-crystal' }
+          );
+        }}
+        onSeekFilmFrame={(_frame, _pos, _target, _fov, targetSphere) => {
+          if (targetSphere !== activeSphere) {
+            setActiveSphere(targetSphere);
+          }
+          dispatchCamera('center', { targetSphere });
+        }}
+      />
+
+      {/* Station 18 Cosmograph Pilot 3D Mini-Game */}
+      <CosmographPilotGame
+        open={showPilotGame}
+        onClose={() => setShowPilotGame(false)}
+      />
+
+      {/* AlphaFold 3D Molecular Biology Explorer */}
+      <BioScienceExplorer
+        open={showBioScience}
+        onClose={() => setShowBioScience(false)}
+      />
+
+      {/* Creative Image Studio (gemini-nano-banana-2.1) */}
+      <ImageStudioModal
+        open={showImageStudio}
+        onClose={() => setShowImageStudio(false)}
+      />
     </div>
   );
 }

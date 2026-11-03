@@ -62,6 +62,8 @@ export interface ComputeGuiLayoutParams {
   activeSlotTabs?: Record<string, string | undefined>;
   phoneSheetState?: PhoneSheetExpansion;
   voiceExpanded?: boolean;
+  /** L04/L05 — expanded voice transcript sheet owns focus on phone; panels collapse. */
+  voiceSheetExpanded?: boolean;
   voiceDragDelta?: { x: number; y: number };
   keyboardInsetBottom?: number;
   allowFourQuadrantSlots?: boolean;
@@ -75,6 +77,7 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
   const phoneSheetState = params.phoneSheetState ?? 'default';
   const kbInset = Math.max(0, Math.round(params.keyboardInsetBottom ?? 0));
   const allowFourQuadrantSlots = params.allowFourQuadrantSlots ?? openPanels.length > 2;
+  const voiceSheetExpanded = Boolean(params.voiceSheetExpanded);
 
   // ---------------------------------------------------------------------------
   // 1. PHONE (390x844 reference)
@@ -82,26 +85,33 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
   if (breakpoint === 'phone') {
     const padX = 12;
     const colW = Math.max(296, width - padX * 2);
-    // Taller reserved header so sticky telemetry does not cover panel chrome (V03).
-    const headerRect: GuiRect = { x: padX, y: 12, w: colW, h: 72 };
+    const headerRect: GuiRect = { x: padX, y: 12, w: colW, h: 52 };
     const minimizedChipsRect: GuiRect = { x: padX, y: 388, w: colW, h: 36 };
 
-    const isSheetExpanded = openPanels.length > 0 && phoneSheetState === 'expanded';
-    const voiceH = isSheetExpanded ? 52 : 76;
-    const voiceY = Math.max(headerRect.y + headerRect.h + 16, height - voiceH - 28 - kbInset);
+    // Voice sheet owns focus over project sheet on phone (L05).
+    const isSheetOpen = openPanels.length > 0 && !voiceSheetExpanded;
+    // C06 capsule: 220–256 × 48–56, center at ~0.88H (never full-width card).
+    // Sheet-open keeps capsule height in-range (52) and lifts above keyboard inset.
+    const voiceH = 52;
+    const voiceW = Math.min(256, Math.max(220, Math.round(width * 0.56)));
+    const voiceCenterY = Math.round(height * 0.88);
+    const voiceY = Math.max(
+      headerRect.y + headerRect.h + 16,
+      Math.min(height - voiceH - 16 - kbInset, voiceCenterY - Math.round(voiceH / 2))
+    );
     const voiceRect: GuiRect = {
-      x: padX,
+      x: Math.round((width - voiceW) / 2),
       y: voiceY,
-      w: colW,
+      w: voiceW,
       h: voiceH,
     };
 
     const panelSlots: PanelSlotAssignment[] = [];
     let sheetTop = voiceY;
 
-    if (openPanels.length > 0) {
+    if (isSheetOpen) {
       const targetSheetH =
-        phoneSheetState === 'collapsed' ? 72 : phoneSheetState === 'expanded' ? 520 : 284;
+        phoneSheetState === 'collapsed' ? 72 : phoneSheetState === 'expanded' ? 480 : 264;
       const maxAvailableSheetH = Math.max(
         72,
         voiceRect.y - GUI_TOUCH_TOKENS.panelCollisionMarginPx - (headerRect.y + headerRect.h + 100)
@@ -122,8 +132,7 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
       });
     }
 
-    const safeBottom =
-      openPanels.length > 0 ? sheetTop - 12 : voiceRect.y - 12;
+    const safeBottom = isSheetOpen ? sheetTop - 12 : voiceRect.y - 12;
     const safeTop = headerRect.y + headerRect.h + 12;
     const centerSafeRect: GuiRect = {
       x: padX,
@@ -132,10 +141,18 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
       h: Math.max(120, safeBottom - safeTop),
     };
 
+    // L05 — include bottom utility strip in collision checks (not only header/panel/voice).
+    const utilityRect: GuiRect = {
+      x: padX,
+      y: Math.max(voiceRect.y + voiceRect.h + 4, height - 56 - kbInset),
+      w: colW,
+      h: 48,
+    };
     const allInteractiveRects = [
       headerRect,
       ...panelSlots.map((s) => s.rect),
       voiceRect,
+      utilityRect,
     ];
     const check = verifyZeroOverlap(allInteractiveRects, GUI_TOUCH_TOKENS.panelCollisionMarginPx);
 
@@ -152,26 +169,31 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
       panelSlots,
       overflowTabPanelIds: openPanels.length > 1 ? openPanels.slice(0, -1) : [],
       zeroOverlapPassed: check.passed,
-      voiceCompactedForSheet: isSheetExpanded,
+      voiceCompactedForSheet: isSheetOpen,
       quadrantModeActive: false,
     };
   }
 
   // ---------------------------------------------------------------------------
-  // 2. IPAD PORTRAIT (820x1180 reference)
+  // 2. IPAD PORTRAIT (820x1180 & 1024x768 reference)
   // ---------------------------------------------------------------------------
   if (breakpoint === 'ipad') {
     const padX = 20;
-    const headerRect: GuiRect = { x: padX, y: 16, w: width - padX * 2, h: 72 };
-    const inspectorW = 360;
-    const inspectorTop = 96;
-    const inspectorH = Math.min(648, height - inspectorTop - 120);
+    const headerRect: GuiRect = { x: padX, y: 16, w: width - padX * 2, h: 52 };
+    const inspectorW = 304;
+    const inspectorTop = 80;
+    const inspectorH = Math.max(220, Math.min(648, height - inspectorTop - 88 - kbInset));
 
-    const voiceW = Math.min(460, Math.max(320, width - (padX + inspectorW + 16) - padX));
-    const voiceH = params.voiceExpanded ? Math.min(320, Math.round(height * 0.32)) : 72;
+    // C06 capsule — bottom-center ~0.88H
+    const voiceW = Math.min(256, Math.max(220, Math.round(width * 0.28)));
+    const voiceH = 52;
+    const voiceCenterY = Math.round(height * 0.88);
     const voiceRect: GuiRect = {
-      x: width - padX - voiceW,
-      y: height - 24 - voiceH - kbInset,
+      x: Math.round((width - voiceW) / 2),
+      y: Math.max(
+        inspectorTop + 120,
+        Math.min(height - voiceH - 16 - kbInset, voiceCenterY - Math.round(voiceH / 2))
+      ),
       w: voiceW,
       h: voiceH,
     };
@@ -230,15 +252,18 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
   // ---------------------------------------------------------------------------
   if (breakpoint === 'ipad_landscape') {
     const padX = 20;
-    // Wider slots + lower top for 1180×757 audit viewport (V03/V05).
-    const slotW = 340;
-    const slotTop = 96;
-    const headerRect: GuiRect = { x: padX, y: 16, w: width - padX * 2, h: 72 };
-    const voiceW = 460;
-    const voiceH = params.voiceExpanded ? 240 : 72;
+    const slotW = 288;
+    const slotTop = 80;
+    const headerRect: GuiRect = { x: padX, y: 16, w: width - padX * 2, h: 52 };
+    const voiceW = Math.min(256, 240);
+    const voiceH = 52;
+    const voiceCenterY = Math.round(height * 0.88);
     const voiceRect: GuiRect = {
       x: Math.round((width - voiceW) / 2),
-      y: height - 24 - voiceH - kbInset,
+      y: Math.max(
+        slotTop + 160,
+        Math.min(height - voiceH - 16 - kbInset, voiceCenterY - Math.round(voiceH / 2))
+      ),
       w: voiceW,
       h: voiceH,
     };
@@ -301,7 +326,7 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
   const isWide = breakpoint === 'wide';
   const padX = isWide ? 32 : 24;
   const headerY = 16;
-  const headerH = 72;
+  const headerH = 52;
   const headerRect: GuiRect = {
     x: padX,
     y: headerY,
@@ -309,14 +334,17 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
     h: headerH,
   };
 
-  const slotW = isWide ? 420 : 380;
-  const quadrantSlotW = isWide ? 360 : 320;
-  const slotTop = isWide ? 104 : 96;
-  const voiceW = isWide ? 480 : 460;
-  const voiceH = params.voiceExpanded ? Math.min(340, Math.round(height * 0.36)) : 76;
+  const slotW = isWide ? 400 : 352;
+  const quadrantSlotW = isWide ? 360 : 304;
+  const slotTop = isWide ? 88 : 80;
+  // C06 capsule — fixed idle geometry; drag still clamps within viewport
+  const voiceW = 256;
+  const voiceH = 52;
   const defaultVoiceX = Math.round((width - voiceW) / 2);
-  // Keep voice above the project-health strip (~40px) so controls stay in-viewport (V04).
-  const defaultVoiceY = height - (isWide ? 48 : 44) - voiceH - kbInset;
+  const defaultVoiceY = Math.min(
+    height - voiceH - (isWide ? 24 : 16) - kbInset,
+    Math.round(height * 0.88) - Math.round(voiceH / 2)
+  );
 
   const dragX = Math.round(params.voiceDragDelta?.x ?? 0);
   const dragY = Math.round(params.voiceDragDelta?.y ?? 0);
@@ -339,9 +367,12 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
     w: voiceW,
     h: voiceH,
   };
-  const voiceRect = clampRectToViewport(rawVoiceRect, width, height, padX);
+  const voiceRect = clampRectToViewport(rawVoiceRect, width, height, padX, 64, isWide ? 76 : 68);
 
-  const slotMaxBottom = voiceRect.y - GUI_TOUCH_TOKENS.panelCollisionMarginPx;
+  const slotMaxBottom = Math.min(
+    voiceRect.y - GUI_TOUCH_TOKENS.panelCollisionMarginPx,
+    height - 76 - kbInset
+  );
   const slotH = Math.max(240, Math.min(isWide ? 760 : 620, slotMaxBottom - slotTop));
 
   const panelSlots: PanelSlotAssignment[] = [];

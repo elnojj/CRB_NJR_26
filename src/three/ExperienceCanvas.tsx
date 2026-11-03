@@ -6,7 +6,15 @@ import {
   CameraTelemetry,
   AnchoredLabel2D,
 } from '../components/DualSphereCanvas';
-import { MediaTubeStateProp, ProjectMediaTubeItem } from '../components/CosmographCanvas';
+import {
+  MediaTubeStateProp,
+  ProjectMediaTubeItem,
+  CinemaLensId,
+  CameraAnglePresetId,
+  CameraLoopMode,
+  CINEMA_LENS_PRESETS,
+  buildProjectMediaTubeItems,
+} from '../components/CosmographCanvas';
 import {
   CustomDomain3D,
   DomainMaterialPreset,
@@ -18,6 +26,21 @@ import type {
   EditorialCameraPose,
   EditorialQualityTier,
 } from '../design/editorialMonograph';
+import type { ConnectedSphereId } from './sphereNetwork';
+
+export type {
+  CameraCommandPayload,
+  CameraTelemetry,
+  AnchoredLabel2D,
+};
+export type {
+  MediaTubeStateProp,
+  ProjectMediaTubeItem,
+  CinemaLensId,
+  CameraAnglePresetId,
+  CameraLoopMode,
+};
+export { CINEMA_LENS_PRESETS, buildProjectMediaTubeItems };
 
 export interface PortalOrbitalStation {
   id: string;
@@ -106,7 +129,7 @@ export const SPHERE_FALLBACK_REST_DATA_URI = `data:image/svg+xml;utf8,${encodeUR
 )}`;
 
 interface ExperienceCanvasProps {
-  activeSphere: 'hq' | 'cde';
+  activeSphere: ConnectedSphereId | 'hq' | 'cde';
   focusedNodeId: string | null;
   tourHighlightId: string | null;
   captionBubble: string | null;
@@ -117,7 +140,11 @@ interface ExperienceCanvasProps {
   customDomains?: CustomDomain3D[];
   sphereMaterials?: { hq: DomainMaterialPreset; cde: DomainMaterialPreset };
   selectedBlueprintTaskId?: string | null;
-  onSelectNode: (id: string, nodeType: AnchoredLabel2D['nodeType'], sphere: 'hq' | 'cde') => void;
+  onSelectNode: (
+    id: string,
+    nodeType: AnchoredLabel2D['nodeType'],
+    sphere: ConnectedSphereId | 'hq' | 'cde'
+  ) => void;
   onSelectPortalStation?: (station: PortalOrbitalStation) => void;
   onUserTouchPauseTour: () => void;
   onTelemetryChange: (telemetry: CameraTelemetry) => void;
@@ -134,6 +161,10 @@ interface ExperienceCanvasProps {
   editorialCameraPose?: EditorialCameraPose | null;
   editorialQualityTier?: Exclude<EditorialQualityTier, 'fallback'>;
   onWebglUnavailable?: (reason: string) => void;
+  /** AI Studio App extras — accepted and ignored by the dual-sphere host. */
+  projectWorldId?: string | null;
+  idleOrbitAllowed?: boolean;
+  [key: string]: unknown;
 }
 
 export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
@@ -168,11 +199,12 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
 }) => {
   const osReducedMotion = useReducedMotion();
   const effectiveReducedMotion = Boolean(reducedMotion || osReducedMotion);
+  const dualSphere: 'hq' | 'cde' = activeSphere === 'cde' ? 'cde' : 'hq';
 
   return (
     <>
       <DualSphereCanvas
-        activeSphere={activeSphere}
+        activeSphere={dualSphere}
         focusedNodeId={focusedNodeId}
         tourHighlightId={tourHighlightId}
         captionBubble={captionBubble}
@@ -182,7 +214,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
         cameraCommand={cameraCommand}
         customDomains={customDomains}
         sphereMaterials={sphereMaterials}
-        onSelectNode={onSelectNode}
+        onSelectNode={(id, nodeType, sphere) => onSelectNode(id, nodeType, sphere)}
         onUserTouchPauseTour={onUserTouchPauseTour}
         onTelemetryChange={onTelemetryChange}
         onCameraSettled={onCameraSettled}

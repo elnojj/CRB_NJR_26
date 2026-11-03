@@ -155,7 +155,7 @@ export const EditorialMonograph: React.FC<EditorialMonographProps> = ({
   }, []);
 
   const onSelectNode = useCallback(
-    (id: string, _nodeType: string, sphere: 'hq' | 'cde') => {
+    (id: string, _nodeType: string, sphere: 'hq' | 'cde' | 'campaign-os' | 'about-us') => {
       setFocusedNodeId(id);
       dispatchCamera({
         verb: 'focus_node',

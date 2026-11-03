@@ -159,6 +159,10 @@ interface PanelsOverlayProps {
   onOpenSpatialMediaAsset?: (asset: SpatialMediaAsset) => void;
   onSpatialMediaFilterChange?: (kind: MediaFilterKind) => void;
   googleAccessToken?: string | null;
+  onVideoRefReady?: (el: HTMLVideoElement | null) => void;
+  onVideoTimeUpdate?: (currentTime: number, duration: number) => void;
+  onVideoPlayChange?: (playing: boolean) => void;
+  onVideoMuteChange?: (muted: boolean) => void;
 }
 
 const KNOWN_RECIPIENT_ALIASES: Record<string, string> = {

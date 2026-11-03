@@ -98,6 +98,8 @@ interface VoiceCardProps {
   guiLayout?: ComputedGuiLayout;
   onVoiceDragDeltaChange?: (delta: { x: number; y: number }) => void;
   onVoiceExpandedChange?: (expanded: boolean) => void;
+  /** AI Studio alias for onVoiceExpandedChange */
+  onVoiceSheetExpandedChange?: (expanded: boolean) => void;
   contextualUpdateJson?: string;
 }
 
@@ -168,8 +170,10 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   guiLayout,
   onVoiceDragDeltaChange,
   onVoiceExpandedChange,
+  onVoiceSheetExpandedChange,
   contextualUpdateJson,
 }) => {
+  const notifyVoiceExpanded = onVoiceExpandedChange ?? onVoiceSheetExpandedChange;
   const [audioRms, setAudioRms] = useState<number>(0);
   const bridgeRmsRef = useRef<number>(0);
   const onAudioLevelRef = useRef(onAudioLevel);
@@ -185,8 +189,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   });
 
   useEffect(() => {
-    onVoiceExpandedChange?.(isExpanded);
-  }, [isExpanded, onVoiceExpandedChange]);
+    notifyVoiceExpanded?.(isExpanded);
+  }, [isExpanded, notifyVoiceExpanded]);
 
   const [snapEdge, setSnapEdge] = useState<WidgetSnapEdge>(() => {
     try {

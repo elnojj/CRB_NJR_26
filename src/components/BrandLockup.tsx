@@ -2,8 +2,8 @@ import React from 'react';
 
 interface BrandLockupProps {
   mode: 'loader' | 'header';
-  activeSphere?: 'hq' | 'cde';
-  onSwitchSphere?: (sphere: 'hq' | 'cde') => void;
+  activeSphere?: 'hq' | 'cde' | 'campaign-os' | 'about-us';
+  onSwitchSphere?: (sphere: 'hq' | 'cde' | 'campaign-os' | 'about-us') => void;
 }
 
 /**

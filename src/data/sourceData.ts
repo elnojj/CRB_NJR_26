@@ -1222,6 +1222,10 @@ export interface ShowreelSpec {
   posterUrl?: string;
   embedUrl?: string;
   companionSticker: string;
+  /** Optional AI Studio / media-panel fields */
+  durationSec?: number;
+  type?: string;
+  videoUrl?: string;
 }
 
 export const SHOWREEL_ITEMS: ShowreelSpec[] = [

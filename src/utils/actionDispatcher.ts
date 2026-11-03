@@ -69,7 +69,10 @@ export type TourActionType =
   | 'mode_manual';
 
 export type WorkspaceAction =
-  | { type: 'switch_sphere'; sphere: 'hq' | 'cde' }
+  | { type: 'switch_sphere'; sphere: 'hq' | 'cde' | 'campaign-os' | 'about-us' }
+  | { type: 'open_pilot_game'; action?: 'open' | 'close' | 'toggle' }
+  | { type: 'open_bioscience'; action?: 'open' | 'close' | 'toggle' }
+  | { type: 'open_image_studio'; action?: 'open' | 'close' | 'toggle' }
   | { type: 'open_station'; station: StationId }
   | { type: 'focus_project'; projectId: string; tab?: ProjectWorkspaceTab }
   | { type: 'select_person'; personId: string }
@@ -252,6 +255,12 @@ export function buildActionDedupeKey(action: WorkspaceAction): string {
       return `project_media_tube:${action.action}:${action.projectId || ''}:${action.tileIndex ?? ''}`;
     case 'spatial_media':
       return `spatial_media:${action.action}:${action.collectionId || ''}:${action.assetId || ''}:${action.filterKind || ''}`;
+    case 'open_pilot_game':
+      return `open_pilot_game:${action.action || 'toggle'}`;
+    case 'open_bioscience':
+      return `open_bioscience:${action.action || 'toggle'}`;
+    case 'open_image_studio':
+      return `open_image_studio:${action.action || 'toggle'}`;
     default: {
       const _exhaustive: never = action;
       return `unknown:${JSON.stringify(_exhaustive)}`;
@@ -1763,7 +1772,7 @@ export function auditToolRegistry(): ToolAuditEntry[] {
 export function buildNodeSelectionAction(
   nodeId: string,
   nodeType: 'core' | 'station' | 'dimension' | 'subdomain' | 'project',
-  _sphere: 'hq' | 'cde'
+  _sphere: 'hq' | 'cde' | 'campaign-os' | 'about-us'
 ): WorkspaceAction {
   if (nodeType === 'station') {
     return { type: 'open_station', station: nodeId as StationId };

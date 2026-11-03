@@ -236,6 +236,8 @@ export interface AnchoredLabel2D {
 
 export interface CameraCommandPayload {
   id: number;
+  /** Optional generation counter used by AI Studio App camera dispatcher. */
+  generation?: number;
   verb:
     | 'arrival'
     | 'switch_sphere'
@@ -257,7 +259,7 @@ export interface CameraCommandPayload {
     | 'set_lens'
     | 'set_angle'
     | 'set_loop';
-  targetSphere?: 'hq' | 'cde';
+  targetSphere?: 'hq' | 'cde' | 'campaign-os' | 'about-us';
   targetNodeId?: string | null;
   deltaAzimuth?: number;
   deltaPolar?: number;
@@ -944,7 +946,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       triggerCometFlight(center, 0.18, 1.38, 19.0, 1650, true, 35);
     } else if (verb === 'focus_node' && targetNodeId) {
       const sphereHint = targetSphere || s.activeSphere;
-      const node = resolveNodeEntry(targetNodeId, sphereHint);
+      const node = resolveNodeEntry(
+        targetNodeId,
+        sphereHint === 'cde' ? 'cde' : 'hq'
+      );
       if (node) {
         const sphereCenter = node.sphere === 'cde' ? CDE_CENTER : HQ_CENTER;
         const localVec = node.worldPos.clone().sub(sphereCenter);

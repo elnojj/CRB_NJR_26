@@ -1,40 +1,53 @@
-import React from 'react';
-import { assertIntroBridgeClean, spawnIntroBackgroundMedia } from './bridge';
+import React, { useEffect, useState } from 'react';
 import { GUI_Z_LAYERS } from '../gui/guiTokens';
+import { introBridge } from './bridge';
+import { loadExplainer60, resolveEditionFromSearch } from './explainer60';
 
 export interface Explainer60PlayerProps {
-  /** When false (default), render timeline/skip as overlay on the shared canvas. */
   embedCanvas?: boolean;
-  open: boolean;
-  title?: string;
-  onSkip: () => void;
-  onComplete?: () => void;
+  onEnterWorkspace: () => void;
 }
 
 /**
- * 60s explainer chrome — transparent overlay only (no WebGL of its own).
+ * 60s explainer overlay — transparent controls on the continuous canvas.
  */
 export const Explainer60Player: React.FC<Explainer60PlayerProps> = ({
   embedCanvas = false,
-  open,
-  title = 'Cerebro · 60s Explainer',
-  onSkip,
-  onComplete,
+  onEnterWorkspace,
 }) => {
-  assertIntroBridgeClean();
-  spawnIntroBackgroundMedia();
+  const [title, setTitle] = useState('Cerebro · 60s Explainer');
+  const [error, setError] = useState<string | null>(null);
 
-  if (!open) return null;
+  useEffect(() => {
+    if (embedCanvas) {
+      console.warn('[Explainer60Player] embedCanvas=true ignored — overlay-only mode');
+    }
+    introBridge.enabled = true;
+    let cancelled = false;
+    loadExplainer60()
+      .then((cfg) => {
+        if (cancelled) return;
+        setTitle(cfg.meta.title || title);
+      })
+      .catch((err: Error) => {
+        if (!cancelled) setError(err.message);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [embedCanvas, title]);
 
-  if (embedCanvas) {
-    console.warn('[Explainer60Player] embedCanvas=true ignored — using overlay-only mode');
-  }
+  const edition =
+    typeof window !== 'undefined'
+      ? resolveEditionFromSearch(window.location.search)
+      : 'explainer-60';
 
   return (
     <div
       className="pointer-events-auto fixed inset-x-0 top-20 flex flex-col items-center gap-3 px-4"
-      style={{ zIndex: GUI_Z_LAYERS.modalContent }}
+      style={{ zIndex: GUI_Z_LAYERS.modalContent ?? 100 }}
       data-explainer60="overlay"
+      data-edition={edition}
       data-embed-canvas="false"
       role="dialog"
       aria-label={title}
@@ -42,25 +55,17 @@ export const Explainer60Player: React.FC<Explainer60PlayerProps> = ({
       <div className="max-w-lg rounded-2xl border border-white/15 bg-black/45 px-5 py-4 text-center backdrop-blur-md shadow-2xl">
         <p className="font-sans text-sm font-medium text-[#F2F6F8]">{title}</p>
         <p className="mt-1 font-sans text-xs text-[#BDCBD3]">
-          Playing over the continuous spatial canvas — no duplicate WebGL context.
+          {error
+            ? `Explainer data unavailable (${error}) — continue to workspace.`
+            : 'Playing over the continuous spatial canvas — no duplicate WebGL context.'}
         </p>
         <div className="mt-3 flex items-center justify-center gap-2">
           <button
             type="button"
-            className="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs text-[#F2F6F8] hover:bg-white/20"
-            onClick={onSkip}
+            className="rounded-lg border border-emerald-400/30 bg-emerald-500/20 px-3 py-1.5 text-xs text-[#E8FFF4]"
+            onClick={onEnterWorkspace}
           >
-            Skip
-          </button>
-          <button
-            type="button"
-            className="rounded-lg border border-emerald-400/30 bg-emerald-500/20 px-3 py-1.5 text-xs text-[#E8FFF4] hover:bg-emerald-500/30"
-            onClick={() => {
-              onComplete?.();
-              onSkip();
-            }}
-          >
-            Continue
+            Enter workspace
           </button>
         </div>
       </div>

@@ -5,6 +5,8 @@
 
 export const CRO_CDE_GOOGLE_AGENT_NAME = 'Cro-cde-google';
 export const DEFAULT_INTERNAL_AGENT_ID = 'agent_7201m53ed3kred6ba17rvzmyv9q4';
+/** Voice runtime provider tag used by diagnostics + agent modal copy. */
+export const CEREBRO_VOICE_PROVIDER = 'elevenlabs';
 
 export const CRO_CDE_GOOGLE_SYSTEM_PROMPT = `You are CEREBRO (Cro-cde-google), the voice and spatial operating assistant for Tarek Nojara (internal shorthand "39", Founder and Culture and Design Engineer of NOJARA Studios, est. 2016, Cairo–Riyadh).
 

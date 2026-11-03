@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "./styles/cerebro.tokens.css";
-@import "./styles/liquid-glass-v7.css";
 
+/* Film-reference display face only — not the locked app default stack. */
 @font-face {
   font-family: 'JaapokkiSubtract';
   src: local('Jaapokki Subtract'), local('JaapokkiSubtract-Regular'), local('Jaapokki'), local('Sora');
@@ -10,25 +10,35 @@
   font-display: swap;
 }
 
+.font-film-display {
+  font-family: var(--font-film-display);
+}
+
 @layer base {
   :root {
-    --bg-canvas: var(--token-canvas);
-    --bg-glass-solid: var(--token-glass-solid);
-    --bg-glass-rgba: var(--token-glass);
-    --text-primary: var(--token-text-primary);
-    --text-secondary: var(--token-text-secondary);
-    --accent-cobalt: var(--token-cobalt);
-    --focus-ring: var(--token-focus);
-    --station-projects: var(--token-cobalt);
-    --station-tasks: var(--token-station-tasks);
-    --station-people: var(--token-station-people);
-    --station-files: var(--token-station-files);
-    --station-media: var(--token-station-media);
-    --voice-orb-mint: var(--token-voice-orb);
-    --voice-orb-teal: var(--token-voice-orb-mid);
-    --voice-orb-deep: var(--token-voice-orb-deep);
-    --sphere-wireframe: var(--token-focus-glow);
-    --ease-cerebro: cubic-bezier(0.22, 1, 0.36, 1);
+    --bg-canvas: var(--cj-bg-viewport);
+    --bg-glass-solid: var(--cj-bg-surface);
+    --bg-glass-rgba: var(--cj-glass-panel);
+    --text-primary: var(--cj-text-primary);
+    --text-secondary: var(--cj-silver-metal);
+    /* L01 — default app: cobalt/ice/teal roles. Gold is film-scope only. */
+    --accent-cobalt: var(--c-cobalt, #65ACFF);
+    --focus-ring: var(--c-cobalt, #65ACFF);
+    --station-projects: var(--token-station-projects, #65ACFF);
+    --station-tasks: var(--token-station-tasks, #FFF1D4);
+    --station-people: var(--token-station-people, #E6A2B4);
+    --station-files: var(--token-station-files, #B4DDFF);
+    --station-media: var(--token-station-media, #F2B66D);
+    --station-tasks: var(--c-silver, #C5CCD6);
+    --station-people: var(--c-ice, #B4DDFF);
+    --station-files: var(--c-silver, #C5CCD6);
+    --station-media: var(--c-ice, #B4DDFF);
+    /* C07 — teal listening orb (not gold UI chrome) */
+    --voice-orb-mint: var(--c-voice, #9AFFE0);
+    --voice-orb-teal: var(--c-voice-state, #78D3B2);
+    --voice-orb-deep: #0f3d34;
+    --sphere-wireframe: var(--c-ice, #B4DDFF);
+    --ease-cerebro: var(--motion-ease);
   }
 
   html,
@@ -38,20 +48,27 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    background-color: var(--token-canvas);
+    /* Deep ink atmospheric field — void #05090E family, ice + cobalt blooms (no gold UI wash). */
+    background:
+      radial-gradient(95% 70% at 22% 18%, rgba(180, 221, 255, 0.22) 0%, transparent 48%),
+      radial-gradient(85% 65% at 78% 88%, rgba(101, 172, 255, 0.14) 0%, transparent 50%),
+      radial-gradient(120% 90% at 50% 48%, rgba(36, 56, 72, 0.55) 0%, transparent 55%),
+      linear-gradient(168deg, #02050a 0%, var(--c-void) 38%, #0a1520 68%, #03060c 100%);
+    background-color: var(--c-void);
     color: var(--token-text-primary);
     font-family: var(--font-sans);
-    font-size: 13.5px;
-    line-height: 1.45;
+    font-size: 16px;
+    line-height: var(--type-body-lh);
     overflow: hidden;
+    touch-action: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     user-select: none;
   }
 
-  /* Focus ring locked to #65ACFF */
+  /* Default-app focus: cobalt #65ACFF (gold reserved for film / 3D rails) */
   *:focus-visible {
-    outline: 2px solid var(--token-focus);
+    outline: 2px solid var(--focus-ring, #65ACFF);
     outline-offset: 2px;
   }
 }
@@ -62,8 +79,15 @@
 
 .font-sans {
   font-family: var(--font-sans);
-  font-size: 13.5px;
-  line-height: 1.45;
+  font-size: var(--type-body);
+  line-height: var(--type-body-lh);
+}
+
+.font-arabic,
+[lang='ar'],
+:lang(ar) {
+  font-family: var(--font-arabic, 'Noto Kufi Arabic', 'Cairo', sans-serif);
+  letter-spacing: 0;
 }
 
 .font-mono {
@@ -89,46 +113,305 @@
   letter-spacing: 0 !important;
 }
 
-/* Neural Observatory v1.1 floating optical glass surface */
-.glass-panel,
-.cerebro-stellar-glass {
-  background: rgba(20, 38, 50, 0.72);
-  backdrop-filter: blur(18px) saturate(1.18);
-  -webkit-backdrop-filter: blur(18px) saturate(1.18);
-  border: 1px solid rgba(232, 251, 255, 0.24);
-  border-radius: 18px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+/* D0 Scope canvas gestures */
+canvas {
+  touch-action: none;
+  outline: none;
+  display: block;
 }
 
-@supports not ((backdrop-filter: blur(18px)) or (-webkit-backdrop-filter: blur(18px))) {
+.hud-overlay {
+  pointer-events: none;
+}
+
+.hud-interactive {
+  pointer-events: auto;
+}
+
+/* D0 Orb-Slot Spacer bugfix: always visible and sized even if aria-hidden is present */
+.orb-slot-spacer,
+[data-orb-slot] {
+  display: block !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+  min-width: 280px !important;
+  min-height: 280px !important;
+}
+
+/* Unified glass — tokens own fill / blur 12 / hairline / panelRadius 20. No hex overrides. */
+.cj-glass-card,
+.glass-panel,
+.cerebro-glass-panel,
+.cerebro-stellar-glass,
+.cerebro-hud-panel,
+.cerebro-hud-elevated,
+.optical-hud-panel,
+.hud-sheet {
+  background: var(--token-glass-fill);
+  backdrop-filter: blur(var(--blur-glass)) saturate(1.08);
+  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(1.08);
+  border: 1px solid var(--token-divider);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--shadow-hud);
+}
+
+/* Feature queries need a literal length — keep in sync with --blur-glass (12px). */
+@supports not ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
+  .cj-glass-card,
   .glass-panel,
-  .cerebro-stellar-glass {
-    background: rgba(20, 38, 50, 0.94);
+  .cerebro-glass-panel,
+  .cerebro-stellar-glass,
+  .cerebro-hud-panel,
+  .cerebro-hud-elevated,
+  .optical-hud-panel,
+  .hud-sheet {
+    background: var(--token-glass-fallback);
   }
 }
 
-/* Voice Pilot Orb (#9AFFE0 -> #359D8E -> #133A44) — SACRED RESERVATION */
+/* Editorial type helpers — floor metadata at 12px; supporting 13–14 */
+.cj-type-body {
+  font-size: var(--type-body);
+  line-height: var(--type-body-lh);
+}
+.cj-type-support {
+  font-size: var(--type-support);
+  line-height: var(--type-support-lh);
+}
+.cj-type-support-sm {
+  font-size: var(--type-support-sm);
+  line-height: var(--type-support-lh);
+}
+.cj-type-meta {
+  font-size: var(--type-meta);
+  line-height: var(--type-meta-lh);
+}
+.cj-type-card {
+  font-size: var(--type-card);
+  line-height: var(--type-card-lh);
+}
+
+/* ------------------------------------------------------------------------
+   Cold inactive vs active open — fewer on-screen details; clear state parse
+   ------------------------------------------------------------------------ */
+.cj-cold,
+[data-chrome-state='cold'] {
+  opacity: var(--token-cold-opacity);
+  color: var(--token-cold-text);
+  border-color: var(--token-cold-border);
+  background: var(--token-cold-fill);
+  filter: saturate(0.55);
+  transition:
+    opacity var(--motion-fast) var(--motion-ease),
+    color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease),
+    filter var(--motion-fast) var(--motion-ease);
+}
+
+.cj-cold:hover,
+.cj-cold:focus-visible,
+[data-chrome-state='cold']:hover,
+[data-chrome-state='cold']:focus-visible {
+  opacity: 0.78;
+  color: var(--token-text-secondary);
+  filter: saturate(0.85);
+}
+
+.cj-active,
+[data-chrome-state='active'] {
+  opacity: var(--token-active-opacity);
+  color: var(--token-active-text);
+  filter: none;
+}
+
+/* Open panel accent stripe — cycle gold / cobalt / ice so concurrent panels differ */
+.cj-panel-shell {
+  border-radius: var(--panel-radius);
+  border: 1px solid var(--token-divider);
+  box-shadow: var(--shadow-hud);
+  overflow: hidden;
+}
+
+.cj-panel-shell[data-accent='gold'] {
+  box-shadow:
+    var(--shadow-hud),
+    inset 3px 0 0 0 var(--token-active-gold);
+  border-color: color-mix(in srgb, var(--token-active-gold) 45%, transparent);
+}
+
+.cj-panel-shell[data-accent='cobalt'] {
+  box-shadow:
+    var(--shadow-hud),
+    inset 3px 0 0 0 var(--token-active-cobalt);
+  border-color: color-mix(in srgb, var(--token-active-cobalt) 50%, transparent);
+}
+
+.cj-panel-shell[data-accent='ice'] {
+  box-shadow:
+    var(--shadow-hud),
+    inset 3px 0 0 0 var(--token-active-ice);
+  border-color: color-mix(in srgb, var(--token-active-ice) 48%, transparent);
+}
+
+.cj-panel-shell.is-camera-flight {
+  opacity: 0.55;
+  filter: saturate(0.7);
+}
+
+.cj-voice-shell[data-chrome-state='cold'] {
+  opacity: var(--token-cold-opacity);
+  border-color: var(--token-cold-border);
+  filter: saturate(0.6);
+}
+
+.cj-voice-shell[data-chrome-state='active'],
+.cj-voice-shell[data-voice-live='true'] {
+  opacity: var(--token-active-opacity);
+  filter: none;
+  border-color: color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 55%, transparent);
+  box-shadow:
+    var(--shadow-hud),
+    0 0 0 1px color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 22%, transparent);
+}
+
+.cj-voice-shell[data-voice-live='false'][data-chrome-state='cold'] {
+  opacity: calc(var(--token-cold-opacity) + 0.2);
+  border-color: var(--token-cold-border);
+}
+
+/* Hide unused chrome until needed — keeps sphere the cover hero */
+.cj-chrome-deferred[hidden],
+.cj-chrome-deferred[data-visible='false'] {
+  display: none !important;
+}
+
+.cj-chrome-deferred[data-visible='true'] {
+  display: flex;
+  animation: neuralPanelReveal var(--motion-base) var(--motion-ease) both;
+}
+
+/* D0 Voice/Talk Widget always on top (z-index: 100) and mobile sheet docking */
+[data-testid="voice-card"],
+.voice-talk-widget {
+  z-index: 100 !important;
+}
+
+@media (max-width: 720px) {
+  body[data-sheet-open='true'] [data-testid="voice-card"],
+  [data-testid="voice-card"][data-compacted='true'] {
+    /* C06 capsule stays pill-sized; never expand into full-width card under sheet */
+    max-width: 256px !important;
+    max-height: 56px !important;
+    min-height: 48px !important;
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+    z-index: 100 !important;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.cerebro-system-status {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(520px, calc(100vw - 24px));
+  pointer-events: none;
+}
+
+.cerebro-status-banner {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(197, 204, 214, 0.22);
+  background: rgba(16, 22, 34, 0.92);
+  color: #F2F6F8;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.cerebro-status-banner__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cerebro-status-banner__action {
+  flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 40%, transparent);
+  background: transparent;
+  color: #F2F6F8;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.cerebro-status-banner--error {
+  border-color: color-mix(in srgb, #FF5666 55%, transparent);
+}
+
+.cerebro-status-banner--warn {
+  border-color: color-mix(in srgb, #9AFFE0 40%, transparent);
+}
+
+.cerebro-status-banner--info {
+  border-color: color-mix(in srgb, #65ACFF 40%, transparent);
+}
+
+/* Canvas focus ring — default-app cobalt */
+[data-testid="cosmograph-canvas"]:focus-visible,
+.source-world:focus-visible,
+.cerebro-voice-capsule:focus-within {
+  outline: 2px solid var(--focus-ring, #65ACFF);
+  outline-offset: 2px;
+}
+
+/* C07 Voice orb — teal listening stack (#9AFFE0 / #78D3B2), max scale delta 0.04 */
 .voice-orb-gradient {
   background: radial-gradient(
     circle at 34% 30%,
-    var(--token-voice-orb) 0%,
-    var(--token-voice-orb-mid) 56%,
-    var(--token-voice-orb-deep) 100%
+    var(--voice-orb-mint, #9AFFE0) 0%,
+    var(--voice-orb-teal, #78D3B2) 56%,
+    var(--voice-orb-deep, #0f3d34) 100%
   );
   box-shadow:
-    0 0 28px rgba(154, 255, 224, 0.36),
-    inset 0 1px 2px rgba(242, 246, 248, 0.45);
+    0 0 18px color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 45%, transparent),
+    inset 0 1px 2px rgba(154, 255, 224, 0.45);
 }
 
 @keyframes orbPulse {
   0%,
   100% {
     transform: scale(1);
-    box-shadow: 0 0 24px rgba(154, 255, 224, 0.34);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 40%, transparent);
   }
   50% {
-    transform: scale(1.06);
-    box-shadow: 0 0 38px rgba(154, 255, 224, 0.56);
+    transform: scale(1.04);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 55%, transparent);
   }
 }
 
@@ -136,18 +419,232 @@
   animation: orbPulse 2.2s var(--ease-cerebro) infinite;
 }
 
+/* C06 Voice capsule — 220–256 × 48–56, bottom-centered ~.88H */
+.cerebro-voice-capsule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  min-width: 220px;
+  max-width: 256px;
+  min-height: 48px;
+  max-height: 56px;
+  padding: 4px 10px 4px 6px;
+  border-radius: var(--pill-radius, 999px);
+  background: var(--token-glass-fill, rgba(27, 34, 48, 0.88));
+  border: 1px solid var(--token-glass-border, rgba(197, 204, 214, 0.22));
+  backdrop-filter: blur(var(--blur-glass, 12px));
+  -webkit-backdrop-filter: blur(var(--blur-glass, 12px));
+  color: var(--token-text-primary, #F2F6F8);
+  pointer-events: auto;
+}
+
+.cerebro-voice-orb-hit {
+  position: relative;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.cerebro-voice-rings {
+  position: absolute;
+  inset: -16px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms var(--motion-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform 80ms linear;
+}
+
+.cerebro-voice-rings[data-visible='true'] {
+  opacity: 1;
+  transition: opacity 180ms var(--motion-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform 80ms linear;
+}
+
+.cerebro-voice-orb {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(
+    circle at 34% 30%,
+    var(--voice-orb-mint, #9AFFE0) 0%,
+    var(--voice-orb-teal, #78D3B2) 60%,
+    var(--voice-orb-deep, #0f3d34) 100%
+  );
+  box-shadow: inset 0 1px 2px rgba(242, 246, 248, 0.35);
+}
+
+.cerebro-voice-orb[data-live='false'] {
+  background: radial-gradient(circle at 34% 30%, #d0dce3 0%, #142632 70%, #05090e 100%);
+}
+
+.cerebro-voice-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cerebro-voice-status {
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--token-text-primary, #F2F6F8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cerebro-voice-tour {
+  font-size: 11px;
+  color: var(--token-text-secondary, #D0DCE3);
+}
+
+.cerebro-voice-actions {
+  display: flex;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.cerebro-voice-action {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--pill-radius, 999px);
+  background: transparent;
+  color: var(--token-text-primary, #F2F6F8);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.cerebro-voice-action:hover,
+.cerebro-voice-action:focus-visible {
+  background: color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 16%, transparent);
+  outline: none;
+}
+
+.cerebro-voice-action-stop {
+  color: var(--c-voice-state, #78D3B2);
+}
+
+.cerebro-voice-caption {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: max(72px, calc(12% + 56px + env(safe-area-inset-bottom, 0px)));
+  z-index: 99;
+  max-width: min(420px, 88vw);
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(5, 9, 14, 0.72);
+  border: 1px solid rgba(180, 221, 255, 0.28);
+  color: var(--token-text-primary, #F2F6F8);
+  font-size: 13px;
+  line-height: 1.35;
+  pointer-events: none;
+}
+
+.cerebro-voice-sheet {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 101;
+  width: min(420px, calc(100vw - 24px));
+  max-height: min(52vh, 420px);
+  overflow: auto;
+  padding: 12px;
+  border-radius: 20px;
+  background: var(--token-glass-fill, rgba(27, 34, 48, 0.94));
+  border: 1px solid var(--token-glass-border, rgba(197, 204, 214, 0.22));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--token-text-primary, #F2F6F8);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cerebro-voice-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cerebro-voice-sheet__meta {
+  margin: 0;
+  font-size: 12px;
+  color: var(--token-text-secondary, #D0DCE3);
+}
+
+.cerebro-voice-sheet__retry {
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--token-listening-ring, #9AFFE0) 45%, transparent);
+  background: transparent;
+  color: #F2F6F8;
+  cursor: pointer;
+}
+
+.cerebro-voice-sheet__transcript {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.cerebro-voice-sheet__transcript li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(197, 204, 214, 0.12);
+}
+
+.cerebro-voice-sheet__transcript li span:first-child {
+  font-size: 11px;
+  color: var(--c-cobalt, #65ACFF);
+}
+
+.cerebro-voice-sheet__empty {
+  color: var(--token-text-muted, #BDCBD3);
+}
+
+.cerebro-voice-sheet__foot {
+  font-size: 11px;
+  color: var(--token-text-muted, #BDCBD3);
+}
+
 @keyframes shimmerSweep {
   0% {
-    opacity: 0.72;
-    filter: drop-shadow(0 0 6px rgba(180, 221, 255, 0.16));
+    opacity: 0.82;
+    filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.18));
   }
   50% {
     opacity: 1;
-    filter: drop-shadow(0 0 14px rgba(180, 221, 255, 0.44));
+    filter: drop-shadow(0 0 14px rgba(212, 175, 55, 0.45));
   }
   100% {
-    opacity: 0.72;
-    filter: drop-shadow(0 0 6px rgba(180, 221, 255, 0.16));
+    opacity: 0.82;
+    filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.18));
   }
 }
 
@@ -190,7 +687,7 @@
   position: absolute;
   inset: -4px;
   border-radius: inherit;
-  border: 1.5px solid var(--token-focus);
+  border: 1.5px solid var(--cj-gold-primary);
   animation: pulseRing 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
   pointer-events: none;
 }
@@ -202,16 +699,153 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(16, 29, 39, 0.45);
+  background: rgba(16, 22, 34, 0.45);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(180, 221, 255, 0.24);
+  background: rgba(197, 204, 214, 0.28);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(101, 172, 255, 0.52);
+  background: rgba(212, 175, 55, 0.65);
+}
+
+/* --- Official NOJARA V31 Brand Art & Public Showreel Video --- */
+.nojara-brand-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  max-width: 100%;
+  /* Logo sits on transparency — no black plate / card behind the mark. */
+  background: transparent;
+  color: #F2F2F1;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+.nojara-brand-header {
+  height: 48px;
+  min-width: 0;
+}
+/* Fixed centered stack: NOJARA above, CEREBRO wordmark below */
+.nojara-brand-header.is-centered-stack {
+  height: auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+}
+.nojara-logo-image {
+  display: block;
+  width: 168px;
+  height: auto;
+  aspect-ratio: 2584 / 644;
+  object-fit: contain;
+  flex: 0 0 auto;
+  background: transparent;
+  /* Keep mark crisp over sphere blooms without changing the asset */
+  filter: drop-shadow(0 1px 2px rgba(5, 9, 14, 0.72));
+}
+.nojara-logo-fallback-text {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--token-text-primary);
+  line-height: 1;
+  padding: 0.2rem 0.15rem;
+}
+.cerebro-wordmark-image {
+  display: block;
+  width: 84px;
+  height: 16px;
+  object-fit: contain;
+  flex: 0 1 auto;
+}
+.nojara-brand-header.is-centered-stack .nojara-logo-image {
+  width: min(196px, 50vw);
+}
+.nojara-brand-header.is-centered-stack .cerebro-wordmark-image {
+  width: 72px;
+  height: 14px;
+  opacity: 0.92;
+}
+.nojara-brand-loader {
+  min-width: 0;
+  padding: 20px 24px;
+}
+.nojara-brand-loader .nojara-logo-image {
+  width: 280px;
+}
+@media (max-width: 767px) {
+  .nojara-brand-container {
+    gap: 8px;
+    padding: 6px 8px;
+  }
+  .nojara-brand-header {
+    height: 44px;
+  }
+  .nojara-brand-header.is-centered-stack {
+    height: auto;
+    padding: 0;
+    gap: 3px;
+  }
+  .nojara-brand-header .nojara-logo-image {
+    width: 128px;
+  }
+  .nojara-brand-header.is-centered-stack .nojara-logo-image {
+    width: min(152px, 54vw);
+  }
+  .nojara-brand-header .cerebro-wordmark-image {
+    width: 58px;
+    height: 12px;
+  }
+  .nojara-brand-header.is-centered-stack .cerebro-wordmark-image {
+    width: 56px;
+    height: 11px;
+  }
+  .nojara-brand-loader .nojara-logo-image {
+    width: min(240px, 70vw);
+  }
+}
+
+.public-showreel-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: #1D1D1B;
+}
+.public-showreel-panel-viewport {
+  width: 100%;
+  min-height: 180px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid rgba(242, 242, 241, 0.22);
+  border-radius: 8px;
+  background: #1D1D1B;
+}
+.overflow-y-auto,
+.overflow-x-auto {
+  touch-action: pan-x pan-y;
+}
+
+/* Cerebro Angel Watermark Motif */
+.cerebro-angel-emblem {
+  opacity: 0.35;
+  mix-blend-mode: screen;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+.cerebro-angel-emblem:hover,
+.cerebro-angel-emblem.active {
+  opacity: 0.9;
+  filter: drop-shadow(0 0 24px var(--cj-glow-accent));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -223,3 +857,46 @@
     transition-duration: 120ms !important;
   }
 }
+
+/* --- Cerebro-02 Skin & Workspace Contract Classes --- */
+[data-skin='cerebro-02'] {
+  --token-bg-canvas: var(--c-canvas);
+  --token-glass-fill: rgba(27, 34, 48, 0.88);
+  --token-glass-solid: var(--c-surface);
+  --token-glass-border: rgba(197, 204, 214, 0.22);
+  --token-focus: var(--c-gold);
+}
+
+.workspace-copy {
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: var(--type-body-lh);
+  color: var(--token-text-primary);
+}
+
+.workspace-meta {
+  font-family: var(--font-mono);
+  font-size: var(--type-meta);
+  line-height: var(--type-meta-lh);
+  letter-spacing: 0.04em;
+  color: var(--token-text-secondary);
+}
+
+.media-player {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--control-radius);
+  background: var(--c-void);
+  border: 1px solid var(--token-glass-border);
+}
+
+.media-player video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: var(--c-void);
+}
+
+.media-transport 

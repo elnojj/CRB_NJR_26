@@ -117,7 +117,7 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
               y1={trailStart.y}
               x2={pointerPos.x}
               y2={pointerPos.y}
-              stroke="rgba(232, 251, 255, 0.22)"
+              stroke="rgba(197, 204, 214, 0.22)"
               strokeWidth={1.25}
               strokeLinecap="round"
             />
@@ -131,7 +131,7 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
                 y1={projectedOrigin?.y ?? centerSafeRect.y + centerSafeRect.h / 2}
                 x2={projectedTarget.x}
                 y2={projectedTarget.y}
-                stroke="rgba(101, 172, 255, 0.55)"
+                stroke="#D4AF37"
                 strokeWidth={1.5}
                 strokeDasharray="6 4"
               />
@@ -139,7 +139,7 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
                 cx={projectedTarget.x}
                 cy={projectedTarget.y}
                 r={6}
-                fill="rgba(154, 255, 224, 0.85)"
+                fill="#FFF4D0"
               />
             </g>
           )}
@@ -150,13 +150,13 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
               <circle
                 r={GUI_POINTER_FOCUS_TOKENS.focusRingPx / 2}
                 fill="none"
-                stroke="rgba(232, 251, 255, 0.78)"
+                stroke="#D4AF37"
                 strokeWidth={GUI_POINTER_FOCUS_TOKENS.focusStrokePx}
               />
               <circle
                 r={GUI_POINTER_FOCUS_TOKENS.pointerHaloPx / 2}
-                fill="rgba(101, 172, 255, 0.10)"
-                stroke="rgba(101, 172, 255, 0.36)"
+                fill="rgba(212, 175, 55, 0.14)"
+                stroke="rgba(212, 175, 55, 0.35)"
                 strokeWidth={1}
               />
             </g>
@@ -168,8 +168,8 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
               cx={pointerPos.x}
               cy={pointerPos.y}
               r={GUI_POINTER_FOCUS_TOKENS.pointerHaloPx / 2}
-              fill="rgba(232, 251, 255, 0.06)"
-              stroke="rgba(232, 251, 255, 0.34)"
+              fill="rgba(212, 175, 55, 0.08)"
+              stroke="rgba(212, 175, 55, 0.35)"
               strokeWidth={1}
             />
           )}
@@ -181,8 +181,8 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
               y={centerSafeRect.y}
               width={centerSafeRect.w}
               height={centerSafeRect.h}
-              fill="rgba(154, 255, 224, 0.03)"
-              stroke="rgba(154, 255, 224, 0.45)"
+              fill="rgba(212, 175, 55, 0.03)"
+              stroke="rgba(212, 175, 55, 0.45)"
               strokeWidth={1.5}
               strokeDasharray="6 4"
               rx={14}
@@ -193,10 +193,10 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
         {/* Short Label Chip on Projected 3D Target (S02 / S03 / S04) */}
         {projectedTarget && projectedTarget.visible && (
           <div
-            className="absolute -translate-x-1/2 pointer-events-none px-2.5 py-1 rounded-md text-[12px] font-mono tracking-wider uppercase text-[#F2F6F8] cerebro-stellar-glass"
+            className="cj-glass-card absolute -translate-x-1/2 pointer-events-none px-2.5 py-1 rounded-md text-[12px] font-mono tracking-wider uppercase text-[#F2F6F8] cerebro-stellar-glass"
             style={{
-              left: `${ Math.max(64, Math.min(viewportW - 64, projectedTarget.x)) }px`,
-              top: `${ Math.max(64, projectedTarget.y - 38) }px`,
+              left: `${Math.max(64, Math.min(viewportW - 64, projectedTarget.x))}px`,
+              top: `${Math.max(64, projectedTarget.y - 38)}px`,
             }}
           >
             {isCameraInFlight && flightDestinationTitle
@@ -215,7 +215,7 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
           <button
             type="button"
             onClick={onResumePreviousBookmark}
-            className="min-h-[44px] min-w-[44px] px-3.5 py-2 rounded-[18px] cerebro-stellar-glass text-[12px] font-mono uppercase tracking-wider text-[#E8FBFF] hover:border-[#65ACFF] transition-colors flex items-center gap-2"
+            className="cj-glass-card min-h-[44px] min-w-[44px] px-3.5 py-2 rounded-[18px] cerebro-stellar-glass text-[12px] font-mono uppercase tracking-wider text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] transition-colors flex items-center gap-2"
             title="S09 Return / Resume previous camera bookmark & panel state"
           >
             <span>↩</span>
@@ -227,15 +227,15 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
       {/* QA & GUI Amendment v3.0 Inspector Drawer */}
       {showQaHud && (
         <div
-          className="fixed right-4 top-20 w-[360px] max-w-[calc(100vw-24px)] max-h-[calc(100vh-120px)] overflow-y-auto cerebro-stellar-glass p-4 text-[#F2F6F8] pointer-events-auto"
+          className="cj-glass-card fixed right-4 top-20 w-[360px] max-w-[calc(100vw-24px)] max-h-[calc(100vh-120px)] overflow-y-auto cerebro-stellar-glass p-4 text-[#F2F6F8] pointer-events-auto"
           style={{ zIndex: GUI_Z_LAYERS.modalContent }}
           role="dialog"
           aria-label="CEREBRO Stellar GUI v3.0 QA Inspector"
         >
-          <div className="flex items-center justify-between pb-3 mb-3 border-b border-[rgba(232,251,255,0.18)]">
+          <div className="flex items-center justify-between pb-3 mb-3 border-b border-[rgba(197,204,214,0.22)]">
             <div>
-              <div className="text-[12px] font-mono uppercase tracking-widest text-[#65ACFF]">
-                cerebro.stellar.gui.amend/3.0
+              <div className="text-[12px] font-mono uppercase tracking-widest text-[#D4AF37]">
+                cerebro.nojara.d0/v1.24
               </div>
               <div className="text-[17px] font-semibold">
                 GUI Layout & Optical QA
@@ -244,7 +244,7 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
             <button
               type="button"
               onClick={onCloseQaHud}
-              className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-[#A9BAC6] hover:text-[#F2F6F8] border border-[rgba(232,251,255,0.18)]"
+              className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-[#C5CCD6] hover:text-[#F2F6F8] border border-[rgba(197,204,214,0.22)]"
               aria-label="Close GUI QA Inspector"
             >
               ✕
@@ -253,24 +253,24 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
 
           {/* Live State Telemetry */}
           <div className="grid grid-cols-2 gap-2 mb-3 text-[12px] font-mono">
-            <div className="p-2 rounded-lg bg-[#101D27]/70 border border-[rgba(232,251,255,0.12)]">
-              <div className="text-[#6E8494]">SCREEN</div>
-              <div className="text-[#E8FBFF] font-semibold">
+            <div className="p-2 rounded-lg bg-[#101622]/85 border border-[rgba(197,204,214,0.22)]">
+              <div className="text-[#C5CCD6]">SCREEN</div>
+              <div className="text-[#F2F6F8] font-semibold">
                 {activeScreen} · {screenSpec.title}
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-[#101D27]/70 border border-[rgba(232,251,255,0.12)]">
-              <div className="text-[#6E8494]">VISUAL STATE</div>
-              <div className="text-[#9AFFE0] font-semibold uppercase">{visualState}</div>
+            <div className="p-2 rounded-lg bg-[#101622]/85 border border-[rgba(197,204,214,0.22)]">
+              <div className="text-[#C5CCD6]">VISUAL STATE</div>
+              <div className="text-[#D4AF37] font-semibold uppercase">{visualState}</div>
             </div>
-            <div className="p-2 rounded-lg bg-[#101D27]/70 border border-[rgba(232,251,255,0.12)]">
-              <div className="text-[#6E8494]">VIEWPORT ({breakpoint.toUpperCase()})</div>
+            <div className="p-2 rounded-lg bg-[#101622]/85 border border-[rgba(197,204,214,0.22)]">
+              <div className="text-[#C5CCD6]">VIEWPORT ({breakpoint.toUpperCase()})</div>
               <div className="text-[#F2F6F8]">
                 {viewportW}×{viewportH}px
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-[#101D27]/70 border border-[rgba(232,251,255,0.12)]">
-              <div className="text-[#6E8494]">OPTICAL LENS</div>
+            <div className="p-2 rounded-lg bg-[#101622]/85 border border-[rgba(197,204,214,0.22)]">
+              <div className="text-[#C5CCD6]">OPTICAL LENS</div>
               <div className="text-[#F2F6F8]">
                 {GUI_CAMERA_PRESETS[cameraPreset].focalMm}mm ({GUI_CAMERA_PRESETS[cameraPreset].verticalFovDeg}°)
               </div>
@@ -279,7 +279,7 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
 
           {/* Canonical Screens S01..S09 Switcher */}
           <div className="mb-3">
-            <div className="text-[12px] font-mono uppercase tracking-wider text-[#A9BAC6] mb-1.5">
+            <div className="text-[12px] font-mono uppercase tracking-wider text-[#C5CCD6] mb-1.5">
               Canonical Screens (S01–S09)
             </div>
             <div className="grid grid-cols-3 gap-1.5">
@@ -290,8 +290,8 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
                   onClick={() => onSelectScreen(sid)}
                   className={`min-h-[44px] px-2 py-1 rounded-lg text-[12px] font-mono border text-left transition-colors ${
                     activeScreen === sid
-                      ? 'bg-[#65ACFF]/20 border-[#65ACFF] text-[#E8FBFF]'
-                      : 'bg-[#101D27]/60 border-[rgba(232,251,255,0.15)] text-[#A9BAC6] hover:text-[#F2F6F8]'
+                      ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#FFF4D0]'
+                      : 'bg-[#101622]/75 border-[rgba(197,204,214,0.22)] text-[#C5CCD6] hover:text-[#F2F6F8]'
                   }`}
                 >
                   <div className="font-bold">{sid}</div>
@@ -305,7 +305,7 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
 
           {/* 4 Canonical Camera Presets */}
           <div className="mb-3">
-            <div className="text-[12px] font-mono uppercase tracking-wider text-[#A9BAC6] mb-1.5">
+            <div className="text-[12px] font-mono uppercase tracking-wider text-[#C5CCD6] mb-1.5">
               36×24mm Sensor Presets
             </div>
             <div className="grid grid-cols-2 gap-1.5">
@@ -318,14 +318,14 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
                     onClick={() => onSelectCameraPreset(pid)}
                     className={`min-h-[44px] px-2.5 py-1.5 rounded-lg text-[12px] font-mono border text-left ${
                       cameraPreset === pid
-                        ? 'bg-[#65ACFF]/20 border-[#65ACFF] text-[#E8FBFF]'
-                        : 'bg-[#101D27]/60 border-[rgba(232,251,255,0.15)] text-[#A9BAC6]'
+                        ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#FFF4D0]'
+                        : 'bg-[#101622]/75 border-[rgba(197,204,214,0.22)] text-[#C5CCD6]'
                     }`}
                   >
                     <div className="font-semibold uppercase">
                       {pid} · {spec.focalMm}mm
                     </div>
-                    <div className="text-[11px] text-[#6E8494]">
+                    <div className="text-[11px] text-[#C5CCD6]">
                       vFOV {spec.verticalFovDeg}° · {spec.travelMs}ms
                     </div>
                   </button>
@@ -336,7 +336,7 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
 
           {/* 5 Test Matrix Viewports */}
           <div className="mb-3">
-            <div className="text-[12px] font-mono uppercase tracking-wider text-[#A9BAC6] mb-1.5">
+            <div className="text-[12px] font-mono uppercase tracking-wider text-[#C5CCD6] mb-1.5">
               Test Matrix Viewports (v4.0)
             </div>
             <div className="grid grid-cols-2 gap-1.5">
@@ -354,8 +354,8 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
                   onClick={() => onSelectViewportPreset(vp.id)}
                   className={`min-h-[44px] px-2.5 py-1.5 rounded-lg text-[12px] font-mono border ${
                     activeViewportPreset === vp.id
-                      ? 'bg-[#9AFFE0]/15 border-[#9AFFE0] text-[#9AFFE0]'
-                      : 'bg-[#101D27]/60 border-[rgba(232,251,255,0.15)] text-[#A9BAC6]'
+                      ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#FFF4D0]'
+                      : 'bg-[#101622]/75 border-[rgba(197,204,214,0.22)] text-[#C5CCD6]'
                   }`}
                 >
                   {vp.label}
@@ -366,14 +366,14 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
 
           {/* Automated Test Assertions Summary */}
           {testSummary && (
-            <div className="pt-2 border-t border-[rgba(232,251,255,0.16)]">
+            <div className="pt-2 border-t border-[rgba(197,204,214,0.22)]">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[12px] font-mono uppercase text-[#A9BAC6]">
+                <span className="text-[12px] font-mono uppercase text-[#C5CCD6]">
                   gui-layout.test.ts
                 </span>
                 <span
                   className={`text-[12px] font-mono font-bold ${
-                    testSummary.failed === 0 ? 'text-[#5CE0A0]' : 'text-[#FF5666]'
+                    testSummary.failed === 0 ? 'text-[#78D3B2]' : 'text-[#FF5666]'
                   }`}
                 >
                   {testSummary.passed}/{testSummary.total} PASSED
@@ -385,8 +385,8 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
                     key={r.name}
                     className="flex items-center justify-between text-[12px] font-mono py-0.5"
                   >
-                    <span className="truncate text-[#A9BAC6] pr-2">{r.name}</span>
-                    <span className={r.passed ? 'text-[#5CE0A0]' : 'text-[#FF5666]'}>
+                    <span className="truncate text-[#C5CCD6] pr-2">{r.name}</span>
+                    <span className={r.passed ? 'text-[#78D3B2]' : 'text-[#FF5666]'}>
                       {r.passed ? 'PASS' : 'FAIL'}
                     </span>
                   </div>

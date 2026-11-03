@@ -79,6 +79,8 @@ interface HandsOverlayProps {
   onChangeHandMode: (mode: HandDetectionMode) => void;
   onTriggerGesture: (gesture: HandGestureType) => void;
   onCloseHands: () => void;
+  onTrackingLost?: () => void;
+  onTrackingAcquired?: () => void;
 }
 
 const BASE_LEFT_LANDMARKS: [number, number][] = [
@@ -118,6 +120,8 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
   onChangeHandMode,
   onTriggerGesture,
   onCloseHands,
+  onTrackingLost,
+  onTrackingAcquired,
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const filterXRef = useRef(new OneEuroFilter(60, 1.4, 0.05));
