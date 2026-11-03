@@ -4832,7 +4832,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
           {captionBubble && (
             <div
-              className="cerebro-infograph-caption cerebro-intro-copy fixed left-1/2 bottom-[max(5.5rem,12%)] -translate-x-1/2 z-20 px-4 py-2.5 pointer-events-none"
+              className="cerebro-infograph-caption cerebro-intro-copy fixed left-1/2 bottom-[max(7.5rem,18%)] -translate-x-1/2 z-20 px-4 py-2.5 pointer-events-none max-w-[min(420px,88vw)]"
               role="status"
               aria-live="polite"
               data-testid="caption-bubble"

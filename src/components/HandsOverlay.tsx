@@ -689,108 +689,51 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
             renderTrackingRig(rightPts, 'right')}
         </svg>
 
+        {/* Slim status strip only — mode controls live on the Voice capsule Camera / Text sheet. */}
         <div
-          className="mt-auto mx-auto w-full max-w-3xl pointer-events-auto z-20 px-1"
+          className="mt-auto mx-auto w-full max-w-md pointer-events-auto z-20 px-1"
           style={{
             paddingBottom: 'max(0.35rem, env(safe-area-inset-bottom, 0px))',
-            marginBottom: `max(${dockClearancePx}px, calc(env(safe-area-inset-bottom, 0px) + ${dockClearancePx}px))`,
+            marginBottom: `max(${Math.max(dockClearancePx, 120)}px, calc(env(safe-area-inset-bottom, 0px) + 7.5rem))`,
           }}
         >
           <div
-            className="cerebro-hands-hud cj-glass-card px-3 py-2.5 sm:px-4 sm:py-3 flex flex-wrap items-center justify-between gap-2 sm:gap-3"
+            className="cerebro-hands-hud cerebro-pill cj-glass-card px-3 py-2 flex items-center justify-between gap-2"
             data-chrome="glass"
             data-chrome-state={hasLiveCam ? 'active' : 'cold'}
             data-testid="hands-gesture-hud"
           >
-            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-              <div className="flex items-center gap-2 min-w-0">
-                <span
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{
-                    backgroundColor: hasLiveCam
-                      ? COLOUR_TOKENS.trackingValid
-                      : COLOUR_TOKENS.sphereWireframe,
-                    opacity: hasLiveCam ? 1 : 0.55,
-                  }}
-                />
-                <span className="cerebro-chrome-title text-[12px] sm:text-[13px] truncate">
-                  Gesture · {gestureMeta[activeGesture].title}
-                </span>
-                <span
-                  className="cerebro-status-chip shrink-0"
-                  data-state={hasLiveCam ? 'live' : 'wait'}
-                >
-                  {hasLiveCam ? 'LIVE' : 'WAIT'}
-                </span>
-              </div>
-              <span className="hidden sm:block cerebro-chrome-meta truncate">
-                {gestureMeta[activeGesture].subtitle} · {cvStatusLabel}
-                {activeNote ? ` · ${activeNote}` : ''}
+            <div className="flex items-center gap-2 min-w-0">
+              <span
+                className="w-2 h-2 rounded-full shrink-0"
+                style={{
+                  backgroundColor: hasLiveCam
+                    ? COLOUR_TOKENS.trackingValid
+                    : COLOUR_TOKENS.sphereWireframe,
+                  opacity: hasLiveCam ? 1 : 0.55,
+                }}
+              />
+              <span className="cerebro-chrome-meta truncate">
+                {hasLiveCam
+                  ? `Hand camera tracking · ${gestureMeta[activeGesture].title}`
+                  : cvStatusLabel}
+              </span>
+              <span
+                className="cerebro-status-chip shrink-0"
+                data-state={hasLiveCam ? 'live' : 'wait'}
+              >
+                {hasLiveCam ? 'Camera live' : 'Camera waiting'}
               </span>
             </div>
-
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <div className="flex items-center gap-0.5 rounded-[10px] p-0.5 border border-[color:var(--token-divider)] bg-[color:var(--token-hud-pocket-bg)]">
-                {(
-                  [
-                    { id: 'right-only', label: '1×', full: 'One Hand' },
-                    { id: 'two-hands', label: '2×', full: 'Two Hands' },
-                    { id: 'left-only', label: 'L', full: 'Left Hand' },
-                  ] as const
-                ).map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    title={m.full}
-                    aria-label={m.full}
-                    aria-pressed={handMode === m.id}
-                    data-testid={`hand-mode-${m.id}`}
-                    data-chrome-state={handMode === m.id ? 'active' : 'cold'}
-                    onClick={() => onChangeHandMode(m.id)}
-                    className="cerebro-chrome-btn min-h-[40px] sm:min-h-[44px]"
-                  >
-                    <span className="sm:hidden">{m.label}</span>
-                    <span className="hidden sm:inline">{m.full}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-1 sm:gap-1.5">
-                {(
-                  [
-                    { id: 'pinch-orbit', label: 'Pinch', full: 'Pinch Orbit' },
-                    { id: 'spread-zoom', label: 'Zoom', full: 'Spread Zoom' },
-                    { id: 'palm-stop', label: 'Stop', full: 'Palm Stop' },
-                    { id: 'point-select', label: 'Point', full: 'Point Select' },
-                  ] as const
-                ).map((g) => {
-                  const pressed = activeGesture === g.id;
-                  return (
-                    <button
-                      key={g.id}
-                      type="button"
-                      title={g.full}
-                      aria-label={g.full}
-                      aria-pressed={pressed}
-                      data-chrome-state={pressed ? 'active' : 'cold'}
-                      onClick={() => onTriggerGesture(g.id)}
-                      className="cerebro-chrome-btn min-h-[40px] sm:min-h-[44px]"
-                    >
-                      <span className="sm:hidden">{g.label}</span>
-                      <span className="hidden sm:inline">{g.full}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <button
-                type="button"
-                onClick={onCloseHands}
-                className="cerebro-chrome-btn min-h-[40px] sm:min-h-[44px] font-medium"
-              >
-                Exit
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={onCloseHands}
+              className="cerebro-chrome-btn min-h-[40px] shrink-0 font-medium"
+              aria-label="Turn off hand camera tracking"
+              data-testid="hands-exit-camera"
+            >
+              Turn off camera
+            </button>
           </div>
         </div>
       </div>

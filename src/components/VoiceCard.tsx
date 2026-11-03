@@ -75,6 +75,8 @@ interface VoiceCardProps {
   voiceState: VoiceState;
   activePocket: VoicePocket;
   handsActive: boolean;
+  ambienceMuted?: boolean;
+  browserFullscreen?: boolean;
   tourState: {
     active: boolean;
     paused: boolean;
@@ -92,6 +94,10 @@ interface VoiceCardProps {
   openAgentModalTrigger?: number;
   onChangePocket: (pocket: VoicePocket) => void;
   onToggleHands: () => void;
+  onToggleAmbience?: () => void;
+  onOpenTeamChat?: () => void;
+  onOpenOptics?: () => void;
+  onToggleFullscreen?: () => void;
   onSimulateCommand: (rawInput: string) => void;
   onExecuteToolCall?: (
     toolName: string,
@@ -122,10 +128,17 @@ function voiceRingScale(level: number, _rising: boolean): number {
 export const VoiceCard: React.FC<VoiceCardProps> = ({
   voiceState,
   handsActive,
+  ambienceMuted = true,
+  browserFullscreen = false,
   tourState,
   transcripts,
   liveCaption,
   openAgentModalTrigger,
+  onToggleHands,
+  onToggleAmbience,
+  onOpenTeamChat,
+  onOpenOptics,
+  onToggleFullscreen,
   onSimulateCommand,
   onExecuteToolCall,
   onStopTour,
@@ -447,20 +460,20 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     voiceState === 'Connecting';
 
   const statusLabel = offline
-    ? 'Offline'
+    ? 'Voice offline'
     : muted
-      ? 'Muted'
+      ? 'Mic muted'
       : bridgeStatus === 'Listening' || voiceState === 'Listening'
-        ? 'Listening'
+        ? 'Voice listening'
         : bridgeStatus === 'Speaking' || voiceState === 'Speaking'
-          ? 'Speaking'
+          ? 'Cerebro speaking'
           : bridgeStatus === 'Connecting' || voiceState === 'Connecting'
-            ? 'Connecting'
+            ? 'Starting voice…'
             : bridgeStatus === 'Error'
-              ? 'Error'
+              ? 'Voice error'
               : bridgeStatus === 'Disconnected'
-                ? 'Disconnected'
-                : 'Talk to Cerebro';
+                ? 'Voice ended'
+                : 'Voice ready';
 
   const ringScale = voiceRingScale(ringLevel, true);
   const showRings =
@@ -484,22 +497,20 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               (guiLayout?.viewportH ?? window.innerHeight) - layoutRect.h - 56
             )
           : layoutRect.y,
-        width: Math.min(256, Math.max(220, layoutRect.w)),
+        width: Math.min(340, Math.max(260, layoutRect.w + 48)),
         height: Math.min(56, Math.max(48, layoutRect.h)),
         zIndex: 100,
-        opacity: handsActive ? 0.92 : 1,
+        opacity: 1,
       }
     : {
         position: 'fixed',
-        left: handsActive ? 'max(12px, 4vw)' : '50%',
-        bottom: handsActive
-          ? 'max(56px, calc(env(safe-area-inset-bottom, 0px) + 48px))'
-          : 'max(16px, calc((100% - 56px) * 0.12 + env(safe-area-inset-bottom, 0px)))',
-        transform: handsActive ? 'none' : 'translateX(-50%)',
-        width: 'min(256px, max(220px, 56vw))',
+        left: '50%',
+        bottom: 'max(20px, calc(env(safe-area-inset-bottom, 0px) + 16px))',
+        transform: 'translateX(-50%)',
+        width: 'min(340px, max(260px, 72vw))',
         height: 52,
         zIndex: 100,
-        opacity: handsActive ? 0.92 : 1,
+        opacity: 1,
       };
 
   const lastLine = transcripts[transcripts.length - 1];
@@ -508,7 +519,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     <>
       <div
         role="region"
-        aria-label="Cerebro voice capsule. Connect, mute, or stop."
+        aria-label="Cerebro voice capsule. Start voice, mute mic, open text, or camera."
         data-testid="voice-card"
         data-voice-capsule="c06"
         data-voice-live={live ? 'true' : 'false'}
@@ -521,7 +532,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         <button
           type="button"
           className="cerebro-voice-orb-hit"
-          aria-label={live ? 'Voice session active' : 'Connect live voice'}
+          aria-label={live ? 'Voice session active' : 'Start live voice with Cerebro'}
           data-testid="voice-orb-button"
           onClick={() => {
             if (!live) void handleConnect();
@@ -551,17 +562,17 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
           )}
         </div>
 
-        <div className="cerebro-voice-actions" role="group" aria-label="Voice controls">
+        <div className="cerebro-voice-actions" role="group" aria-label="Voice, text, and camera">
           {!live ? (
             <button
               type="button"
               className="cerebro-voice-action"
               data-testid="voice-connect"
-              aria-label="Connect live voice"
+              aria-label="Start live voice with Cerebro"
               disabled={offline}
               onClick={() => void handleConnect()}
             >
-              Connect
+              Start voice
             </button>
           ) : (
             <>
@@ -570,22 +581,36 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                 className="cerebro-voice-action"
                 data-testid="voice-mute"
                 aria-pressed={muted}
-                aria-label={muted ? 'Unmute' : 'Mute'}
+                aria-label={muted ? 'Unmute microphone' : 'Mute microphone'}
                 onClick={handleMuteToggle}
               >
-                {muted ? 'Unmute' : 'Mute'}
+                {muted ? 'Unmute mic' : 'Mute mic'}
               </button>
               <button
                 type="button"
                 className="cerebro-voice-action cerebro-voice-action-stop"
                 data-testid="voice-stop"
-                aria-label="Stop voice and camera"
+                aria-label="End voice session"
                 onClick={handleInstantStop}
               >
-                Stop
+                End voice
               </button>
             </>
           )}
+          <button
+            type="button"
+            className="cerebro-voice-action"
+            data-testid="enable-one-hand-gesture"
+            data-cta-id="gesture-toggle"
+            data-chrome-state={handsActive ? 'active' : 'cold'}
+            aria-pressed={handsActive}
+            aria-label={
+              handsActive ? 'Turn off hand camera tracking' : 'Turn on hand camera tracking'
+            }
+            onClick={onToggleHands}
+          >
+            {handsActive ? 'Camera on' : 'Camera'}
+          </button>
           <button
             ref={expandTriggerRef}
             type="button"
@@ -593,10 +618,10 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
             data-testid="voice-expand"
             aria-expanded={sheetOpen}
             aria-controls="cerebro-voice-sheet"
-            aria-label={sheetOpen ? 'Close voice sheet' : 'Open voice sheet'}
+            aria-label={sheetOpen ? 'Close text and session sheet' : 'Open text chat and session'}
             onClick={() => (sheetOpen ? closeSheet() : setSheetOpen(true))}
           >
-            {sheetOpen ? 'Close' : 'More'}
+            {sheetOpen ? 'Close' : 'Text'}
           </button>
         </div>
       </div>
@@ -617,17 +642,81 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
           onPointerDown={(e) => e.stopPropagation()}
         >
           <header className="cerebro-voice-sheet__head">
-            <strong>Voice sheet</strong>
+            <strong>Text chat & session</strong>
             <button
               type="button"
               className="cerebro-voice-action"
               data-testid="voice-sheet-close"
-              aria-label="Close voice sheet"
+              aria-label="Close text chat and session sheet"
               onClick={closeSheet}
             >
-              Close
+              Close sheet
             </button>
           </header>
+          <div
+            className="flex flex-wrap items-center gap-1.5 my-2"
+            role="group"
+            aria-label="Session controls"
+            data-testid="voice-session-controls"
+          >
+            <button
+              type="button"
+              className="cerebro-voice-action text-[11px] px-2.5 py-1"
+              data-testid="enable-one-hand-gesture"
+              aria-pressed={handsActive}
+              onClick={onToggleHands}
+            >
+              {handsActive ? 'Turn off hand camera' : 'Turn on hand camera'}
+            </button>
+            {onToggleAmbience && (
+              <button
+                type="button"
+                className="cerebro-voice-action text-[11px] px-2.5 py-1"
+                data-testid="ambience-mute-toggle"
+                aria-pressed={!ambienceMuted}
+                onClick={onToggleAmbience}
+              >
+                {ambienceMuted ? 'Turn ambience on' : 'Turn ambience off'}
+              </button>
+            )}
+            {onOpenTeamChat && (
+              <button
+                type="button"
+                className="cerebro-voice-action text-[11px] px-2.5 py-1"
+                data-testid="team-chat-open"
+                onClick={() => {
+                  onOpenTeamChat();
+                  closeSheet();
+                }}
+              >
+                Open team chat
+              </button>
+            )}
+            {onOpenOptics && (
+              <button
+                type="button"
+                className="cerebro-voice-action text-[11px] px-2.5 py-1"
+                data-testid="camera-control-toggle"
+                onClick={() => {
+                  onOpenOptics();
+                  closeSheet();
+                }}
+              >
+                Open lens optics
+              </button>
+            )}
+            {onToggleFullscreen && (
+              <button
+                type="button"
+                className="cerebro-voice-action text-[11px] px-2.5 py-1"
+                data-testid="browser-fullscreen-utility"
+                aria-pressed={browserFullscreen}
+                onClick={onToggleFullscreen}
+              >
+                {browserFullscreen ? 'Exit browser fullscreen' : 'Enter browser fullscreen'}
+              </button>
+            )}
+          </div>
           <p className="cerebro-voice-sheet__meta" aria-live="polite">
             {offline
               ? 'Network offline — capsule stays usable; reconnect when online.'
@@ -711,7 +800,9 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               </div>
               <ol className="cerebro-voice-sheet__transcript" aria-label="Transcript history">
                 {transcripts.length === 0 ? (
-                  <li className="cerebro-voice-sheet__empty">No transcript yet. Connect to begin.</li>
+                  <li className="cerebro-voice-sheet__empty">
+                    No transcript yet. Tap Start voice to begin.
+                  </li>
                 ) : (
                   transcripts.slice(-12).map((line) => (
                     <li key={line.id}>

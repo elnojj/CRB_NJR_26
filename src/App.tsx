@@ -4215,7 +4215,7 @@ export default function App() {
             },
             {
               id: 'more',
-              label: 'More',
+              label: showMoreMenu ? 'Close menu' : 'Open menu',
               active: showMoreMenu,
               testId: 'header-more-btn',
               onClick: () => setShowMoreMenu((v) => !v),
@@ -4539,6 +4539,7 @@ export default function App() {
           voiceState={voiceState}
           activePocket={activePocket}
           handsActive={handsActive}
+          ambienceMuted={ambienceMuted}
           tourState={tourState}
           audienceLevel={audienceLevel}
           selectedProjectId={selectedProjectId}
@@ -4549,6 +4550,17 @@ export default function App() {
           openAgentModalTrigger={openAgentModalTrigger}
           onChangePocket={setActivePocket}
           onToggleHands={handleToggleHands}
+          onToggleAmbience={handleToggleAmbience}
+          onOpenTeamChat={() => {
+            setTeamChatOpen(true);
+            ensurePanelOpen('team-room', false);
+          }}
+          onOpenOptics={() => {
+            setShowCameraTray(true);
+            setShowGuiQaHud(false);
+          }}
+          onToggleFullscreen={() => void toggleBrowserFullscreen()}
+          browserFullscreen={browserFullscreen}
           onSimulateCommand={handleSimulateCommand}
           onExecuteToolCall={handleExecuteToolCall}
           onSendCompose={handleSendCompose}
@@ -4568,20 +4580,14 @@ export default function App() {
         />
       </div>
 
-      {/* 7B. Shared Layout Grid Region 5: Consolidated Bottom Utility Area (Camera Control + Ambience, Gesture & Team Chat) */}
+      {/* 7B. Optics tray — no bottom utility footer. Entry is Voice capsule (mic / text / camera).
+          Tray stays sr-only unless opened from Voice sheet Session → Optics. */}
       <div
         data-testid="bottom-utility-bar"
-        onPointerDown={(e) => e.stopPropagation()}
-        onWheel={(e) => e.stopPropagation()}
-        data-chrome="glass"
-        className={`fixed bottom-3 left-3 right-3 md:left-5 md:right-5 lg:left-6 lg:right-6 z-[45] pointer-events-none ${
-          introMode !== 'workspace' ? 'opacity-0 pointer-events-none' : ''
-        } ${
-          openPanels.length > 0 ? 'hidden md:flex' : 'flex'
-        } items-center justify-between gap-2 transition-opacity duration-300`}
+        className="sr-only"
+        aria-hidden={!(showCameraTray || showGuiQaHud)}
       >
-        {/* Left Utility: Single Collapsible "Camera" Control + Scrollable Expandable Tray */}
-        <div className="relative pointer-events-auto flex items-center">
+        <div className="relative">
           <button
             type="button"
             data-testid="camera-control-toggle"
@@ -4590,35 +4596,17 @@ export default function App() {
               setShowCameraTray((v) => !v);
               if (showGuiQaHud) setShowGuiQaHud(false);
             }}
-            data-chrome-state={showCameraTray || showGuiQaHud ? 'active' : 'cold'}
-            className={`cj-glass-card min-h-[40px] px-3 py-1.5 rounded-full font-mono text-[13px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
-              showCameraTray || showGuiQaHud
-                ? 'border-[color:var(--token-active-gold)] text-[#FFF4D0] bg-[color-mix(in_srgb,var(--token-active-gold)_20%,transparent)]'
-                : 'text-[color:var(--token-cold-text)] hover:border-[color:var(--token-active-gold)]'
-            }`}
           >
-            <span className="w-2 h-2 rounded-full bg-[color:var(--token-active-gold)]" />
-            <span>Camera</span>
-            <span className="text-[12px] text-[#C5CCD6] font-normal">
-              {telemetry.focalLengthMm ?? 35}mm
-            </span>
-            <span className="text-[12px] text-[#C5CCD6]">
-              {showCameraTray || showGuiQaHud ? '▾' : '▴'}
-            </span>
+            Camera {telemetry.focalLengthMm ?? 35}mm
           </button>
 
-          {/* Expandable, Scrollable Camera Optics & Movement Tray (Kept in DOM as sr-only when closed so all lens/telemetry selectors remain reachable) */}
           <div
             data-testid="camera-control-tray"
             onPointerDown={(e) => e.stopPropagation()}
             onWheel={(e) => e.stopPropagation()}
             className={
               showCameraTray || showGuiQaHud
-                ? `cj-glass-card fixed ${
-                    openPanels.length > 0
-                      ? 'left-3 right-3 md:left-auto md:right-5 bottom-[144px] md:w-[360px]'
-                      : 'left-3 right-3 md:left-5 md:right-auto lg:left-6 bottom-[144px] md:bottom-[64px] md:w-[304px] lg:w-[420px]'
-                  } max-h-[240px] overflow-y-auto overscroll-contain p-3 rounded-2xl font-mono text-[12px] text-[#C5CCD6] flex flex-col gap-2.5 z-[48] shadow-2xl`
+                ? `cj-glass-card cerebro-chrome fixed left-3 right-3 md:left-1/2 md:-translate-x-1/2 bottom-[96px] md:w-[min(420px,92vw)] max-h-[240px] overflow-y-auto overscroll-contain p-3 z-[48] font-mono text-[12px] text-[#C5CCD6] flex flex-col gap-2.5 pointer-events-auto`
                 : 'sr-only'
             }
           >
@@ -4815,92 +4803,6 @@ export default function App() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Right Utility Row: Ambience, Single-Hand Gesture & Team Chat in One Non-Overlapping Row */}
-        <div
-          data-testid="bottom-right-utility-group"
-          className="pointer-events-auto flex items-center justify-end gap-1.5 sm:gap-2 shrink-0"
-        >
-          {isBrowserFullscreenSupported() && (
-            <button
-              type="button"
-              data-testid="browser-fullscreen-utility"
-              data-cta-id="browser-fullscreen"
-              onClick={() => void toggleBrowserFullscreen()}
-              data-chrome-state={browserFullscreen ? 'active' : 'cold'}
-              className={`cj-glass-card min-h-[40px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full font-mono text-[13px] font-medium transition-colors cursor-pointer shrink-0 ${
-                browserFullscreen
-                  ? 'border-[color:var(--token-active-gold)] text-[#FFF4D0] bg-[color-mix(in_srgb,var(--token-active-gold)_20%,transparent)]'
-                  : 'text-[color:var(--token-cold-text)] hover:text-[color:var(--token-text-primary)] hover:border-[color:var(--token-active-gold)]'
-              }`}
-              title={browserFullscreen ? 'Exit browser fullscreen (F)' : 'Enter browser fullscreen (F)'}
-              aria-pressed={browserFullscreen}
-            >
-              <span
-                className={`w-2 h-2 rounded-full shrink-0 ${
-                  browserFullscreen
-                    ? 'bg-[color:var(--token-active-gold)]'
-                    : 'bg-[color:var(--token-cold-border)]'
-                }`}
-              />
-              <span className="hidden sm:inline">
-                {browserFullscreen ? 'Exit full' : 'Fullscreen'}
-              </span>
-              <span className="sm:hidden">{browserFullscreen ? 'Exit' : 'Full'}</span>
-            </button>
-          )}
-
-          <button
-            type="button"
-            data-testid="ambience-mute-toggle"
-            data-cta-id="ambience-toggle"
-            onClick={handleToggleAmbience}
-            data-chrome-state={ambienceMuted ? 'cold' : 'active'}
-            className="cj-glass-card min-h-[40px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full font-mono text-[13px] font-medium text-[color:var(--token-cold-text)] hover:text-[color:var(--token-text-primary)] hover:border-[color:var(--token-active-gold)] transition-colors cursor-pointer shrink-0"
-            title="Toggle ambient background soundscape"
-          >
-            <span
-              className={`w-2 h-2 rounded-full transition-colors shrink-0 ${
-                ambienceMuted
-                  ? 'bg-[color:var(--token-cold-border)]'
-                  : 'bg-[color:var(--token-active-gold)] animate-pulse'
-              }`}
-            />
-            <span className="hidden sm:inline">Ambience {ambienceMuted ? 'Off' : 'On'}</span>
-            <span className="sm:hidden">Audio</span>
-          </button>
-
-          <button
-            type="button"
-            data-testid="enable-one-hand-gesture"
-            data-cta-id="gesture-toggle"
-            data-chrome-state={handsActive ? 'active' : 'cold'}
-            onClick={handleToggleHands}
-            className="cj-glass-card min-h-[40px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full font-mono text-[13px] font-medium text-[color:var(--token-cold-text)] hover:text-[color:var(--token-text-primary)] hover:border-[color:var(--token-active-gold)] transition-colors cursor-pointer shrink-0"
-            title="Toggle hand gesture tracking — single session source of truth"
-          >
-            <span
-              className={`w-2 h-2 rounded-full transition-colors shrink-0 ${
-                handsActive
-                  ? 'bg-[color:var(--token-active-gold)] animate-pulse'
-                  : 'bg-[color:var(--token-cold-border)]'
-              }`}
-            />
-            <span className="hidden sm:inline">
-              {handsActive ? 'Gesture On' : 'Enable One-Hand Gesture'}
-            </span>
-            <span className="sm:hidden">{handsActive ? 'Gesture' : 'Hands'}</span>
-          </button>
-
-          <TeamChatChip
-            inline={true}
-            active={teamChatOpen || openPanels.includes('team-room')}
-            onOpenChat={() => {
-              setTeamChatOpen(true);
-              ensurePanelOpen('team-room', false);
-            }}
-          />
         </div>
       </div>
 
