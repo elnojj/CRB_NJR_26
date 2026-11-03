@@ -3535,10 +3535,17 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               const items = buildProjectMediaTubeItems(mediaTubeStateRef.current.projectId);
               const tile = items[tIdx] || items[0];
               soundEngine.playNodeSelect(0);
-              callbacksRef.current.onSelectMediaTubeTile?.(tIdx, tile);
+              if (mediaTubeStateRef.current.focusedTileIndex === tIdx) {
+                callbacksRef.current.onOpenMediaTubeFullView?.(tile);
+              } else {
+                callbacksRef.current.onSelectMediaTubeTile?.(tIdx, tile);
+              }
               return;
             }
           }
+          // No on-screen tube controls: a tap outside the tiles returns to the project.
+          callbacksRef.current.onCloseMediaTube?.();
+          return;
         }
 
         const hit = findHitNode(e.clientX, e.clientY);
@@ -4892,74 +4899,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               </div>
             </div>
           )}
-
-          {/* v4.0 3D Cylindrical Project Media Tube Floating HUD Controls */}
-          {mediaTubeState?.active && (() => {
-            const tubeItems = buildProjectMediaTubeItems(mediaTubeState.projectId);
-            const focusedIdx = mediaTubeState.focusedTileIndex ?? 0;
-            const focusedTile = tubeItems[focusedIdx] || tubeItems[0];
-            return (
-              <div
-                data-testid="project-media-tube-hud"
-                data-ui-id="project-media-tube-hud"
-                onPointerDown={(e) => e.stopPropagation()}
-                className="cj-glass-card fixed left-1/2 bottom-28 -translate-x-1/2 z-30 pointer-events-auto flex flex-wrap items-center gap-2 px-4 py-2.5 rounded-2xl border backdrop-blur-xl shadow-2xl max-w-[94vw]"
-              >
-                <div className="pr-2 border-r border-white/15">
-                  <div className="font-mono text-[12px] text-[#D4AF37] uppercase">
-                    3D MEDIA TUBE · {mediaTubeState.projectId} (8×3 CYLINDER · 5.4u)
-                  </div>
-                  <div className="font-sans text-xs font-semibold text-[#F2F6F8]">
-                    Tile #{focusedIdx + 1}/24 · {focusedTile.title}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    data-cta-id="media-tube-prev"
-                    data-action-id="media.previous"
-                    onClick={() => {
-                      const prevIdx = (focusedIdx - 1 + tubeItems.length) % tubeItems.length;
-                      onSelectMediaTubeTile?.(prevIdx, tubeItems[prevIdx]);
-                    }}
-                    className="min-h-[38px] px-2.5 py-1 rounded-lg font-mono text-xs bg-[#101622] border border-[#C5CCD6]/25 text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
-                  >
-                    ‹ Prev Tile
-                  </button>
-                  <button
-                    type="button"
-                    data-cta-id="media-tube-next"
-                    data-action-id="media.next"
-                    onClick={() => {
-                      const nextIdx = (focusedIdx + 1) % tubeItems.length;
-                      onSelectMediaTubeTile?.(nextIdx, tubeItems[nextIdx]);
-                    }}
-                    className="min-h-[38px] px-2.5 py-1 rounded-lg font-mono text-xs bg-[#101622] border border-[#C5CCD6]/25 text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer"
-                  >
-                    Next Tile ›
-                  </button>
-                  <button
-                    type="button"
-                    data-cta-id="media-tube-fullview"
-                    data-action-id="media.open"
-                    onClick={() => onOpenMediaTubeFullView?.(focusedTile)}
-                    className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-xs bg-[#D4AF37] text-[#101622] font-semibold cursor-pointer"
-                  >
-                    Open Full View
-                  </button>
-                  <button
-                    type="button"
-                    data-cta-id="media-tube-close"
-                    data-action-id="media.close"
-                    onClick={() => onCloseMediaTube?.()}
-                    className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-xs bg-[#101622] border border-[#D4AF37] text-[#FFF4D0] hover:bg-[#D4AF37] hover:text-[#101622] cursor-pointer"
-                  >
-                    ← Return to Project
-                  </button>
-                </div>
-              </div>
-            );
-          })()}
         </div>
       )}
     </div>
