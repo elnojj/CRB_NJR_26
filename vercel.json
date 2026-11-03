@@ -11,6 +11,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
       "source": "/cro",
       "destination": "/index.html"
     },

@@ -9,6 +9,7 @@ import {
   DEFAULT_INTERNAL_AGENT_ID,
   buildElevenLabsAgentPayload,
 } from './src/data/croCdeGoogleAgentManifest.ts';
+import { buildLocalCerebroReply } from './src/utils/cerebroLocalChat.ts';
 
 const PORT = Number(process.env.PORT) || 3000;
 const BUILD_VERSION = '1.29.0';
@@ -1164,6 +1165,55 @@ async function startServer() {
 
   app.get('/api/download-source', requireInternalAccess, (_req, res) => {
     res.redirect('/api/project/files');
+  });
+
+  // 8b. Gemini text chat for Cerebro chat widget (`POST /api/gemini/chat`)
+  app.post('/api/gemini/chat', async (req, res) => {
+    const message = String(req.body?.message || '').trim();
+    const history = Array.isArray(req.body?.history) ? req.body.history : [];
+    const model = String(req.body?.model || 'gemini-2.0-flash');
+    if (!message) {
+      return res.status(400).json({ error: 'message is required' });
+    }
+
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (geminiKey) {
+      try {
+        const ai = new GoogleGenAI({ apiKey: geminiKey });
+        const contents = [
+          ...history.slice(-12).map((turn: { role?: string; text?: string }) => ({
+            role: turn.role === 'model' ? 'model' : 'user',
+            parts: [{ text: String(turn.text || '') }],
+          })),
+          { role: 'user', parts: [{ text: message }] },
+        ];
+        const response = await ai.models.generateContent({
+          model,
+          contents,
+          config: {
+            systemInstruction:
+              'You are Cerebro, the NOJARA Studios spatial OS assistant for Owner 39 (Tarek). Be concise and concrete about HQ, CDE, projects, media, and crew.',
+          },
+        });
+        const reply =
+          (response.text || '').trim() || buildLocalCerebroReply(message, history);
+        return res.json({ reply, model, toolCalls: [] });
+      } catch (err) {
+        const warning = err instanceof Error ? err.message : 'Gemini failed';
+        return res.json({
+          reply: buildLocalCerebroReply(message, history),
+          model: 'cerebro-local-fallback',
+          toolCalls: [],
+          warning,
+        });
+      }
+    }
+
+    return res.json({
+      reply: buildLocalCerebroReply(message, history),
+      model: 'cerebro-local-fallback',
+      toolCalls: [],
+    });
   });
 
   // 9. Gemini Live Screen & 3D Domain Orchestrator (`POST /api/gemini/orchestrate`)

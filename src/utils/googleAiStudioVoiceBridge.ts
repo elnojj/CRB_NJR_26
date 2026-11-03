@@ -10,6 +10,7 @@ import {
   CRO_CDE_GOOGLE_SYSTEM_PROMPT,
   CRO_CDE_GOOGLE_TOOLS_SCHEMA,
 } from '../data/croCdeGoogleAgentManifest';
+import { buildLocalCerebroReply } from './cerebroLocalChat';
 
 export type VoiceBridgeState =
   | 'Ready'
@@ -72,25 +73,48 @@ export async function sendGeminiChatTurn(args: {
   model: string;
   toolCalls: Array<{ toolName: string; parameters: Record<string, unknown> }>;
 }> {
-  const res = await fetch('/api/gemini/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(args),
-  });
-  if (!res.ok) {
-    const detail = await res.text().catch(() => '');
-    throw new Error(detail || `Gemini chat failed (${res.status})`);
+  try {
+    const res = await fetch('/api/gemini/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(args),
+    });
+    if (!res.ok) {
+      // Static hosts without serverless previously returned Vercel NOT_FOUND HTML.
+      return {
+        reply: buildLocalCerebroReply(
+          args.message,
+          args.history.map((h) => ({ role: h.role, text: h.text }))
+        ),
+        model: 'cerebro-local-fallback',
+        toolCalls: [],
+      };
+    }
+    const data = (await res.json()) as {
+      reply?: string;
+      model?: string;
+      toolCalls?: Array<{ toolName: string; parameters: Record<string, unknown> }>;
+    };
+    return {
+      reply:
+        data.reply ||
+        buildLocalCerebroReply(
+          args.message,
+          args.history.map((h) => ({ role: h.role, text: h.text }))
+        ),
+      model: data.model || String(args.model),
+      toolCalls: Array.isArray(data.toolCalls) ? data.toolCalls : [],
+    };
+  } catch {
+    return {
+      reply: buildLocalCerebroReply(
+        args.message,
+        args.history.map((h) => ({ role: h.role, text: h.text }))
+      ),
+      model: 'cerebro-local-fallback',
+      toolCalls: [],
+    };
   }
-  const data = (await res.json()) as {
-    reply?: string;
-    model?: string;
-    toolCalls?: Array<{ toolName: string; parameters: Record<string, unknown> }>;
-  };
-  return {
-    reply: data.reply || '',
-    model: data.model || String(args.model),
-    toolCalls: Array.isArray(data.toolCalls) ? data.toolCalls : [],
-  };
 }
 
 export async function transcribeAudioBlob(

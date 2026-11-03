@@ -181,7 +181,6 @@ function IconChat({ active }: { active?: boolean }) {
 export const VoiceCard: React.FC<VoiceCardProps> = ({
   voiceState,
   handsActive,
-  transcripts,
   selectedProjectId,
   openAgentModalTrigger,
   onToggleHands,
@@ -323,18 +322,6 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   }, [openAgentModalTrigger, handleCall]);
 
   useEffect(() => {
-    if (localTurns.length > 0 || transcripts.length === 0) return;
-    setLocalTurns(
-      transcripts.slice(-8).map((t) => ({
-        id: t.id,
-        role: t.speaker === 'Cerebro' ? 'cerebro' : 'user',
-        text: t.text,
-        liquid: t.speaker === 'Cerebro',
-      }))
-    );
-  }, [transcripts, localTurns.length]);
-
-  useEffect(() => {
     const el = listRef.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
@@ -388,6 +375,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         ...historyRef.current,
         { role: 'model' as const, text: clean },
       ].slice(-12);
+      setError(null);
       setLocalTurns((prev) => [
         ...prev,
         {
@@ -398,14 +386,18 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         },
       ]);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Chat reply failed';
+      const raw = err instanceof Error ? err.message : 'Chat reply failed';
+      const msg =
+        /NOT_FOUND|could not be found/i.test(raw)
+          ? 'Chat service is reconnecting — try Send again.'
+          : raw.slice(0, 160);
       setError(msg);
       setLocalTurns((prev) => [
         ...prev,
         {
           id: `c-err-${Date.now()}`,
           role: 'cerebro',
-          text: 'I could not reach the live model just now. Your message is saved — try again in a moment.',
+          text: 'I saved your message. Try Send again in a moment.',
           liquid: true,
         },
       ]);
@@ -415,22 +407,15 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     }
   }, [attachment, busy, draft, onSendCompose, onSimulateCommand, selectedProjectId]);
 
-  const layoutRect = guiLayout?.voiceRect;
-  const dockStyle: React.CSSProperties = layoutRect
-    ? {
-        left: Math.max(12, layoutRect.x),
-        bottom: Math.max(
-          16,
-          (guiLayout?.viewportH ?? window.innerHeight) - layoutRect.y - layoutRect.h
-        ),
-        width: Math.max(280, layoutRect.w),
-      }
-    : {
-        left: '50%',
-        transform: 'translateX(-50%)',
-        bottom: 'max(16px, env(safe-area-inset-bottom, 0px))',
-        width: 'min(360px, calc(100vw - 24px))',
-      };
+  // Always pin to bottom-center so Call / Hands / Chat stay on one screen
+  // (guiLayout voiceRect previously floated the sheet mid-viewport like a second page).
+  void guiLayout;
+  const dockStyle: React.CSSProperties = {
+    left: '50%',
+    transform: 'translateX(-50%)',
+    bottom: 'max(16px, env(safe-area-inset-bottom, 0px))',
+    width: 'min(360px, calc(100vw - 24px))',
+  };
 
   const callLabel = voiceLive ? 'End call' : 'Call';
   const handsLabel = handsActive ? 'Turn off camera' : 'Hands';
