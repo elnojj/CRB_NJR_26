@@ -23,7 +23,6 @@ import {
   GUI_CAMERA_PRESETS,
   GuiCameraPresetId,
   computeFittedCameraDistance,
-  computeSubFrustumOffset,
   quinticSmootherstep,
 } from '../gui/cameraPresets';
 import { GUI_TIMING_TOKENS, GUI_WORLD_MOTION_TOKENS } from '../gui/guiTokens';
