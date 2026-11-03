@@ -161,7 +161,6 @@ import {
   buildClosedOrbitalLoopPoints,
   DEFAULT_FIVE_AXIS_STATE,
 } from './three/spatialNavigation';
-import { MobileSingleHandController } from './components/HandsTracker';
 import { Cerebro39SystemModal } from './components/Cerebro39SystemModal';
 import { VisualAuthorityScopeId } from './data/cerebro39MasterSystem';
 import {
@@ -4863,21 +4862,27 @@ export default function App() {
             <span className="sm:hidden">Audio</span>
           </button>
 
-          <MobileSingleHandController
-            active={handsActive}
-            onToggleActive={handleToggleHands}
-            onZoomGesture={(delta) => {
-              if (delta > 0) dispatchCamera('zoom_in');
-              else dispatchCamera('zoom_out');
-            }}
-            onSelectNode={() => {
-              if (hoveredNodeId) {
-                executeTypedAction({ type: 'focus_project', projectId: hoveredNodeId }, 'gesture');
-              } else {
-                dispatchCamera('zoom_in');
-              }
-            }}
-          />
+          <button
+            type="button"
+            data-testid="enable-one-hand-gesture"
+            data-cta-id="gesture-toggle"
+            data-chrome-state={handsActive ? 'active' : 'cold'}
+            onClick={handleToggleHands}
+            className="cj-glass-card min-h-[40px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full font-mono text-[13px] font-medium text-[color:var(--token-cold-text)] hover:text-[color:var(--token-text-primary)] hover:border-[color:var(--token-active-gold)] transition-colors cursor-pointer shrink-0"
+            title="Toggle hand gesture tracking — single session source of truth"
+          >
+            <span
+              className={`w-2 h-2 rounded-full transition-colors shrink-0 ${
+                handsActive
+                  ? 'bg-[color:var(--token-active-gold)] animate-pulse'
+                  : 'bg-[color:var(--token-cold-border)]'
+              }`}
+            />
+            <span className="hidden sm:inline">
+              {handsActive ? 'Gesture On' : 'Enable One-Hand Gesture'}
+            </span>
+            <span className="sm:hidden">{handsActive ? 'Gesture' : 'Hands'}</span>
+          </button>
 
           <TeamChatChip
             inline={true}

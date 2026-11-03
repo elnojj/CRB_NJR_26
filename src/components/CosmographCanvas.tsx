@@ -77,6 +77,7 @@ import {
   SPHERE_CAPTION,
 } from '../data/peerSphereContent';
 import { createIstanbaMouldProof, type IstanbaProofHandle } from '../three/istanbaMouldProof';
+import { SpatialLabelBillboardLayer } from '../three/spatialLabelBillboards';
 
 const sceneRandom = () => (introBridge.enabled ? introBridge.random() : Math.random());
 
@@ -1663,19 +1664,47 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     // Intro journey needs the full optical pipeline; do not force software path.
     if (introBridge.enabled) isSoftwareGl = false;
 
-    let renderer: THREE.WebGLRenderer;
-    try {
-      renderer = new THREE.WebGLRenderer({
+    const rendererAttempts: THREE.WebGLRendererParameters[] = [
+      {
         antialias: !isSoftwareGl,
         alpha: true,
         powerPreference: 'high-performance',
         preserveDrawingBuffer: true,
-      });
-    } catch (err) {
+      },
+      {
+        antialias: false,
+        alpha: true,
+        powerPreference: 'default',
+        preserveDrawingBuffer: false,
+      },
+      {
+        antialias: false,
+        alpha: false,
+        powerPreference: 'low-power',
+      },
+    ];
+    let lastRendererErr: unknown = null;
+    let rendererCandidate: THREE.WebGLRenderer | null = null;
+    for (const params of rendererAttempts) {
+      try {
+        rendererCandidate = new THREE.WebGLRenderer(params);
+        break;
+      } catch (err) {
+        lastRendererErr = err;
+      }
+    }
+    if (!rendererCandidate) {
       setWebglStatus('FALLBACK');
-      setWebglReason(err instanceof Error ? err.message : 'WebGLRenderer initialization failed');
+      setWebglReason(
+        lastRendererErr instanceof Error
+          ? lastRendererErr.message
+          : 'WebGLRenderer initialization failed'
+      );
       return;
     }
+    const renderer = rendererCandidate;
+    setWebglStatus('ACTIVE');
+    setWebglReason(isSoftwareGl ? 'Software WebGL — liquid glass in translucent fallback mode' : '');
 
     const initW = container.clientWidth || window.innerWidth;
     const initH = container.clientHeight || window.innerHeight;
@@ -1747,6 +1776,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     domEl.addEventListener('webglcontextrestored', handleContextRestored, false);
 
     const scene = new THREE.Scene();
+    const spatialBillboards = new SpatialLabelBillboardLayer();
+    scene.add(spatialBillboards.group);
     // Atmospheric radial field behind the dual spheres (intro + workspace).
     // Must read clearly against the old flat #101D27 navy — deeper ink, brighter blooms.
     const bgCanvas = document.createElement('canvas');
@@ -4288,6 +4319,29 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         // Stable DOM sort order prevents React from reordering <button> elements mid-click while the sphere orbits
         projected.sort((a, b) => `${a.nodeType}-${a.id}`.localeCompare(`${b.nodeType}-${b.id}`));
 
+        // Spatial 3D billboards for stations/dimensions/core — depth-sorted in WebGL.
+        const billboardSpecs = [];
+        for (const entry of nodeRegistryRef.current.values()) {
+          if (entry.sphere !== s.activeSphere) continue;
+          if (
+            entry.nodeType !== 'station' &&
+            entry.nodeType !== 'dimension' &&
+            entry.nodeType !== 'core'
+          ) {
+            continue;
+          }
+          billboardSpecs.push({
+            id: `${entry.sphere}:${entry.canonicalId}`,
+            label: entry.label,
+            sublabel: entry.nodeType === 'core' ? SPHERE_CAPTION[entry.sphere] : undefined,
+            colour: entry.colour,
+            worldPos: entry.worldPos.clone(),
+            focused:
+              entry.canonicalId === s.focusedNodeId || entry.canonicalId === s.HoveredNodeId,
+          });
+        }
+        spatialBillboards.sync(billboardSpecs, camera);
+
         setLabels2D(projected);
 
         const tel = buildCurrentTelemetry(s);
@@ -4375,6 +4429,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       masterRootRef.current = null;
       clearMountedSphereInstances();
       introBridge.detach();
+      spatialBillboards.dispose();
       renderer.dispose();
     };
   }, [customDomains.length, sphereMaterials.hq, sphereMaterials.cde, webglRebuildKey]);
@@ -4600,10 +4655,16 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                 item.nodeType === 'project' &&
                 !!item.sublabel &&
                 /At risk|Blocked/i.test(item.sublabel);
-              const isPrimaryStation =
+              const isSpatialBillboard =
                 item.nodeType === 'station' ||
                 item.nodeType === 'dimension' ||
-                item.nodeType === 'core' ||
+                item.nodeType === 'core';
+              // WebGL sprites own station/core labels — skip SVG tethers that collide in depth.
+              if (isSpatialBillboard && webglStatus === 'ACTIVE') {
+                return null;
+              }
+              const isPrimaryStation =
+                isSpatialBillboard ||
                 (item.nodeType === 'project' && (item.isFocused || isAttentionProject));
               if (
                 (!item.isFocused && !isPrimaryStation) ||
@@ -4660,10 +4721,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               item.nodeType === 'project' &&
               !!item.sublabel &&
               /At risk|Blocked/i.test(item.sublabel);
-            const isPrimaryStation =
+            const isSpatialBillboard =
               item.nodeType === 'station' ||
               item.nodeType === 'dimension' ||
-              item.nodeType === 'core' ||
+              item.nodeType === 'core';
+            const isPrimaryStation =
+              isSpatialBillboard ||
               (item.nodeType === 'project' && (item.isFocused || isAttentionProject));
             const x = Math.round(item.x);
             const y = Math.round(item.y);
@@ -4671,6 +4734,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             if (!item.isFocused && !isPrimaryStation) {
               return null;
             }
+            // Stations/core/dimensions render as WebGL sprites — keep DOM as invisible hit targets.
+            const useHitTargetOnly = isSpatialBillboard && webglStatus === 'ACTIVE';
             return (
               <button
                 key={`${activeSphere}-${item.id}-${item.nodeType}`}
@@ -4678,6 +4743,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                 data-testid={`sphere-label-${item.id}`}
                 data-object-code={item.objectCode}
                 data-chrome-state={item.isFocused ? 'active' : 'cold'}
+                data-spatial-billboard={useHitTargetOnly ? 'true' : undefined}
                 aria-label={`${item.label}${item.sublabel ? `, ${item.sublabel}` : ''} · ${item.nodeType}`}
                 aria-pressed={item.isFocused}
                 onPointerDown={(e) => e.stopPropagation()}
@@ -4708,16 +4774,22 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                 }}
                 style={{
                   transform: `translate3d(${x}px, ${y}px, 0)`,
-                  borderColor: item.isFocused
-                    ? 'var(--token-focus, #65ACFF)'
-                    : 'color-mix(in srgb, var(--token-active-ice) 36%, transparent)',
+                  borderColor: useHitTargetOnly
+                    ? 'transparent'
+                    : item.isFocused
+                      ? 'var(--token-focus, #65ACFF)'
+                      : 'color-mix(in srgb, var(--token-active-ice) 36%, transparent)',
+                  background: useHitTargetOnly ? 'transparent' : undefined,
+                  color: useHitTargetOnly ? 'transparent' : undefined,
                 }}
                 className={`cerebro-focus-label cerebro-infograph-label fixed top-0 left-0 min-h-[44px] pointer-events-auto cursor-pointer px-3.5 py-1.5 rounded-full border flex items-center gap-2.5 text-left group hover:border-[color:var(--token-focus,#65ACFF)] ${
-                  item.isFocused
-                    ? 'is-focused opacity-100'
-                    : isAttentionProject
-                    ? 'opacity-90 hover:opacity-100 focus:opacity-100'
-                    : 'opacity-[var(--token-cold-opacity)] hover:opacity-100 focus:opacity-100'
+                  useHitTargetOnly
+                    ? 'opacity-0 hover:opacity-0 focus:opacity-0'
+                    : item.isFocused
+                      ? 'is-focused opacity-100'
+                      : isAttentionProject
+                        ? 'opacity-90 hover:opacity-100 focus:opacity-100'
+                        : 'opacity-[var(--token-cold-opacity)] hover:opacity-100 focus:opacity-100'
                 }`}
               >
                 <span className="ig-pulse" aria-hidden="true" />

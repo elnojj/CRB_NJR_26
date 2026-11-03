@@ -105,6 +105,22 @@ export async function runDeviceStreamCoordinatorSelfTests(): Promise<{
       'webcam released at zero refcount',
       getDeviceStreamCoordinatorDebugState().hasWebcam === false
     );
+
+    // Concurrent mic + cam must serialize through mediaDeviceManager (no parallel getUserMedia).
+    let concurrent = 0;
+    let maxConcurrent = 0;
+    stubDevices.getUserMedia = async (c: MediaStreamConstraints) => {
+      concurrent += 1;
+      maxConcurrent = Math.max(maxConcurrent, concurrent);
+      await new Promise((r) => setTimeout(r, 20));
+      concurrent -= 1;
+      if (c.audio) return makeFakeStream('audio');
+      return makeFakeStream('video');
+    };
+    await Promise.all([getSharedMicrophoneStream(), getSharedWebcamStream()]);
+    check('mic+cam getUserMedia never concurrent', maxConcurrent === 1, `max=${maxConcurrent}`);
+    releaseSharedMicrophoneStream();
+    releaseSharedWebcamStream();
   } finally {
     __resetDeviceStreamCoordinatorForTests();
     Object.defineProperty(navTarget.navigator, 'mediaDevices', {

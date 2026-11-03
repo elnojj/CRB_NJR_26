@@ -180,11 +180,18 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
               }
             : { width: { ideal: 720 }, height: { ideal: 405 }, facingMode: 'user' },
         });
-      } catch {
+      } catch (err) {
         if (!cancelled) {
           setHasLiveCam(false);
-          setCvStatusLabel('Camera permission denied — touch/mouse fallback active');
+          const detail =
+            err && typeof err === 'object' && 'message' in err
+              ? String((err as Error).message)
+              : 'Camera permission denied';
+          setCvStatusLabel(`${detail} — gesture disabled · orbit restored`);
           setLiveLandmarks(null);
+          // Yield camera ownership so pointer orbit is not left blocked.
+          onTrackingLost?.();
+          onCloseHands();
         }
         return;
       }
@@ -410,7 +417,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
         onTrackingLost?.();
       }
     };
-  }, [active, wantedHands, onTriggerGesture, onTrackingLost, onTrackingAcquired]);
+  }, [active, wantedHands, onTriggerGesture, onTrackingLost, onTrackingAcquired, onCloseHands]);
 
   useEffect(() => {
     if (!active) return;
