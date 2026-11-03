@@ -296,7 +296,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       .catch(() => {});
   }, []);
 
-  // Create the ElevenLabsConvaiBridge ONCE on mount so navigation/panel changes NEVER disconnect it
+  // Single bridge instance — mic/AudioContext come from deviceStreamCoordinator (no orphaned tracks)
   useEffect(() => {
     const bridge = new ElevenLabsConvaiBridge({
       onStatusChange: (status, detail) => {

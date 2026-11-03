@@ -14,7 +14,9 @@ import {
   TeamRoomChannelId,
 } from './data/sourceData';
 import { BrandLockup } from './components/BrandLockup';
-import { BootLoader } from './components/BootLoader';
+import { CerebroIntro } from './intro/CerebroIntro';
+import { Explainer60Player } from './intro/Explainer60Player';
+import { assertIntroBridgeClean } from './intro/bridge';
 import {
   CosmographCanvas,
   CameraCommandPayload,
@@ -434,8 +436,30 @@ export default function App() {
 
   // 5. Hands Overlay State
   const [handsActive, setHandsActive] = useState<boolean>(false);
+  /** Intro overlays sit on the shared canvas; workspace chrome is inert until 'workspace'. */
+  const introMode: 'intro' | 'explainer' | 'workspace' = bootDone ? 'workspace' : 'intro';
+  const [explainerOpen, setExplainerOpen] = useState(false);
+  const workspaceChromeClass =
+    introMode === 'workspace'
+      ? 'transition-opacity duration-500 opacity-100'
+      : 'transition-opacity duration-500 opacity-0 pointer-events-none';
+  const handleToggleHands = useCallback(() => {
+    setHandsActive((v) => !v);
+  }, []);
   const [handMode, setHandMode] = useState<HandDetectionMode>('two-hands');
   const [activeGesture, setActiveGesture] = useState<HandGestureType>('pinch-orbit');
+
+  useEffect(() => {
+    assertIntroBridgeClean();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('explainer') === '1' || params.get('explainer60') === '1') {
+      setExplainerOpen(true);
+    }
+  }, []);
 
   // 6. Voice State, Audience & Compose Task State
   const [voiceState, setVoiceState] = useState<VoiceState>('Ready');
@@ -3472,12 +3496,13 @@ export default function App() {
         color: COLOUR_TOKENS.textPrimary,
       }}
     >
-      {/* 1. Panel #17: 3939 Owner Gate Keypad (?view=keypad) & 8.0s Boot Loader (?view=loader) */}
-      {!bootDone && (
-        <BootLoader
+      {/* 1. Intro overlay (embedCanvas=false) — keypad / boot on shared ExperienceCanvas */}
+      {introMode !== 'workspace' && (
+        <CerebroIntro
+          embedCanvas={false}
           reducedMotion={reducedMotion}
           initialPhase={bootInitialMode}
-          onTakeOff={() => {
+          onComplete={() => {
             setBootDone(true);
             setOpenPanels([]);
             setFocusedNodeId(null);
@@ -3487,7 +3512,14 @@ export default function App() {
         />
       )}
 
-      {/* 2. Camera + Hands Overlay (Single shared MediaStream inside HandsWireframeRig, requested ONLY when handsActive is true) */}
+      <Explainer60Player
+        embedCanvas={false}
+        open={explainerOpen}
+        onSkip={() => setExplainerOpen(false)}
+        onComplete={() => setExplainerOpen(false)}
+      />
+
+      {/* 2. Camera + Hands — single HandsWireframeRig owns the shared webcam stream */}
       <HandsCameraBackdrop active={handsActive} />
       <HandsWireframeRig
         active={handsActive}
@@ -3498,7 +3530,7 @@ export default function App() {
         onCloseHands={() => setHandsActive(false)}
       />
 
-      {/* 3. Main 3D WebGL ExperienceCanvas / DualSphereCanvas (Sphere 01 HQ [0,0,0] & Sphere 02 CDE [38,4,-22]) */}
+      {/* 3. Single continuous ExperienceCanvas — dual liquid-glass spheres + RoomEnvironment HDR */}
       <ExperienceCanvas
         activeSphere={activeSphere}
         focusedNodeId={focusedNodeId}
@@ -4279,7 +4311,8 @@ export default function App() {
         )}
       </div>
 
-      {/* 6. Translucent Glass Panels Overlay (Event-Isolated from 3D Canvas) */}
+      {/* 6. Translucent Glass Panels Overlay — inert until introMode === workspace */}
+      <div className={workspaceChromeClass}>
       <PanelsOverlay
         openPanels={openPanels}
         minimisedChips={minimisedChips}
@@ -4353,7 +4386,7 @@ export default function App() {
         onSimulateCommand={handleSimulateCommand}
         handsActive={handsActive}
         screenAmendments={screenAmendments}
-        onToggleHands={() => setHandsActive((v) => !v)}
+        onToggleHands={handleToggleHands}
         guiLayout={guiLayout}
         phoneSheetState={phoneSheetState}
         onChangePhoneSheetState={setPhoneSheetState}
@@ -4391,6 +4424,7 @@ export default function App() {
           );
         }}
       />
+      </div>
 
       {/* 6B. Persistent Floating 18-Screen Wireframe v1.1 Tour Scrubber Pill (Synced with VoiceCard & Stop Interrupt) */}
       {tourState.active && (() => {
@@ -4574,7 +4608,8 @@ export default function App() {
         </div>
       </div>
 
-      {/* 6D. v5.0 bottom project health strip */}
+      {/* 6D–7. Health strip + VoiceCard — inert until introMode === workspace */}
+      <div className={workspaceChromeClass}>
       <div className="fixed inset-x-0 bottom-0 z-[26] pointer-events-auto">
         <ProjectHealthStrip
           progress={healthProgress}
@@ -4586,7 +4621,6 @@ export default function App() {
         />
       </div>
 
-      {/* 7. Draggable, Collision-Managed, Resizable Voice Card */}
       <VoiceCard
         voiceState={voiceState}
         activePocket={activePocket}
@@ -4600,7 +4634,7 @@ export default function App() {
         externalSnapEdge={externalSnapEdge}
         openAgentModalTrigger={openAgentModalTrigger}
         onChangePocket={setActivePocket}
-        onToggleHands={() => setHandsActive((v) => !v)}
+        onToggleHands={handleToggleHands}
         onSimulateCommand={handleSimulateCommand}
         onExecuteToolCall={handleExecuteToolCall}
         onSendCompose={handleSendCompose}
@@ -4617,6 +4651,7 @@ export default function App() {
         onVoiceExpandedChange={setVoiceExpanded}
         contextualUpdateJson={contextualUpdateJson}
       />
+      </div>
 
       {/* 8. Full Project .ZIP Download Modal */}
       <ProjectDownloadModal

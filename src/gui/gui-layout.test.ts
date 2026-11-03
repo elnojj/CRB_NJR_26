@@ -78,7 +78,7 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
     });
   }
 
-  // 2. iPad Portrait 820x1180 — Single left inspector (w=304) + voice dock right-bottom + zero overlap
+  // 2. iPad Portrait 820x1180 — Single left inspector (w=360 Stage A) + voice dock + zero overlap
   {
     const layout = computeGuiLayout({
       width: 820,
@@ -89,7 +89,7 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
     const singleLeftInspector =
       layout.panelSlots.length === 1 &&
       layout.panelSlots[0].rect.x === 20 &&
-      layout.panelSlots[0].rect.w === 304;
+      layout.panelSlots[0].rect.w === 360;
 
     const overlap = verifyZeroOverlap(
       [...layout.panelSlots.map((s) => s.rect), layout.voiceRect],
@@ -97,14 +97,14 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
     );
 
     results.push({
-      name: 'ipad_820x1180: single left inspector (304px) & zero overlap',
+      name: 'ipad_820x1180: single left inspector (360px) & zero overlap',
       viewport: '820x1180',
       passed: singleLeftInspector && overlap.passed,
-      detail: `slots=${layout.panelSlots.length}, overlapPassed=${overlap.passed}`,
+      detail: `slots=${layout.panelSlots.length}, slotW=${layout.panelSlots[0]?.rect.w}, overlapPassed=${overlap.passed}`,
     });
   }
 
-  // 2B. iPad Landscape 1180x820 — 2 flanking slots (w=288) + centered voice dock + zero overlap
+  // 2B. iPad Landscape 1180x820 — 2 flanking slots (w=340 Stage A) + centered voice dock + zero overlap
   {
     const layout = computeGuiLayout({
       width: 1180,
@@ -118,11 +118,11 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
     );
 
     results.push({
-      name: 'ipad_landscape_1180x820: 2 flanking slots (288px) & zero overlap',
+      name: 'ipad_landscape_1180x820: 2 flanking slots (340px) & zero overlap',
       viewport: '1180x820',
       passed:
         layout.panelSlots.length === 2 &&
-        layout.panelSlots[0].rect.w === 288 &&
+        layout.panelSlots[0].rect.w === 340 &&
         overlap.passed,
       detail: `slots=${layout.panelSlots.length}, slotW=${layout.panelSlots[0]?.rect.w}, overlapPassed=${overlap.passed}`,
     });
@@ -164,7 +164,7 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
     });
   }
 
-  // 4. Wide 1920x1080 — 400px left/right slots, 480px voice, >= 960px center unobstructed width
+  // 4. Wide 1920x1080 — 420px left/right slots (Stage A), 480px voice, >= 960px centerSafe
   {
     const layout = computeGuiLayout({
       width: 1920,
@@ -178,15 +178,15 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
     );
 
     results.push({
-      name: 'wide_1920x1080: 400px slots, 480px voice, >=960px centerSafe',
+      name: 'wide_1920x1080: 420px slots, 480px voice, >=960px centerSafe',
       viewport: '1920x1080',
       passed:
         layout.panelSlots.length === 2 &&
-        layout.panelSlots[0].rect.w === 400 &&
+        layout.panelSlots[0].rect.w === 420 &&
         layout.voiceRect.w === 480 &&
         layout.centerSafeRect.w >= 960 &&
         overlap.passed,
-      detail: `centerSafeW=${layout.centerSafeRect.w}px, overlapPassed=${overlap.passed}`,
+      detail: `slotW=${layout.panelSlots[0]?.rect.w}, centerSafeW=${layout.centerSafeRect.w}px, overlapPassed=${overlap.passed}`,
     });
   }
 

@@ -3,6 +3,10 @@ import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
 import { COLOUR_TOKENS } from '../tokens/colours';
 import { soundEngine } from '../utils/soundEngine';
 import { GUI_Z_LAYERS } from '../gui/guiTokens';
+import {
+  getSharedWebcamStream,
+  releaseSharedWebcamStream,
+} from '../utils/deviceStreamCoordinator';
 
 class LowPassFilter {
   y: number | null = null;
@@ -145,10 +149,14 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
 
     async function initSharedCameraAndMediaPipe() {
       setCvStatusLabel('Requesting camera permission...');
+      let acquired = false;
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 960, height: 540, facingMode: 'user' },
+        stream = await getSharedWebcamStream({
+          width: 960,
+          height: 540,
+          facingMode: 'user',
         });
+        acquired = true;
       } catch {
         if (!cancelled) {
           setHasLiveCam(false);
@@ -159,7 +167,8 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
       }
 
       if (cancelled) {
-        stream.getTracks().forEach((t) => t.stop());
+        if (acquired) releaseSharedWebcamStream();
+        stream = null;
         return;
       }
 
@@ -247,11 +256,12 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
     return () => {
       cancelled = true;
       if (rafId) cancelAnimationFrame(rafId);
-      if (stream) {
-        stream.getTracks().forEach((t) => t.stop());
-      }
       if (videoRef.current) {
         videoRef.current.srcObject = null;
+      }
+      if (stream) {
+        releaseSharedWebcamStream();
+        stream = null;
       }
       if (landmarker) {
         try {

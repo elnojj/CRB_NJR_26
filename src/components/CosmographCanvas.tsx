@@ -2519,7 +2519,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     // -------------------------------------------------------------------------
     // v7.0 Spatial Media Grid (Path A · WebGL SDF glass) — same scene, no 2nd renderer
-    // Spherical wrap · pooled tiles · Hotspot 26 / project media collections
+    // Spherical wrap · pooled tiles · Hotspot 26 / project media collections.
+    // Stellar consolidation: no createLiveMediaScreenTexture / hqMediaDiscTexture /
+    // mediaStationDiscTexture / sharedMediaScreenMat / mediaStationScreenMat —
+    // those 2D canvas disc generators were purged; MediaGrid3D owns on-sphere media.
     // -------------------------------------------------------------------------
     const spatialMediaGrid = new MediaGrid3D({
       parent: scene,

@@ -1,4 +1,9 @@
 import { DEFAULT_INTERNAL_AGENT_ID } from '../data/croCdeGoogleAgentManifest';
+import {
+  getSharedAudioContext,
+  getSharedMicrophoneStream,
+  releaseSharedMicrophoneStream,
+} from './deviceStreamCoordinator';
 
 /**
  * ElevenLabs Conversational AI (ConvAI) Real-Time WebSocket & Audio Bridge
@@ -397,23 +402,19 @@ export class ElevenLabsConvaiBridge {
     this.activeAgentId = cleanId;
     this.setState('Connecting', `Connecting to ${cleanId}...`);
 
-    // 1. Request microphone stream (if denied or unavailable, continue in text + audio output mode)
+    // 1. Request microphone via shared hardware coordinator (no orphaned tracks)
     let micAvailable = false;
-    if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
-      try {
-        this.mediaStream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-            channelCount: 1,
-          },
-        });
-        micAvailable = true;
-      } catch {
-        this.mediaStream = null;
-        micAvailable = false;
-      }
+    try {
+      this.mediaStream = await getSharedMicrophoneStream({
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        channelCount: 1,
+      });
+      micAvailable = true;
+    } catch {
+      this.mediaStream = null;
+      micAvailable = false;
     }
 
     // 2. Resolve WebSocket URL via server `/api/elevenlabs/signed-url` (supports ELEVENLABS_API_KEY if present)
@@ -673,17 +674,13 @@ export class ElevenLabsConvaiBridge {
 
   private ensureAudioContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
-    if (!this.audioCtx || this.audioCtx.state === 'closed') {
-      const AudioContextCtor =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      // Create at native hardware sample rate so createMediaStreamSource never throws NotSupportedError
-      this.audioCtx = new AudioContextCtor();
+    try {
+      // Shared AudioContext so voice + future Google path never open parallel hardware graphs
+      this.audioCtx = getSharedAudioContext();
+      return this.audioCtx;
+    } catch {
+      return null;
     }
-    if (this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume().catch(() => {});
-    }
-    return this.audioCtx;
   }
 
   private startMicCapture(): void {
@@ -811,7 +808,7 @@ export class ElevenLabsConvaiBridge {
     this.silentGainNode = null;
 
     if (this.mediaStream) {
-      this.mediaStream.getTracks().forEach((t) => t.stop());
+      releaseSharedMicrophoneStream();
       this.mediaStream = null;
     }
 
