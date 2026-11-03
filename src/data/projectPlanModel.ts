@@ -377,3 +377,112 @@ export function registerRecordById(id: string | undefined): RegisterRecord | und
   if (!id) return undefined;
   return REGISTER_RECORDS.find((r) => r.id === id);
 }
+
+/** Display badge — never paints raw `[SAMPLE]` once dynamic models are bound. */
+export function formatProjectHealthBadge(project: ProjectSummary): string {
+  const pct = Math.round(computeProjectProgress(project));
+  if (project.isSample) {
+    return `${project.code} · ${project.health} · ${pct}% · Illustrative`;
+  }
+  return `${project.code} · ${project.health} · ${pct}%`;
+}
+
+export function formatProjectProgressLabel(project: ProjectSummary): string {
+  const pct = Math.round(computeProjectProgress(project));
+  const records = recordsForProject(project.id).length || project.totalRecordCount;
+  if (project.isSample) {
+    return `${pct}% · ${records} illustrative rows`;
+  }
+  return `${pct}% · ${records} register records`;
+}
+
+/**
+ * Progress from register open/closed mix when rows exist; otherwise stored progress.
+ */
+export function computeProjectProgress(project: ProjectSummary): number {
+  const records = recordsForProject(project.id);
+  if (records.length === 0) return project.progress;
+  const closed = records.filter((r) =>
+    /done|closed|complete|resolved|shipped/i.test(`${r.workStatus} ${r.reviewStatus}`)
+  ).length;
+  const pct = Math.round((closed / records.length) * 100);
+  // Blend with authored estimate so sparse registers do not collapse to 0/100 abruptly.
+  return Math.round(project.progress * 0.55 + pct * 0.45);
+}
+
+export function selectPortfolioHealthSummary(): {
+  onTrack: number;
+  atRisk: number;
+  blocked: number;
+  asOf: string;
+} {
+  const onTrack = PROJECTS_DATA.filter((p) => p.health === 'On track').length;
+  const atRisk = PROJECTS_DATA.filter((p) => p.health === 'At risk').length;
+  const blocked = PROJECTS_DATA.filter((p) => p.health === 'Blocked').length;
+  const open = selectOpenRegisterWorkCount();
+  return { onTrack, atRisk, blocked, asOf: open.asOf };
+}
+
+export type ProjectFeedPayload = {
+  asOf?: string;
+  projects?: Array<Partial<ProjectSummary> & { id: string }>;
+};
+
+/**
+ * Ingest a live REST/JSON feed into a normalized project list.
+ * Does not mutate module constants — callers merge into React state / stores.
+ */
+export async function ingestProjectFeed(
+  source: string | ProjectFeedPayload
+): Promise<{ projects: ProjectSummary[]; asOf: string }> {
+  let payload: ProjectFeedPayload;
+  if (typeof source === 'string') {
+    const res = await fetch(source);
+    if (!res.ok) throw new Error(`Project feed failed (${res.status})`);
+    payload = (await res.json()) as ProjectFeedPayload;
+  } else {
+    payload = source;
+  }
+  const asOf = payload.asOf || new Date().toISOString();
+  const projects = PROJECTS_DATA.map((base) => {
+    const patch = payload.projects?.find((p) => p.id === base.id);
+    if (!patch) {
+      return {
+        ...base,
+        progress: computeProjectProgress(base),
+        progressLabel: formatProjectProgressLabel(base),
+        name: base.name.replace(/\s*\[SAMPLE\]\s*/g, '').trim(),
+      };
+    }
+    const merged: ProjectSummary = {
+      ...base,
+      ...patch,
+      id: base.id,
+      code: patch.code || base.code,
+      name: (patch.name || base.name).replace(/\s*\[SAMPLE\]\s*/g, '').trim(),
+      isSample: patch.isSample ?? base.isSample,
+      health: patch.health || base.health,
+      progress: typeof patch.progress === 'number' ? patch.progress : computeProjectProgress(base),
+    };
+    return {
+      ...merged,
+      progressLabel: formatProjectProgressLabel(merged),
+    };
+  });
+  return { projects, asOf };
+}
+
+/** Latest snapshot timestamp for intro / greeting chrome. */
+export function selectLatestSnapshotTimestamp(): string {
+  const candidates = [
+    ...PROJECTS_DATA.map((p) => p.lastActivity),
+    ...REGISTER_RECORDS.map((r) => r.updatedAt),
+    selectOpenRegisterWorkCount().asOf,
+  ].filter(Boolean);
+  const sorted = candidates
+    .map((s) => ({ raw: s, t: Date.parse(s) }))
+    .filter((x) => !Number.isNaN(x.t))
+    .sort((a, b) => a.t - b.t);
+  if (sorted.length) return new Date(sorted.at(-1)!.t).toISOString();
+  return candidates.sort().at(-1) || new Date().toISOString();
+}

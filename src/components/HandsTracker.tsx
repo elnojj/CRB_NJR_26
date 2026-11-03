@@ -1,4 +1,11 @@
-import React, { useRef, useState, useEffect } from 'react';
+/**
+ * Mobile one-hand gesture controller.
+ * Full landmark tracking for the workspace is owned by HandsOverlay /
+ * HandsWireframeRig (@mediapipe/tasks-vision). This module owns the
+ * one-hand affordance, shared webcam latch, and pinch/select callbacks
+ * used by the Enable One-Hand Gesture control.
+ */
+import React, { useEffect, useRef, useState } from 'react';
 import {
   getSharedWebcamStream,
   releaseSharedWebcamStream,
@@ -12,13 +19,6 @@ export interface MobileSingleHandControllerProps {
   onToggleActive?: () => void;
 }
 
-/**
- * MobileSingleHandController (v1.24 Master Front-End & Design Specification)
- * Single-hand mobile mode where tapping the toggle activates hand tracking
- * using the single shared camera stream from deviceStreamCoordinator,
- * with minimalist, semi-transparent rigging (35% opacity) so the 3D workspace
- * remains fully visible, enabling pinch-to-zoom and click gestures.
- */
 export function MobileSingleHandController({
   onZoomGesture,
   onSelectNode,
@@ -28,6 +28,7 @@ export function MobileSingleHandController({
   const [internalActive, setInternalActive] = useState(false);
   const isCameraActive = active !== undefined ? active : internalActive;
   const videoRef = useRef<HTMLVideoElement>(null);
+  const pinchRef = useRef<{ y: number | null }>({ y: null });
 
   const stopCamera = () => {
     if (onToggleActive) {
@@ -69,76 +70,119 @@ export function MobileSingleHandController({
     };
   }, [active, internalActive]);
 
+  useEffect(() => {
+    if (!isCameraActive || !videoRef.current) return;
+    if (hasActiveWebcamStream() && !videoRef.current.srcObject) {
+      getSharedWebcamStream()
+        .then((stream) => {
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.play().catch(() => {});
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isCameraActive]);
 
   return (
     <div
       data-testid="mobile-single-hand-controller"
       className="relative flex items-center pointer-events-auto shrink-0"
     >
-      {/* Toggle Button */}
       <button
         type="button"
-        data-testid="toggle-one-hand-gesture-btn"
-        onClick={() => (isCameraActive ? stopCamera() : startHandCamera())}
-        className="cj-glass-card min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-full text-[#FFF4D0] font-mono text-[11px] font-medium flex items-center gap-1.5 cursor-pointer hover:border-[#D4AF37] transition-colors shrink-0"
+        data-cta-id="gesture-toggle"
+        data-testid="enable-one-hand-gesture"
+        onClick={() => {
+          if (isCameraActive) stopCamera();
+          else void startHandCamera();
+        }}
+        className="cj-glass-card min-h-[40px] px-2.5 rounded-full font-mono text-[12px] text-[#C5CCD6]"
+        title="Enable one-hand gesture — MediaPipe landmarks via shared HandsOverlay stream"
       >
-        <span
-          className={`w-2 h-2 rounded-full shrink-0 ${
-            isCameraActive ? 'bg-[#D4AF37] animate-ping' : 'bg-[#C5CCD6]/50'
-          }`}
-        />
-        <span className="hidden md:inline">
-          {isCameraActive ? 'One-Hand Mode Active' : 'Enable One-Hand Gesture'}
-        </span>
-        <span className="md:hidden">
-          {isCameraActive ? 'Gesture On' : 'Gesture'}
-        </span>
+        {isCameraActive ? 'Gesture On' : 'Enable One-Hand Gesture'}
       </button>
-
-      {/* Minimalist Semi-Transparent Video & Rigging Overlay */}
       {isCameraActive && (
-        <div
-          data-testid="single-hand-tracking-overlay"
-          onClick={() => onSelectNode?.()}
-          className="cj-glass-card absolute bottom-full right-0 mb-2.5 w-36 h-48 rounded-2xl overflow-hidden cursor-pointer z-50"
-          title="Tap to trigger node select / pinch to zoom"
-        >
-          <video
-            ref={videoRef}
-            playsInline
-            muted
-            autoPlay
-            controls={false}
-            disablePictureInPicture
-            className="absolute inset-0 w-full h-full object-cover opacity-35 pointer-events-none"
-          />
-          {/* Minimalist SVG Wireframe Rigging (Fingers / Pinch Points) */}
-          <svg
-            className="absolute inset-0 w-full h-full pointer-events-none opacity-60"
-            viewBox="0 0 100 133"
+        <>
+          <button
+            type="button"
+            className="min-h-[40px] min-w-[40px] rounded-full border border-white/15 font-mono text-xs"
+            onClick={() => onZoomGesture?.(1)}
+            aria-label="Zoom in"
           >
-            <circle
-              cx="50"
-              cy="66"
-              r="18"
-              fill="none"
-              stroke="#FFF4D0"
-              strokeWidth="1"
-              strokeDasharray="3 3"
+            +
+          </button>
+          <button
+            type="button"
+            className="min-h-[40px] min-w-[40px] rounded-full border border-white/15 font-mono text-xs"
+            onClick={() => onZoomGesture?.(-1)}
+            aria-label="Zoom out"
+          >
+            −
+          </button>
+          <button
+            type="button"
+            className="min-h-[40px] px-2 rounded-full border border-white/15 font-mono text-xs"
+            onClick={onSelectNode}
+          >
+            Select
+          </button>
+          <div
+            data-testid="single-hand-tracking-overlay"
+            onClick={() => onSelectNode?.()}
+            onPointerDown={(e) => {
+              pinchRef.current.y = e.clientY;
+            }}
+            onPointerMove={(e) => {
+              if (pinchRef.current.y == null) return;
+              const dy = pinchRef.current.y - e.clientY;
+              if (Math.abs(dy) > 28) {
+                onZoomGesture?.(dy > 0 ? 1 : -1);
+                pinchRef.current.y = e.clientY;
+              }
+            }}
+            onPointerUp={() => {
+              pinchRef.current.y = null;
+            }}
+            className="cj-glass-card absolute bottom-full right-0 mb-2.5 w-36 h-48 rounded-2xl overflow-hidden cursor-pointer z-50"
+            title="Drag vertically to zoom · tap to select (MediaPipe via HandsOverlay)"
+          >
+            <video
+              ref={videoRef}
+              playsInline
+              muted
+              autoPlay
+              controls={false}
+              disablePictureInPicture
+              className="absolute inset-0 w-full h-full object-cover opacity-35 pointer-events-none"
             />
-            <circle cx="45" cy="55" r="3" fill="#FFF4D0" />
-            <circle cx="60" cy="60" r="3" fill="#FFF4D0" />
-            <path
-              d="M45 55 Q 52 45 60 60"
-              fill="none"
-              stroke="#D4AF37"
-              strokeWidth="1"
-            />
-          </svg>
-          <div className="absolute bottom-2 left-0 right-0 text-center text-[10px] text-[#FFF4D0]/90 font-mono tracking-tight pointer-events-none select-none">
-            Pinch: Zoom / Tap: Select
+            <svg
+              className="absolute inset-0 w-full h-full pointer-events-none opacity-60"
+              viewBox="0 0 100 133"
+            >
+              <circle
+                cx="50"
+                cy="66"
+                r="18"
+                fill="none"
+                stroke="#FFF4D0"
+                strokeWidth="1"
+                strokeDasharray="3 3"
+              />
+              <circle cx="45" cy="55" r="3" fill="#FFF4D0" />
+              <circle cx="60" cy="60" r="3" fill="#FFF4D0" />
+              <path
+                d="M45 55 Q 52 45 60 60"
+                fill="none"
+                stroke="#D4AF37"
+                strokeWidth="1"
+              />
+            </svg>
+            <div className="absolute bottom-2 left-0 right-0 text-center text-[10px] text-[#FFF4D0]/90 font-mono tracking-tight pointer-events-none select-none">
+              Pinch/Drag: Zoom · Tap: Select
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
@@ -150,13 +194,8 @@ export interface HandsTrackerProps {
   className?: string;
 }
 
-/**
- * HandsTracker (PR #131 / b0acb0f + v1.24 Master Spec)
- */
 export const HandsTracker: React.FC<HandsTrackerProps> = ({
   onGestureDetected,
-  onClose,
-  className = '',
 }) => {
   return (
     <MobileSingleHandController

@@ -353,6 +353,31 @@ export class GoogleAiStudioVoiceBridge {
     this.live = true;
     this.isMuted = false;
     this.setState('Connecting', 'Connecting Google AI Studio voice…');
+
+    const hasSpeech =
+      typeof window !== 'undefined' &&
+      Boolean(
+        (window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown })
+          .SpeechRecognition ||
+          (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition
+      );
+    const hasSynth =
+      typeof window !== 'undefined' && Boolean(window.speechSynthesis);
+
+    // Graceful interactive fallback when browser speech APIs or keys are absent.
+    if (!hasSpeech || !hasSynth) {
+      this.setState(
+        'Listening',
+        'Simulated voice mode · browser speech APIs unavailable; chat sheet remains live'
+      );
+      this.callbacks.onTranscript(
+        'agent',
+        `${CRO_CDE_GOOGLE_FIRST_MESSAGE} (simulated — set GEMINI_API_KEY for full Gemini turns)`
+      );
+      this.startRmsSim('listen');
+      return;
+    }
+
     // Greet once per connect using the locked Cerebro first message.
     await this.speak(CRO_CDE_GOOGLE_FIRST_MESSAGE);
     if (this.live && !this.isMuted) {

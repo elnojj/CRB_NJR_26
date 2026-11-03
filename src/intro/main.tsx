@@ -1,22 +1,39 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { BootLoader } from '../components/BootLoader';
+import { selectLatestSnapshotTimestamp } from '../data/projectPlanModel';
 import { introBridge } from './bridge';
 
 export interface CerebroIntroProps {
   embedCanvas?: boolean;
   onEnterWorkspace?: (context?: unknown) => void;
   renderWorkspace?: (context?: unknown) => React.ReactNode;
+  /** Optional override; defaults to latest register/project snapshot. */
+  snapshotIso?: string;
 }
 
 /**
- * 180s intro overlay on the shared ExperienceCanvas (embedCanvas=false).
+ * Cinematic opening overlay on the shared ExperienceCanvas (embedCanvas=false).
  * Does not create a second WebGL root — continuous canvas stays mounted underneath.
  */
 export const CerebroIntro: React.FC<CerebroIntroProps> = ({
   embedCanvas = false,
   onEnterWorkspace,
+  snapshotIso,
 }) => {
   const [configReady, setConfigReady] = useState(false);
+  const [phase, setPhase] = useState<'title' | 'loader' | 'ready'>('title');
+  const asOf = useMemo(
+    () => snapshotIso || selectLatestSnapshotTimestamp(),
+    [snapshotIso]
+  );
+  const asOfLabel = useMemo(() => {
+    const t = Date.parse(asOf);
+    if (Number.isNaN(t)) return asOf;
+    return new Date(t).toLocaleString(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+  }, [asOf]);
 
   useEffect(() => {
     if (embedCanvas) {
@@ -41,8 +58,10 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
         if (!cancelled) setConfigReady(true);
       }
     })();
+    const titleTimer = window.setTimeout(() => setPhase('loader'), 1600);
     return () => {
       cancelled = true;
+      window.clearTimeout(titleTimer);
     };
   }, [embedCanvas]);
 
@@ -52,12 +71,38 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
       data-cerebro-intro="overlay"
       data-embed-canvas="false"
       data-config-ready={configReady ? '1' : '0'}
+      data-phase={phase}
     >
-      <BootLoader
-        reducedMotion={false}
-        initialPhase="loader"
-        onTakeOff={() => onEnterWorkspace?.()}
-      />
+      {phase === 'title' && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#101D27]/92 px-6 text-center backdrop-blur-md">
+          <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#9AFFE0]">
+            Cerebro · dual sphere
+          </p>
+          <h1 className="mt-3 max-w-xl font-display text-3xl text-[#F2F6F8] md:text-5xl">
+            NOJARA Studios
+          </h1>
+          <p className="mt-3 max-w-md font-mono text-xs text-[#BDCBD3]">
+            Spatial workspace boot · register snapshot {asOfLabel}
+          </p>
+          <button
+            type="button"
+            className="mt-8 min-h-[44px] rounded-full border border-[#D4AF37]/50 bg-[#D4AF37]/15 px-5 font-mono text-xs text-[#FFF4D0]"
+            onClick={() => setPhase('loader')}
+          >
+            Enter sequence
+          </button>
+        </div>
+      )}
+      {phase !== 'title' && (
+        <BootLoader
+          reducedMotion={false}
+          initialPhase="loader"
+          onTakeOff={() => {
+            setPhase('ready');
+            onEnterWorkspace?.({ snapshotIso: asOf, configReady });
+          }}
+        />
+      )}
     </div>
   );
 };

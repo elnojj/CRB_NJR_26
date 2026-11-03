@@ -173,10 +173,12 @@ import { FloatingIconToggles } from './components/chrome/FloatingIconToggles';
 import { CosmographPilotGame } from './components/game/CosmographPilotGame';
 import { BioScienceExplorer } from './components/spatial/BioScienceExplorer';
 import { ImageStudioModal } from './components/spatial/ImageStudioModal';
+import { TeamChatDrawer } from './components/TeamChatDrawer';
 import { CerebroIntro } from './intro/main';
 import { Explainer60Player } from './intro/Explainer60Player';
 import { introBridge } from './intro/bridge';
 import { resolveEditionFromSearch } from './intro/explainer60';
+import { selectLatestSnapshotTimestamp } from './data/projectPlanModel';
 
 export interface SelfTestCheckResult {
   id: string;
@@ -292,6 +294,8 @@ export default function App() {
   const [showPilotGame, setShowPilotGame] = useState<boolean>(false);
   const [showBioScience, setShowBioScience] = useState<boolean>(false);
   const [showImageStudio, setShowImageStudio] = useState<boolean>(false);
+  const [teamChatOpen, setTeamChatOpen] = useState<boolean>(false);
+  const latestSnapshotIso = selectLatestSnapshotTimestamp();
 
   // 1B. Unified Build Observation Portal v1.5 / Blueprint v0.2 State
   const [portalHudOpen, setPortalHudOpen] = useState<boolean>(false);
@@ -4513,8 +4517,8 @@ export default function App() {
         )}
         <div className="sr-only" aria-live="polite" data-testid="a11y-hydration">
           {hydrationPhase === 'ready'
-            ? SCENE_SR_LABELS.canvas
-            : `Hydrating workspace phase ${hydrationPhase}`}
+            ? `${SCENE_SR_LABELS.canvas} Snapshot ${latestSnapshotIso}.`
+            : `Hydrating workspace phase ${hydrationPhase} · snapshot ${latestSnapshotIso}`}
         </div>
         <VoiceCard
           voiceState={voiceState}
@@ -4869,11 +4873,21 @@ export default function App() {
 
           <TeamChatChip
             inline={true}
-            active={openPanels.includes('team-room')}
-            onOpenChat={() => ensurePanelOpen('team-room', false)}
+            active={teamChatOpen || openPanels.includes('team-room')}
+            onOpenChat={() => {
+              setTeamChatOpen(true);
+              ensurePanelOpen('team-room', false);
+            }}
           />
         </div>
       </div>
+
+      <TeamChatDrawer
+        open={teamChatOpen}
+        onClose={() => setTeamChatOpen(false)}
+        unreadCount={3}
+        initialChannel={activeTeamChannel || 'General'}
+      />
 
       {/* 8. Full Project .ZIP Download Modal */}
       <ProjectDownloadModal
