@@ -3232,6 +3232,17 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       return tex;
     };
 
+    // Placeholder plates (no verified url/poster) keep their slot but render no card.
+    const tubeItemHasMedia = (item: ProjectMediaTubeItem | undefined): boolean =>
+      Boolean(item?.url || item?.posterUrl);
+    const buildTileMaterial = (item: ProjectMediaTubeItem | undefined): THREE.MeshBasicMaterial =>
+      new THREE.MeshBasicMaterial({
+        map: item && tubeItemHasMedia(item) ? buildTileCanvasTexture(item) : null,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.94,
+      });
+
     let mountedTubeProjectId = 'SEVEN';
     const initialTubeItems = buildProjectMediaTubeItems('SEVEN');
     const [tileW, tileH] = PROJECT_MEDIA_TUBE_SPECS.slotSizeU;
@@ -3252,14 +3263,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       }
       tileGeo.computeVertexNormals();
 
-      const tileMat = new THREE.MeshBasicMaterial({
-        map: buildTileCanvasTexture(initialTubeItems[idx]),
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.94,
-      });
-
-      const tileMesh = new THREE.Mesh(tileGeo, tileMat);
+      const tileMesh = new THREE.Mesh(tileGeo, buildTileMaterial(initialTubeItems[idx]));
+      tileMesh.visible = tubeItemHasMedia(initialTubeItems[idx]);
       tileMesh.position.set(Math.sin(theta) * r, y, Math.cos(theta) * r);
       tileMesh.lookAt(0, y, 0);
       // Flip so front face points outward/inward cleanly
@@ -3521,7 +3526,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
           pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
           raycaster.setFromCamera(pointer, camera);
-          const tubeHits = raycaster.intersectObjects(mediaTubeTileMeshes, false);
+          const tubeHits = raycaster
+            .intersectObjects(mediaTubeTileMeshes, false)
+            .filter((h) => h.object.visible);
           if (tubeHits.length > 0) {
             const tIdx = tubeHits[0].object.userData?.tileIndex;
             if (typeof tIdx === 'number') {
@@ -3993,12 +4000,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               const oldMat = mesh.material as THREE.MeshBasicMaterial;
               oldMat.map?.dispose();
               oldMat.dispose();
-              mesh.material = new THREE.MeshBasicMaterial({
-                map: buildTileCanvasTexture(item),
-                side: THREE.DoubleSide,
-                transparent: true,
-                opacity: 0.94,
-              });
+              mesh.material = buildTileMaterial(item);
+              mesh.visible = tubeItemHasMedia(item);
             }
           }
         }
