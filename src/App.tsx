@@ -4578,6 +4578,8 @@ export default function App() {
             ? `${SCENE_SR_LABELS.canvas} Snapshot ${latestSnapshotIso}.`
             : `Hydrating workspace phase ${hydrationPhase} · snapshot ${latestSnapshotIso}`}
         </div>
+        {/* Film / Owner Gate must not share chrome with the workspace dock. */}
+        {bootDone && introMode === 'workspace' && (
         <VoiceCard
           voiceState={voiceState}
           activePocket={activePocket}
@@ -4621,6 +4623,7 @@ export default function App() {
           onVoiceSheetExpandedChange={setVoiceSheetExpanded}
           contextualUpdateJson={contextualUpdateJson}
         />
+        )}
       </div>
 
       {/* 7B. Optics tray — no bottom utility footer. Entry is Voice capsule (mic / text / camera).
