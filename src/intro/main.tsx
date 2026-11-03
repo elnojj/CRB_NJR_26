@@ -88,7 +88,7 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
           data-testid="cerebro-intro-wordmark"
           style={{
             background:
-              'radial-gradient(70% 55% at 50% 42%, rgba(16,29,39,0.28) 0%, rgba(16,29,39,0.55) 100%)',
+              'radial-gradient(65% 50% at 50% 42%, rgba(16,29,39,0.12) 0%, rgba(16,29,39,0.32) 100%)',
           }}
         >
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#9AFFE0]">

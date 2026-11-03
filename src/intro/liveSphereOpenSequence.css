@@ -16,9 +16,10 @@
 .live-open__vignette {
   position: absolute;
   inset: 0;
+  /* Keep the live WebGL constellation readable — HUD only, not an opaque plate. */
   background:
-    radial-gradient(120% 80% at 50% 42%, transparent 35%, rgba(8, 14, 22, 0.55) 100%),
-    linear-gradient(180deg, rgba(8, 16, 24, 0.45) 0%, transparent 28%, transparent 62%, rgba(8, 16, 24, 0.72) 100%);
+    radial-gradient(90% 70% at 50% 45%, transparent 42%, rgba(8, 14, 22, 0.28) 100%),
+    linear-gradient(180deg, rgba(8, 16, 24, 0.22) 0%, transparent 22%, transparent 68%, rgba(8, 16, 24, 0.42) 100%);
   pointer-events: none;
 }
 
@@ -76,18 +77,19 @@
 
 .live-open__shell {
   position: relative;
-  width: min(100%, 420px);
+  width: min(42%, 280px);
   aspect-ratio: 3 / 4;
-  max-height: min(52vh, 520px);
+  max-height: min(38vh, 360px);
   border-radius: 50% / 46%;
   overflow: hidden;
   background:
-    radial-gradient(circle at 35% 28%, rgba(180, 221, 255, 0.22), transparent 45%),
-    linear-gradient(160deg, rgba(20, 38, 50, 0.55), rgba(10, 18, 26, 0.72));
+    radial-gradient(circle at 35% 28%, rgba(180, 221, 255, 0.18), transparent 45%),
+    linear-gradient(160deg, rgba(20, 38, 50, 0.35), rgba(10, 18, 26, 0.45));
   box-shadow:
     inset 0 0 0 1px rgba(180, 221, 255, 0.28),
-    0 18px 48px rgba(0, 0, 0, 0.35);
+    0 12px 36px rgba(0, 0, 0, 0.28);
   justify-self: start;
+  backdrop-filter: blur(2px);
 }
 
 .live-open__shell.is-gap {
