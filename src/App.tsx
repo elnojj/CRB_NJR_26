@@ -16,8 +16,6 @@ import {
 } from './data/sourceData';
 import { BrandLockup } from './components/BrandLockup';
 import { BootLoader } from './components/BootLoader';
-import { ExplainerFilm } from './intro/ExplainerFilm';
-import { EntryGate } from './intro/EntryGate';
 import { SystemStatusLayer } from './components/SystemStatusLayer';
 import {
   readSessionSnapshot,
@@ -206,18 +204,18 @@ const BUILD_VERSION = '1.28.0';
 
 export type BootMode = 'intro' | 'explainer-60' | 'workspace';
 
-/** Legacy CerebroIntro / Enter sequence — opt-in only via URL. Default entry is EntryGate → film. */
+/** Public cold start: CerebroIntro wordmark → open sequence → loader → workspace. */
 function shouldStartInIntro(): boolean {
   if (typeof window === 'undefined') return false;
   const params = new URLSearchParams(window.location.search);
   if (params.get('intro') === '0' || params.get('movie') === '0') return false;
+  if (params.get('skipExplainer') === '1' || params.get('skipGate') === '1') return false;
   const view = params.get('view');
-  return (
-    params.get('intro') === '1' ||
-    params.get('movie') === '1' ||
-    view === 'intro' ||
-    view === 'movie'
-  );
+  if (view === 'hq' || view === 'cde' || view === 'keypad') return false;
+  if (view && view !== 'intro' && view !== 'movie' && view !== 'boot' && view !== 'loader') {
+    return false;
+  }
+  return true;
 }
 
 function resolveBootMode(): BootMode {
@@ -249,6 +247,8 @@ export default function App() {
     url.searchParams.delete('edition');
     if (!url.searchParams.get('view')) url.searchParams.set('view', 'hq');
     window.history.replaceState({}, '', url);
+    soundEngine.unlock();
+    setBootDone(true);
     setIntroMode('workspace');
   }, []);
 
@@ -262,25 +262,14 @@ export default function App() {
     }
     return 'loader';
   });
-  /** Public entry: gate → 60s film → workspace. Skip URL flags jump to workspace. */
-  const [entryPhase, setEntryPhase] = useState<'gate' | 'film' | 'done'>(() => {
-    if (typeof window === 'undefined') return 'gate';
-    const params = new URLSearchParams(window.location.search);
-    const v = params.get('view')?.toLowerCase();
-    if (params.get('skipExplainer') === '1' || params.get('skipGate') === '1') return 'done';
-    if (v === 'keypad') return 'done';
-    if (v === 'film') return 'film';
-    if (v === 'loader' || v === 'boot') return 'gate';
-    if (v && v !== 'boot' && v !== 'loader' && v !== 'keypad' && v !== 'film') return 'done';
-    return 'gate';
-  });
-  const [filmStartMuted, setFilmStartMuted] = useState(true);
   const [bootDone, setBootDone] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     const params = new URLSearchParams(window.location.search);
     const v = params.get('view')?.toLowerCase();
     if (params.get('skipExplainer') === '1' || params.get('skipGate') === '1') return true;
     if (v === 'keypad') return false;
+    // Public cold start: CerebroIntro owns the open sequence; canvas mounts underneath.
+    if (shouldStartInIntro()) return true;
     if (v && v !== 'boot' && v !== 'loader' && v !== 'keypad' && v !== 'film') return true;
     return false;
   });
@@ -3214,8 +3203,6 @@ export default function App() {
     setSoundMuted(false);
     setAmbienceMuted(false);
     setBootDone(true);
-    setEntryPhase('done');
-    // Never leave legacy Enter-sequence intro armed after the public gate/film.
     introBridge.enabled = false;
     setIntroMode('workspace');
     setOpenPanels([]);
@@ -3810,35 +3797,8 @@ export default function App() {
         color: COLOUR_TOKENS.textPrimary,
       }}
     >
-      {/* 1. Clean entry gate → 60s film → workspace (no calibration / Enter sequence) */}
-      {!bootDone && entryPhase === 'gate' && (
-        <EntryGate
-          onPlayWithSound={() => {
-            setFilmStartMuted(false);
-            setEntryPhase('film');
-          }}
-          onWatchSilently={() => {
-            setFilmStartMuted(true);
-            setEntryPhase('film');
-          }}
-          onSkip={() => {
-            setEntryPhase('done');
-            handleBootTakeOff();
-          }}
-        />
-      )}
-      {!bootDone && entryPhase === 'film' && (
-        <ExplainerFilm
-          reducedMotion={reducedMotion}
-          startMuted={filmStartMuted}
-          onComplete={() => {
-            setEntryPhase('done');
-            handleBootTakeOff();
-          }}
-        />
-      )}
-      {/* Optional Owner Gate via ?view=keypad only */}
-      {!bootDone && entryPhase === 'done' && bootInitialMode === 'keypad' && (
+      {/* Optional Owner Gate via ?view=keypad only — public path is CerebroIntro. */}
+      {!bootDone && bootInitialMode === 'keypad' && introMode === 'workspace' && (
         <BootLoader
           reducedMotion={reducedMotion}
           initialPhase="keypad"
@@ -3869,7 +3829,11 @@ export default function App() {
 
       {/* 2C. Unified Intro Overlay (Single shared 3D sphere canvas continuously mounted underneath) */}
       {introMode === 'intro' && (
-        <CerebroIntro onEnterWorkspace={handleExitIntro} embedCanvas={false} />
+        <CerebroIntro
+          onEnterWorkspace={handleExitIntro}
+          embedCanvas={false}
+          reducedMotion={reducedMotion}
+        />
       )}
       {introMode === 'explainer-60' && (
         <Explainer60Player onEnterWorkspace={handleExitIntro} embedCanvas={false} />

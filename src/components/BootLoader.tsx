@@ -251,19 +251,6 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
             </button>
           </div>
 
-          <button
-            type="button"
-            data-testid="boot-take-off"
-            data-cta-id="loader-take-off"
-            onClick={onTakeOff}
-            className="w-full py-2.5 rounded-lg font-mono text-xs uppercase tracking-wider text-[#C5CCD6] hover:text-[#F2F6F8] hover:border-[#D4AF37] border cursor-pointer"
-            style={{
-              backgroundColor: 'rgba(16, 22, 34, 0.78)',
-              borderColor: 'rgba(197, 204, 214, 0.22)',
-            }}
-          >
-            Instant Take off Bypass ›
-          </button>
         </div>
       </div>
     );
@@ -404,40 +391,10 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
           )}
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-          <button
-            type="button"
-            data-testid="boot-take-off"
-            data-cta-id="loader-take-off"
-            onClick={onTakeOff}
-            className="min-h-[48px] min-w-[160px] px-6 py-2.5 rounded-xl font-display font-semibold text-xs tracking-[0.1em] uppercase transition-all duration-200 active:scale-95 cursor-pointer border"
-            style={{
-              backgroundColor: '#9AFFE0',
-              color: '#0a1218',
-              borderColor: '#B4DDFF',
-            }}
-          >
-            Enter Cerebro →
-          </button>
-          <button
-            type="button"
-            data-testid="boot-skip"
-            data-cta-id="boot.skip"
-            onClick={onTakeOff}
-            className="min-h-[48px] px-4 py-2.5 rounded-xl font-mono text-xs text-[#D0DCE3] hover:text-[#F2F6F8] border border-[rgba(197,204,214,0.22)] bg-[#101622]/80 cursor-pointer transition-colors"
-          >
-            Skip
-          </button>
-        </div>
-
-        <span
-          dir="rtl"
-          lang="ar"
-          className="font-arabic text-base md:text-lg text-[#F2F6F8] font-medium"
-          style={{ textShadow: '0 2px 8px rgba(0,0,0,0.7)' }}
-        >
-          أهلاً بيك يا فندم · Cerebro معاك
-        </span>
+        {/* Auto-completes via timer / watchdog — no Enter Cerebro / Skip CTAs. */}
+        <p className="sr-only" aria-live="polite" data-testid="boot-auto-advance">
+          Cerebro is preparing the spatial workspace.
+        </p>
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ cp .env.example .env   # optional: set GEMINI_API_KEY / ElevenLabs keys
 PORT=3847 npm run dev
 ```
 
-Cold start opens the clean entry gate (**Who makes it happen?** → Play with sound / Watch silently / Skip), then the **60-second** cinematic film, then the dual-sphere workspace.
+Cold start is fully automatic: **CerebroIntro wordmark** → **open sequence** (control-free cinematic film) → **BootLoader** → **ExperienceCanvas** workspace. No Enter Cerebro / Skip CTAs on the open path.
 
 Skip straight to workspace: `http://127.0.0.1:3847/?skipExplainer=1` or `?view=hq`.
 

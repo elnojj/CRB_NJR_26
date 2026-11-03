@@ -1,7 +1,6 @@
 /**
- * Cerebro 60s cinematic introduction — single film clock, attributable media,
- * continuous handover into workspace.
- * Editorial: 24 fps / 1,440 frames. Runtime: rAF playhead (not throttled to 24).
+ * Cerebro open-sequence film — single clock, attributable media, onboarding supers.
+ * Default public path: autoplay with hideControls (no CTAs). Editorial: 24 fps / 1440 frames.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CINEMATIC_BRAND, cinematicMediaById } from './cinematicManifest';
@@ -20,8 +19,10 @@ import './explainerFilm.css';
 export type ExplainerFilmProps = {
   onComplete: () => void;
   reducedMotion?: boolean;
-  /** When true, film starts muted (Watch silently). Sound On still available. */
+  /** When true, film starts muted (Watch silently / open-sequence autoplay). */
   startMuted?: boolean;
+  /** Open sequence: autoplay only — no pause/sound/lang/skip chrome. */
+  hideControls?: boolean;
 };
 
 type PlaybackDiag =
@@ -44,6 +45,7 @@ export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
   onComplete,
   reducedMotion = false,
   startMuted = true,
+  hideControls = false,
 }) => {
   const totalSec = reducedMotion ? Math.min(48, CINEMATIC_DURATION_SEC) : CINEMATIC_DURATION_SEC;
   const totalFrames = reducedMotion
@@ -319,60 +321,62 @@ export const ExplainerFilm: React.FC<ExplainerFilmProps> = ({
         {credit && !mediaBlocked && <p className="cinematic-60__credit">{credit}</p>}
       </div>
 
-      <footer className="explainer-film__bar cinematic-60__bar">
-        <div className="cinematic-60__pill" role="toolbar" aria-label="Film controls">
-          <button
-            type="button"
-            className="cinematic-60__ctrl"
-            data-testid="cinematic-play-pause"
-            aria-label={playing ? 'Pause film' : 'Play film'}
-            onClick={() => setPlaying((p) => !p)}
-          >
-            {playing ? 'Pause' : 'Play'}
-          </button>
-          <button
-            type="button"
-            className="cinematic-60__ctrl"
-            data-testid="cinematic-sound"
-            aria-label={soundOn ? 'Mute film' : 'Unmute film'}
-            onClick={() => setSoundOn((s) => !s)}
-          >
-            {soundOn ? 'Sound on' : 'Sound off'}
-          </button>
-          <button
-            type="button"
-            className="cinematic-60__ctrl"
-            data-testid="cinematic-lang"
-            aria-label="Toggle English or Arabic"
-            onClick={() => setLang((l) => (l === 'en' ? 'ar' : 'en'))}
-          >
-            {lang === 'en' ? 'عربي' : 'EN'}
-          </button>
-          <button
-            type="button"
-            data-testid="explainer-skip"
-            data-cta-id="explainer.skip"
-            className="cinematic-60__ctrl cinematic-60__ctrl--skip"
-            onClick={finish}
-          >
-            Skip
-          </button>
-        </div>
-        <div className="cinematic-60__progress-row" aria-hidden={completed}>
-          <span className="cinematic-60__clock">
-            {formatClock(elapsedSec)} / {formatClock(totalSec)}
-          </span>
-          <div
-            className="cinematic-60__progress"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(progress * 100)}
-          >
-            <div style={{ width: `${Math.min(100, progress * 100)}%` }} />
+      {!hideControls && (
+        <footer className="explainer-film__bar cinematic-60__bar">
+          <div className="cinematic-60__pill" role="toolbar" aria-label="Film controls">
+            <button
+              type="button"
+              className="cinematic-60__ctrl"
+              data-testid="cinematic-play-pause"
+              aria-label={playing ? 'Pause film' : 'Play film'}
+              onClick={() => setPlaying((p) => !p)}
+            >
+              {playing ? 'Pause' : 'Play'}
+            </button>
+            <button
+              type="button"
+              className="cinematic-60__ctrl"
+              data-testid="cinematic-sound"
+              aria-label={soundOn ? 'Mute film' : 'Unmute film'}
+              onClick={() => setSoundOn((s) => !s)}
+            >
+              {soundOn ? 'Sound on' : 'Sound off'}
+            </button>
+            <button
+              type="button"
+              className="cinematic-60__ctrl"
+              data-testid="cinematic-lang"
+              aria-label="Toggle English or Arabic"
+              onClick={() => setLang((l) => (l === 'en' ? 'ar' : 'en'))}
+            >
+              {lang === 'en' ? 'عربي' : 'EN'}
+            </button>
+            <button
+              type="button"
+              data-testid="explainer-skip"
+              data-cta-id="explainer.skip"
+              className="cinematic-60__ctrl cinematic-60__ctrl--skip"
+              onClick={finish}
+            >
+              Skip
+            </button>
           </div>
-        </div>
-      </footer>
+          <div className="cinematic-60__progress-row" aria-hidden={completed}>
+            <span className="cinematic-60__clock">
+              {formatClock(elapsedSec)} / {formatClock(totalSec)}
+            </span>
+            <div
+              className="cinematic-60__progress"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(progress * 100)}
+            >
+              <div style={{ width: `${Math.min(100, progress * 100)}%` }} />
+            </div>
+          </div>
+        </footer>
+      )}
     </div>
   );
 };

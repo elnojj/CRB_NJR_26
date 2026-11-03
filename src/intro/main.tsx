@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { BootLoader } from '../components/BootLoader';
 import { selectLatestSnapshotTimestamp } from '../data/projectPlanModel';
+import { ExplainerFilm } from './ExplainerFilm';
 import { introBridge } from './bridge';
 
 export interface CerebroIntroProps {
@@ -9,19 +10,23 @@ export interface CerebroIntroProps {
   renderWorkspace?: (context?: unknown) => React.ReactNode;
   /** Optional override; defaults to latest register/project snapshot. */
   snapshotIso?: string;
+  reducedMotion?: boolean;
 }
 
+type IntroPhase = 'title' | 'openSequence' | 'loader' | 'ready';
+
 /**
- * Cinematic opening overlay on the shared ExperienceCanvas (embedCanvas=false).
- * Does not create a second WebGL root — continuous canvas stays mounted underneath.
+ * Public open path on the shared ExperienceCanvas:
+ * wordmark → control-free open sequence → BootLoader → workspace.
  */
 export const CerebroIntro: React.FC<CerebroIntroProps> = ({
   embedCanvas = false,
   onEnterWorkspace,
   snapshotIso,
+  reducedMotion = false,
 }) => {
   const [configReady, setConfigReady] = useState(false);
-  const [phase, setPhase] = useState<'title' | 'loader' | 'ready'>('title');
+  const [phase, setPhase] = useState<IntroPhase>('title');
   const asOf = useMemo(
     () => snapshotIso || selectLatestSnapshotTimestamp(),
     [snapshotIso]
@@ -58,7 +63,8 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
         if (!cancelled) setConfigReady(true);
       }
     })();
-    const titleTimer = window.setTimeout(() => setPhase('loader'), 1600);
+    // Wordmark holds briefly, then auto-enters the open sequence (no CTA).
+    const titleTimer = window.setTimeout(() => setPhase('openSequence'), 1600);
     return () => {
       cancelled = true;
       window.clearTimeout(titleTimer);
@@ -74,7 +80,10 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
       data-phase={phase}
     >
       {phase === 'title' && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#101D27]/92 px-6 text-center backdrop-blur-md">
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center bg-[#101D27]/92 px-6 text-center backdrop-blur-md"
+          data-testid="cerebro-intro-wordmark"
+        >
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#9AFFE0]">
             Cerebro · dual sphere
           </p>
@@ -84,18 +93,21 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
           <p className="mt-3 max-w-md font-mono text-xs text-[#BDCBD3]">
             Spatial workspace boot · register snapshot {asOfLabel}
           </p>
-          <button
-            type="button"
-            className="mt-8 min-h-[44px] rounded-full border border-[#D4AF37]/50 bg-[#D4AF37]/15 px-5 font-mono text-xs text-[#FFF4D0]"
-            onClick={() => setPhase('loader')}
-          >
-            Enter sequence
-          </button>
         </div>
       )}
-      {phase !== 'title' && (
+
+      {phase === 'openSequence' && (
+        <ExplainerFilm
+          reducedMotion={reducedMotion}
+          startMuted
+          hideControls
+          onComplete={() => setPhase('loader')}
+        />
+      )}
+
+      {phase === 'loader' && (
         <BootLoader
-          reducedMotion={false}
+          reducedMotion={reducedMotion}
           initialPhase="loader"
           onTakeOff={() => {
             setPhase('ready');
