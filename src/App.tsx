@@ -235,7 +235,7 @@ export default function App() {
     return boot;
   });
 
-  const handleExitIntro = useCallback(() => {
+  const handleExitIntro = useCallback((context?: { soundOn?: boolean }) => {
     introBridge.enabled = false;
     introBridge.hostPoseSampler = null;
     introBridge.inspectPose = null;
@@ -248,6 +248,11 @@ export default function App() {
     if (!url.searchParams.get('view')) url.searchParams.set('view', 'hq');
     window.history.replaceState({}, '', url);
     soundEngine.unlock();
+    if (context?.soundOn) {
+      // Carry the visitor's "Play with sound" choice into workspace interaction sound.
+      setSoundMuted(false);
+      setAmbienceMuted(false);
+    }
     setBootDone(true);
     setIntroMode('workspace');
   }, []);

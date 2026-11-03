@@ -3207,7 +3207,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
         // Title & subtitle
         ctx.fillStyle = '#F2F6F8';
-        ctx.font = 'bold 14px "Space Grotesk", sans-serif';
+        ctx.font = 'bold 14px "JaapokkiSubtract", "Sora", "Inter", sans-serif';
         ctx.fillText(tile.title.slice(0, 32), 18, 96);
         ctx.fillStyle = '#BDCBD3';
         ctx.font = '11px "JetBrains Mono", monospace';
@@ -3235,7 +3235,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             ctx.font = 'bold 12px "JetBrains Mono", monospace';
             ctx.fillText(`${tile.kind.toUpperCase()} · #${String(tile.index + 1).padStart(2, '0')}`, 16, 26);
             ctx.fillStyle = '#F2F6F8';
-            ctx.font = 'bold 13px "Space Grotesk", sans-serif';
+            ctx.font = 'bold 13px "JaapokkiSubtract", "Sora", "Inter", sans-serif';
             ctx.fillText(tile.title.slice(0, 32), 16, 166);
             tex.needsUpdate = true;
           } catch {

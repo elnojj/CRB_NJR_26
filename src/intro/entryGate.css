@@ -1,5 +1,5 @@
 .entry-gate {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 200;
   display: flex;
@@ -8,9 +8,10 @@
   justify-content: center;
   gap: 1.25rem;
   padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+  /* Translucent: the live wide constellation holds behind the entry action. */
   background:
-    radial-gradient(70% 55% at 50% 35%, rgba(76, 141, 255, 0.14), transparent 65%),
-    #02050a;
+    radial-gradient(80% 60% at 50% 45%, transparent 30%, rgba(5, 9, 14, 0.45) 100%),
+    linear-gradient(180deg, rgba(5, 9, 14, 0.25) 0%, transparent 40%, rgba(5, 9, 14, 0.55) 100%);
   color: #f2f6f8;
   box-sizing: border-box;
   pointer-events: auto;
@@ -18,16 +19,17 @@
 }
 
 .entry-gate__logo {
-  width: min(220px, 55vw);
+  width: clamp(96px, 26vw, 200px);
   height: auto;
   object-fit: contain;
 }
 
 .entry-gate__headline {
   margin: 0;
-  font-family: var(--font-display, Sora, system-ui, sans-serif);
-  font-size: clamp(1.6rem, 5vw, 2.4rem);
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: clamp(30px, 8vw, 52px);
+  font-weight: 400;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
   letter-spacing: 0.04em;
   text-align: center;
   max-width: 16ch;
@@ -48,9 +50,12 @@
   padding: 0 1.15rem;
   border-radius: 999px;
   border: 1px solid rgba(180, 221, 255, 0.28);
-  background: rgba(12, 22, 34, 0.75);
+  background: rgba(12, 22, 34, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: #f2f6f8;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  touch-action: manipulation;
+  font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.05em;
   cursor: pointer;
@@ -70,7 +75,7 @@
   border: 0;
   background: transparent;
   color: #bdcbd3;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.06em;
   text-transform: uppercase;

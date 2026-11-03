@@ -1,23 +1,35 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BootLoader } from '../components/BootLoader';
 import { selectLatestSnapshotTimestamp } from '../data/projectPlanModel';
+import { soundEngine } from '../utils/soundEngine';
+import { EntryGate } from './EntryGate';
 import { LiveSphereOpenSequence } from './LiveSphereOpenSequence';
 import { introBridge } from './bridge';
+import { introSoundtrack } from './introSoundtrack';
 
 export interface CerebroIntroProps {
   embedCanvas?: boolean;
-  onEnterWorkspace?: (context?: unknown) => void;
+  onEnterWorkspace?: (context?: CerebroIntroExitContext) => void;
   renderWorkspace?: (context?: unknown) => React.ReactNode;
   /** Optional override; defaults to latest register/project snapshot. */
   snapshotIso?: string;
   reducedMotion?: boolean;
 }
 
-type IntroPhase = 'title' | 'openSequence' | 'loader' | 'ready';
+export type CerebroIntroExitContext = {
+  snapshotIso: string;
+  configReady: boolean;
+  /** Visitor chose "Play with sound" and has not muted since. */
+  soundOn: boolean;
+  via: 'complete' | 'skip';
+};
+
+type IntroPhase = 'gate' | 'openSequence' | 'loader' | 'ready';
 
 /**
  * Public open path on the shared ExperienceCanvas:
- * translucent wordmark over live spheres → continuous WebGL camera journey → BootLoader → workspace.
+ * entry gate over the live wide composition → continuous WebGL camera journey → BootLoader → workspace.
+ * The single entry action ("Play with sound") starts the master mix inside the user gesture.
  */
 export const CerebroIntro: React.FC<CerebroIntroProps> = ({
   embedCanvas = false,
@@ -26,19 +38,13 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
   reducedMotion = false,
 }) => {
   const [configReady, setConfigReady] = useState(false);
-  const [phase, setPhase] = useState<IntroPhase>('title');
+  const [phase, setPhase] = useState<IntroPhase>('gate');
+  const [soundChosen, setSoundChosen] = useState(false);
+  const exitedRef = useRef(false);
   const asOf = useMemo(
     () => snapshotIso || selectLatestSnapshotTimestamp(),
     [snapshotIso]
   );
-  const asOfLabel = useMemo(() => {
-    const t = Date.parse(asOf);
-    if (Number.isNaN(t)) return asOf;
-    return new Date(t).toLocaleString(undefined, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
-  }, [asOf]);
 
   useEffect(() => {
     if (embedCanvas) {
@@ -52,6 +58,7 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
         if (!res.ok) throw new Error(`intro json ${res.status}`);
         const config = await res.json();
         if (cancelled) return;
+        introSoundtrack.setRemoteSource(config?.audio?.masterSrc);
         introBridge.enabled = true;
         introBridge.configure(
           config,
@@ -64,15 +71,52 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
           introBridge.enabled = true;
           setConfigReady(true);
         }
+      } finally {
+        if (!cancelled) introSoundtrack.preload();
       }
     })();
-    // Brief brand hold over the live constellation, then one continuous camera journey.
-    const titleTimer = window.setTimeout(() => setPhase('openSequence'), reducedMotion ? 700 : 1400);
     return () => {
       cancelled = true;
-      window.clearTimeout(titleTimer);
     };
-  }, [embedCanvas, reducedMotion]);
+  }, [embedCanvas]);
+
+  const enterWorkspace = useCallback(
+    (via: CerebroIntroExitContext['via']) => {
+      if (exitedRef.current) return;
+      exitedRef.current = true;
+      setPhase('ready');
+      soundEngine.setVoiceOrMediaActive(false);
+      onEnterWorkspace?.({
+        snapshotIso: asOf,
+        configReady,
+        soundOn: soundChosen && !soundEngine.isMuted(),
+        via,
+      });
+    },
+    [asOf, configReady, onEnterWorkspace, soundChosen]
+  );
+
+  const startWithSound = () => {
+    // play() must run synchronously inside this click for mobile Safari / Chrome.
+    introSoundtrack.startFromGesture();
+    soundEngine.unlock();
+    soundEngine.setMuted(false);
+    soundEngine.setVoiceOrMediaActive(true);
+    setSoundChosen(true);
+    setPhase('openSequence');
+  };
+
+  const startSilently = () => {
+    soundEngine.unlock();
+    setSoundChosen(false);
+    setPhase('openSequence');
+  };
+
+  const skipIntro = () => {
+    introSoundtrack.stop();
+    introBridge.hostPoseSampler = null;
+    enterWorkspace('skip');
+  };
 
   return (
     <div
@@ -81,33 +125,24 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
       data-embed-canvas="false"
       data-config-ready={configReady ? '1' : '0'}
       data-phase={phase}
+      style={phase === 'openSequence' ? { pointerEvents: 'none' } : undefined}
     >
-      {phase === 'title' && (
-        <div
-          className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center"
-          data-testid="cerebro-intro-wordmark"
-          style={{
-            background:
-              'radial-gradient(65% 50% at 50% 42%, rgba(16,29,39,0.12) 0%, rgba(16,29,39,0.32) 100%)',
-          }}
-        >
-          <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#9AFFE0]">
-            Cerebro · constellation
-          </p>
-          <h1 className="mt-3 max-w-xl font-display text-3xl text-[#F2F6F8] md:text-5xl">
-            NOJARA Studios
-          </h1>
-          <p className="mt-3 max-w-md font-mono text-xs text-[#BDCBD3]">
-            Live spheres · register snapshot {asOfLabel}
-          </p>
+      {phase === 'gate' && (
+        <div data-testid="cerebro-intro-wordmark" className="absolute inset-0">
+          <EntryGate
+            onPlayWithSound={startWithSound}
+            onWatchSilently={startSilently}
+            onSkip={skipIntro}
+          />
         </div>
       )}
 
       {phase === 'openSequence' && (
         <LiveSphereOpenSequence
           reducedMotion={reducedMotion}
-          startMuted
+          soundChosen={soundChosen}
           onComplete={() => setPhase('loader')}
+          onSkip={() => enterWorkspace('skip')}
         />
       )}
 
@@ -115,10 +150,7 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
         <BootLoader
           reducedMotion={reducedMotion}
           initialPhase="loader"
-          onTakeOff={() => {
-            setPhase('ready');
-            onEnterWorkspace?.({ snapshotIso: asOf, configReady });
-          }}
+          onTakeOff={() => enterWorkspace('complete')}
         />
       )}
     </div>

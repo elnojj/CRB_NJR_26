@@ -42,9 +42,9 @@ function paintLabelCanvas(
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const padX = 28;
-  ctx.font = '600 36px ui-monospace, SFMono-Regular, Menlo, monospace';
+  ctx.font = '400 36px "JaapokkiSubtract", "Sora", "Inter", sans-serif';
   const titleW = ctx.measureText(label).width;
-  ctx.font = '500 24px ui-monospace, SFMono-Regular, Menlo, monospace';
+  ctx.font = '500 24px "JetBrains Mono", ui-monospace, monospace';
   const subW = sublabel ? ctx.measureText(sublabel).width : 0;
   const boxW = Math.min(480, Math.max(titleW, subW) + padX * 2);
   const boxH = sublabel ? 112 : 78;
@@ -59,13 +59,13 @@ function paintLabelCanvas(
   ctx.stroke();
 
   ctx.fillStyle = colour;
-  ctx.font = '600 36px ui-monospace, SFMono-Regular, Menlo, monospace';
+  ctx.font = '400 36px "JaapokkiSubtract", "Sora", "Inter", sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(label, canvas.width / 2, y + (sublabel ? 38 : boxH / 2));
   if (sublabel) {
     ctx.fillStyle = 'rgba(189, 203, 211, 0.95)';
-    ctx.font = '500 24px ui-monospace, SFMono-Regular, Menlo, monospace';
+    ctx.font = '500 24px "JetBrains Mono", ui-monospace, monospace';
     ctx.fillText(sublabel, canvas.width / 2, y + 78);
   }
   return canvas;

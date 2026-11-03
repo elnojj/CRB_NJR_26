@@ -34,6 +34,8 @@ export function MobileSingleHandController({
     if (onToggleActive) {
       if (isCameraActive) onToggleActive();
     } else {
+      const own = videoRef.current?.srcObject;
+      if (own instanceof MediaStream) own.getTracks().forEach((track) => track.stop());
       releaseSharedWebcamStream();
       setInternalActive(false);
     }

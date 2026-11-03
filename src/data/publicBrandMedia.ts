@@ -7,10 +7,12 @@
  * 3. Exact direct MP4 URLs consumed directly by HTML5 video elements without Drive sign-in.
  */
 
+const PUBLIC_BASE = (import.meta.env?.BASE_URL ?? '/').replace(/\/?$/, '/');
+
 export const PUBLIC_BRAND_MEDIA = {
   logoWhite: {
     // Local copy of the Wix white mark — already RGBA with transparent field (no baked black plate).
-    url: '/assets/brand/nojara-logo-white.png',
+    url: `${PUBLIC_BASE}assets/brand/nojara-logo-white.png`,
     width: 2584,
     height: 644,
     provenance:

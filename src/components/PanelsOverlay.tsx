@@ -635,7 +635,7 @@ export const PanelsOverlay: React.FC<PanelsOverlayProps> = ({
               src={fullscreenMedia.url}
               alt={fullscreenMedia.title}
               referrerPolicy="no-referrer"
-              className="max-w-full max-h-full object-contain"
+              className="w-full h-full object-cover"
             />
           ) : (
             <div className="max-w-lg text-center p-8 flex flex-col items-center gap-3">

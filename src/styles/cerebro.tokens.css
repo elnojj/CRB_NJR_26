@@ -82,7 +82,8 @@
   --status-held: var(--token-station-tasks);         /* #5CC8D7 Cyan Resonator (Zero Purple) */
 
   /* Locked 4-Font Typographic Hierarchy */
-  --font-display: 'Sora', 'JaapokkiSubtract', 'Inter', system-ui, sans-serif;
+  --font-display: 'JaapokkiSubtract', 'Sora', 'Inter', system-ui, sans-serif;
+  --font-film-display: var(--font-display);
   --font-sans: 'Inter', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
   --font-arabic: 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif;

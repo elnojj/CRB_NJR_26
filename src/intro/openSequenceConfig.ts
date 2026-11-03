@@ -74,12 +74,12 @@ export const OPEN_SEQUENCE_BEATS: OpenSequenceBeat[] = [
     id: 'wide-reveal',
     startSec: 0,
     endSec: 8,
-    headlineEn: 'FOUR WORLDS. ONE STUDIO.',
-    headlineAr: 'أربعة عوالم. استوديو واحد.',
+    headlineEn: 'WHAT HOLDS WORK TOGETHER?',
+    headlineAr: 'ما الذي يجمع العمل؟',
     supportEn: 'HQ · CDE · Campaign OS · About Us',
     supportAr: 'HQ · CDE · نظام الحملات · من نحن',
-    narrationEn: 'Cerebro opens on the live constellation — translucent shells, real media inside.',
-    narrationAr: 'يفتح سيريبو على الكوكبة الحية — أغلفة شفافة ووسائط حقيقية داخلها.',
+    narrationEn: 'A living constellation of studio work.',
+    narrationAr: 'كوكبة حيّة من عمل الاستوديو.',
     lookSphere: 'centroid',
     person: null,
     mediaId: null,
@@ -93,10 +93,8 @@ export const OPEN_SEQUENCE_BEATS: OpenSequenceBeat[] = [
     headlineAr: 'شويكار أحمد',
     supportEn: 'PMO · Intake · Delivery discipline',
     supportAr: 'إدارة المشاريع · الاستقبال · انضباط التسليم',
-    narrationEn:
-      'Shweekar keeps programmes moving — intake, calendars, and the register pulse that turns briefs into shipped work.',
-    narrationAr:
-      'تحافظ شويكار على حركة البرامج — الاستقبال والجداول ونبض السجل الذي يحوّل الموجزات إلى عمل مُسلَّم.',
+    narrationEn: 'She keeps every programme moving.',
+    narrationAr: 'تُبقي كل برنامج في حركة.',
     lookSphere: 'about-us',
     person: 'shweekar',
     mediaId: 'person-shweekar',
@@ -112,10 +110,8 @@ export const OPEN_SEQUENCE_BEATS: OpenSequenceBeat[] = [
     headlineAr: 'خالد الشعلان',
     supportEn: 'Partner programmes · Gulf bridge',
     supportAr: 'برامج الشركاء · جسر الخليج',
-    narrationEn:
-      'Khaled anchors partner conversations and Gulf-side programme continuity — private project detail stays permission-gated.',
-    narrationAr:
-      'يرسّخ خالد محادثات الشركاء واستمرارية البرامج في الخليج — وتفاصيل المشاريع الخاصة تبقى محمية بالصلاحيات.',
+    narrationEn: 'He bridges partners across the Gulf.',
+    narrationAr: 'يربط الشركاء عبر الخليج.',
     lookSphere: 'about-us',
     person: 'khaled',
     mediaId: 'person-khaled',
@@ -131,10 +127,8 @@ export const OPEN_SEQUENCE_BEATS: OpenSequenceBeat[] = [
     headlineAr: 'طارق نُچارة',
     supportEn: 'Founder · Culture & Design Engineer — 39',
     supportAr: 'المؤسس · مهندس الثقافة والتصميم — 39',
-    narrationEn:
-      'Work first: festivals, sets, and studio craft. The camera, light, and motion carry the story — titles do not.',
-    narrationAr:
-      'العمل أولاً: المهرجانات والمجموعات وحرفة الاستوديو. الكاميرا والضوء والحركة تحمل القصة — لا العناوين.',
+    narrationEn: 'Built from the work — sets, light and motion.',
+    narrationAr: 'مبنيّ من العمل — مواقع وضوء وحركة.',
     lookSphere: 'about-us',
     person: 'tarek',
     mediaId: 'person-tarek',
@@ -154,10 +148,8 @@ export const OPEN_SEQUENCE_BEATS: OpenSequenceBeat[] = [
     headlineAr: 'الأفكار تحتاج تنفيذاً.',
     supportEn: 'The business challenge',
     supportAr: 'تحدي الأعمال',
-    narrationEn:
-      'An idea can look finished long before the work is. Brands need a living operating system, not another deck.',
-    narrationAr:
-      'قد تبدو الفكرة مكتملة قبل أن يكتمل العمل. العلامات تحتاج نظام تشغيل حيّاً لا عرضاً آخر.',
+    narrationEn: 'A finished-looking idea is not finished work.',
+    narrationAr: 'الفكرة التي تبدو مكتملة ليست عملاً مكتملاً.',
     lookSphere: 'hq',
     person: null,
     mediaId: 'med-nojara-showreel-2023',
@@ -172,10 +164,8 @@ export const OPEN_SEQUENCE_BEATS: OpenSequenceBeat[] = [
     headlineAr: 'نُچارة ترد بسيريبو.',
     supportEn: 'Culture · Design · Engineering',
     supportAr: 'ثقافة · تصميم · هندسة',
-    narrationEn:
-      "Cerebro is NOJARA's studio OS — projects, people, decisions, and media in one continuous spatial map.",
-    narrationAr:
-      'سيريبو هو نظام تشغيل استوديو نُچارة — مشاريع وأشخاص وقرارات ووسائط على خريطة مكانية واحدة.',
+    narrationEn: 'Projects, people and media on one spatial map.',
+    narrationAr: 'مشاريع وأشخاص ووسائط على خريطة مكانية واحدة.',
     lookSphere: 'cde',
     person: null,
     mediaId: 'med-nojara-showreel-2023',
@@ -189,10 +179,8 @@ export const OPEN_SEQUENCE_BEATS: OpenSequenceBeat[] = [
     headlineAr: 'أدلة من عمل حقيقي.',
     supportEn: 'LaLiga · El Batron · SEVEN',
     supportAr: 'LaLiga · الباترون · SEVEN',
-    narrationEn:
-      'Attributable films and programme stills live inside the shells — not decorative plates beside them.',
-    narrationAr:
-      'الأفلام والصور المنسوبة تعيش داخل الأغلفة — وليست لوحات زخرفية بجانبها.',
+    narrationEn: 'Attributable films live inside the shells.',
+    narrationAr: 'الأفلام المنسوبة تعيش داخل الأغلفة.',
     lookSphere: 'campaign-os',
     person: null,
     mediaId: 'med-nojara-laliga',
@@ -207,8 +195,8 @@ export const OPEN_SEQUENCE_BEATS: OpenSequenceBeat[] = [
     headlineAr: 'ادخل إلى العمل.',
     supportEn: 'Stations · voice · gesture · register',
     supportAr: 'محطات · صوت · إيماءة · السجل',
-    narrationEn: 'Welcome to Cerebro — open a station, call the room, move the work forward.',
-    narrationAr: 'أهلاً بكم في سيريبو — افتح محطة، نادِ الغرفة، وحرّك العمل إلى الأمام.',
+    narrationEn: 'Open a station, call the room, move the work.',
+    narrationAr: 'افتح محطة، نادِ الغرفة، وحرّك العمل.',
     lookSphere: 'hq',
     person: null,
     mediaId: 'med-el-batron',
@@ -220,6 +208,17 @@ export const OPEN_SEQUENCE_BEATS: OpenSequenceBeat[] = [
 export function scaleOpenSequenceTime(editorialSec: number, timing: OpenSequenceTimingConfig): number {
   const scale = timing.durationSec / OPEN_SEQUENCE_BASE_DURATION_SEC;
   return editorialSec * scale;
+}
+
+/** Beat start/end on the configured (scaled) clock, in seconds. */
+export function beatWindowSec(
+  beat: OpenSequenceBeat,
+  timing: OpenSequenceTimingConfig
+): { start: number; end: number } {
+  return {
+    start: scaleOpenSequenceTime(beat.startSec, timing),
+    end: scaleOpenSequenceTime(beat.endSec, timing),
+  };
 }
 
 export function beatAtOpenSequenceTime(

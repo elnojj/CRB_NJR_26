@@ -137,11 +137,23 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
   const nextSparkleId = useRef(1);
   const pinchLockRef = useRef(true);
   const lastGestureTimeRef = useRef(0);
-  const frameSkipRef = useRef(0);
+  const lastDetectAtRef = useRef(0);
+  const detectIntervalRef = useRef(50);
   const lastUiPushRef = useRef(0);
   const handModeRef = useRef(handMode);
   const hadLiveTrackRef = useRef(false);
   const wantedHands = handMode === 'two-hands' ? 2 : 1;
+
+  // Parent passes inline callbacks; keep them out of the camera effect deps so an
+  // App re-render never tears down and re-acquires the webcam.
+  const onTriggerGestureRef = useRef(onTriggerGesture);
+  const onCloseHandsRef = useRef(onCloseHands);
+  const onTrackingLostRef = useRef(onTrackingLost);
+  const onTrackingAcquiredRef = useRef(onTrackingAcquired);
+  onTriggerGestureRef.current = onTriggerGesture;
+  onCloseHandsRef.current = onCloseHands;
+  onTrackingLostRef.current = onTrackingLost;
+  onTrackingAcquiredRef.current = onTrackingAcquired;
 
   useEffect(() => {
     handModeRef.current = handMode;
@@ -195,14 +207,14 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           if (/cancelled/i.test(detail)) {
             setCvStatusLabel('Camera off');
             setLiveLandmarks(null);
-            onTrackingLost?.();
+            onTrackingLostRef.current?.();
             return;
           }
           setCvStatusLabel(`${detail} — gesture disabled · orbit restored`);
           setLiveLandmarks(null);
           // Yield camera ownership so pointer orbit is not left blocked.
-          onTrackingLost?.();
-          onCloseHands();
+          onTrackingLostRef.current?.();
+          onCloseHandsRef.current();
         }
         return;
       }
@@ -274,15 +286,28 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
         const detectFrame = () => {
           if (cancelled || !landmarker || !videoRef.current) return;
           const v = videoRef.current;
-          const skipEvery = phone ? 2 : 1;
-          frameSkipRef.current += 1;
-          if (v.readyState >= 2 && frameSkipRef.current % (skipEvery + 1) === 0) {
-            const now = performance.now();
-            const res = landmarker.detectForVideo(v, now);
+          const now = performance.now();
+          // Time-budgeted inference keeps WASM detection from starving the Three.js frame.
+          if (
+            v.readyState >= 2 &&
+            v.videoWidth > 0 &&
+            now - lastDetectAtRef.current >= detectIntervalRef.current
+          ) {
+            lastDetectAtRef.current = now;
+            let res: ReturnType<HandLandmarker['detectForVideo']>;
+            try {
+              res = landmarker.detectForVideo(v, now);
+            } catch {
+              rafId = requestAnimationFrame(detectFrame);
+              return;
+            }
+            const cost = performance.now() - now;
+            const floor = phone ? 80 : 50;
+            detectIntervalRef.current = Math.min(200, Math.max(floor, cost * 3));
             if (res.landmarks && res.landmarks.length > 0) {
               if (!hadLiveTrackRef.current) {
                 hadLiveTrackRef.current = true;
-                onTrackingAcquired?.();
+                onTrackingAcquiredRef.current?.();
               }
               const mode = handModeRef.current;
               const maxHands = mode === 'two-hands' ? 2 : 1;
@@ -338,7 +363,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                 setPinchLocked(true);
                 const played = soundEngine.playFingertipNote(1, panX);
                 setActiveNote(`${played.name} (${played.freq}Hz)`);
-                onTriggerGesture('pinch-orbit');
+                onTriggerGestureRef.current('pinch-orbit');
               } else if (pinchLockRef.current && ratio >= 0.3) {
                 pinchLockRef.current = false;
                 setPinchLocked(false);
@@ -355,7 +380,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                 lastGestureTimeRef.current = nowMs;
                 soundEngine.playPanelToggle(false, panX);
                 setActiveNote('PALM-STOP · FREEZE');
-                onTriggerGesture('palm-stop');
+                onTriggerGestureRef.current('palm-stop');
               }
               // 3. Point Select: Index finger extended, others curled
               else if (
@@ -368,7 +393,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                 lastGestureTimeRef.current = nowMs;
                 soundEngine.playNodeSelect(panX);
                 setActiveNote('POINT-SELECT · NODE');
-                onTriggerGesture('point-select');
+                onTriggerGestureRef.current('point-select');
               }
               // 4. Spread Zoom: Thumb and pinky spread wide or dual-hand spread
               else if (
@@ -381,14 +406,14 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
                 lastGestureTimeRef.current = nowMs;
                 soundEngine.playFlightWhoosh(550, panX);
                 setActiveNote('SPREAD-ZOOM');
-                onTriggerGesture('spread-zoom');
+                onTriggerGestureRef.current('spread-zoom');
               }
             } else if (performance.now() - lastUiPushRef.current > 120) {
               lastUiPushRef.current = performance.now();
               setLiveLandmarks(null);
               if (hadLiveTrackRef.current) {
                 hadLiveTrackRef.current = false;
-                onTrackingLost?.();
+                onTrackingLostRef.current?.();
               }
             }
           }
@@ -401,7 +426,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           setLiveLandmarks(null);
           if (hadLiveTrackRef.current) {
             hadLiveTrackRef.current = false;
-            onTrackingLost?.();
+            onTrackingLostRef.current?.();
           }
         }
       }
@@ -412,6 +437,7 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
     return () => {
       cancelled = true;
       if (rafId) cancelAnimationFrame(rafId);
+      stream?.getTracks().forEach((track) => track.stop());
       // Force-stop so iOS Safari clears the green camera indicator even if refcount races.
       forceStopSharedWebcamStream();
       releaseSharedWebcamStream();
@@ -427,10 +453,10 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
       }
       if (hadLiveTrackRef.current) {
         hadLiveTrackRef.current = false;
-        onTrackingLost?.();
+        onTrackingLostRef.current?.();
       }
     };
-  }, [active, wantedHands, onTriggerGesture, onTrackingLost, onTrackingAcquired, onCloseHands]);
+  }, [active, wantedHands]);
 
   useEffect(() => {
     if (!active) return;

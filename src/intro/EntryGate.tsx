@@ -51,7 +51,7 @@ export const EntryGate: React.FC<EntryGateProps> = ({
         data-testid="entry-skip"
         onClick={onSkip}
       >
-        Skip
+        Skip intro
       </button>
     </div>
   );

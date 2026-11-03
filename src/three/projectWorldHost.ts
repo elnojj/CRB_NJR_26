@@ -83,10 +83,10 @@ export function mountUnavailableProjectWorld(options: {
       ctx.fillStyle = 'rgba(16,29,39,0.82)';
       ctx.fillRect(0, 0, 512, 96);
       ctx.fillStyle = '#9AFFE0';
-      ctx.font = '16px monospace';
+      ctx.font = '16px "JetBrains Mono", monospace';
       ctx.fillText('World unavailable · verified poster only', 16, 40);
       ctx.fillStyle = '#B4DDFF';
-      ctx.font = '14px sans-serif';
+      ctx.font = '14px "Inter", "IBM Plex Sans Arabic", sans-serif';
       ctx.fillText(options.title.slice(0, 40), 16, 68);
     }
     const captionTex = new THREE.CanvasTexture(canvas);
@@ -113,14 +113,14 @@ export function mountUnavailableProjectWorld(options: {
       ctx.fillStyle = '#101D27';
       ctx.fillRect(0, 0, 512, 256);
       ctx.fillStyle = '#B4DDFF';
-      ctx.font = '28px sans-serif';
+      ctx.font = '28px "JaapokkiSubtract", "Sora", sans-serif';
       ctx.fillText(options.title.slice(0, 28), 24, 100);
       ctx.fillStyle = '#9AFFE0';
-      ctx.font = '18px monospace';
+      ctx.font = '18px "JetBrains Mono", monospace';
       ctx.fillText('World unavailable · return to master', 24, 140);
       if (options.provenanceNote) {
         ctx.fillStyle = '#7A8B9A';
-        ctx.font = '13px monospace';
+        ctx.font = '13px "JetBrains Mono", monospace';
         ctx.fillText(options.provenanceNote.slice(0, 52), 24, 180);
       }
     }
