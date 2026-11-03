@@ -610,6 +610,11 @@ export interface CosmographCanvasProps {
   onSceneReady?: (scene: THREE.Scene) => void;
   /** When hand tracking is lost, settle residual gesture velocity without teleport. */
   gestureTrackingActive?: boolean;
+  /**
+   * When false (hand tracking owns the camera), pointer/touch orbit-drag is disabled.
+   * Re-enabling damps residual angular velocity instead of snapping.
+   */
+  pointerOrbitEnabled?: boolean;
   /** Active project-world portal id — mounts/disposes a scoped host under master. */
   projectWorldId?: string | null;
   projectWorldState?: 'entry' | 'active' | 'suspended' | 'exiting' | 'unavailable' | null;
@@ -886,6 +891,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   onCloseMediaTube,
   onSceneReady,
   gestureTrackingActive = true,
+  pointerOrbitEnabled = true,
   projectWorldId = null,
   projectWorldState = null,
   idleOrbitAllowed = true,
@@ -998,6 +1004,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   });
 
   const gestureTrackingRef = useRef(gestureTrackingActive);
+  const pointerOrbitEnabledRef = useRef(pointerOrbitEnabled);
   useEffect(() => {
     const wasActive = gestureTrackingRef.current;
     gestureTrackingRef.current = gestureTrackingActive;
@@ -1017,6 +1024,24 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       s.gestureResidualAzVel = 0;
     }
   }, [gestureTrackingActive]);
+
+  useEffect(() => {
+    const wasEnabled = pointerOrbitEnabledRef.current;
+    pointerOrbitEnabledRef.current = pointerOrbitEnabled;
+    const s = stateRef.current;
+    if (wasEnabled && !pointerOrbitEnabled) {
+      // Hand tracking owns camera — freeze pointer orbit; yield matrix updates to gestures.
+      s.flightActive = false;
+      s.currentAngularVel *= 0.35;
+      s.gestureAccepting = true;
+    } else if (!wasEnabled && pointerOrbitEnabled) {
+      // Smooth hand-off back to mouse/touch: damp residual velocity (no snap).
+      s.gestureLossSettleUntil =
+        performance.now() + CAMERA_MOTION_TARGETS.gestureLossSettleMsMax;
+      s.currentAngularVel = Math.min(s.currentAngularVel, 0.45);
+      s.gestureResidualAzVel *= 0.5;
+    }
+  }, [pointerOrbitEnabled]);
 
   stateRef.current.activeSphere = activeSphere;
   stateRef.current.focusedNodeId = focusedNodeId;
@@ -3315,6 +3340,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     const onPointerDown = (e: PointerEvent) => {
       if (!container.contains(e.target as Node)) return;
+      if (!pointerOrbitEnabledRef.current) {
+        // Hand tracking arbitration — ignore orbit-drag while MediaPipe owns camera.
+        return;
+      }
       soundEngine.unlock();
       activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (activePointers.size === 2) {
@@ -3337,6 +3366,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     };
 
     const onPointerMove = (e: PointerEvent) => {
+      if (!pointerOrbitEnabledRef.current) return;
       if (activePointers.has(e.pointerId)) {
         activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       }

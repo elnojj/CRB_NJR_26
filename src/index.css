@@ -737,17 +737,21 @@ canvas {
   justify-content: center;
   gap: 4px;
   padding: 0;
+  /* Keep clear of left optics + right FloatingIconToggles trays */
+  max-width: min(220px, calc(100vw - 220px));
 }
 .nojara-logo-image {
   display: block;
-  width: 168px;
-  height: auto;
+  width: auto;
+  height: 1.75rem; /* h-7 */
+  max-width: 100%;
   aspect-ratio: 2584 / 644;
   object-fit: contain;
   flex: 0 0 auto;
   background: transparent;
-  /* Keep mark crisp over sphere blooms without changing the asset */
-  filter: drop-shadow(0 1px 2px rgba(5, 9, 14, 0.72));
+  /* Soft HUD glow over spatial blooms */
+  filter: drop-shadow(0 1px 2px rgba(5, 9, 14, 0.72))
+    drop-shadow(0 0 10px rgba(180, 221, 255, 0.18));
 }
 .nojara-logo-fallback-text {
   font-family: var(--font-display);
@@ -767,7 +771,9 @@ canvas {
   flex: 0 1 auto;
 }
 .nojara-brand-header.is-centered-stack .nojara-logo-image {
-  width: min(196px, 50vw);
+  width: auto;
+  height: clamp(1.5rem, 2.4vw, 2rem); /* h-6 → h-8 */
+  max-width: min(196px, 42vw);
 }
 .nojara-brand-header.is-centered-stack .cerebro-wordmark-image {
   width: 72px;
@@ -795,10 +801,16 @@ canvas {
     gap: 3px;
   }
   .nojara-brand-header .nojara-logo-image {
-    width: 128px;
+    width: auto;
+    height: 1.5rem;
   }
   .nojara-brand-header.is-centered-stack .nojara-logo-image {
-    width: min(152px, 54vw);
+    width: auto;
+    height: 1.5rem;
+    max-width: min(152px, 46vw);
+  }
+  .nojara-brand-header.is-centered-stack {
+    max-width: min(160px, calc(100vw - 168px));
   }
   .nojara-brand-header .cerebro-wordmark-image {
     width: 58px;

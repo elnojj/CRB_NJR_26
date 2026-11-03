@@ -47,6 +47,8 @@ export interface CerebroSessionSnapshot {
   voiceSnapEdge: 'bottom-center' | 'bottom-left' | 'bottom-right' | 'top-right';
   selectedProjectId: string | null;
   navigation: CanonicalNavigationSnapshot;
+  /** Live hand-tracking arbitration — not restored mid-flight after reload. */
+  isHandTrackingActive: boolean;
   /** Tour never resumes mid-step after reload */
   tourActive: false;
   updatedAt: string;
@@ -72,9 +74,26 @@ export const DEFAULT_SESSION: CerebroSessionSnapshot = {
   voiceSnapEdge: 'bottom-center',
   selectedProjectId: null,
   navigation: { ...DEFAULT_NAVIGATION },
+  isHandTrackingActive: false,
   tourActive: false,
   updatedAt: new Date(0).toISOString(),
 };
+
+/** Ephemeral runtime flag — camera orbit yields while true. */
+let handTrackingLive = false;
+
+export function getIsHandTrackingActive(): boolean {
+  return handTrackingLive;
+}
+
+export function setIsHandTrackingActive(active: boolean): void {
+  handTrackingLive = active;
+  try {
+    writeSessionSnapshot({ isHandTrackingActive: active });
+  } catch {
+    /* ignore */
+  }
+}
 
 export function readSessionSnapshot(): CerebroSessionSnapshot {
   if (typeof window === 'undefined') return { ...DEFAULT_SESSION, navigation: { ...DEFAULT_NAVIGATION } };
@@ -87,6 +106,8 @@ export function readSessionSnapshot(): CerebroSessionSnapshot {
       ...parsed,
       version: 1,
       tourActive: false,
+      /** Never resume hand tracking mid-flight after reload */
+      isHandTrackingActive: false,
       openPanels: Array.isArray(parsed.openPanels) ? parsed.openPanels.slice(0, 4) : [],
       navigation: {
         ...DEFAULT_NAVIGATION,

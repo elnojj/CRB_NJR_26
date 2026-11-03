@@ -213,7 +213,8 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           baseOptions: {
             modelAssetPath:
               'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
-            delegate: phone ? 'CPU' : 'GPU',
+            // Always CPU/WASM — isolate MediaPipe from Three.js WebGL to avoid GPU stalls.
+            delegate: 'CPU',
           },
           runningMode: 'VIDEO',
           numHands: wantedHands,
@@ -221,8 +222,8 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
         if (cancelled) return;
         setCvStatusLabel(
           wantedHands === 1
-            ? 'Tracking · one hand'
-            : 'Tracking · two hands'
+            ? 'Tracking · one hand · WASM'
+            : 'Tracking · two hands · WASM'
         );
 
         const ensureFilters = (handCount: number) => {
@@ -231,6 +232,25 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
               Array.from({ length: 42 }, () => new OneEuroFilter(30, 1.1, 0.02, 1.0))
             );
           }
+        };
+
+        /** Secondary EMA (α≈0.2) on normalized landmarks before screen mapping. */
+        const emaState: Array<Array<{ x: number; y: number } | null>> = [];
+        const emaAlpha = 0.2;
+        const smoothNorm = (hi: number, li: number, x: number, y: number) => {
+          while (emaState.length <= hi) emaState.push([]);
+          while (emaState[hi].length <= li) emaState[hi].push(null);
+          const prev = emaState[hi][li];
+          if (!prev) {
+            emaState[hi][li] = { x, y };
+            return { x, y };
+          }
+          const next = {
+            x: emaAlpha * x + (1 - emaAlpha) * prev.x,
+            y: emaAlpha * y + (1 - emaAlpha) * prev.y,
+          };
+          emaState[hi][li] = next;
+          return next;
         };
 
         const detectFrame = () => {
@@ -253,8 +273,9 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
               const mappedHands: [number, number][][] = hands.map((hand, hi) => {
                 const filters = landmarkFiltersRef.current[hi];
                 return hand.map((lm, li) => {
-                  const sx = (1 - lm.x) * 1366;
-                  const sy = lm.y * 1024;
+                  const norm = smoothNorm(hi, li, lm.x, lm.y);
+                  const sx = (1 - norm.x) * 1366;
+                  const sy = norm.y * 1024;
                   const fx = filters[li * 2].filter(sx, now);
                   const fy = filters[li * 2 + 1].filter(sy, now);
                   return [fx, fy] as [number, number];
@@ -756,9 +777,14 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           ref={videoRef}
           playsInline
           muted
+          autoPlay
+          width={640}
+          height={480}
           controls={false}
           disablePictureInPicture
-          className={`absolute inset-0 w-full h-full object-cover scale-x-[-1] transition-opacity duration-300 ${
+          // Keep in DOM layout (never display:none) so MediaPipe can sample frames.
+          style={{ width: 640, height: 480, maxWidth: '100%', maxHeight: '100%' }}
+          className={`absolute inset-0 object-cover scale-x-[-1] transition-opacity duration-300 ${
             hasLiveCam ? (isPhone ? 'opacity-[0.08]' : 'opacity-14') : 'opacity-0'
           }`}
         />

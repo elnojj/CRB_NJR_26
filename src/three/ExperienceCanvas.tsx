@@ -218,6 +218,8 @@ interface ExperienceCanvasProps {
   onOpenMediaTubeFullView?: (tileOrIndex: number | ProjectMediaTubeItem, tile?: ProjectMediaTubeItem) => void;
   onCloseMediaTube?: () => void;
   gestureTrackingActive?: boolean;
+  /** False while hand tracking owns orbit — see CosmographCanvas.pointerOrbitEnabled. */
+  pointerOrbitEnabled?: boolean;
   projectWorldId?: string | null;
   projectWorldState?: 'entry' | 'active' | 'suspended' | 'exiting' | 'unavailable' | null;
   idleOrbitAllowed?: boolean;
@@ -249,6 +251,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
   onOpenMediaTubeFullView,
   onCloseMediaTube,
   gestureTrackingActive = true,
+  pointerOrbitEnabled = true,
   projectWorldId = null,
   projectWorldState = null,
   idleOrbitAllowed = true,
@@ -286,6 +289,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
         onOpenMediaTubeFullView={onOpenMediaTubeFullView}
         onCloseMediaTube={onCloseMediaTube}
         gestureTrackingActive={gestureTrackingActive}
+        pointerOrbitEnabled={pointerOrbitEnabled}
         projectWorldId={projectWorldId}
         projectWorldState={projectWorldState}
         idleOrbitAllowed={idleOrbitAllowed}

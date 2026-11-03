@@ -152,9 +152,12 @@ export function MobileSingleHandController({
               playsInline
               muted
               autoPlay
+              width={640}
+              height={480}
               controls={false}
               disablePictureInPicture
-              className="absolute inset-0 w-full h-full object-cover opacity-35 pointer-events-none"
+              style={{ width: 640, height: 480, maxWidth: '100%', maxHeight: '100%' }}
+              className="absolute inset-0 object-cover opacity-35 pointer-events-none"
             />
             <svg
               className="absolute inset-0 w-full h-full pointer-events-none opacity-60"

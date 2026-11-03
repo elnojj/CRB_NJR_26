@@ -20,6 +20,7 @@ import {
   readSessionSnapshot,
   writeSessionSnapshot,
   hydrationSequence,
+  setIsHandTrackingActive,
 } from './state/cerebroSessionStore';
 import {
   IDLE_PROJECT_WORLD,
@@ -3090,13 +3091,19 @@ export default function App() {
 
   const handleToggleHands = useCallback(() => {
     setHandsActive((wasActive) => {
+      const next = !wasActive;
       if (!wasActive) {
         // Fresh session always starts one-hand until the user picks 2×.
         setHandMode('right-only');
       }
-      return !wasActive;
+      setIsHandTrackingActive(next);
+      return next;
     });
   }, []);
+
+  useEffect(() => {
+    setIsHandTrackingActive(handsActive);
+  }, [handsActive]);
 
   const handleTriggerHandGesture = useCallback(
     (gesture: HandGestureType) => {
@@ -3887,8 +3894,9 @@ export default function App() {
             'tube_close'
           )
         }
-        gestureTrackingActive={gestureTrackingActive}
-        idleOrbitAllowed={idleOrbitAllowed}
+        gestureTrackingActive={handsActive ? gestureTrackingActive : false}
+        pointerOrbitEnabled={!handsActive}
+        idleOrbitAllowed={idleOrbitAllowed && !handsActive}
       />
 
       {/* 3A. Z-35 Focus Pointer, Projected 3D Target Ring, S04 Flight Route & GUI v3.0 QA Inspector */}
