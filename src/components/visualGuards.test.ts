@@ -141,3 +141,12 @@ describe('visual guards: chat on iOS', () => {
     assert.ok(voiceSrc.includes('type="submit"'));
   });
 });
+
+describe('visual guards: journey caption', () => {
+  it('sits above the measured dock instead of a fixed offset', () => {
+    const src = read('./JourneyCaption.tsx');
+    assert.ok(src.includes('useDockClearance'));
+    assert.ok(src.includes('style={{ bottom }}'));
+    assert.ok(!src.includes('bottom-[148px]'));
+  });
+});

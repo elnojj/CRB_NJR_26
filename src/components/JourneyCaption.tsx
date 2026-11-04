@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { JOURNEY_BEATS, type BeatEvidence, type JourneyBeat } from '../three/camera/journeyConfig';
 
 interface JourneyCaptionProps {
@@ -16,7 +16,34 @@ const EVIDENCE_LABEL: Record<BeatEvidence, string | null> = {
   'registry-only': null,
 };
 
+const DOCK_SELECTOR = '[data-testid="voice-card"]';
+const CAPTION_DOCK_GAP_PX = 12;
+
+/** Distance from the viewport bottom that keeps the caption clear of the Call / Hands / Chat dock. */
+function useDockClearance(active: boolean): number {
+  const [bottom, setBottom] = useState(148);
+  useEffect(() => {
+    if (!active) return;
+    const measure = () => {
+      const dock = document.querySelector(DOCK_SELECTOR);
+      if (!dock) return;
+      const rect = dock.getBoundingClientRect();
+      const next = Math.round(window.innerHeight - rect.top + CAPTION_DOCK_GAP_PX);
+      setBottom((prev) => (prev === next ? prev : next));
+    };
+    measure();
+    const id = window.setInterval(measure, 200);
+    window.addEventListener('resize', measure);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener('resize', measure);
+    };
+  }, [active]);
+  return bottom;
+}
+
 export function JourneyCaption({ beat, onSkip, reducedMotion = false }: JourneyCaptionProps) {
+  const bottom = useDockClearance(beat !== null);
   if (!beat) return null;
   const tag = EVIDENCE_LABEL[beat.evidence];
   return (
@@ -35,8 +62,9 @@ export function JourneyCaption({ beat, onSkip, reducedMotion = false }: JourneyC
       ) : null}
       <div
         data-testid="journey-caption"
-        className="pointer-events-none fixed left-1/2 z-[60] w-[min(640px,calc(100vw-24px))] -translate-x-1/2 bottom-[148px] flex flex-col items-center gap-2 text-center"
+        className="pointer-events-none fixed left-1/2 z-[60] w-[min(640px,calc(100vw-24px))] -translate-x-1/2 flex flex-col items-center gap-2 text-center"
         aria-live="polite"
+        style={{ bottom }}
       >
         <div className="rounded-xl border border-[#1E5EFF] bg-[#0A0D14]/90 px-5 py-3">
           <div className="font-mono text-[10px] tracking-[0.2em] text-[#7F93B2]">
