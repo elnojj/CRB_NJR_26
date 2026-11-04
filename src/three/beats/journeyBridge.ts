@@ -11,18 +11,18 @@ export function beatToJourneyBeat(index: number, content: BeatContent | null | u
   const hasContent = Boolean(content?.title || narration || content?.media || content?.metric);
   return {
     id: `beat-${number}`,
-    jId: `B${number}`,
+    jId: content?.label ?? `B${number}`,
     order: index + 1,
     startSec: 0,
     endSec: 0,
     headlineEn: content?.title ?? `Beat ${number} of ${BEAT_COUNT}`,
-    supportEn: 'Sphere 1 · 25 Beats',
+    supportEn: content?.supportLine ?? 'Sphere 1 · 25 Beats',
     narrationEn: narration,
     look: 'hq',
     nodeId: null,
     person: null,
     assetIds: [],
     evidence: content?.media ? 'assets' : 'registry-only',
-    honestNoteEn: hasContent ? undefined : 'Copy, media and metrics for this beat have not been supplied yet.',
+    honestNoteEn: content?.honestNote ?? (hasContent ? undefined : 'Copy, media and metrics for this beat have not been supplied yet.'),
   };
 }

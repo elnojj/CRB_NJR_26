@@ -11,7 +11,7 @@ const ACTIVE_VIDEO_PRIORITY = 10;
 
 const easeOutCubic = (t: number): number => 1 - (1 - t) ** 3;
 
-function paintTitleCard(canvas: HTMLCanvasElement, title: string, accentHex: string): void {
+function paintTitleCard(canvas: HTMLCanvasElement, title: string, caption: string | undefined, accentHex: string): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   const { width, height } = canvas;
@@ -25,7 +25,12 @@ function paintTitleCard(canvas: HTMLCanvasElement, title: string, accentHex: str
   ctx.fillStyle = '#f2f6f8';
   ctx.font = `600 ${Math.round(height * 0.16)}px "Inter", "Helvetica Neue", sans-serif`;
   ctx.textBaseline = 'middle';
-  ctx.fillText(title, width * 0.13, height * 0.5, width * 0.78);
+  ctx.fillText(title, width * 0.13, height * (caption ? 0.44 : 0.5), width * 0.78);
+  if (caption) {
+    ctx.fillStyle = 'rgba(159,183,216,0.92)';
+    ctx.font = `500 ${Math.round(height * 0.075)}px "JetBrains Mono", ui-monospace, monospace`;
+    ctx.fillText(caption.toUpperCase(), width * 0.13, height * 0.64, width * 0.8);
+  }
 }
 
 /**
@@ -86,7 +91,7 @@ export class MediaViewportSlot implements BeatSlot<BeatMediaContent> {
         const canvas = document.createElement('canvas');
         canvas.width = TITLE_TEXTURE_PX;
         canvas.height = Math.round(TITLE_TEXTURE_PX / this.aspect);
-        paintTitleCard(canvas, content.title ?? '', content.accentHex ?? DEFAULT_ACCENT);
+        paintTitleCard(canvas, content.title ?? '', content.caption, content.accentHex ?? DEFAULT_ACCENT);
         const texture = new THREE.CanvasTexture(canvas);
         texture.colorSpace = THREE.SRGBColorSpace;
         this.staticTexture = texture;

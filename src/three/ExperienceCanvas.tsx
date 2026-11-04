@@ -127,6 +127,7 @@ export const SPHERE_FALLBACK_REST_DATA_URI = `data:image/svg+xml;utf8,${encodeUR
 
 import type { SpatialPanelSpec } from './spatialPanels';
 import { Sphere1Canvas } from './beats/Sphere1Canvas';
+import { pitchContentProvider } from './beats/pitchContent';
 import { beatToJourneyBeat } from './beats/journeyBridge';
 import { resolveEnvironmentMode, type EnvironmentMode } from './beats/environmentMode';
 import type { BeatContentProvider, BeatSlotFactories } from './beats/beatTypes';
@@ -238,7 +239,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
             idleOrbitAllowed={idleOrbitAllowed}
             forceWebglFallback={forceWebglFallback}
             cameraCommand={cameraCommand}
-            content={beatContent}
+            content={beatContent ?? pitchContentProvider}
             factories={beatSlotFactories}
             onBeat={(index, content) => onJourneyBeat?.(index === null ? null : beatToJourneyBeat(index, content))}
             onTelemetryChange={onTelemetryChange}

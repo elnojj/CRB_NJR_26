@@ -140,3 +140,23 @@ export function wordReveal(reveal: number, index: number, count: number, overlap
   const local = (reveal * span - index) / overlap;
   return Math.min(1, Math.max(0, local));
 }
+
+export const WORD_RISE_SEC = 0.5;
+
+/** Start time of every word: a fixed stagger, plus a pause after each word that ends a sentence. */
+export function wordStartTimes(words: readonly string[], staggerSec: number, sentencePauseSec: number): number[] {
+  const starts: number[] = [];
+  let t = 0;
+  words.forEach((word, i) => {
+    starts.push(t);
+    t += staggerSec + (i < words.length - 1 && /[.!?]["')\]]*$/.test(word) ? sentencePauseSec : 0);
+  });
+  return starts;
+}
+
+/** Seconds from the first word starting to the last word fully shown. */
+export function textRevealSec(words: readonly string[], staggerSec: number, sentencePauseSec: number): number {
+  if (words.length === 0) return 0;
+  const starts = wordStartTimes(words, staggerSec, sentencePauseSec);
+  return starts[starts.length - 1] + WORD_RISE_SEC;
+}

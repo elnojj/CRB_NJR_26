@@ -68,6 +68,7 @@ async function main(): Promise<void> {
     ['mediaTubeLayer', 'src/three/mediaTubeLayer.test.ts'],
     ['nodeTokens', 'src/three/nodeTokens.test.ts'],
     ['sphere1Beats', 'src/three/beats/beats.test.ts'],
+    ['pitchBeats', 'src/three/beats/pitchBeats.test.ts'],
     ['motionPreference', 'src/utils/motionPreference.test.ts'],
     ['keyboardInset', 'src/gui/keyboardInset.test.ts'],
   ] as const) {

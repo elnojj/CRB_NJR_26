@@ -6,6 +6,10 @@ import type { BeatMetricContent, BeatSlot } from './beatTypes';
 const CARD_W = 0.78;
 const CARD_H = 0.42;
 const DEFAULT_ACCENT = '#d4af37';
+const VALUE_MAX_FONT = 0.21;
+const VALUE_MIN_FONT = 0.075;
+/** Usable text width inside the card, in units of font size times characters. */
+const VALUE_FIT = 1.24;
 
 const easeOutCubic = (t: number): number => 1 - (1 - t) ** 3;
 
@@ -73,6 +77,8 @@ export class MetricSlot implements BeatSlot<BeatMetricContent> {
     this.label.text = content.label.toUpperCase();
     this.label.sync();
     this.shown = '';
+    const length = typeof content.value === 'string' ? content.value.length : String(content.value).length + 2;
+    this.value.fontSize = Math.min(VALUE_MAX_FONT, Math.max(VALUE_MIN_FONT, VALUE_FIT / Math.max(6, length)));
     this.setReveal(0);
   }
 

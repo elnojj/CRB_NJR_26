@@ -46,6 +46,8 @@ export interface BeatTextContent {
   colorHex?: string;
   /** Delay between consecutive words, seconds. */
   staggerSec?: number;
+  /** Extra pause after a word that ends a sentence, seconds. */
+  sentencePauseSec?: number;
 }
 
 export type BeatMediaKind = 'image' | 'video' | 'title';
@@ -56,6 +58,8 @@ export interface BeatMediaContent {
   url?: string;
   /** Text for a `title` node. */
   title?: string;
+  /** Small status line under the title, e.g. "Playback pending". */
+  caption?: string;
   /** Width / height. Defaults to 16:9. */
   aspect?: number;
   accentHex?: string;
@@ -71,7 +75,13 @@ export interface BeatMetricContent {
 }
 
 export interface BeatContent {
+  /** Stable editorial id shown in the caption, e.g. "J17". */
+  label?: string;
   title?: string;
+  /** Second caption line, e.g. the environment and timeline slot. */
+  supportLine?: string;
+  /** Shown under the caption when the beat cannot show real evidence. */
+  honestNote?: string;
   text?: BeatTextContent | null;
   media?: BeatMediaContent | null;
   metric?: BeatMetricContent | null;

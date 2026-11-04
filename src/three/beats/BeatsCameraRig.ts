@@ -33,15 +33,16 @@ export interface BeatsCameraRigCallbacks {
 
 const MIN_ORBIT_RADIUS = 7.5;
 const MAX_ORBIT_RADIUS = 34;
-const SENSOR_HALF_HEIGHT_MM = 12;
+export const FILM_GAUGE_MM = 36;
 const RETURN_SEC = 1.6;
 const RETURN_EASE = 'power2.inOut';
 
 const damp = (current: number, target: number, rate: number, dt: number): number =>
   current + (target - current) * (1 - Math.exp(-rate * dt));
 
-export const focalToVerticalFovDeg = (focalMm: number): number =>
-  THREE.MathUtils.radToDeg(2 * Math.atan(SENSOR_HALF_HEIGHT_MM / Math.max(1, focalMm)));
+/** Mirrors `PerspectiveCamera.setFocalLength`: the 36 mm gauge spans the longer side, so focal length alone does not fix vertical FOV. */
+export const focalToVerticalFovDeg = (focalMm: number, aspect = 16 / 9): number =>
+  THREE.MathUtils.radToDeg(2 * Math.atan((0.5 * FILM_GAUGE_MM) / Math.max(aspect, 1) / Math.max(1, focalMm)));
 
 export class BeatsCameraRig {
   private mode: RigMode = 'orbit';
@@ -252,10 +253,10 @@ export class BeatsCameraRig {
     cam.up.set(0, 1, 0);
     cam.lookAt(this.lookAt);
     if (this.rollDeg !== 0) cam.rotateZ(THREE.MathUtils.degToRad(this.rollDeg));
-    const fov = focalToVerticalFovDeg(this.focalMm);
-    if (Math.abs(cam.fov - fov) > 0.01) {
-      cam.fov = fov;
-      cam.updateProjectionMatrix();
+    const fov = focalToVerticalFovDeg(this.focalMm, cam.aspect);
+    if (cam.filmGauge !== FILM_GAUGE_MM || Math.abs(cam.fov - fov) > 0.01) {
+      cam.filmGauge = FILM_GAUGE_MM;
+      cam.setFocalLength(this.focalMm);
     }
   }
 

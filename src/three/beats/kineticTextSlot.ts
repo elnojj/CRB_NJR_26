@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Text } from 'troika-three-text';
 import { WEBGL_RENDER_ORDER } from '../renderOrder';
-import { layoutWords, wordReveal, type WordSlot } from './beatLayout';
+import { layoutWords, textRevealSec, WORD_RISE_SEC, wordStartTimes, type WordSlot } from './beatLayout';
 import type { BeatSlot, BeatTextContent } from './beatTypes';
 
 const DEFAULT_FONT_SIZE = 0.17;
@@ -10,7 +10,8 @@ const MAX_BLOCK_WIDTH = 2.5;
 const GAP_EM = 0.3;
 const LINE_HEIGHT_EM = 1.3;
 const RISE_EM = 0.6;
-const DEFAULT_STAGGER_SEC = 0.12;
+const DEFAULT_STAGGER_SEC = 0.18;
+const DEFAULT_SENTENCE_PAUSE_SEC = 0.45;
 /** Width guess used until troika reports real glyph bounds. */
 const EST_ADVANCE_EM = 0.58;
 
@@ -78,9 +79,9 @@ export class KineticTextSlot implements BeatSlot<BeatTextContent> {
     this.pose();
   }
 
+  /** Real seconds the whole line takes to appear, so the container can play it at the authored pace. */
   revealSec(): number {
-    const n = this.content?.words.length ?? 0;
-    return Math.max(0.9, n * (this.content?.staggerSec ?? DEFAULT_STAGGER_SEC) + 0.6);
+    return this.content ? textRevealSec(this.content.words, this.stagger(), this.pause()) : 0;
   }
 
   dispose(): void {
@@ -103,13 +104,23 @@ export class KineticTextSlot implements BeatSlot<BeatTextContent> {
 
   private pose(): void {
     const fontSize = this.content?.fontSize ?? DEFAULT_FONT_SIZE;
+    const starts = wordStartTimes(this.content?.words ?? [], this.stagger(), this.pause());
+    const elapsed = this.reveal * this.revealSec();
     this.words.forEach((text, i) => {
       const slot = this.placed[i];
       if (!slot) return;
-      const p = easeOutCubic(wordReveal(this.reveal, i, this.words.length));
+      const p = easeOutCubic(Math.min(1, Math.max(0, (elapsed - starts[i]) / WORD_RISE_SEC)));
       text.position.set(slot.x, slot.y - (1 - p) * fontSize * RISE_EM, 0);
       text.fillOpacity = p;
     });
+  }
+
+  private stagger(): number {
+    return this.content?.staggerSec ?? DEFAULT_STAGGER_SEC;
+  }
+
+  private pause(): number {
+    return this.content?.sentencePauseSec ?? DEFAULT_SENTENCE_PAUSE_SEC;
   }
 
   private clearWords(): void {

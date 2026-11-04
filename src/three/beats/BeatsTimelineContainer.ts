@@ -179,6 +179,7 @@ export class BeatsTimelineContainer {
       this.applyReveal(node);
       return;
     }
+    // Slots shape their own easing, so the reveal itself runs linearly and word timing stays as authored.
     const showSec = Math.max(
       DEFAULT_REVEAL_SEC,
       node.text.revealSec?.() ?? 0,
@@ -189,7 +190,7 @@ export class BeatsTimelineContainer {
       gsap.to(node.state, {
         reveal: target,
         duration: target === 1 ? showSec : HIDE_SEC,
-        ease: target === 1 ? 'power2.out' : 'power2.in',
+        ease: target === 1 ? 'none' : 'power2.in',
         onUpdate: () => this.applyReveal(node),
       });
     });
