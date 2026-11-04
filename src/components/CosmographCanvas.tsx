@@ -2945,49 +2945,50 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     scene.add(mediaTubeGroup);
 
     const mediaTubeTileMeshes: THREE.Mesh[] = [];
+    // Tiles show the media itself and nothing else: no kind badge, file name, subtitle or extension.
+    const TILE_TEX_W = 640;
+    const TILE_TEX_H = 360;
     const buildTileCanvasTexture = (tile: ProjectMediaTubeItem): THREE.CanvasTexture => {
       const c = document.createElement('canvas');
-      c.width = 320;
-      c.height = 180;
+      c.width = TILE_TEX_W;
+      c.height = TILE_TEX_H;
       const ctx = c.getContext('2d');
+
+      const drawFrame = () => {
+        if (!ctx) return;
+        ctx.strokeStyle = tile.accentHex;
+        ctx.globalAlpha = 0.85;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(1.5, 1.5, TILE_TEX_W - 3, TILE_TEX_H - 3);
+        ctx.globalAlpha = 1;
+      };
 
       const drawBaseCard = () => {
         if (!ctx) return;
-        const grad = ctx.createLinearGradient(0, 0, 320, 180);
+        const grad = ctx.createLinearGradient(0, 0, TILE_TEX_W, TILE_TEX_H);
         grad.addColorStop(0, '#142632');
         grad.addColorStop(1, '#101D27');
         ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 320, 180);
-
-        // Subtle radial glow inside tile
-        const rad = ctx.createRadialGradient(160, 84, 10, 160, 84, 130);
+        ctx.fillRect(0, 0, TILE_TEX_W, TILE_TEX_H);
+        const rad = ctx.createRadialGradient(
+          TILE_TEX_W / 2,
+          TILE_TEX_H / 2,
+          20,
+          TILE_TEX_W / 2,
+          TILE_TEX_H / 2,
+          TILE_TEX_W * 0.4
+        );
         rad.addColorStop(0, `${tile.accentHex}44`);
         rad.addColorStop(1, 'rgba(16, 29, 39, 0)');
         ctx.fillStyle = rad;
-        ctx.fillRect(0, 0, 320, 180);
-
-        // Outer glass frame
-        ctx.strokeStyle = tile.accentHex;
-        ctx.lineWidth = 3;
-        ctx.strokeRect(4, 4, 312, 172);
-
-        // Kind badge
-        ctx.fillStyle = tile.accentHex;
-        ctx.font = 'bold 13px "JetBrains Mono", monospace';
-        ctx.fillText(`${tile.kind.toUpperCase()} · #${String(tile.index + 1).padStart(2, '0')}`, 18, 30);
-
-        // Title & subtitle
-        ctx.fillStyle = '#F2F6F8';
-        ctx.font = 'bold 14px "JaapokkiSubtract", "Sora", "Inter", sans-serif';
-        ctx.fillText(tile.title.slice(0, 32), 18, 96);
-        ctx.fillStyle = '#BDCBD3';
-        ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText(tile.subtitle.slice(0, 38), 18, 126);
+        ctx.fillRect(0, 0, TILE_TEX_W, TILE_TEX_H);
+        drawFrame();
       };
 
       drawBaseCard();
       const tex = new THREE.CanvasTexture(c);
       tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 4;
 
       if (tile.posterUrl) {
         const img = new Image();
@@ -2995,19 +2996,16 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         img.onload = () => {
           if (!ctx) return;
           try {
-            ctx.drawImage(img, 0, 0, 320, 180);
-            ctx.fillStyle = 'rgba(16, 29, 39, 0.55)';
-            ctx.fillRect(0, 0, 320, 38);
-            ctx.fillRect(0, 140, 320, 40);
-            ctx.strokeStyle = tile.accentHex;
-            ctx.lineWidth = 3;
-            ctx.strokeRect(4, 4, 312, 172);
-            ctx.fillStyle = tile.accentHex;
-            ctx.font = 'bold 12px "JetBrains Mono", monospace';
-            ctx.fillText(`${tile.kind.toUpperCase()} · #${String(tile.index + 1).padStart(2, '0')}`, 16, 26);
-            ctx.fillStyle = '#F2F6F8';
-            ctx.font = 'bold 13px "JaapokkiSubtract", "Sora", "Inter", sans-serif';
-            ctx.fillText(tile.title.slice(0, 32), 16, 166);
+            const iw = img.naturalWidth || TILE_TEX_W;
+            const ih = img.naturalHeight || TILE_TEX_H;
+            // Contain-fit: the whole frame stays visible at its own aspect ratio, never cropped or stretched.
+            const scale = Math.min(TILE_TEX_W / iw, TILE_TEX_H / ih);
+            const dw = iw * scale;
+            const dh = ih * scale;
+            ctx.fillStyle = '#05090E';
+            ctx.fillRect(0, 0, TILE_TEX_W, TILE_TEX_H);
+            ctx.drawImage(img, (TILE_TEX_W - dw) / 2, (TILE_TEX_H - dh) / 2, dw, dh);
+            drawFrame();
             tex.needsUpdate = true;
           } catch {
             // Clean fallback to already rendered base card

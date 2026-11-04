@@ -36,7 +36,7 @@ export const SystemStatusLayer: React.FC<SystemStatusLayerProps> = ({
   onRetryWebgl,
   onRetryVoice,
   onRetryDrive,
-  showTelemetry = true,
+  showTelemetry = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('telemetry'),
 }) => {
   const voiceFailed = voiceAuthFailed || elevenLabsAuthFailed;
   const [offline, setOffline] = useState(

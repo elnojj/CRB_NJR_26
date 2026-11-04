@@ -2157,9 +2157,7 @@ export default function App() {
               projectId: targetProj,
               focusedTileIndex: idx,
             }));
-            const items = buildProjectMediaTubeItems(targetProj);
-            const tile = items[idx] || items[0];
-            setCaptionBubble(`3D Tube Tile #${idx + 1} · ${tile.title}`);
+            setCaptionBubble(`Media ${idx + 1}`);
           } else if (action.action === 'fullview') {
             const idx =
               typeof action.tileIndex === 'number'
@@ -2184,7 +2182,7 @@ export default function App() {
               url: tile.url || '',
               isSample: false,
             });
-            setCaptionBubble(`Full View · ${tile.title} (Esc or Close restores exact tube pose)`);
+            setCaptionBubble('Full view · Esc or Close restores the media tube');
           } else {
             setSelectedProjectId(targetProj);
             setMediaTubeState((prev) => ({

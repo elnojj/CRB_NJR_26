@@ -150,3 +150,20 @@ describe('visual guards: journey caption', () => {
     assert.ok(!src.includes('bottom-[148px]'));
   });
 });
+
+describe('visual guards: media tiles show only the media', () => {
+  it('tile textures draw no kind badge, title, subtitle or file name, and contain-fit the poster', () => {
+    const a = canvasSrc.indexOf('const buildTileCanvasTexture');
+    const b = canvasSrc.indexOf('const tubeItemHasMedia');
+    const tileSrc = canvasSrc.slice(a, b);
+    assert.ok(!tileSrc.includes('fillText'));
+    assert.ok(!tileSrc.includes('tile.title'));
+    assert.ok(!tileSrc.includes('tile.subtitle'));
+    assert.ok(tileSrc.includes('Math.min(TILE_TEX_W / iw, TILE_TEX_H / ih)'));
+  });
+
+  it('keeps the FPS / draw-call strip behind ?telemetry', () => {
+    const status = read('./SystemStatusLayer.tsx');
+    assert.ok(status.includes(".has('telemetry')"));
+  });
+});
