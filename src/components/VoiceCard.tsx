@@ -413,7 +413,6 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const dockStyle: React.CSSProperties = {
     left: '50%',
     transform: 'translateX(-50%)',
-    bottom: 'max(16px, env(safe-area-inset-bottom, 0px))',
     width: 'min(360px, calc(100vw - 24px))',
   };
 

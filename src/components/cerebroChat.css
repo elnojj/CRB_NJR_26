@@ -8,8 +8,20 @@
   gap: 10px;
   pointer-events: none;
   max-width: calc(100vw - 24px);
+  /* Bottom safe area: the gap is added on top of the inset (not max()'d with it) so the
+     dock clears iOS home indicators and mobile/tablet browser toolbars and overlays. */
+  --cerebro-dock-gap: 16px;
+  bottom: calc(var(--cerebro-dock-gap) + env(safe-area-inset-bottom, 0px));
   /* Keep dock + chat on one screen — never a second scrollable page */
-  max-height: calc(100dvh - 24px - env(safe-area-inset-bottom, 0px) - env(safe-area-inset-top, 0px));
+  max-height: calc(
+    100dvh - var(--cerebro-dock-gap) - env(safe-area-inset-bottom, 0px) - env(safe-area-inset-top, 0px) - 8px
+  );
+}
+
+@media (pointer: coarse) {
+  .cerebro-dock {
+    --cerebro-dock-gap: 28px;
+  }
 }
 
 .cerebro-dock > * {
@@ -411,7 +423,6 @@
 @media (max-width: 767px) {
   .cerebro-dock {
     width: min(100vw - 16px, 360px);
-    bottom: max(8px, env(safe-area-inset-bottom, 0px));
   }
 
   .cerebro-chat,

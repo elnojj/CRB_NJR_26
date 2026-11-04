@@ -517,7 +517,6 @@ const HAND_JITTER_FILTER_MS = 120;
 const HAND_DOLLY_GAIN = 4.5;
 const HAND_ROLL_MAX_DEG = 25;
 const HAND_ROLL_RELAX_PER_SEC = 1.5;
-const SHOW_MISSING_MEDIA_PLACEHOLDERS = true;
 
 interface JourneyAdoptState {
   azimuth: number;
@@ -655,18 +654,28 @@ const CinemaFilmGrainVignetteShader = {
   `,
 };
 
+// Dust density/opacity were cut by 60% (0.4x) so the cloud reads as faint depth
+// behind the node plane rather than a milky additive wash over nodes and text.
+const GALAXY_DUST_COUNT_GPU = 1280;
+const GALAXY_DUST_COUNT_SOFTWARE = 640;
+const GALAXY_DUST_ALPHA_SCALE = 0.4;
+const GALAXY_DUST_ALPHA_CAP = 0.42 * GALAXY_DUST_ALPHA_SCALE;
+const SPIRAL_SHELL_COUNT = 170;
+const SPIRAL_SHELL_OPACITY = 0.32 * 0.4;
+
 /**
- * 6,400-Particle Multi-Layer Spiral Galaxy with GPU Bokeh (`buildLiquidGlassGalaxySphere`):
- * Populates a sphere with a 4-arm, 3-layer spiral galaxy (3,200 particles per sphere on GPU,
- * 1,600 on software rasterizers) using a custom THREE.ShaderMaterial vertex/fragment shader
+ * Multi-Layer Spiral Galaxy with GPU Bokeh (`buildLiquidGlassGalaxySphere`):
+ * Populates a sphere with a 4-arm, 3-layer spiral galaxy (1,280 particles per sphere on GPU,
+ * 640 on software rasterizers) using a custom THREE.ShaderMaterial vertex/fragment shader
  * that computes real-time Depth-of-Field (DOF) bokeh disc diffusion relative to uFocalDistance.
  */
 function buildLiquidGlassGalaxySphere(
   parentGroup: THREE.Group,
   sphereTag: ConnectedSphereId,
-  isSoftwareGl: boolean
+  isSoftwareGl: boolean,
+  shellScale: number
 ): { points: THREE.Points; uniforms: { uTime: { value: number }; uFocalDistance: { value: number }; uAudioRms: { value: number } } } {
-  const particleCount = isSoftwareGl ? 1600 : 3200;
+  const particleCount = isSoftwareGl ? GALAXY_DUST_COUNT_SOFTWARE : GALAXY_DUST_COUNT_GPU;
   const positions = new Float32Array(particleCount * 3);
   const colors = new Float32Array(particleCount * 3);
   const sizes = new Float32Array(particleCount);
@@ -752,9 +761,15 @@ function buildLiquidGlassGalaxySphere(
       varying vec3 vColor;
       varying float vBokehBlur;
       varying float vTwinkle;
+      varying float vEdgeFade;
+      varying float vBehindPlane;
 
       void main() {
         vColor = customColor;
+        // Soft radial falloff so the galactic disc dissolves before the shell wall
+        // instead of being sliced into a hard flat edge by the glass sphere.
+        float rLocal = length(position);
+        vEdgeFade = 1.0 - smoothstep(3.1, 4.7, rLocal);
         // Subtle 4-arm differential galactic drift
         float r = length(position.xz);
         float angleDelta = uTime * (0.045 / max(0.8, r * 0.45));
@@ -768,6 +783,11 @@ function buildLiquidGlassGalaxySphere(
 
         vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
         float viewDist = -mvPosition.z;
+
+        // Dust nearer the camera than the sphere centre (the node coordinate plane)
+        // fades out, so it only ever reads as depth behind nodes, rings and text.
+        float centreDist = -(modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0)).z;
+        vBehindPlane = 1.0 - smoothstep(-0.4, 1.8, (centreDist - viewDist) / ${shellScale.toFixed(3)});
 
         // Real-time Depth-of-Field (DOF) circle-of-confusion relative to uFocalDistance
         float coc = clamp(abs(viewDist - uFocalDistance) / 9.5, 0.0, 1.0);
@@ -783,6 +803,8 @@ function buildLiquidGlassGalaxySphere(
       varying vec3 vColor;
       varying float vBokehBlur;
       varying float vTwinkle;
+      varying float vEdgeFade;
+      varying float vBehindPlane;
 
       void main() {
         vec2 uv = gl_PointCoord - vec2(0.5);
@@ -793,9 +815,10 @@ function buildLiquidGlassGalaxySphere(
         float sharpStar = exp(-d * d * 7.5);
         float softBokeh = smoothstep(1.0, 0.15, d) * (0.55 + 0.45 * smoothstep(0.45, 0.82, d));
         float profile = mix(sharpStar, softBokeh, vBokehBlur);
-        float alpha = profile * mix(0.32, 0.12, vBokehBlur) * vTwinkle;
+        float alpha = profile * mix(0.32, 0.12, vBokehBlur) * vTwinkle * ${GALAXY_DUST_ALPHA_SCALE.toFixed(2)};
+        alpha *= vEdgeFade * vBehindPlane;
 
-        gl_FragColor = vec4(vColor * (0.95 + (1.0 - vBokehBlur) * 0.25), clamp(alpha, 0.0, 0.42));
+        gl_FragColor = vec4(vColor * (0.95 + (1.0 - vBokehBlur) * 0.25), clamp(alpha, 0.0, ${GALAXY_DUST_ALPHA_CAP.toFixed(3)}));
       }
     `,
     transparent: true,
@@ -805,6 +828,7 @@ function buildLiquidGlassGalaxySphere(
 
   const points = new THREE.Points(geo, mat);
   points.renderOrder = 1;
+  points.scale.setScalar(shellScale);
   parentGroup.add(points);
   return { points, uniforms };
 }
@@ -2177,10 +2201,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       root.add(shellGroup);
 
       // Contained Multi-Layer Galaxy Dust with GPU Bokeh
-      const galaxy = buildLiquidGlassGalaxySphere(root, sphereTag, isSoftwareGl);
+      const galaxy = buildLiquidGlassGalaxySphere(root, sphereTag, isSoftwareGl, shellScale);
 
-      // 420 Contained Spiral Shell Particles (strictly inside r = 5.45u < 6.2u)
-      const spiralCount = 420;
+      // Contained Spiral Shell Particles (SPIRAL_SHELL_COUNT) (strictly inside r = 5.45u < 6.2u)
+      const spiralCount = SPIRAL_SHELL_COUNT;
       const spiralPos = new Float32Array(spiralCount * 3);
       const spiralPhases = new Float32Array(spiralCount);
       for (let sp = 0; sp < spiralCount; sp++) {
@@ -2202,7 +2226,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         color: new THREE.Color(isHq ? '#B4DDFF' : '#D4AF37'),
         size: 0.055,
         transparent: true,
-        opacity: 0.32,
+        opacity: SPIRAL_SHELL_OPACITY,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
       });
@@ -3240,51 +3264,35 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       return tex;
     };
 
-    // Slots with no verified url/poster render an empty outline frame so gaps are easy to spot
-    // while reviewing the journey. Flip SHOW_MISSING_MEDIA_PLACEHOLDERS to hide them.
+    // Slots with no verified url/poster never render a planar panel. They show a small 3D
+    // "gap" badge (open-arc ring + emissive core) at the slot position instead.
     const tubeItemHasMedia = (item: ProjectMediaTubeItem | undefined): boolean =>
       Boolean(item?.url || item?.posterUrl);
-    const buildMissingMediaTexture = (slotLabel: string): THREE.CanvasTexture => {
-      const c = document.createElement('canvas');
-      c.width = 320;
-      c.height = 180;
-      const ctx = c.getContext('2d');
-      if (ctx) {
-        ctx.clearRect(0, 0, 320, 180);
-        ctx.strokeStyle = 'rgba(180, 221, 255, 0.55)';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([10, 8]);
-        ctx.strokeRect(6, 6, 308, 168);
-        ctx.setLineDash([]);
-        ctx.fillStyle = 'rgba(180, 221, 255, 0.7)';
-        ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(`MISSING MEDIA · ${slotLabel}`, 160, 94);
-      }
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      return tex;
-    };
-    const buildTileMaterial = (
-      item: ProjectMediaTubeItem | undefined,
-      slotIndex: number
-    ): THREE.MeshBasicMaterial => {
+    const buildTileMaterial = (item: ProjectMediaTubeItem | undefined): THREE.MeshBasicMaterial => {
       const hasMedia = item !== undefined && tubeItemHasMedia(item);
-      let map: THREE.CanvasTexture | null = null;
-      if (item && hasMedia) {
-        map = buildTileCanvasTexture(item);
-      } else if (SHOW_MISSING_MEDIA_PLACEHOLDERS) {
-        map = buildMissingMediaTexture(`#${String(slotIndex + 1).padStart(2, '0')}`);
-      }
       return new THREE.MeshBasicMaterial({
-        map,
+        map: item && hasMedia ? buildTileCanvasTexture(item) : null,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: hasMedia ? 0.94 : 0.8,
+        opacity: 0.94,
       });
     };
-    const tileIsVisible = (item: ProjectMediaTubeItem | undefined): boolean =>
-      SHOW_MISSING_MEDIA_PLACEHOLDERS || tubeItemHasMedia(item);
+    const mediaGapArcGeo = new THREE.TorusGeometry(0.34, 0.022, 10, 48, Math.PI * 1.5);
+    const mediaGapCoreGeo = new THREE.SphereGeometry(0.075, 16, 16);
+    const mediaGapArcMat = new THREE.MeshBasicMaterial({
+      color: 0xb4ddff,
+      transparent: true,
+      opacity: 0.78,
+      depthWrite: false,
+    });
+    const mediaGapCoreMat = new THREE.MeshBasicMaterial({
+      color: 0xf2f6f8,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+    });
+    extraDisposables.push(mediaGapArcGeo, mediaGapCoreGeo, mediaGapArcMat, mediaGapCoreMat);
+    const mediaGapBadges: THREE.Group[] = [];
 
     let mountedTubeProjectId = 'SEVEN';
     const initialTubeItems = buildProjectMediaTubeItems('SEVEN');
@@ -3306,8 +3314,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       }
       tileGeo.computeVertexNormals();
 
-      const tileMesh = new THREE.Mesh(tileGeo, buildTileMaterial(initialTubeItems[idx], idx));
-      tileMesh.visible = tileIsVisible(initialTubeItems[idx]);
+      const tileMesh = new THREE.Mesh(tileGeo, buildTileMaterial(initialTubeItems[idx]));
+      tileMesh.visible = tubeItemHasMedia(initialTubeItems[idx]);
       tileMesh.position.set(Math.sin(theta) * r, y, Math.cos(theta) * r);
       tileMesh.lookAt(0, y, 0);
       // Flip so front face points outward/inward cleanly
@@ -3318,6 +3326,16 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       };
       mediaTubeGroup.add(tileMesh);
       mediaTubeTileMeshes.push(tileMesh);
+
+      const gapBadge = new THREE.Group();
+      gapBadge.add(new THREE.Mesh(mediaGapArcGeo, mediaGapArcMat));
+      gapBadge.add(new THREE.Mesh(mediaGapCoreGeo, mediaGapCoreMat));
+      gapBadge.position.copy(tileMesh.position);
+      gapBadge.lookAt(0, y, 0);
+      gapBadge.visible = !tubeItemHasMedia(initialTubeItems[idx]);
+      gapBadge.userData = { isMediaGapBadge: true, tileIndex: idx };
+      mediaTubeGroup.add(gapBadge);
+      mediaGapBadges.push(gapBadge);
     }
 
     isolateDecorativeGeometry(scene, cosmeticFade, camera);
@@ -4112,8 +4130,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             const oldMat = mesh.material as THREE.MeshBasicMaterial;
             oldMat.map?.dispose();
             oldMat.dispose();
-            mesh.material = buildTileMaterial(item, ti);
-            mesh.visible = tileIsVisible(item);
+            mesh.material = buildTileMaterial(item);
+            const hasMedia = tubeItemHasMedia(item);
+            mesh.visible = hasMedia;
+            mediaGapBadges[ti].visible = !hasMedia;
           }
         }
 
@@ -4142,6 +4162,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           const m = mediaTubeTileMeshes[ti];
           const isFocusedTile = tubeProp?.focusedTileIndex === ti;
           m.scale.setScalar(isFocusedTile ? 1.18 : 1.0);
+          const gapBadge = mediaGapBadges[ti];
+          gapBadge.scale.setScalar(isFocusedTile ? 1.35 : 1.0);
+          if (gapBadge.visible && !s.reducedMotion) {
+            gapBadge.children[0].rotation.z += dt * 0.6;
+          }
         }
       }
 
