@@ -13,7 +13,7 @@ alwaysApply: false
 - Canvas keeps `touch-action: none`. Pointer events cover mouse, touch and pen; do not add separate touch handlers.
 
 ## Camera authority
-- `CameraDirector` owns the camera. Other code requests moves through it; it does not set `camera.position` directly.
+- `CameraDirector` owns the camera. Prefer requesting moves through it over setting `camera.position` directly.
 - Priority: `UI_INTERACT` over `CAMERA_TWO_HAND` over `CAMERA_ONE_HAND` over pointer/touch orbit. A pressed HUD element or grabbed node must lock camera input.
 - Presets are 28 / 35 / 50 / 85 mm. Use the 36 mm film-gauge helpers for FOV, never raw FOV numbers.
 - Flights and journeys are interruptible by pointer-down or key press.

@@ -166,7 +166,7 @@ canvas {
   box-shadow: var(--shadow-hud);
 }
 
-/* Feature queries need a literal length — keep in sync with --blur-glass (12px). */
+/* Feature queries need a literal length; any blur value works as a capability probe. */
 @supports not ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
   .cj-glass-card,
   .glass-panel,
@@ -897,9 +897,9 @@ button.cerebro-infograph-label[data-spatial-billboard='true'][data-chrome-state=
 /* --- Cerebro-02 Skin & Workspace Contract Classes --- */
 [data-skin='cerebro-02'] {
   --token-bg-canvas: var(--c-canvas);
-  --token-glass-fill: rgba(27, 34, 48, 0.88);
+  --token-glass-fill: var(--token-glass);
   --token-glass-solid: var(--c-surface);
-  --token-glass-border: rgba(197, 204, 214, 0.22);
+  --token-glass-border: rgba(242, 246, 248, 0.12);
   --token-focus: var(--c-gold);
 }
 
@@ -952,4 +952,63 @@ button.cerebro-infograph-label {
 /* Brand lockup: sits 36px below the top edge (plus the iOS safe-area inset) instead of hugging it. */
 header[data-testid='workspace-header'] {
   padding-top: calc(36px + env(safe-area-inset-top, 0px));
+}
+
+/* --- Void Glass 3D perspective (contract nojara.cerebro.system/2.0, section 3) --- */
+.cerebro-3d-stage {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+.cerebro-3d-panel {
+  background: var(--token-glass-fill);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--token-glass-border);
+  border-radius: 20px;
+  transform: rotateX(12deg) rotateY(-8deg) translateZ(40px);
+  transform-style: preserve-3d;
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cerebro-3d-panel:hover,
+.cerebro-3d-panel:focus-within {
+  transform: rotateX(12deg) rotateY(-8deg) translateZ(58px);
+}
+
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .cerebro-3d-panel,
+  .cerebro-3d-panel:hover,
+  .cerebro-3d-panel:focus-within {
+    transform: none;
+    transition: none;
+  }
+}
+
+.cerebro-micro-pill {
+  min-height: 36px;
+  min-width: 44px;
+  border-radius: 18px;
+  position: relative;
+}
+
+.cerebro-micro-pill::after {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
+  min-height: 44px;
+}
+
+.cerebro-micro-pill:hover,
+.cerebro-micro-pill:focus-visible {
+  box-shadow: 0 0 0 2px rgba(76, 141, 255, 0.45), 0 0 22px rgba(76, 141, 255, 0.65);
+}
+
+.cerebro-hud-word-pill {
+  max-width: 480px;
+  background: rgba(20, 38, 50, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(242, 246, 248, 0.12);
+  border-radius: 9999px;
 }

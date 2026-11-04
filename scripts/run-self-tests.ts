@@ -71,6 +71,10 @@ async function main(): Promise<void> {
     ['pitchBeats', 'src/three/beats/pitchBeats.test.ts'],
     ['motionPreference', 'src/utils/motionPreference.test.ts'],
     ['keyboardInset', 'src/gui/keyboardInset.test.ts'],
+    ['orbitalSolver', 'src/three/camera/orbitalSolver.test.ts'],
+    ['systemContract', 'src/design/systemContract.test.ts'],
+    ['surfaceHost', 'src/gui/surfaceHost.test.ts'],
+    ['mediaProvenance', 'src/data/mediaProvenance.test.ts'],
   ] as const) {
     const run = await runNodeTestFile(file);
     const fail = run.output.match(/# fail (\d+)/)?.[1] || '0';

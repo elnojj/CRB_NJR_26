@@ -10,7 +10,7 @@
      ------------------------------------------------------------------------ */
   --token-canvas: #101D27;                      /* 01. Primary deep-space viewport void */
   --token-glass-solid: #142632;                 /* 02. Solid telemetry pills, inputs, and fallback surfaces */
-  --token-glass: rgba(20, 38, 50, 0.78);        /* 03. Primary floating optical glass plate (blur 12px saturate 1.2) */
+  --token-glass: rgba(20, 38, 50, 0.88);        /* 03. Void Glass plate (contract: blur 20px, 1px rgba(242,246,248,0.12) border, 20px radius) */
   --token-glass-subtle: rgba(11, 20, 28, 0.82); /* 04. Nested sub-drawers, code blocks, and inspection wells */
   --token-divider: rgba(255, 255, 255, 0.14);   /* 05. 1px structural hairlines + top-edge specular catchlight */
   --token-text-primary: #F2F6F8;                /* 06. Primary headlines, active values, and body copy */
@@ -97,7 +97,7 @@
   --type-button: 13.5px;
 
   /* Liquid Glass v7 geometry + surfaces */
-  --radius-panel: 18px;
+  --radius-panel: 20px;
   --radius-card: 16px;
   --radius-button: 10px;
   --radius-chip: 9999px;
@@ -174,8 +174,8 @@
 :root {
   --token-glass-fill: var(--token-glass);
   --token-glass-fallback: var(--token-glass-solid);
-  --token-glass-border: var(--token-divider);
-  --blur-glass: 8px;
+  --token-glass-border: rgba(242, 246, 248, 0.12);
+  --blur-glass: 20px;
   --panel-radius: var(--radius-panel);
   --control-radius: var(--radius-button);
   --shadow-hud: var(--token-hud-outer-shadow);

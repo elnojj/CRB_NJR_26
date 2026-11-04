@@ -5,6 +5,10 @@ alwaysApply: true
 
 # Cerebro core rules
 
+## Authoritative contract
+- `.cursorrules` at the repo root (`nojara.cerebro.system/2.0`) is the authoritative contract; `src/design/systemContract.ts` mirrors its values and `src/design/systemContract.test.ts` enforces GATE-01..05. Change the contract file first, then the mirror, then the code.
+- RULE-01: report completion only with evidence (source anchors, test or build output). RULE-04: one context surface host at a time (`src/gui/surfaceHost.ts`).
+
 ## Stack and commands
 - React + TypeScript + Vite, three.js with troika text, GSAP (core only, no plugins), Express dev server in `server.ts`.
 - Typecheck: `npm run lint` (`tsc --noEmit`). Tests: `npm test` (self-tests), `npm run test:voice`. Build: `npm run build`.
@@ -18,7 +22,7 @@ alwaysApply: true
 - `.agents/` and `.aistudio/` are untracked tooling folders. Do not commit them.
 
 ## Honest state (non-negotiable)
-- Never invent metrics, percentages, playback, or media. Unreviewed media keeps `runtimeUrl: null` and renders a placeholder card with a `blocked` or `pending-media` status.
+- Never invent metrics, percentages, playback, or media. Unreviewed media keeps `runtimeUrl: null` and shows exactly one status from `loading | poster | unavailable | error` (`src/data/mediaProvenance.ts`). Never play a placeholder stream.
 - Node status vocabulary: verified, proposed, gap, disconnected, unverified. Use it as is.
 - Status UI (`system-status-layer`, `verified-progress`) reads real data or shows nothing.
 
