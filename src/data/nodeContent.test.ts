@@ -13,7 +13,7 @@ describe('node content: every node in every environment is described', () => {
     assert.equal(directory.hq.length, 5);
     assert.equal(directory.cde.length, 9);
     assert.equal(directory['campaign-os'].length, 4);
-    assert.equal(directory['about-us'].length, 6);
+    assert.equal(directory['about-us'].length, 2);
   });
 
   it('every node states what it holds: a media count or an honest reason', () => {
@@ -44,7 +44,7 @@ describe('node content: every node in every environment is described', () => {
   });
 
   it('disabled nodes are absent from every environment', () => {
-    const disabledIds = ['YAH', 'MHE', 'BSOCIAL', 'AL-AHRAM', 'MUSEUM-OF-ALMOST', 'tasks', 'files', 'camp-bsocial', 'camp-mhe'];
+    const disabledIds = ['YAH', 'MHE', 'BSOCIAL', 'AL-AHRAM', 'MUSEUM-OF-ALMOST', 'tasks', 'files', 'camp-bsocial', 'camp-mhe', 'shweekar-ahmed', 'khaled-al-shaalan', 'tarek-nojara', 'about-crew'];
     for (const sphere of SPHERES) {
       for (const entry of directory[sphere]) {
         assert.ok(!disabledIds.includes(entry.nodeId), `${sphere}:${entry.nodeId} should be disabled`);

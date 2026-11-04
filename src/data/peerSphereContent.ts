@@ -52,8 +52,12 @@ export const CAMPAIGN_OS_NODES: PeerSphereNodeSpec[] = [
   },
 ];
 
-const aboutBios: PeerSphereNodeSpec[] = ABOUT_US_BIOS.map((bio, idx) => {
-  const angle = (idx / Math.max(ABOUT_US_BIOS.length, 1)) * Math.PI * 2;
+/** People nodes are disabled in About Us; only the studio bio stays in the scene. */
+const DISABLED_ABOUT_BIO_IDS: ReadonlySet<string> = new Set(['shweekar-ahmed', 'khaled-al-shaalan', 'tarek-nojara']);
+const ENABLED_ABOUT_BIOS = ABOUT_US_BIOS.filter((bio) => !DISABLED_ABOUT_BIO_IDS.has(bio.id));
+
+const aboutBios: PeerSphereNodeSpec[] = ENABLED_ABOUT_BIOS.map((bio, idx) => {
+  const angle = (idx / Math.max(ENABLED_ABOUT_BIOS.length, 1)) * Math.PI * 2;
   const r = 1.55;
   return {
     id: bio.id,
@@ -79,14 +83,6 @@ export const ABOUT_US_NODES: PeerSphereNodeSpec[] = [
     colour: '#65ACFF',
     position: [0.2, -1.65, 0.55],
     nodeType: 'media',
-  },
-  {
-    id: 'about-crew',
-    label: '12 Crew',
-    sublabel: 'People Station · RACI',
-    colour: '#B4DDFF',
-    position: [-0.15, 1.55, 0.45],
-    nodeType: 'station',
   },
 ];
 
