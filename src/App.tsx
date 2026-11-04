@@ -78,12 +78,10 @@ import {
   DecisionQueueItem,
   FourTierState,
 } from './data/blueprintData';
-import {
-  HandsCameraBackdrop,
-  HandsWireframeRig,
-  HandDetectionMode,
-  type HandFlipDirection,
-} from './components/HandsOverlay';
+import { HandsCameraPreview } from './components/HandsCameraPreview';
+import type { HandDetectionMode, HandFlipDirection } from './three/handStateRef';
+import type { SpatialButtonId } from './three/spatialControls';
+import type { JourneyBeat } from './three/camera/journeyConfig';
 import type {
   AudienceLevel,
   CustomTaskItem,
@@ -463,6 +461,7 @@ export default function App() {
   });
   const [tourHighlightId, setTourHighlightId] = useState<string | null>(null);
   const [captionBubble, setCaptionBubble] = useState<string | null>(null);
+  const [journeyActive, setJourneyActive] = useState(false);
 
   // 5. Hands Overlay State
   const [handsActive, setHandsActive] = useState<boolean>(false);
@@ -3108,6 +3107,46 @@ export default function App() {
     [activeSphere, executeTypedAction]
   );
 
+  const handleSpatialSphereDetent = useCallback(
+    (index: number) => {
+      const order: ConnectedSphereId[] = ['hq', 'cde', 'campaign-os', 'about-us'];
+      const next = order[Math.min(order.length - 1, Math.max(0, index))];
+      if (next === activeSphere) return;
+      executeTypedAction({ type: 'switch_sphere', sphere: next }, 'hands');
+    },
+    [activeSphere, executeTypedAction]
+  );
+
+  const handleSpatialButton = useCallback(
+    (id: SpatialButtonId) => {
+      switch (id) {
+        case 'overview':
+          executeTypedAction({ type: 'open_dashboard', mode: 'toggle' }, 'hands');
+          return;
+        case 'media':
+          executeTypedAction({ type: 'open_station', station: 'media' }, 'hands');
+          return;
+        case 'journey':
+          dispatchCamera(journeyActive ? 'journey_stop' : 'journey_start');
+          return;
+        default: {
+          const unhandled: never = id;
+          return unhandled;
+        }
+      }
+    },
+    [dispatchCamera, executeTypedAction, journeyActive]
+  );
+
+  const handleJourneyBeat = useCallback((beat: JourneyBeat | null) => {
+    setJourneyActive(beat !== null);
+    setCaptionBubble(beat ? `${beat.headlineEn}${beat.supportEn ? ` — ${beat.supportEn}` : ''}` : null);
+  }, []);
+
+  const toggleJourney = useCallback(() => {
+    dispatchCamera(journeyActive ? 'journey_stop' : 'journey_start');
+  }, [dispatchCamera, journeyActive]);
+
   const handleBootTakeOff = useCallback(() => {
     soundEngine.unlock();
     soundEngine.setMuted(false);
@@ -3717,11 +3756,9 @@ export default function App() {
       )}
 
       {/* 2. Camera + Hands Overlay (Single shared MediaStream inside HandsWireframeRig, requested ONLY when handsActive is true) */}
-      <HandsCameraBackdrop active={handsActive} />
-      <HandsWireframeRig
+      <HandsCameraPreview
         active={handsActive}
         handMode={handMode}
-        onFlipNode={handleHandFlipNode}
         onCloseHands={() => {
           forceStopSharedWebcamStream();
           setHandsActive(false);
@@ -3802,7 +3839,12 @@ export default function App() {
         }
         gestureTrackingActive={handsActive ? gestureTrackingActive : false}
         pointerOrbitEnabled
-        idleOrbitAllowed={idleOrbitAllowed && !handsActive}
+        idleOrbitAllowed={idleOrbitAllowed && !handsActive && !journeyActive}
+        handsActive={handsActive}
+        onHandStep={handleHandFlipNode}
+        onSpatialButton={handleSpatialButton}
+        onSpatialSphereDetent={handleSpatialSphereDetent}
+        onJourneyBeat={handleJourneyBeat}
       />
 
       {/* 3A. Z-35 Focus Pointer, Projected 3D Target Ring, S04 Flight Route & GUI v3.0 QA Inspector */}
@@ -4090,6 +4132,13 @@ export default function App() {
               active: !dashboardCollapsed,
               onClick: () =>
                 executeTypedAction({ type: 'open_dashboard', mode: 'toggle' }, 'header'),
+            },
+            {
+              id: 'journey',
+              label: journeyActive ? 'Skip camera journey' : 'Play camera journey',
+              active: journeyActive,
+              testId: 'camera-journey-toggle',
+              onClick: toggleJourney,
             },
             {
               id: 'tour',

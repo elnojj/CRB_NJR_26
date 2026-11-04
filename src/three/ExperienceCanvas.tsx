@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import * as THREE from 'three';
 import { useReducedMotion } from 'motion/react';
 import {
-  DualSphereCanvas,
+  CosmographCanvas,
   CameraCommandPayload,
   CameraTelemetry,
   AnchoredLabel2D,
@@ -10,12 +10,12 @@ import {
   CameraAnglePresetId,
   CameraLoopMode,
   CINEMA_LENS_PRESETS,
-} from '../components/DualSphereCanvas';
-import {
   MediaTubeStateProp,
   ProjectMediaTubeItem,
   buildProjectMediaTubeItems,
 } from '../components/CosmographCanvas';
+import type { SpatialButtonId } from './spatialControls';
+import type { JourneyBeat } from './camera/journeyConfig';
 import {
   CustomDomain3D,
   DomainMaterialPreset,
@@ -161,6 +161,11 @@ interface ExperienceCanvasProps {
   projectWorldId?: string | null;
   projectWorldState?: 'entry' | 'active' | 'suspended' | 'exiting' | 'unavailable' | null;
   idleOrbitAllowed?: boolean;
+  handsActive?: boolean;
+  onHandStep?: (direction: -1 | 1) => void;
+  onSpatialButton?: (id: SpatialButtonId) => void;
+  onSpatialSphereDetent?: (index: number) => void;
+  onJourneyBeat?: (beat: JourneyBeat | null) => void;
 }
 
 export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
@@ -193,6 +198,11 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
   projectWorldId = null,
   projectWorldState = null,
   idleOrbitAllowed = true,
+  handsActive = false,
+  onHandStep,
+  onSpatialButton,
+  onSpatialSphereDetent,
+  onJourneyBeat,
 }) => {
   const osReducedMotion = useReducedMotion();
   const effectiveReducedMotion = Boolean(reducedMotion || osReducedMotion);
@@ -202,7 +212,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
 
   return (
     <>
-      <DualSphereCanvas
+      <CosmographCanvas
         onSceneReady={handleSceneReady}
         activeSphere={activeSphere}
         focusedNodeId={focusedNodeId}
@@ -231,6 +241,11 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
         projectWorldId={projectWorldId}
         projectWorldState={projectWorldState}
         idleOrbitAllowed={idleOrbitAllowed}
+        handsActive={handsActive}
+        onHandStep={onHandStep}
+        onSpatialButton={onSpatialButton}
+        onSpatialSphereDetent={onSpatialSphereDetent}
+        onJourneyBeat={onJourneyBeat}
       />
 
       {/* Reduced-Motion / Fallback Rest Sphere + Interactive 2D SVG Orbital Station Pins */}

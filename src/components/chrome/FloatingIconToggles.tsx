@@ -9,6 +9,7 @@ export type FloatingToggleId =
   | 'more'
   | 'overview'
   | 'tour'
+  | 'journey'
   | 'back'
   | 'fullscreen';
 
@@ -96,6 +97,20 @@ function Glyph({ id }: { id: FloatingToggleId }) {
             strokeWidth="1.6"
           />
           <circle cx="12" cy="12" r="2.3" fill="currentColor" />
+        </svg>
+      );
+    case 'journey':
+      return (
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path
+            d="M4 18c3-1 3-6 6.5-6s3 5 5.5 5 2.5-5 4-9"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
+          <circle cx="4" cy="18" r="1.6" fill="currentColor" />
+          <circle cx="20" cy="8" r="1.6" fill="currentColor" />
         </svg>
       );
     case 'back':

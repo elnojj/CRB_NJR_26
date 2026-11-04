@@ -5,7 +5,7 @@ import type {
   CameraCommandPayload,
   CameraTelemetry,
   CinemaLensId,
-} from '../components/DualSphereCanvas';
+} from '../components/CosmographCanvas';
 import { CINEMA_LENS_PRESETS } from '../components/CosmographCanvas';
 import {
   EDITORIAL_COLOURS,
