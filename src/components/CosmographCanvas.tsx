@@ -81,6 +81,8 @@ import { isolateDecorativeGeometry, type CosmeticFade } from '../three/decorativ
 import { handIsFresh, handStateRef, type HandDetectionMode } from '../three/handStateRef';
 import { IntentJitterGate, handInteractionMachine, splineJourney } from '../three/camera/CameraDirector';
 import type { JourneyBeat } from '../three/camera/journeyConfig';
+import { applyBoundingSphereRepulsion, OrbitSpringRig } from '../three/camera/orbitalSolver';
+import { CONTRACT_ORBITAL_SOLVER } from '../design/systemContract';
 import {
   CAMERA_MOTION_TARGETS,
   clampNodeFocusMs,
@@ -92,6 +94,8 @@ import {
   SHARED_OUTER_SHELL_MATERIAL_PRESET,
   type ConnectedSphereId,
   SPHERE_NETWORK,
+  SPHERE_NETWORK_OVERVIEW_RADIUS,
+  MAX_ORBIT_RADIUS,
   sphereCenterVec,
   sphereNetworkCentroid,
 } from '../three/sphereNetwork';
@@ -569,6 +573,7 @@ interface JourneyAdoptState {
 }
 
 const _journeyOffset = new THREE.Vector3();
+const _repulsionExempt = new Set<string>();
 
 /** Hand the camera back to the orbit rig exactly where the journey left it, so nothing snaps. */
 function adoptJourneyPose(s: JourneyAdoptState, position: THREE.Vector3, target: THREE.Vector3, focalMm: number): void {
@@ -795,10 +800,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     currentCenter: sphereNetworkCentroid(),
     azimuth: -0.42,
     polar: 1.28,
-    radius: 34,
+    radius: SPHERE_NETWORK_OVERVIEW_RADIUS,
     targetAzimuth: -0.28,
     targetPolar: 1.32,
-    targetRadius: 30,
+    targetRadius: SPHERE_NETWORK_OVERVIEW_RADIUS,
     panOffset: new THREE.Vector3(0, 0, 0),
     targetPanOffset: new THREE.Vector3(0, 0, 0),
     focalLengthMm: 24,
@@ -994,7 +999,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       );
       s.targetAzimuth = s.azimuth + shortestDeltaAz;
       s.targetPolar = THREE.MathUtils.clamp(destPol, 0.12, Math.PI - 0.12);
-      s.targetRadius = THREE.MathUtils.clamp(destRad, 3.2, 38.0);
+      s.targetRadius = THREE.MathUtils.clamp(destRad, 3.2, MAX_ORBIT_RADIUS);
       if (destFocalMm !== undefined) {
         s.targetFocalLengthMm = destFocalMm;
       }
@@ -1284,7 +1289,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           s.targetAzimuth = -1.50;
           s.targetFocalLengthMm = 300;
           s.activeLensId = '300mm';
-          s.targetRadius = 34.0;
+          s.targetRadius = SPHERE_NETWORK_OVERVIEW_RADIUS;
           s.targetRollDeg = 0;
           s.targetPanOffset.set(0, 0, 0);
           break;
@@ -1356,12 +1361,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     } else if (verb === 'zoom_in' || verb === 'fly_in') {
       s.flightActive = false;
       s.activeLoopMode = 'off';
-      s.targetRadius = THREE.MathUtils.clamp(s.targetRadius - 3.6, 3.2, 38.0);
+      s.targetRadius = THREE.MathUtils.clamp(s.targetRadius - 3.6, 3.2, MAX_ORBIT_RADIUS);
       soundEngine.triggerFlightWhoosh(520, 0);
     } else if (verb === 'zoom_out' || verb === 'fly_out') {
       s.flightActive = false;
       s.activeLoopMode = 'off';
-      s.targetRadius = THREE.MathUtils.clamp(s.targetRadius + 3.6, 3.2, 38.0);
+      s.targetRadius = THREE.MathUtils.clamp(s.targetRadius + 3.6, 3.2, MAX_ORBIT_RADIUS);
       soundEngine.triggerFlightWhoosh(520, 0);
     } else if (verb === 'max_in') {
       s.flightActive = false;
@@ -1371,7 +1376,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     } else if (verb === 'max_out') {
       s.flightActive = false;
       s.activeLoopMode = 'off';
-      s.targetRadius = 32.0;
+      s.targetRadius = Math.round(SPHERE_NETWORK_OVERVIEW_RADIUS * 0.94);
     } else if (verb === 'scan') {
       s.stoppedExplicitly = false;
       s.autoOrbit = true;
@@ -3566,6 +3571,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     onResize();
 
     const clock = new THREE.Clock();
+    const orbitSpringRig = new OrbitSpringRig();
     let frameId = 0;
     let frameCounter = 0;
     let isPageHidden = document.hidden;
@@ -3720,7 +3726,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         }
 
         if (intent.dolly !== 0) {
-          s.targetRadius = THREE.MathUtils.clamp(s.targetRadius * Math.exp(-intent.dolly * HAND_DOLLY_GAIN), 3.2, 38.0);
+          s.targetRadius = THREE.MathUtils.clamp(s.targetRadius * Math.exp(-intent.dolly * HAND_DOLLY_GAIN), 3.2, MAX_ORBIT_RADIUS);
         }
 
         if (intent.roll !== 0) {
@@ -3810,7 +3816,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           s.targetRadius = THREE.MathUtils.clamp(
             4.4 / Math.tan(THREE.MathUtils.degToRad(vFov) * 0.5),
             3.6,
-            38.0
+            MAX_ORBIT_RADIUS
           );
           s.radius = s.targetRadius;
           s.targetAzimuth += 0.032 * dt;
@@ -3844,9 +3850,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const damp = 1 - Math.exp(-dampFactor * dt);
       s.currentCenter.lerp(s.targetCenter, damp);
       s.panOffset.lerp(s.targetPanOffset, damp);
-      s.azimuth = THREE.MathUtils.damp(s.azimuth, s.targetAzimuth, dampFactor, dt);
-      s.polar = THREE.MathUtils.damp(s.polar, s.targetPolar, dampFactor, dt);
-      s.radius = THREE.MathUtils.damp(s.radius, s.targetRadius, dampFactor, dt);
+      if (s.reducedMotion) {
+        s.azimuth = THREE.MathUtils.damp(s.azimuth, s.targetAzimuth, dampFactor, dt);
+        s.polar = THREE.MathUtils.damp(s.polar, s.targetPolar, dampFactor, dt);
+        s.radius = THREE.MathUtils.damp(s.radius, s.targetRadius, dampFactor, dt);
+      } else {
+        orbitSpringRig.step(s, dt);
+      }
       s.focalLengthMm = THREE.MathUtils.damp(
         s.focalLengthMm,
         s.targetFocalLengthMm,
@@ -3912,15 +3922,25 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         !s.reducedMotion &&
         s.activeLoopMode === 'lemniscate'
       ) {
-        // Figure-8 Dual-World Infinity Loop (Bernoulli lemniscate across HQ (0,0,0) and CDE (32,0,0) with midpoint (16,0,0), A = 24.0u, period 48.0s)
+        // Figure-8 Dual-World Infinity Loop (Bernoulli lemniscate between the HQ and CDE sphere centers, A = 0.75 x separation, period 48.0s)
+        const loopDx = CDE_CENTER.x - HQ_CENTER.x;
+        const loopDz = CDE_CENTER.z - HQ_CENTER.z;
+        const loopSep = Math.max(1, Math.hypot(loopDx, loopDz));
+        const loopAx = loopDx / loopSep;
+        const loopAz = loopDz / loopSep;
+        const loopHalf = loopSep / 2;
+        const loopAmp = loopSep * 0.75;
+        const loopMidY = (HQ_CENTER.y + CDE_CENTER.y) / 2;
         const w = (2 * Math.PI) / 48.0;
         const wt = w * elapsedTotal;
         const sinWt = Math.sin(wt);
         const cosWt = Math.cos(wt);
         const denom = 1.0 + sinWt * sinWt;
-        const lemX = 16.0 + (24.0 * cosWt) / denom;
-        const lemZ = (24.0 * sinWt * cosWt) / denom * 1.45;
-        const lemY = 3.4 * Math.sin(wt * 2.0);
+        const lemAlong = loopHalf + (loopAmp * cosWt) / denom;
+        const lemAcross = ((loopAmp * sinWt * cosWt) / denom) * 1.45;
+        const lemX = HQ_CENTER.x + loopAx * lemAlong - loopAz * lemAcross;
+        const lemZ = HQ_CENTER.z + loopAz * lemAlong + loopAx * lemAcross;
+        const lemY = loopMidY + 3.4 * Math.sin(wt * 2.0);
 
         // Dynamically breathe focal length between 24mm at bridge crossing and 50mm at outer sphere turns
         s.targetFocalLengthMm = 24 + 26 * Math.abs(cosWt);
@@ -3937,7 +3957,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
         camera.position.set(lemX, lemY, lemZ);
         // Smoothly look at the focal world along the infinity path
-        _scratchVec.set(16.0 + 16.0 * cosWt, 0, 0);
+        _scratchVec.set(
+          HQ_CENTER.x + loopAx * (loopHalf + loopHalf * cosWt),
+          loopMidY,
+          HQ_CENTER.z + loopAz * (loopHalf + loopHalf * cosWt)
+        );
         s.currentCenter.lerp(_scratchVec, 1 - Math.exp(-4.0 * dt));
         s.radius = camera.position.distanceTo(s.currentCenter);
         camera.lookAt(s.currentCenter);
@@ -3952,7 +3976,20 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           s.currentCenter.y + s.panOffset.y + s.radius * Math.cos(s.polar),
           s.currentCenter.z + s.panOffset.z + s.radius * Math.sin(s.polar) * Math.cos(s.azimuth)
         );
-        camera.lookAt(_scratchVec.copy(s.currentCenter).add(s.panOffset));
+        _scratchVec.copy(s.currentCenter).add(s.panOffset);
+        _repulsionExempt.clear();
+        for (const sphere of SPHERE_NETWORK) {
+          const dx = _scratchVec.x - sphere.center[0];
+          const dy = _scratchVec.y - sphere.center[1];
+          const dz = _scratchVec.z - sphere.center[2];
+          if (Math.hypot(dx, dy, dz) < sphere.radius) _repulsionExempt.add(sphere.id);
+        }
+        applyBoundingSphereRepulsion(camera.position, SPHERE_NETWORK, {
+          ...CONTRACT_ORBITAL_SOLVER.boundingSphereRepulsion,
+          exemptIds: _repulsionExempt,
+          zoomScale: s.radius / SPHERE_NETWORK_OVERVIEW_RADIUS,
+        });
+        camera.lookAt(_scratchVec);
       }
 
 
