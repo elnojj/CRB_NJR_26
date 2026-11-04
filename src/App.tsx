@@ -177,7 +177,6 @@ import { BioScienceExplorer } from './components/spatial/BioScienceExplorer';
 import { ImageStudioModal } from './components/spatial/ImageStudioModal';
 import { TeamChatDrawer } from './components/TeamChatDrawer';
 import { CerebroIntro } from './intro/main';
-import { Explainer60Player } from './intro/Explainer60Player';
 import { introBridge } from './intro/bridge';
 import { resolveEditionFromSearch } from './intro/explainer60';
 import { selectLatestSnapshotTimestamp } from './data/projectPlanModel';
