@@ -83,19 +83,13 @@ export const HandsCameraPreview: React.FC<HandsCameraPreviewProps> = ({
   }, [handMode]);
 
   if (!active) return null;
-  const tone =
-    status === 'tracking' ? 'var(--token-tracking-valid)' : status === 'error' ? '#FF8A8A' : 'var(--token-focus-glow)';
-
   return (
     <div
-      className="fixed z-[15] flex items-end gap-2 pointer-events-none select-none"
-      style={{ left: 12, bottom: dockClearancePx + 8 }}
+      className="fixed z-[15] pointer-events-none select-none"
+      style={{ left: 12, bottom: dockClearancePx + 8, opacity: 0 }}
       data-testid="hands-gesture-hud"
     >
-      <div
-        className="overflow-hidden rounded-lg"
-        style={{ width: 112, height: 84, border: `1px solid ${tone}`, background: '#06101c', opacity: 0.92 }}
-      >
+      <div aria-hidden="true" className="overflow-hidden" style={{ width: 112, height: 84 }}>
         <video
           ref={videoRef}
           playsInline
@@ -106,11 +100,7 @@ export const HandsCameraPreview: React.FC<HandsCameraPreviewProps> = ({
           style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
         />
       </div>
-      <p
-        className="rounded-full px-3 py-1 text-[11px] tracking-wide"
-        style={{ color: tone, background: '#06101cb8', border: `1px solid ${tone}` }}
-        aria-live="polite"
-      >
+      <p className="sr-only" role="status" aria-live="polite">
         {statusText(status, detail, delegate)}
       </p>
     </div>

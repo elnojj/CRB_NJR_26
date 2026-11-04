@@ -1,34 +1,115 @@
 /**
- * Camera journey config restored from the original open sequence: story beats on a 72 s editorial
- * clock plus the ten camera stops the spline passes through (wide reveal, About Us orbit,
- * HQ, CDE, Campaign OS, settle on HQ). Consumed by CameraDirector as a CatmullRomCurve3 tour.
+ * The 25-beat journey. J ids identify themes (J01-J25); array order is the playback order, and
+ * About Us comes first. Every beat points at an environment node in `environmentRegistry` and lists
+ * the manifest assets it shows. Beats whose evidence is missing carry an explicit `evidence` state
+ * instead of borrowed media.
  */
 
+import type { ConnectedSphereId } from '../sphereNetwork';
 import { SPHERE_NETWORK, sphereNetworkCentroid } from '../sphereNetwork';
 
 export type JourneyPersonId = 'shweekar' | 'khaled' | 'tarek' | null;
 
+export type BeatEvidence =
+  | 'assets'
+  | 'gap'
+  | 'concept'
+  | 'example'
+  | 'registry-only';
+
+export type JourneyLook = ConnectedSphereId | 'centroid';
+
 export type JourneyBeat = {
   id: string;
+  jId: string;
+  order: number;
   startSec: number;
   endSec: number;
   headlineEn: string;
-  headlineAr: string;
-  supportEn?: string;
-  supportAr?: string;
+  supportEn: string;
   narrationEn: string;
-  narrationAr: string;
-  lookSphere: 'hq' | 'cde' | 'campaign-os' | 'about-us' | 'centroid' | null;
+  look: JourneyLook;
+  /** Association id in the environment registry, or null for scene-wide beats. */
+  nodeId: string | null;
   person: JourneyPersonId;
-  mediaId: string | null;
-  creditEn?: string;
-  creditAr?: string;
-  gapEn?: string;
-  gapAr?: string;
-  arc?: 'challenge' | 'response' | 'evidence' | 'action' | 'about' | 'hook';
+  assetIds: readonly string[];
+  evidence: BeatEvidence;
+  /** Printed under the caption when the beat cannot show real evidence. */
+  honestNoteEn?: string;
 };
 
-export const JOURNEY_BASE_DURATION_SEC = 72;
+type BeatSeed = {
+  jId: string;
+  headlineEn: string;
+  supportEn: string;
+  narrationEn: string;
+  look: JourneyLook;
+  nodeId: string | null;
+  person?: JourneyPersonId;
+  assetIds?: readonly string[];
+  evidence: BeatEvidence;
+  honestNoteEn?: string;
+  durationSec?: number;
+};
+
+const DEFAULT_BEAT_SEC = 6;
+
+const SEEDS: readonly BeatSeed[] = [
+  { jId: 'J01', headlineEn: 'Fiction gave it a shape.', supportEn: 'Arrival · master sphere', narrationEn: 'Reality gave it a job.', look: 'centroid', nodeId: null, evidence: 'registry-only', durationSec: 8 },
+  { jId: 'J17', headlineEn: 'Shweekar Ahmed in Context', supportEn: 'About Us · People', narrationEn: 'The first of three people behind the studio.', look: 'about-us', nodeId: 'about__people__shweekar', person: 'shweekar', assetIds: ['img-person-shweekar'], evidence: 'assets' },
+  { jId: 'J18', headlineEn: 'Khaled Al Shaalan Connects', supportEn: 'About Us · People', narrationEn: 'The second of three people behind the studio.', look: 'about-us', nodeId: 'about__people__khaled', person: 'khaled', evidence: 'gap', honestNoteEn: 'Portrait pending confirmation. No substitute image is shown.' },
+  { jId: 'J16', headlineEn: 'People Make Systems Work', supportEn: 'About Us · People', narrationEn: 'Human judgment, amplified by systems.', look: 'about-us', nodeId: 'about__people__tarek', person: 'tarek', evidence: 'gap', honestNoteEn: 'No approved portrait of Tarek Nojara in the media folder. No substitute image is shown.', durationSec: 8 },
+  { jId: 'J02', headlineEn: 'Hard Projects. Useful Lessons.', supportEn: 'About Us · Tarek Nojara', narrationEn: 'Talks, lists and festival rooms from Tarek Nojara.', look: 'about-us', nodeId: 'about__tarek__story', person: 'tarek', assetIds: ['med-traverse-talks-disruption', 'med-tn-impact-list'], evidence: 'assets' },
+  { jId: 'J03', headlineEn: 'Craft Meets Creative Tech.', supportEn: 'CDE · Production and Technology', narrationEn: 'Production footage from sets and Saudi-related work.', look: 'cde', nodeId: 'cde__production__tech', assetIds: ['med-but-first-production', 'img-tn-production-set', 'med-saudi-clip-a', 'med-saudi-clip-b', 'med-saudi-clip-c', 'med-saudi-clip-d'], evidence: 'assets' },
+  { jId: 'J04', headlineEn: 'The Studio Connects Everything.', supportEn: 'About Us · Studio', narrationEn: 'The NOJARA showreel is a portfolio overview, not one campaign.', look: 'about-us', nodeId: 'about__studio__showreel', assetIds: ['med-nojara-showreel'], evidence: 'assets' },
+  { jId: 'J05', headlineEn: 'Culture Becomes Design Input.', supportEn: 'CDE · Strategy', narrationEn: 'Footage from Traverse Talks, AFRIMA and El Gouna, pending review.', look: 'cde', nodeId: 'cde__strategy__culture', assetIds: ['med-traverse-talks-disruption', 'med-tn-afrima-awards', 'med-tn-gouna-film-festival'], evidence: 'assets' },
+  { jId: 'J06', headlineEn: 'Research Before the Render.', supportEn: 'CDE · Strategy and evidence', narrationEn: 'Talks footage stands in until a research artefact is attached.', look: 'cde', nodeId: 'cde__strategy__research', assetIds: ['med-traverse-talks-disruption'], evidence: 'gap', honestNoteEn: 'No research artefact is attached yet.' },
+  { jId: 'J07', headlineEn: 'Design for Real Participation.', supportEn: 'CDE · Talent & Culture', narrationEn: 'Reviewed participation footage has not been supplied.', look: 'cde', nodeId: 'cde__talent__culture', evidence: 'gap', honestNoteEn: 'Placeholder. No reviewed footage is attached.' },
+  { jId: 'J08', headlineEn: 'Operate What You Imagine.', supportEn: 'HQ · Tasks & Decisions', narrationEn: 'Production footage in the working environment.', look: 'hq', nodeId: 'hq__tasks__register', assetIds: ['med-but-first-production'], evidence: 'assets', honestNoteEn: 'The task register is not connected, so no live tasks appear.' },
+  { jId: 'J09', headlineEn: 'Measure What Actually Happened.', supportEn: 'HQ · Evidence', narrationEn: 'Connected data is not verified. This is a labelled example.', look: 'hq', nodeId: 'hq__tasks__register', evidence: 'example', honestNoteEn: 'EXAMPLE. No measured data is connected.' },
+  { jId: 'J10', headlineEn: 'Young & Human Opens.', supportEn: 'HQ · Projects · YAH!', narrationEn: 'The YAH! project node.', look: 'hq', nodeId: 'hq__proj__yah', evidence: 'gap', honestNoteEn: 'No verified YAH! media in the approved folder.' },
+  { jId: 'J11', headlineEn: 'Watching Becomes Making Together.', supportEn: 'HQ · YAH! participation', narrationEn: 'Participation footage has not been verified.', look: 'hq', nodeId: 'hq__proj__yah', evidence: 'gap', honestNoteEn: 'No verified participation footage.' },
+  { jId: 'J12', headlineEn: 'The Work Has Evidence.', supportEn: 'HQ · Media', narrationEn: 'One tile per attributed source.', look: 'hq', nodeId: 'hq__media__nojara', assetIds: ['med-master-media-kit-reel', 'med-njr-laliga-mov', 'med-el-batron-mp4'], evidence: 'assets' },
+  { jId: 'J13', headlineEn: 'El Batron Takes Shape.', supportEn: 'HQ · Projects · El Batron', narrationEn: 'The El Batron showreel.', look: 'hq', nodeId: 'hq__proj__bat', assetIds: ['med-el-batron-mp4'], evidence: 'assets' },
+  { jId: 'J14', headlineEn: 'Talent Needs Working Infrastructure.', supportEn: 'El Batron · Talent OS', narrationEn: 'A second El Batron reel. The Talent OS system is not shown as running.', look: 'hq', nodeId: 'hq__proj__bat', assetIds: ['med-el-batron-mov'], evidence: 'assets', honestNoteEn: 'No Talent OS implementation is verified.' },
+  { jId: 'J15', headlineEn: 'Made in Egypt Next.', supportEn: 'CDE · Talent & Culture', narrationEn: 'Future-facing. No evidence is claimed.', look: 'cde', nodeId: 'cde__talent__culture', evidence: 'gap', honestNoteEn: 'Future-facing; no reviewed media.' },
+  { jId: 'J19', headlineEn: 'Services Meet Creative IP.', supportEn: 'CDE · Strategy', narrationEn: 'Studio and project media with their own attribution.', look: 'cde', nodeId: 'cde__strategy__culture', assetIds: ['med-nojara-showreel', 'med-njr-laliga-mov'], evidence: 'assets' },
+  { jId: 'J20', headlineEn: 'Projects Become Connected Domains.', supportEn: 'HQ · Projects', narrationEn: 'The project nodes in the registry.', look: 'hq', nodeId: 'hq__proj__seven', evidence: 'registry-only' },
+  { jId: 'J21', headlineEn: 'Open the Actual Work.', supportEn: 'HQ · Media', narrationEn: 'Open a real asset from its tile.', look: 'hq', nodeId: 'hq__media__laliga', assetIds: ['med-noj-laliga-wal3ana'], evidence: 'assets' },
+  { jId: 'J22', headlineEn: 'Small Gestures. Clear Intent.', supportEn: 'Interaction layer', narrationEn: 'Touch, point and poke on nodes.', look: 'hq', nodeId: null, evidence: 'concept', honestNoteEn: 'Hand gestures are shown only as tested in this build.' },
+  { jId: 'J23', headlineEn: 'Wipe. Vanish. Bring Back.', supportEn: 'Interaction layer', narrationEn: 'A concept. It is not claimed to work.', look: 'hq', nodeId: null, evidence: 'concept', honestNoteEn: 'CONCEPT. Not implemented.' },
+  { jId: 'J24', headlineEn: 'One Scene. Many Stories.', supportEn: 'Shared environments', narrationEn: 'Every world sits in the same scene.', look: 'centroid', nodeId: null, evidence: 'registry-only' },
+  { jId: 'J25', headlineEn: 'Enter Your Creative Ecosystem.', supportEn: 'HQ · Workspace', narrationEn: 'Control returns to you.', look: 'hq', nodeId: null, evidence: 'registry-only' },
+];
+
+function buildBeats(): JourneyBeat[] {
+  let cursor = 0;
+  return SEEDS.map((s, i) => {
+    const dur = s.durationSec ?? DEFAULT_BEAT_SEC;
+    const beat: JourneyBeat = {
+      id: s.jId.toLowerCase(),
+      jId: s.jId,
+      order: i + 1,
+      startSec: cursor,
+      endSec: cursor + dur,
+      headlineEn: s.headlineEn,
+      supportEn: s.supportEn,
+      narrationEn: s.narrationEn,
+      look: s.look,
+      nodeId: s.nodeId,
+      person: s.person ?? null,
+      assetIds: s.assetIds ?? [],
+      evidence: s.evidence,
+      honestNoteEn: s.honestNoteEn,
+    };
+    cursor += dur;
+    return beat;
+  });
+}
+
+export const JOURNEY_BEATS: readonly JourneyBeat[] = buildBeats();
+
+export const JOURNEY_BASE_DURATION_SEC = JOURNEY_BEATS[JOURNEY_BEATS.length - 1].endSec;
 
 export type JourneyStop = {
   /** Seconds on the editorial clock. */
@@ -38,170 +119,50 @@ export type JourneyStop = {
   focalMm: number;
 };
 
-export const JOURNEY_BEATS: JourneyBeat[] = [
-  {
-    id: 'wide-reveal',
-    startSec: 0,
-    endSec: 8,
-    headlineEn: 'WHAT HOLDS WORK TOGETHER?',
-    headlineAr: 'ما الذي يجمع العمل؟',
-    supportEn: 'HQ · CDE · Campaign OS · About Us',
-    supportAr: 'HQ · CDE · نظام الحملات · من نحن',
-    narrationEn: 'A living constellation of studio work.',
-    narrationAr: 'كوكبة حيّة من عمل الاستوديو.',
-    lookSphere: 'centroid',
-    person: null,
-    mediaId: null,
-    arc: 'hook',
-  },
-  {
-    id: 'about-shweekar',
-    startSec: 8,
-    endSec: 16,
-    headlineEn: 'SHWEEKAR AHMED',
-    headlineAr: 'شويكار أحمد',
-    supportEn: 'PMO · Intake · Delivery discipline',
-    supportAr: 'إدارة المشاريع · الاستقبال · انضباط التسليم',
-    narrationEn: 'She keeps every programme moving.',
-    narrationAr: 'تُبقي كل برنامج في حركة.',
-    lookSphere: 'about-us',
-    person: 'shweekar',
-    mediaId: 'person-shweekar',
-    gapEn: 'Approved portrait for Shweekar Ahmed is not in the public media folder yet.',
-    gapAr: 'الصورة المعتمدة لشويكار أحمد غير متوفرة في مجلد الوسائط العام بعد.',
-    arc: 'about',
-  },
-  {
-    id: 'about-khaled',
-    startSec: 16,
-    endSec: 24,
-    headlineEn: 'KHALED AL-SHAALAN',
-    headlineAr: 'خالد الشعلان',
-    supportEn: 'Partner programmes · Gulf bridge',
-    supportAr: 'برامج الشركاء · جسر الخليج',
-    narrationEn: 'He bridges partners across the Gulf.',
-    narrationAr: 'يربط الشركاء عبر الخليج.',
-    lookSphere: 'about-us',
-    person: 'khaled',
-    mediaId: 'person-khaled',
-    gapEn: 'Approved portrait for Khaled Al-Shaalan is not in the public media folder yet.',
-    gapAr: 'الصورة المعتمدة لخالد الشعلان غير متوفرة في مجلد الوسائط العام بعد.',
-    arc: 'about',
-  },
-  {
-    id: 'about-tarek',
-    startSec: 24,
-    endSec: 36,
-    headlineEn: 'TAREK NOJARA',
-    headlineAr: 'طارق نُچارة',
-    supportEn: 'Founder · Culture & Design Engineer — 39',
-    supportAr: 'المؤسس · مهندس الثقافة والتصميم — 39',
-    narrationEn: 'Built from the work — sets, light and motion.',
-    narrationAr: 'مبنيّ من العمل — مواقع وضوء وحركة.',
-    lookSphere: 'about-us',
-    person: 'tarek',
-    mediaId: 'person-tarek',
-    gapEn:
-      'Approved Tarek portrait plate (/media/about-tarek-afrima.jpg) and BTS reel are missing from the deploy host — showing verified role copy only.',
-    gapAr:
-      'لوحة طارق المعتمدة ومشاهد خلف الكواليس غير متوفرة على المضيف — نعرض الدور الموثّق فقط.',
-    creditEn: 'Founder & Culture and Design Engineer — never CEO',
-    creditAr: 'المؤسس ومهندس الثقافة والتصميم — وليس الرئيس التنفيذي',
-    arc: 'about',
-  },
-  {
-    id: 'challenge',
-    startSec: 36,
-    endSec: 44,
-    headlineEn: 'IDEAS NEED DELIVERY.',
-    headlineAr: 'الأفكار تحتاج تنفيذاً.',
-    supportEn: 'The business challenge',
-    supportAr: 'تحدي الأعمال',
-    narrationEn: 'A finished-looking idea is not finished work.',
-    narrationAr: 'الفكرة التي تبدو مكتملة ليست عملاً مكتملاً.',
-    lookSphere: 'hq',
-    person: null,
-    mediaId: 'med-nojara-showreel-2023',
-    creditEn: 'NOJARA Studios — 2023 Showreel',
-    arc: 'challenge',
-  },
-  {
-    id: 'response',
-    startSec: 44,
-    endSec: 52,
-    headlineEn: 'NOJARA RESPONDS WITH CEREBRO.',
-    headlineAr: 'نُچارة ترد بسيريبو.',
-    supportEn: 'Culture · Design · Engineering',
-    supportAr: 'ثقافة · تصميم · هندسة',
-    narrationEn: 'Projects, people and media on one spatial map.',
-    narrationAr: 'مشاريع وأشخاص ووسائط على خريطة مكانية واحدة.',
-    lookSphere: 'cde',
-    person: null,
-    mediaId: 'med-nojara-showreel-2023',
-    arc: 'response',
-  },
-  {
-    id: 'evidence',
-    startSec: 52,
-    endSec: 62,
-    headlineEn: 'EVIDENCE FROM REAL WORK.',
-    headlineAr: 'أدلة من عمل حقيقي.',
-    supportEn: 'LaLiga · El Batron · SEVEN',
-    supportAr: 'LaLiga · الباترون · SEVEN',
-    narrationEn: 'Attributable films live inside the shells.',
-    narrationAr: 'الأفلام المنسوبة تعيش داخل الأغلفة.',
-    lookSphere: 'campaign-os',
-    person: null,
-    mediaId: 'med-nojara-laliga',
-    creditEn: 'NOJARA × LaLiga — Film',
-    arc: 'evidence',
-  },
-  {
-    id: 'action',
-    startSec: 62,
-    endSec: 72,
-    headlineEn: 'ENTER THE WORK.',
-    headlineAr: 'ادخل إلى العمل.',
-    supportEn: 'Stations · voice · gesture · register',
-    supportAr: 'محطات · صوت · إيماءة · السجل',
-    narrationEn: 'Open a station, call the room, move the work.',
-    narrationAr: 'افتح محطة، نادِ الغرفة، وحرّك العمل.',
-    lookSphere: 'hq',
-    person: null,
-    mediaId: 'med-el-batron',
-    creditEn: 'El Batron — Showreel',
-    arc: 'action',
-  },
-];
-
-function sphereCenter(id: JourneyBeat['lookSphere']): [number, number, number] {
-  if (!id || id === 'centroid') {
+function lookCenter(look: JourneyLook): [number, number, number] {
+  if (look === 'centroid') {
     const c = sphereNetworkCentroid();
     return [c.x, c.y, c.z];
   }
-  const node = SPHERE_NETWORK.find((s) => s.id === id);
+  const node = SPHERE_NETWORK.find((s) => s.id === look);
   return node ? [...node.center] : [0, 0, 0];
 }
 
+const FOCAL_BY_EVIDENCE: Record<BeatEvidence, number> = {
+  assets: 42,
+  gap: 36,
+  concept: 34,
+  example: 36,
+  'registry-only': 32,
+};
+
+/** One camera stop per beat. Repeat visits to the same sphere orbit it so consecutive beats differ. */
 export function buildJourneyStops(): JourneyStop[] {
-  const centroid = sphereCenter('centroid');
-  const about = sphereCenter('about-us');
-  const hq = sphereCenter('hq');
-  const cde = sphereCenter('cde');
-  const campaign = sphereCenter('campaign-os');
-  const base = JOURNEY_BASE_DURATION_SEC;
-  return [
-    { atSec: 0, position: [centroid[0] + 2, centroid[1] + 6.5, centroid[2] + 28], target: centroid, focalMm: 28 },
-    { atSec: 7.5, position: [centroid[0] - 4, centroid[1] + 4.2, centroid[2] + 22], target: centroid, focalMm: 32 },
-    { atSec: 10, position: [about[0] + 7.5, about[1] + 2.2, about[2] + 9], target: about, focalMm: 40 },
-    { atSec: 18, position: [about[0] - 6.5, about[1] + 1.8, about[2] + 8], target: [about[0], about[1] + 0.4, about[2]], focalMm: 45 },
-    { atSec: 26, position: [about[0] + 1.2, about[1] + 0.6, about[2] + 7.2], target: [about[0], about[1] + 0.2, about[2]], focalMm: 55 },
-    { atSec: 34, position: [about[0] - 2.5, about[1] + 3.8, about[2] + 5.5], target: about, focalMm: 38 },
-    { atSec: 40, position: [hq[0] + 9, hq[1] + 3, hq[2] + 14], target: hq, focalMm: 35 },
-    { atSec: 48, position: [cde[0] - 8, cde[1] + 2.5, cde[2] + 11], target: cde, focalMm: 40 },
-    { atSec: 56, position: [campaign[0] + 6, campaign[1] + 2, campaign[2] + 10], target: campaign, focalMm: 42 },
-    { atSec: base - 4, position: [hq[0], hq[1] + 1.2, hq[2] + 16], target: hq, focalMm: 35 },
+  const visits = new Map<JourneyLook, number>();
+  const centroid = lookCenter('centroid');
+  const stops: JourneyStop[] = [
+    { atSec: 0, position: [centroid[0] + 6, centroid[1] + 10, centroid[2] + 58], target: centroid, focalMm: 24 },
   ];
+  JOURNEY_BEATS.forEach((beat, i) => {
+    const center = lookCenter(beat.look);
+    const n = visits.get(beat.look) ?? 0;
+    visits.set(beat.look, n + 1);
+    const wide = beat.look === 'centroid';
+    const radius = wide ? 34 : 11.5 - (n % 3) * 1.1;
+    const az = (0.55 + n * 0.95) % (Math.PI * 2);
+    const height = wide ? 8 : 1.6 + (n % 4) * 0.7;
+    const dur = beat.endSec - beat.startSec;
+    const arrive = i === 0 ? 0.85 : 0.5;
+    stops.push({
+      atSec: beat.startSec + dur * arrive,
+      position: [center[0] + Math.sin(az) * radius, center[1] + height, center[2] + Math.cos(az) * radius],
+      target: [center[0], center[1] + (wide ? 0 : 0.3), center[2]],
+      focalMm: FOCAL_BY_EVIDENCE[beat.evidence],
+    });
+  });
+  const last = stops[stops.length - 1];
+  stops.push({ ...last, atSec: JOURNEY_BASE_DURATION_SEC });
+  return stops;
 }
 
 export function journeyBeatAt(editorialSec: number): { beat: JourneyBeat; index: number } {

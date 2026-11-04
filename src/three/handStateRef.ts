@@ -33,6 +33,8 @@ export interface HandSlot {
   pinching: boolean;
   /** Palm centre velocity in glove metres per second. */
   velocity: [number, number, number];
+  /** Detector handedness score 0..1 for this hand; 1 when the runtime does not report one. */
+  confidence: number;
   /** Engine output for the latest detection (posture, pan, orbit, zoom, throw). */
   control: HandControlFrame | null;
 }
@@ -55,6 +57,7 @@ function createSlot(): HandSlot {
     pinchDistance: 1,
     pinching: false,
     velocity: [0, 0, 0],
+    confidence: 1,
     control: null,
   };
 }
