@@ -271,11 +271,16 @@
   line-height: 1.45;
   background: rgba(8, 14, 22, 0.55);
   border: 1px solid rgba(154, 255, 224, 0.22);
-  display: flex;
-  flex-wrap: wrap;
+  overflow-wrap: break-word;
 }
 
-.cerebro-chat__liquid span {
+/* Words stay whole; only whole words wrap. Per-character spans carry the shimmer. */
+.cerebro-chat__word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.cerebro-chat__liquid .cerebro-chat__ch {
   display: inline-block;
   background: linear-gradient(
     110deg,

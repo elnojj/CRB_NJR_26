@@ -4446,6 +4446,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         const maxX = safe
           ? Math.max(minX + 88, safe.x + safe.w - labelWidthReserve)
           : Math.max(minX + 88, width - labelWidthReserve);
+        // Project chips carry a long sublabel ("At risk · 68% · 17 register records…"); on a phone
+        // they need most of the viewport width, otherwise the chip is clipped by the screen edge.
+        const wideChipReserve = isPhone ? Math.min(width - 16, 380) : labelWidthReserve;
+        const maxXFor = (entry: { nodeType: string; sublabel?: string }): number =>
+          entry.nodeType === 'project' && entry.sublabel
+            ? Math.max(minX, Math.min(maxX, width - wideChipReserve - 8))
+            : maxX;
         const minY = safe ? Math.max(topClear, safe.y + 6) : topClear;
         const maxY = safe
           ? Math.max(minY + 56, safe.y + safe.h - 24)
@@ -4471,7 +4478,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             if (projected[i].x < minX + 40 && projected[i].y < minY + 28) {
               projected[i].y = minY + 36;
             }
-            projected[i].x = THREE.MathUtils.clamp(projected[i].x, minX, maxX);
+            projected[i].x = THREE.MathUtils.clamp(projected[i].x, minX, maxXFor(projected[i]));
             projected[i].y = THREE.MathUtils.clamp(projected[i].y, minY, maxY);
           }
         }

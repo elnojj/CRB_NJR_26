@@ -116,13 +116,29 @@ type ChatBubble = {
 };
 
 function LiquidReply({ text }: { text: string }) {
+  let charIndex = 0;
   return (
     <p className="cerebro-chat__liquid" aria-live="polite">
-      {text.split('').map((ch, i) => (
-        <span key={`${i}-${ch}`} style={{ animationDelay: `${Math.min(i, 48) * 18}ms` }}>
-          {ch === ' ' ? '\u00A0' : ch}
-        </span>
-      ))}
+      {text.split(/(\s+)/).map((token, wi) => {
+        if (token === '') return null;
+        if (/^\s+$/.test(token)) return ' ';
+        return (
+          <span key={`w${wi}`} className="cerebro-chat__word">
+            {Array.from(token).map((ch) => {
+              const i = charIndex++;
+              return (
+                <span
+                  key={`${i}-${ch}`}
+                  className="cerebro-chat__ch"
+                  style={{ animationDelay: `${Math.min(i, 48) * 18}ms` }}
+                >
+                  {ch}
+                </span>
+              );
+            })}
+          </span>
+        );
+      })}
     </p>
   );
 }

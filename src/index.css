@@ -930,3 +930,15 @@ button.cerebro-infograph-label[data-spatial-billboard='true'][data-chrome-state=
 }
 
 .media-transport 
+/* Floating chips never exceed the viewport (phone: long "At risk · 68% · 17 register records" copy). */
+button.cerebro-infograph-label {
+  max-width: calc(100vw - 16px);
+}
+
+/* Phone: left-align the brand lockup so it cannot sit under the floating icon toggles. */
+@media (max-width: 520px) {
+  [data-testid='workspace-header'] {
+    justify-content: flex-start;
+    padding-left: max(14px, env(safe-area-inset-left, 0px));
+  }
+}
