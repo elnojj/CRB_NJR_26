@@ -167,3 +167,10 @@ describe('visual guards: media tiles show only the media', () => {
     assert.ok(status.includes(".has('telemetry')"));
   });
 });
+
+describe('visual guards: brand lockup', () => {
+  it('is 1.5x larger and sits 36px below the top edge', () => {
+    assert.match(indexCss, /clamp\(2\.25rem, 3\.6vw, 3rem\)/);
+    assert.match(indexCss, /header\[data-testid='workspace-header'\] \{\s*padding-top: calc\(36px/);
+  });
+});

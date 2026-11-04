@@ -1639,7 +1639,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     bgTexture.colorSpace = THREE.SRGBColorSpace;
     scene.background = bgTexture;
     // Soft fog so blooms and star dust remain readable in workspace (was 0.014 → navy wash).
-    scene.fog = new THREE.FogExp2(voidColor, 0.007);
+    scene.fog = new THREE.FogExp2(voidColor, 0.0035);
 
     applyNeutralStudioEnvironment(scene, renderer);
 
@@ -1885,7 +1885,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           rimColVec,
           bodyColVec,
           isBack ? 2.2 : 2.6,
-          isBack ? 0.3 : 0.62
+          isBack ? 0.22 : 0.46
         );
         if (!patchedOpaque) {
           shader.fragmentShader = shader.fragmentShader.replace(

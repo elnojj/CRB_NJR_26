@@ -28,6 +28,6 @@ export function shouldUseFlatGlass(opts: { softwareGl: boolean; forceFlat?: bool
 export const GLASS_EMISSIVE_FLOOR = {
   color: '#0B2236',
   /** Added on top of transmission so a failed buffer still reads as deep blue glass, not black. */
-  transmissiveIntensity: 0.22,
+  transmissiveIntensity: 0.12,
   flatIntensity: 0.4,
 } as const;

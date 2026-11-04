@@ -45,18 +45,18 @@ export interface SharedOuterShellMaterialPreset {
 
 export const SHARED_OUTER_SHELL_MATERIAL_PRESET: SharedOuterShellMaterialPreset = {
   id: 'MAT_LIQUID_GLASS_SHELL',
-  color: '#142632',
+  color: '#e8f2ff',
   transmission: 0.92,
-  roughness: 0.14,
-  metalness: 0.06,
-  ior: 1.48,
-  thickness: 2.2,
+  roughness: 0.12,
+  metalness: 0.0,
+  ior: 1.25,
+  thickness: 0.8,
   clearcoat: 0.6,
   clearcoatRoughness: 0.08,
   specularIntensity: 0.9,
   specularColor: '#B4DDFF',
-  attenuationColor: '#142632',
-  attenuationDistance: 3.8,
+  attenuationColor: '#d6e8ff',
+  attenuationDistance: 60,
   envMapIntensity: 0.85,
 } as const;
 
@@ -71,7 +71,7 @@ export function createSharedOuterShellMaterial(options?: {
   const side = options?.side ?? (face === 'back' ? THREE.BackSide : THREE.FrontSide);
   const attenuation =
     face === 'back'
-      ? new THREE.Color(0x0a1520)
+      ? new THREE.Color(0xc4dcf5)
       : new THREE.Color(SHARED_OUTER_SHELL_MATERIAL_PRESET.attenuationColor);
 
   return new THREE.MeshPhysicalMaterial({
@@ -95,7 +95,7 @@ export function createSharedOuterShellMaterial(options?: {
     sheen: 0,
     sheenRoughness: 1,
     transparent: true,
-    opacity: softwareGl ? (face === 'back' ? 0.14 : 0.24) : 0.88,
+    opacity: softwareGl ? (face === 'back' ? 0.14 : 0.24) : face === 'back' ? 0.4 : 1,
     side,
     depthWrite: false,
   });
