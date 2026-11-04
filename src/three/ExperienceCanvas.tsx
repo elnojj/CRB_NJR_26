@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import * as THREE from 'three';
 import {
   CosmographCanvas,
@@ -126,6 +126,10 @@ export const SPHERE_FALLBACK_REST_DATA_URI = `data:image/svg+xml;utf8,${encodeUR
 )}`;
 
 import type { SpatialPanelSpec } from './spatialPanels';
+import { Sphere1Canvas } from './beats/Sphere1Canvas';
+import { beatToJourneyBeat } from './beats/journeyBridge';
+import { resolveEnvironmentMode, type EnvironmentMode } from './beats/environmentMode';
+import type { BeatContentProvider, BeatSlotFactories } from './beats/beatTypes';
 
 interface ExperienceCanvasProps {
   activeSphere: 'hq' | 'cde' | 'campaign-os' | 'about-us';
@@ -166,6 +170,12 @@ interface ExperienceCanvasProps {
   handMode?: HandDetectionMode;
   onJourneyBeat?: (beat: JourneyBeat | null) => void;
   spatialPanels?: SpatialPanelSpec[];
+  /** Defaults to the Sphere 1 clean slate; `?env=network` selects the legacy four-sphere network. */
+  environment?: EnvironmentMode;
+  /** Sphere 1 only: per-beat copy, media, metrics and camera overrides. */
+  beatContent?: BeatContentProvider;
+  /** Sphere 1 only: replace how the text, media and metric slots are drawn. */
+  beatSlotFactories?: Partial<BeatSlotFactories>;
 }
 
 export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
@@ -202,6 +212,9 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
   handMode,
   onJourneyBeat,
   spatialPanels,
+  environment,
+  beatContent,
+  beatSlotFactories,
 }) => {
   // The OS setting is resolved once in App (see utils/motionPreference); do not re-join it here or
   // a device-level Reduce Motion silently freezes every camera flight.
@@ -210,8 +223,38 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
     applyNeutralStudioEnvironment(scene);
   }, []);
 
+  const environmentMode = useMemo<EnvironmentMode>(
+    () => environment ?? resolveEnvironmentMode(typeof window === 'undefined' ? '' : window.location.search),
+    [environment]
+  );
+
   return (
     <>
+      {environmentMode === 'sphere1-beats' ? (
+        <>
+          <Sphere1Canvas
+            reducedMotion={effectiveReducedMotion}
+            audioRms={audioRms}
+            idleOrbitAllowed={idleOrbitAllowed}
+            forceWebglFallback={forceWebglFallback}
+            cameraCommand={cameraCommand}
+            content={beatContent}
+            factories={beatSlotFactories}
+            onBeat={(index, content) => onJourneyBeat?.(index === null ? null : beatToJourneyBeat(index, content))}
+            onTelemetryChange={onTelemetryChange}
+            onUserTouchPauseTour={onUserTouchPauseTour}
+          />
+          {spatialPanels && spatialPanels.length > 0 ? (
+            <div className="cerebro-spatial-fallback" data-testid="spatial-panels-fallback">
+              {spatialPanels.map((panel) => (
+                <div key={panel.id} className="cerebro-spatial-panel" data-lod="full">
+                  {panel.content}
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </>
+      ) : (
       <CosmographCanvas
         onSceneReady={handleSceneReady}
         activeSphere={activeSphere}
@@ -246,6 +289,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
         onJourneyBeat={onJourneyBeat}
         spatialPanels={spatialPanels}
       />
+      )}
 
       {/* Reduced-Motion / Fallback Rest Sphere + Interactive 2D SVG Orbital Station Pins */}
       {(effectiveReducedMotion || forceWebglFallback) && (

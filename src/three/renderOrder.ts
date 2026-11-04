@@ -12,6 +12,8 @@ export const WEBGL_RENDER_ORDER = {
   cardiacSplineTubes: 15,
   cardiacPulseBeads: 16,
   htmlAnchors: 20,
+  beatsMarkers: 18,
+  beatsContent: 21,
   cerebroSphereFx: 12,
 } as const;
 

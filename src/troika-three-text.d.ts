@@ -13,6 +13,8 @@ declare module 'troika-three-text' {
     letterSpacing: number;
     fillOpacity: number;
     maxWidth: number;
+    /** Populated after the first `sync`; `blockBounds` is [minX, minY, maxX, maxY] in local units. */
+    textRenderInfo?: { blockBounds: [number, number, number, number] };
     sync(callback?: () => void): void;
     dispose(): void;
   }
