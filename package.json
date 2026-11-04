@@ -12,7 +12,8 @@
     "preview:labs": "VITE_BASE=/cro/ vite preview --base /cro/",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "tsx scripts/run-self-tests.ts",
+    "test": "node --import tsx scripts/run-self-tests.ts",
+    "test:voice": "node --import tsx --test src/utils/openAiRealtimeVoiceBridge.test.ts server/openAiRealtime.test.ts",
     "deploy:labs": "npm run build:labs && npx vercel deploy --prod --yes"
   },
   "dependencies": {

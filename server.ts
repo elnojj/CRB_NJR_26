@@ -1,4 +1,6 @@
+import 'dotenv/config';
 import express from 'express';
+import { createOpenAiRealtimeHandler } from './server/openAiRealtime.ts';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
@@ -352,6 +354,8 @@ function requireInternalAccess(
 async function startServer() {
   const app = express();
   app.use(express.json({ limit: '15mb' }));
+
+  app.post('/api/openai/realtime/session', createOpenAiRealtimeHandler());
 
   // 1. Health & Version Checkpoint
   app.get('/api/health', (_req, res) => {
@@ -1131,6 +1135,8 @@ async function startServer() {
         'index.html',
         'metadata.json',
         'server.ts',
+        '.env.example',
+        'firebase-applet-config.json',
       ];
       for (const f of topFiles) {
         const full = path.join(rootDir, f);
@@ -1151,6 +1157,8 @@ async function startServer() {
         }
       };
       walkSrc(path.join(rootDir, 'src'));
+      walkSrc(path.join(rootDir, 'server'));
+      walkSrc(path.join(rootDir, 'api'));
       res.json({
         ok: true,
         version: BUILD_VERSION,

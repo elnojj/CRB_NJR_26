@@ -6,7 +6,7 @@
 
 ```bash
 npm install
-cp .env.example .env   # optional: set GEMINI_API_KEY / ElevenLabs keys
+cp .env.example .env   # set OPENAI_API_KEY for voice; GEMINI_API_KEY for text/creative tools
 PORT=3847 npm run dev
 ```
 
@@ -45,8 +45,43 @@ Requires a `VERCEL_TOKEN` for the Vercel team/project that already serves `labs.
 
 Copy `.env.example` → `.env`. The UI boots without live keys; Gemini / ElevenLabs features need:
 
-- `GEMINI_API_KEY`
+- `OPENAI_API_KEY` — server only, for the default OpenAI Voice provider
+- `GEMINI_API_KEY` — text chat / creative tools and the optional legacy voice provider
 - `ELEVENLABS_API_KEY` / `ELEVENLABS_AGENT_ID` (optional voice agent)
+
+## OpenAI Voice
+
+`VoiceCard` → `createVoiceBridge` → `OpenAiRealtimeVoiceBridge` is the default call path.
+It uses native WebRTC speech-to-speech, server VAD/interruption, final transcripts and the existing
+27 Cerebro tools. Tool results go back as `function_call_output` receipts before the next response.
+The same `handleExecuteToolCall` / `parseStructuredToolCall` / `executeTypedAction` path still owns UI actions.
+Raw transcripts update history only. Ambient ducking follows real Listening/Speaking call states.
+
+Configure the existing deployment with server-side `OPENAI_API_KEY`; optionally set
+`OPENAI_REALTIME_MODEL` (default `gpt-realtime`) and `OPENAI_REALTIME_VOICE` (default `marin`).
+The requested `gpt-realtime` model is used explicitly; model access/quota requires a live account check.
+Its published retirement is 20 January 2027; update the server model configuration before then.
+The retired `gpt-4o-realtime-preview` is not the default.
+
+Sign in through the existing Firebase/Google flow before calling. `/api/openai/realtime/session`
+validates that Firebase ID token with Identity Toolkit, then exchanges SDP with OpenAI.
+`CEREBRO_VOICE_ALLOWED_UIDS` optionally limits voice access to comma-separated Firebase UIDs.
+Audience headers and visual access codes cannot authenticate this endpoint. Existing private actions
+retain their own authorization requirements; voice sign-in does not establish project membership.
+The route runs in Express locally and as `api/openai/realtime/session.ts` on Vercel. It never returns
+the OpenAI key, and no `VITE_OPENAI_API_KEY` should be configured. No separate OpenAI agent ID is needed.
+
+To select the retained Google bridge, build with `VITE_CEREBRO_VOICE_PROVIDER=google-ai-studio`.
+The legacy `/api/gemini/voice-turn` backend must be available for that path; it is absent from this
+checkpoint's Express routes. Text chat and creative Gemini endpoints are otherwise unchanged.
+
+Run `npm run test:voice` for mocked WebRTC lifecycle, all-tool mapping, auth and endpoint checks.
+Run `npm run lint`, `npm test` and `npm run build:labs` for broader checks (voice tests are included).
+These checks do not establish real microphone permission, acoustic quality, device compatibility or paid API access.
+
+OpenAI references: [WebRTC](https://developers.openai.com/api/docs/guides/voice-webrtc?voice-api=realtime),
+[tool calling](https://developers.openai.com/api/docs/guides/realtime-conversations#function-calling),
+[model lifecycle](https://developers.openai.com/api/docs/models/gpt-realtime).
 
 ## Data
 

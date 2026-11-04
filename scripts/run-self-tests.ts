@@ -62,6 +62,13 @@ async function main(): Promise<void> {
     console.log(hands.output);
   }
 
+  const voice = await runNodeTestFile('src/utils/openAiRealtimeVoiceBridge.test.ts');
+  const voiceServer = await runNodeTestFile('server/openAiRealtime.test.ts');
+  console.log(`openai-realtime-voice: ${voice.ok ? 'passed' : 'FAILED'}`);
+  console.log(`openai-realtime-server: ${voiceServer.ok ? 'passed' : 'FAILED'}`);
+  if (!voice.ok) console.log(voice.output);
+  if (!voiceServer.ok) console.log(voiceServer.output);
+
   // Lightweight camera / spatial math checks (Three.js-free)
   const { masterPose, flightMs, buildClosedOrbitalLoopPoints } = await import(
     '../src/three/camera/CameraDirector.ts'
@@ -100,7 +107,7 @@ async function main(): Promise<void> {
   );
   for (const f of regFails) console.log(`  FAIL ${f}`);
 
-  if (gui.failed > 0 || streams.failed > 0 || !plan.ok || !mathOk || !regOk) {
+  if (gui.failed > 0 || streams.failed > 0 || !plan.ok || !hands.ok || !voice.ok || !voiceServer.ok || !mathOk || !regOk) {
     process.exit(1);
   }
   console.log('All self-tests passed.');

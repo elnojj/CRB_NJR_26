@@ -77,16 +77,22 @@ function mapDomError(err: unknown): MediaSessionError {
   return new MediaSessionError('unknown', message || 'Media request failed');
 }
 
-async function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+async function withTimeout<T>(
+  promise: Promise<T>, ms: number, label: string, onLateResolve?: (value: T) => void
+): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let expired = false;
   try {
     return await Promise.race([
-      promise,
+      promise.then(value => {
+        if (expired) onLateResolve?.(value);
+        return value;
+      }),
       new Promise<T>((_, reject) => {
-        timer = setTimeout(
-          () => reject(new MediaSessionError('timeout', `${label} timed out after ${ms}ms`)),
-          ms
-        );
+        timer = setTimeout(() => {
+          expired = true;
+          reject(new MediaSessionError('timeout', `${label} timed out after ${ms}ms`));
+        }, ms);
       }),
     ]);
   } finally {
@@ -109,7 +115,10 @@ export function requestUserMedia(
   const timeoutMs = opts?.timeoutMs ?? 12000;
   const label = opts?.label ?? 'getUserMedia';
   return withMediaDeviceLock(() =>
-    withTimeout(navigator.mediaDevices.getUserMedia(constraints), timeoutMs, label).catch((err) => {
+    withTimeout(
+      navigator.mediaDevices.getUserMedia(constraints), timeoutMs, label,
+      stream => stream.getTracks().forEach(track => track.stop())
+    ).catch((err) => {
       throw mapDomError(err);
     })
   );

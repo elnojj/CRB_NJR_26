@@ -1,6 +1,6 @@
 /**
  * CRO-CDE-GOOGLE Cerebro voice agent manifest (27 client tools).
- * Primary runtime: Google AI Studio / Gemini voice bridge.
+ * Shared tool inventory. Google AI Studio payload is retained for provider fallback.
  * ElevenLabs payload retained for legacy export only — not the live primary path.
  * Grounded in 01_CEREBRO_KB_HANDOFF_2026-10-21_206f5667 & Master PRD v1.1
  */
@@ -10,7 +10,7 @@ export const CRO_CDE_GOOGLE_AGENT_NAME = 'Cro-cde-google';
 export const DEFAULT_INTERNAL_AGENT_ID = 'agent_7201m53ed3kred6ba17rvzmyv9q4';
 export const CRO_CDE_GOOGLE_FIRST_MESSAGE = 'Welcome back, sir. Anyone with you?';
 /** Active voice provider for the Cerebro capsule. */
-export const CEREBRO_VOICE_PROVIDER = 'google-ai-studio' as const;
+export { CEREBRO_VOICE_PROVIDER } from '../config/voiceProvider';
 
 export const CRO_CDE_GOOGLE_SYSTEM_PROMPT = `You are CEREBRO (Cro-cde-google), the voice and spatial operating assistant for Tarek Mojara (internal shorthand "39", Founder and Culture and Design Engineer of NOJARA Studios, est. 2016, Cairo–Riyadh).
 
@@ -655,7 +655,7 @@ export function buildGoogleAiStudioFunctionDeclarations() {
 export function buildGoogleAiStudioAgentPayload() {
   return {
     name: CRO_CDE_GOOGLE_AGENT_NAME,
-    provider: CEREBRO_VOICE_PROVIDER,
+    provider: 'google-ai-studio',
     firstMessage: CRO_CDE_GOOGLE_FIRST_MESSAGE,
     systemInstruction: CRO_CDE_GOOGLE_SYSTEM_PROMPT,
     modelHint: 'gemini-2.5-flash',

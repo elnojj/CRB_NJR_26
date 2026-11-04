@@ -5,12 +5,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { AudienceLevel } from '../state/panelTypes';
 import {
-  GoogleAiStudioVoiceBridge,
   sendGeminiChatTurn,
   type ChatTurn,
   type GeminiChatModelId,
-  type VoiceBridgeState,
 } from '../utils/googleAiStudioVoiceBridge';
+import { createVoiceBridge } from '../utils/createVoiceBridge';
+import type { VoiceBridge, VoiceBridgeState } from '../utils/voiceBridgeTypes';
+import { CEREBRO_VOICE_LABEL } from '../config/voiceProvider';
 import { ComputedGuiLayout } from '../gui/layoutEngine';
 import './cerebroChat.css';
 
@@ -100,6 +101,7 @@ interface VoiceCardProps {
   onPrevTourStop?: () => void;
   onStopTour?: () => void;
   onAudioLevel?: (rms: number) => void;
+  onVoiceStateChange?: (state: VoiceBridgeState) => void;
   guiLayout?: ComputedGuiLayout;
   onVoiceDragDeltaChange?: (delta: { x: number; y: number }) => void;
   onVoiceExpandedChange?: (expanded: boolean) => void;
@@ -189,6 +191,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   onSendCompose,
   onStopTour,
   onAudioLevel,
+  onVoiceStateChange,
   guiLayout,
   onVoiceExpandedChange,
   onVoiceDragDeltaChange,
@@ -209,13 +212,16 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const fileRef = useRef<HTMLInputElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const historyRef = useRef<ChatTurn[]>([]);
-  const bridgeRef = useRef<GoogleAiStudioVoiceBridge | null>(null);
+  const bridgeRef = useRef<VoiceBridge | null>(null);
   const onAudioLevelRef = useRef(onAudioLevel);
+  const onVoiceStateChangeRef = useRef(onVoiceStateChange);
+  const lastCallTriggerRef = useRef(0);
   const bridgeRmsRef = useRef(0);
 
   useEffect(() => {
     onAudioLevelRef.current = onAudioLevel;
-  }, [onAudioLevel]);
+    onVoiceStateChangeRef.current = onVoiceStateChange;
+  }, [onAudioLevel, onVoiceStateChange]);
 
   useEffect(() => {
     onVoiceExpandedChange?.(false);
@@ -227,9 +233,10 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   }, [chatOpen, onVoiceSheetExpandedChange]);
 
   useEffect(() => {
-    const bridge = new GoogleAiStudioVoiceBridge({
+    const bridge = createVoiceBridge({
       onStatusChange: (status, detail) => {
         setBridgeStatus(status);
+        onVoiceStateChangeRef.current?.(status);
         if (detail) setBridgeDetail(detail);
       },
       onTranscript: (role, text) => {
@@ -244,8 +251,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         if (onExecuteToolCall) {
           return await onExecuteToolCall(toolName, parameters || {});
         }
-        onSimulateCommand(toolName);
-        return `Executed ${toolName}`;
+        return JSON.stringify({ ok: false, error: 'Cerebro UI tool executor unavailable.' });
       },
       onAudioLevel: (rms) => {
         bridgeRmsRef.current = rms;
@@ -263,6 +269,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     bridgeRef.current?.updateCallbacks({
       onStatusChange: (status, detail) => {
         setBridgeStatus(status);
+        onVoiceStateChangeRef.current?.(status);
         if (detail) setBridgeDetail(detail);
       },
       onTranscript: (role, text) => {
@@ -277,8 +284,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         if (onExecuteToolCall) {
           return await onExecuteToolCall(toolName, parameters || {});
         }
-        onSimulateCommand(toolName);
-        return `Executed ${toolName}`;
+        return JSON.stringify({ ok: false, error: 'Cerebro UI tool executor unavailable.' });
       },
       onAudioLevel: (rms) => {
         bridgeRmsRef.current = rms;
@@ -288,8 +294,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   }, [onSimulateCommand, onExecuteToolCall]);
 
   useEffect(() => {
-    if (contextualUpdateJson && bridgeRef.current?.isLiveWebSocketOpen?.()) {
-      bridgeRef.current.sendContextualUpdate(contextualUpdateJson);
+    if (contextualUpdateJson) {
+      bridgeRef.current?.sendContextualUpdate(contextualUpdateJson);
     }
   }, [contextualUpdateJson]);
 
@@ -298,6 +304,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     bridgeStatus === 'Speaking' ||
     bridgeStatus === 'Thinking' ||
     bridgeStatus === 'Connecting' ||
+    bridgeStatus === 'Reconnecting' ||
     bridgeStatus === 'Muted' ||
     voiceState === 'Listening' ||
     voiceState === 'Speaking';
@@ -316,7 +323,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   }, [voiceLive, tourState.active, onStopTour, onSimulateCommand]);
 
   useEffect(() => {
-    if (openAgentModalTrigger && openAgentModalTrigger > 0) {
+    if (openAgentModalTrigger && openAgentModalTrigger > lastCallTriggerRef.current) {
+      lastCallTriggerRef.current = openAgentModalTrigger;
       void handleCall();
     }
   }, [openAgentModalTrigger, handleCall]);
@@ -420,13 +428,15 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const callLabel = voiceLive ? 'End call' : 'Call';
   const handsLabel = handsActive ? 'Hands on' : 'Hands';
   const chatLabel = chatOpen ? 'Close chat' : 'Chat';
-  const statusLine = voiceLive
+  const statusLine = bridgeStatus === 'Error'
+    ? bridgeDetail
+    : voiceLive
     ? bridgeDetail || bridgeStatus
     : handsActive
       ? 'Hands on · camera live · tap again to stop'
       : chatOpen
         ? 'Chat with Cerebro'
-        : 'Call · Hands · Chat';
+        : `${CEREBRO_VOICE_LABEL} · ready`;
 
   return (
     <div
