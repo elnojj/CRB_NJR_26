@@ -1,4 +1,5 @@
 .floating-icon-toggles {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -35,4 +36,73 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(6px);
+}
+
+/* Stations & tools dropdown: anchored under the toolbar, right-aligned, never in the icon strip. */
+.floating-icon-more-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: min(320px, calc(100vw - 24px));
+  /* Leaves room for the Call · Hands · Chat dock beneath the menu. */
+  max-height: calc(100dvh - 210px - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px;
+  border-radius: 16px;
+  border: 1px solid rgba(180, 221, 255, 0.18);
+  background: rgba(8, 14, 22, 0.92);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.fim-section {
+  padding: 8px 10px 4px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #65acff;
+}
+
+.fim-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #f2f6f8;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fim-item:hover,
+.fim-item:focus-visible {
+  background: rgba(180, 221, 255, 0.1);
+  outline: none;
+}
+
+.fim-meta {
+  flex-shrink: 0;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  color: #bdcbd3;
+  text-align: right;
+}
+
+.fim-rule {
+  height: 1px;
+  margin: 6px 4px;
+  background: rgba(180, 221, 255, 0.14);
 }

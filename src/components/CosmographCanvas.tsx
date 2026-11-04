@@ -43,8 +43,6 @@ import { GuiRect } from '../gui/CollisionManager';
 import { ProjectedTargetScreenCoords } from '../gui/GuiFocusOverlay';
 import {
   patchFresnelRimOnOpaqueFragment,
-  buildClosedOrbitalLoopPoints,
-  updateBoundedParticleDrift,
   createResizeSnapshot,
   readHomeComposition,
   executeAtomicReframe,
@@ -518,6 +516,7 @@ const HAND_JITTER_FILTER_MS = 120;
 const HAND_DOLLY_GAIN = 4.5;
 const HAND_ROLL_MAX_DEG = 25;
 const HAND_ROLL_RELAX_PER_SEC = 1.5;
+const LINK_HIDE_EPSILON = 0.02;
 
 interface JourneyAdoptState {
   azimuth: number;
@@ -654,185 +653,6 @@ const CinemaFilmGrainVignetteShader = {
     }
   `,
 };
-
-// Dust density/opacity were cut by 60% (0.4x) so the cloud reads as faint depth
-// behind the node plane rather than a milky additive wash over nodes and text.
-const GALAXY_DUST_COUNT_GPU = 1280;
-const GALAXY_DUST_COUNT_SOFTWARE = 640;
-const GALAXY_DUST_ALPHA_SCALE = 0.4;
-const GALAXY_DUST_ALPHA_CAP = 0.42 * GALAXY_DUST_ALPHA_SCALE;
-const SPIRAL_SHELL_COUNT = 170;
-const SPIRAL_SHELL_OPACITY = 0.32 * 0.4;
-
-/**
- * Multi-Layer Spiral Galaxy with GPU Bokeh (`buildLiquidGlassGalaxySphere`):
- * Populates a sphere with a 4-arm, 3-layer spiral galaxy (1,280 particles per sphere on GPU,
- * 640 on software rasterizers) using a custom THREE.ShaderMaterial vertex/fragment shader
- * that computes real-time Depth-of-Field (DOF) bokeh disc diffusion relative to uFocalDistance.
- */
-function buildLiquidGlassGalaxySphere(
-  parentGroup: THREE.Group,
-  sphereTag: ConnectedSphereId,
-  isSoftwareGl: boolean,
-  shellScale: number
-): { points: THREE.Points; uniforms: { uTime: { value: number }; uFocalDistance: { value: number }; uAudioRms: { value: number } } } {
-  const particleCount = isSoftwareGl ? GALAXY_DUST_COUNT_SOFTWARE : GALAXY_DUST_COUNT_GPU;
-  const positions = new Float32Array(particleCount * 3);
-  const colors = new Float32Array(particleCount * 3);
-  const sizes = new Float32Array(particleCount);
-  const phases = new Float32Array(particleCount);
-
-  const paletteHex =
-    sphereTag === 'hq'
-      ? [
-          '#B4DDFF',
-          '#65ACFF',
-          '#BCC9D4',
-          '#D4AF37',
-          '#F2F6F8',
-          '#8C6A45',
-        ]
-      : [
-          '#D4AF37',
-          '#B4DDFF',
-          '#8C6A45',
-          '#BCC9D4',
-          '#65ACFF',
-          '#F2F6F8',
-        ];
-
-  const arms = 4;
-  for (let i = 0; i < particleCount; i++) {
-    const layer = i % 3; // 3-layer vertical thickness & orbital stratification
-    const armIndex = i % arms;
-    const t = Math.pow(i / particleCount, 0.78);
-    const radius = 0.65 + t * 4.35;
-    const spinAngle = radius * 1.15 + (armIndex * Math.PI * 2) / arms;
-
-    // Deterministic golden-ratio scatter
-    const rand1 = ((i * 1.6180339887) % 1) * 2 - 1;
-    const rand2 = ((i * 2.4142135623) % 1) * 2 - 1;
-    const rand3 = ((i * 3.1415926535) % 1) * 2 - 1;
-
-    const layerSpreadY = layer === 0 ? 0.42 : layer === 1 ? 1.35 : 2.65;
-    const armSpread = (0.24 + radius * 0.075) * rand1;
-
-    const x = Math.cos(spinAngle + armSpread) * radius + rand2 * 0.2;
-    const z = Math.sin(spinAngle + armSpread) * radius + rand1 * 0.2;
-    const y = rand3 * layerSpreadY * (1 - t * 0.38);
-
-    // Clamp strictly inside the 5.35u interior of the 6.2u containment sphere
-    const vLen = Math.hypot(x, y, z);
-    const scaleClamp = vLen > 5.35 ? 5.35 / vLen : 1.0;
-
-    positions[i * 3] = x * scaleClamp;
-    positions[i * 3 + 1] = y * scaleClamp;
-    positions[i * 3 + 2] = z * scaleClamp;
-
-    _scratchColor.set(paletteHex[i % paletteHex.length]);
-    colors[i * 3] = _scratchColor.r;
-    colors[i * 3 + 1] = _scratchColor.g;
-    colors[i * 3 + 2] = _scratchColor.b;
-
-    sizes[i] = (layer === 0 ? 7.5 : layer === 1 ? 5.5 : 4.0) * (0.55 + 0.45 * Math.abs(rand2));
-    phases[i] = (i * 0.73) % (Math.PI * 2);
-  }
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geo.setAttribute('customColor', new THREE.BufferAttribute(colors, 3));
-  geo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
-  geo.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
-
-  const uniforms = {
-    uTime: { value: 0.0 },
-    uFocalDistance: { value: 18.0 },
-    uAudioRms: { value: 0.0 },
-  };
-
-  const mat = new THREE.ShaderMaterial({
-    uniforms,
-    vertexShader: `
-      attribute vec3 customColor;
-      attribute float aSize;
-      attribute float aPhase;
-      uniform float uTime;
-      uniform float uFocalDistance;
-      uniform float uAudioRms;
-      varying vec3 vColor;
-      varying float vBokehBlur;
-      varying float vTwinkle;
-      varying float vEdgeFade;
-      varying float vBehindPlane;
-
-      void main() {
-        vColor = customColor;
-        // Soft radial falloff so the galactic disc dissolves before the shell wall
-        // instead of being sliced into a hard flat edge by the glass sphere.
-        float rLocal = length(position);
-        vEdgeFade = 1.0 - smoothstep(3.1, 4.7, rLocal);
-        // Subtle 4-arm differential galactic drift
-        float r = length(position.xz);
-        float angleDelta = uTime * (0.045 / max(0.8, r * 0.45));
-        float ca = cos(angleDelta);
-        float sa = sin(angleDelta);
-        vec3 pos = vec3(
-          position.x * ca - position.z * sa,
-          position.y + sin(uTime * 0.9 + aPhase) * 0.06,
-          position.x * sa + position.z * ca
-        );
-
-        vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-        float viewDist = -mvPosition.z;
-
-        // Dust nearer the camera than the sphere centre (the node coordinate plane)
-        // fades out, so it only ever reads as depth behind nodes, rings and text.
-        float centreDist = -(modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0)).z;
-        vBehindPlane = 1.0 - smoothstep(-0.4, 1.8, (centreDist - viewDist) / ${shellScale.toFixed(3)});
-
-        // Real-time Depth-of-Field (DOF) circle-of-confusion relative to uFocalDistance
-        float coc = clamp(abs(viewDist - uFocalDistance) / 9.5, 0.0, 1.0);
-        vBokehBlur = coc;
-        vTwinkle = 0.72 + 0.28 * sin(uTime * 2.1 + aPhase) + uAudioRms * 0.45;
-
-        float bokehExpand = 1.0 + coc * 1.85 + uAudioRms * 0.35;
-        gl_PointSize = clamp((aSize * bokehExpand) * (18.0 / max(2.5, viewDist)), 2.0, 34.0);
-        gl_Position = projectionMatrix * mvPosition;
-      }
-    `,
-    fragmentShader: `
-      varying vec3 vColor;
-      varying float vBokehBlur;
-      varying float vTwinkle;
-      varying float vEdgeFade;
-      varying float vBehindPlane;
-
-      void main() {
-        vec2 uv = gl_PointCoord - vec2(0.5);
-        float d = length(uv) * 2.0;
-        if (d > 1.0) discard;
-
-        // Sharp crystalline core when on focal plane; soft Gaussian bokeh disc with subtle ring when out-of-focus
-        float sharpStar = exp(-d * d * 7.5);
-        float softBokeh = smoothstep(1.0, 0.15, d) * (0.55 + 0.45 * smoothstep(0.45, 0.82, d));
-        float profile = mix(sharpStar, softBokeh, vBokehBlur);
-        float alpha = profile * mix(0.32, 0.12, vBokehBlur) * vTwinkle * ${GALAXY_DUST_ALPHA_SCALE.toFixed(2)};
-        alpha *= vEdgeFade * vBehindPlane;
-
-        gl_FragColor = vec4(vColor * (0.95 + (1.0 - vBokehBlur) * 0.25), clamp(alpha, 0.0, ${GALAXY_DUST_ALPHA_CAP.toFixed(3)}));
-      }
-    `,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-  });
-
-  const points = new THREE.Points(geo, mat);
-  points.renderOrder = 1;
-  points.scale.setScalar(shellScale);
-  parentGroup.add(points);
-  return { points, uniforms };
-}
 
 export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   activeSphere,
@@ -1045,6 +865,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         emissiveMats: THREE.MeshStandardMaterial[];
         wireMat?: THREE.LineBasicMaterial;
         connectorUniforms?: CardiacConnectorUniforms;
+        connectorMesh?: THREE.Object3D;
       }
     >
   >(new Map());
@@ -1794,26 +1615,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       g.addColorStop(1, '#02050a');
       bgCtx.fillStyle = g;
       bgCtx.fillRect(0, 0, 1024, 1024);
-      // Cool ice bloom upper-left — brand, not purple.
-      const ice = bgCtx.createRadialGradient(260, 220, 16, 260, 220, 420);
-      ice.addColorStop(0, 'rgba(180,221,255,0.34)');
-      ice.addColorStop(0.45, 'rgba(101,172,255,0.14)');
-      ice.addColorStop(1, 'rgba(180,221,255,0)');
-      bgCtx.fillStyle = ice;
-      bgCtx.fillRect(0, 0, 1024, 1024);
-      // Secondary cool rim along the horizon.
-      const iceRim = bgCtx.createRadialGradient(540, 620, 40, 540, 620, 380);
-      iceRim.addColorStop(0, 'rgba(101,172,255,0.10)');
-      iceRim.addColorStop(1, 'rgba(101,172,255,0)');
-      bgCtx.fillStyle = iceRim;
-      bgCtx.fillRect(0, 0, 1024, 1024);
-      // Soft gold dust lower-right.
-      const gold = bgCtx.createRadialGradient(780, 800, 12, 780, 800, 360);
-      gold.addColorStop(0, 'rgba(212,175,55,0.20)');
-      gold.addColorStop(0.5, 'rgba(212,175,55,0.07)');
-      gold.addColorStop(1, 'rgba(212,175,55,0)');
-      bgCtx.fillStyle = gold;
-      bgCtx.fillRect(0, 0, 1024, 1024);
       // Sparse star dust — brighter so it survives fog + Hands wash.
       for (let i = 0; i < 220; i++) {
         const x = (Math.sin(i * 12.9898) * 43758.5453) % 1;
@@ -2110,12 +1911,17 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       curve: THREE.Curve<THREE.Vector3>;
       speed: number;
       offset: number;
+      /** In-sphere beads only render while an endpoint of their link is active. */
+      link?: { a: string; b: string };
     }[] = [];
 
     const cardiacTubes: {
       uniforms: CardiacConnectorUniforms;
+      mesh: THREE.Object3D;
       nodeA: string;
       nodeB: string;
+      /** In-sphere links are hidden until one endpoint is hovered/focused; inter-sphere bridges stay. */
+      intra: boolean;
       dispose: () => void;
     }[] = [];
 
@@ -2156,20 +1962,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       frontShellMesh.renderOrder = 4;
       shellGroup.add(frontShellMesh);
 
-      // Interior Planetary Dome Constellation / Hex Horizon Grid (visible when camera.radius < 8.2u)
-      const domeGridGroup = new THREE.Group();
-      const domeWireGeo = new THREE.IcosahedronGeometry(5.95 * shellScale, 2);
-      const domeEdges = new THREE.EdgesGeometry(domeWireGeo);
-      const domeGridMat = new THREE.LineBasicMaterial({
-        color: new THREE.Color(0xB4DDFF),
-        transparent: true,
-        opacity: 0.0,
-        depthWrite: false,
-      });
-      const domeGridLines = new THREE.LineSegments(domeEdges, domeGridMat);
-      domeGridGroup.add(domeGridLines);
-      shellGroup.add(domeGridGroup);
-
       // -----------------------------------------------------------------------
       // SEHLY ORBITAL CAGE ATTENTION NODES
       // Mounted cleanly at precision orbital intersections
@@ -2206,76 +1998,19 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       shellGroup.add(perimeterDropletsGroup);
       root.add(shellGroup);
 
-      // Contained Multi-Layer Galaxy Dust with GPU Bokeh
-      const galaxy = buildLiquidGlassGalaxySphere(root, sphereTag, isSoftwareGl, shellScale);
-
-      // Contained Spiral Shell Particles (SPIRAL_SHELL_COUNT) (strictly inside r = 5.45u < 6.2u)
-      const spiralCount = SPIRAL_SHELL_COUNT;
-      const spiralPos = new Float32Array(spiralCount * 3);
-      const spiralPhases = new Float32Array(spiralCount);
-      for (let sp = 0; sp < spiralCount; sp++) {
-        const u = sp / spiralCount;
-        const theta = sp * 2.3999632;
-        const y = 1 - u * 2;
-        const rSlice = Math.sqrt(Math.max(0, 1 - y * y));
-        const shellR = (5.05 + (sp % 5) * 0.04) * shellScale;
-        spiralPos[sp * 3] = Math.cos(theta) * rSlice * shellR;
-        spiralPos[sp * 3 + 1] = y * shellR;
-        spiralPos[sp * 3 + 2] = Math.sin(theta) * rSlice * shellR;
-        spiralPhases[sp] = (sp * 0.53) % (Math.PI * 2);
-      }
-      const spiralBasePos = new Float32Array(spiralPos);
-      const spiralGeo = new THREE.BufferGeometry();
-      const spiralPosAttr = new THREE.BufferAttribute(spiralPos, 3);
-      spiralGeo.setAttribute('position', spiralPosAttr);
-      const spiralMat = new THREE.PointsMaterial({
-        color: new THREE.Color(isHq ? '#B4DDFF' : '#D4AF37'),
-        size: 0.055,
-        transparent: true,
-        opacity: SPIRAL_SHELL_OPACITY,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      });
-      const spiralPoints = new THREE.Points(spiralGeo, spiralMat);
-      shellGroup.add(spiralPoints);
-
-      const iceWireMat = new THREE.LineBasicMaterial({
-        color: new THREE.Color(0xB4DDFF),
-        transparent: true,
-        opacity: 0.28,
-      });
-      const goldRimMat = new THREE.LineBasicMaterial({
-        color: new THREE.Color(0xD4AF37),
-        transparent: true,
-        opacity: 0.48,
-      });
-
-      // Three Precision Orbital Rings / Cage
+      // Orbital cage: the three bronze ribs only. The thin gold/ice wireframe loops, the inner
+      // ice filament rings and the interior dome grid were removed for the clean-slate scene.
       const orbitalRingsGroup = new THREE.Group();
-      const sehlyOrbitalCageSpecs = [
-        // Equator ring (R = 1.015 * 6.2 = 6.293u)
-        { rx: 6.2 * 1.015 * shellScale, rotX: Math.PI / 2 - 0.18, rotY: 0.12, rotZ: 0, isCageTorus: true, mat: goldRimMat },
-        // Meridian A (rotz(pi/2))
-        { rx: 6.2 * 1.015 * shellScale, rotX: 0.22, rotY: 0.48, rotZ: Math.PI / 2, isCageTorus: true, mat: goldRimMat },
-        // Meridian B (rotz(pi/3))
-        { rx: 6.2 * 1.015 * shellScale, rotX: -0.28, rotY: -0.52, rotZ: Math.PI / 3, isCageTorus: true, mat: goldRimMat },
-        // Inner Core Ice Filament Rings (0.82R = 5.084u)
-        { rx: 6.2 * 0.82 * shellScale, rotX: Math.PI / 2, rotY: 0, rotZ: 0, isCageTorus: false, mat: iceWireMat },
-        { rx: 6.2 * 0.82 * shellScale, rotX: 0, rotY: Math.PI / 4, rotZ: 0, isCageTorus: false, mat: iceWireMat },
+      const orbitalCageRibSpecs = [
+        { rotX: Math.PI / 2 - 0.18, rotY: 0.12, rotZ: 0 },
+        { rotX: 0.22, rotY: 0.48, rotZ: Math.PI / 2 },
+        { rotX: -0.28, rotY: -0.52, rotZ: Math.PI / 3 },
       ];
-      sehlyOrbitalCageSpecs.forEach((cfg) => {
-        const { points: closedLoopPts } = buildClosedOrbitalLoopPoints(cfg.rx, cfg.rx, 96);
-        const geo = new THREE.BufferGeometry().setFromPoints(closedLoopPts);
-        const line = new THREE.LineLoop(geo, cfg.mat);
-        line.rotation.set(cfg.rotX, cfg.rotY, cfg.rotZ);
-        orbitalRingsGroup.add(line);
-
-        if (cfg.isCageTorus) {
-          const bronzeCageRing = new THREE.Mesh(sharedOuterRibTorusGeo, sharedGoldRibbedMat);
-          bronzeCageRing.scale.setScalar(shellScale);
-          bronzeCageRing.rotation.set(cfg.rotX, cfg.rotY, cfg.rotZ);
-          orbitalRingsGroup.add(bronzeCageRing);
-        }
+      orbitalCageRibSpecs.forEach((cfg) => {
+        const bronzeCageRing = new THREE.Mesh(sharedOuterRibTorusGeo, sharedGoldRibbedMat);
+        bronzeCageRing.scale.setScalar(shellScale);
+        bronzeCageRing.rotation.set(cfg.rotX, cfg.rotY, cfg.rotZ);
+        orbitalRingsGroup.add(bronzeCageRing);
       });
       shellGroup.add(orbitalRingsGroup);
 
@@ -2321,6 +2056,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         opacity: 0.32,
       });
       const coreHaloMesh = new THREE.Mesh(sharedHaloGeo, coreHaloMat);
+      coreHaloMesh.visible = false;
       coreGroup.add(coreHaloMesh);
 
       root.add(coreGroup);
@@ -2381,13 +2117,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         shellMeshes: [backShellMesh, frontShellMesh],
         frontShellMat,
         backShellMat,
-        domeGridMat,
         coreGroup,
         coreCrystalMat,
-        galaxy,
-        spiralPosAttr,
-        spiralBasePos,
-        spiralPhases,
       };
     };
 
@@ -2580,6 +2311,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       });
       const haloMesh = new THREE.Mesh(sharedHaloGeo, haloMat);
       haloMesh.scale.setScalar(1.15);
+      haloMesh.visible = false;
       group.add(haloMesh);
 
       return { group, haloMesh, emissiveMats, objectCode, sculptureTag };
@@ -2651,7 +2383,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         pulseColor: 0xfff1d4,
         speed: 0.28 + (pulseIndex % 5) * 0.04,
       });
-      spoke.handle.uniforms.uDimFactor.value = nodeType === 'project' ? 0.55 : 0.85;
+      spoke.handle.uniforms.uDimFactor.value = 0;
+      spoke.mesh.visible = false;
       parentGroup.add(spoke.mesh);
       extraDisposables.push({ dispose: spoke.dispose });
       // Spoke dimming is owned by nodeRegistry.connectorUniforms (avoid fighting cardiacTubes).
@@ -2660,13 +2393,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         new THREE.SphereGeometry(0.05, 12, 12),
         sharedPolishedGoldMat
       );
+      beadMesh.visible = false;
       parentGroup.add(beadMesh);
-      pulseBeads.push({
+      const spokeBead: (typeof pulseBeads)[number] = {
         mesh: beadMesh,
         curve,
         speed: 0.16 + (pulseIndex % 5) * 0.03,
         offset: (pulseIndex * 0.19) % 1,
-      });
+      };
+      pulseBeads.push(spokeBead);
 
       const coreId =
         sphereTag === 'hq'
@@ -2676,6 +2411,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             : sphereTag === 'campaign-os'
               ? 'core-campaign-os'
               : 'core-about-us';
+      spokeBead.link = { a: coreId, b: canonicalId };
       const connSet = new Set<string>([coreId, ...connectedIds]);
       const coreEntry = nodeRegistryRef.current.get(coreId);
       if (coreEntry) {
@@ -2700,6 +2436,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         haloMesh,
         emissiveMats,
         connectorUniforms: spoke.handle.uniforms,
+        connectorMesh: spoke.mesh,
       });
     };
 
@@ -2729,12 +2466,16 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         pulseColor: 0xfff1d4,
         speed: 0.42,
       });
+      tube.handle.uniforms.uDimFactor.value = 0;
+      tube.mesh.visible = false;
       parentGroup.add(tube.mesh);
       extraDisposables.push({ dispose: tube.dispose });
       cardiacTubes.push({
         uniforms: tube.handle.uniforms,
+        mesh: tube.mesh,
         nodeA: nodeIdA,
         nodeB: nodeIdB,
+        intra: true,
         dispose: tube.dispose,
       });
     };
@@ -2930,8 +2671,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       extraDisposables.push({ dispose: satTube.dispose });
       cardiacTubes.push({
         uniforms: satTube.handle.uniforms,
+        mesh: satTube.mesh,
         nodeA: 'hq',
         nodeB: peerId,
+        intra: false,
         dispose: satTube.dispose,
       });
       const satBead = new THREE.Mesh(
@@ -3091,12 +2834,16 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         pulseColor: 0xfff1d4,
         speed: 0.36,
       });
+      childTube.handle.uniforms.uDimFactor.value = 0;
+      childTube.mesh.visible = false;
       targetAssembly.root.add(childTube.mesh);
       extraDisposables.push({ dispose: childTube.dispose });
       cardiacTubes.push({
         uniforms: childTube.handle.uniforms,
+        mesh: childTube.mesh,
         nodeA: dom.parentNodeId || 'hq',
         nodeB: dom.id,
+        intra: true,
         dispose: childTube.dispose,
       });
 
@@ -3108,12 +2855,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           opacity: 0.96,
         })
       );
+      childPulseBead.visible = false;
       targetAssembly.root.add(childPulseBead);
       pulseBeads.push({
         mesh: childPulseBead,
         curve: childCardiacCurve,
         speed: 0.18,
         offset: (dIdx * 0.25) % 1,
+        link: { a: dom.parentNodeId || 'hq', b: dom.id },
       });
     });
 
@@ -3137,8 +2886,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     extraDisposables.push({ dispose: bridgeTube.dispose });
     cardiacTubes.push({
       uniforms: bridgeTube.handle.uniforms,
+      mesh: bridgeTube.mesh,
       nodeA: 'hq',
       nodeB: 'cde',
+      intra: false,
       dispose: bridgeTube.dispose,
     });
 
@@ -3173,6 +2924,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       opacity: 0.68,
     });
     const cometLine = new THREE.Line(cometGeo, cometMat);
+    cometLine.visible = false;
     scene.add(cometLine);
 
     const cometWeaveGeo = new THREE.BufferGeometry();
@@ -3183,6 +2935,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       opacity: 0.48,
     });
     const cometWeaveLine = new THREE.Line(cometWeaveGeo, cometWeaveMat);
+    cometWeaveLine.visible = false;
     scene.add(cometWeaveLine);
 
     // -------------------------------------------------------------------------
@@ -4072,49 +3825,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         6.5,
         dt
       );
-      const domeMix = glassUniforms.uInteriorDome.value;
-      // Dome transition is shader-driven (uInteriorDome); keep MAT shell opacity intact.
-      hqAssembly.domeGridMat.opacity = domeMix * 0.24;
-      cdeAssembly.domeGridMat.opacity = domeMix * 0.24;
-
-      // Update GPU Bokeh Galaxy uniforms (uTime, uFocalDistance, uAudioRms)
-      let focalDist = s.radius;
-      const activeTargetId = s.HoveredNodeId || s.focusedNodeId || s.tourHighlightId;
-      if (activeTargetId) {
-        const targetEntry = resolveNodeEntry(activeTargetId, s.activeSphere);
-        if (targetEntry) {
-          focalDist = camera.position.distanceTo(targetEntry.worldPos);
-        }
-      }
-      const galaxyAssemblies = [
-        hqAssembly,
-        cdeAssembly,
-        peerAssemblies['campaign-os'],
-        peerAssemblies['about-us'],
-      ];
-      for (const assembly of galaxyAssemblies) {
-        if (!assembly) continue;
-        assembly.galaxy.uniforms.uTime.value = s.reducedMotion ? 0 : elapsedTotal;
-        assembly.galaxy.uniforms.uFocalDistance.value = focalDist;
-        assembly.galaxy.uniforms.uAudioRms.value = liveRms;
-      }
-
-      // Blueprint V2.0 v2 Fix #3 & #7: Bounded non-accumulating particle drift with per-frame reducedMotion
-      updateBoundedParticleDrift(
-        hqAssembly.spiralPosAttr,
-        hqAssembly.spiralBasePos,
-        hqAssembly.spiralPhases,
-        elapsedTotal,
-        s.reducedMotion
-      );
-      updateBoundedParticleDrift(
-        cdeAssembly.spiralPosAttr,
-        cdeAssembly.spiralBasePos,
-        cdeAssembly.spiralPhases,
-        elapsedTotal,
-        s.reducedMotion
-      );
-
       // v4.0 3D Cylindrical Project Media Tube update & enclosing shell dimming
       const tubeProp = mediaTubeStateRef.current;
       const tubeActive = Boolean(tubeProp?.active);
@@ -4218,7 +3928,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       cdeAssembly.coreGroup.rotation.y -= dt * (0.22 + liveRms * 0.85);
 
       // Obsidian Graph Hover Dimming (100% connected vs 25% non-connected over 300ms) & Project Inverse Proximity Scaling (1.0x -> 2.1x)
+      const activeTargetId = s.HoveredNodeId || s.focusedNodeId || s.tourHighlightId;
       const activeEntry = activeTargetId ? resolveNodeEntry(activeTargetId, s.activeSphere) : null;
+      const linkIsLive = (a: string, b: string): boolean =>
+        activeEntry != null && (activeEntry.canonicalId === a || activeEntry.canonicalId === b);
 
       nodeRegistryRef.current.forEach((entry) => {
         let targetBright = 1.0;
@@ -4252,22 +3965,32 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           entry.connectorUniforms.uTime.value = s.reducedMotion ? 0 : elapsedTotal;
           entry.connectorUniforms.uAudioRms.value = liveRms;
           const baseDim = entry.nodeType === 'project' ? 0.55 : 0.85;
-          const boost = b > 0.85 && activeEntry ? 0.35 : 0;
+          const spokeLive =
+            entry.sphere === s.activeSphere &&
+            linkIsLive(`core-${entry.sphere}`, entry.canonicalId);
           entry.connectorUniforms.uDimFactor.value = THREE.MathUtils.damp(
             entry.connectorUniforms.uDimFactor.value,
-            baseDim * b + boost,
+            spokeLive ? baseDim + 0.35 : 0,
             9.5,
             dt
           );
+          if (entry.connectorMesh) {
+            entry.connectorMesh.visible =
+              spokeLive || entry.connectorUniforms.uDimFactor.value > LINK_HIDE_EPSILON;
+          }
         }
 
         if (entry.haloMesh) {
-          entry.haloMesh.lookAt(camera.position);
+          // Selection ring only: no permanent concentric guides around idle nodes.
           const isHigh =
             entry.canonicalId === s.focusedNodeId ||
             entry.canonicalId === s.tourHighlightId ||
             entry.canonicalId === s.HoveredNodeId;
-          entry.haloMesh.scale.setScalar(isHigh ? 1.48 : 1.0);
+          entry.haloMesh.visible = isHigh;
+          if (isHigh) {
+            entry.haloMesh.lookAt(camera.position);
+            entry.haloMesh.scale.setScalar(1.0);
+          }
         }
 
         if (entry.groupMesh && entry.nodeType !== 'core') {
@@ -4283,27 +4006,24 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         }
       });
 
-      // Update Cardiac Heartbeat Tubes — time, audio coupling, connection dimming
+      // Cardiac tubes: in-sphere links render only while an endpoint is hovered/focused;
+      // inter-sphere bridges stay as the primary constellation links.
       for (let c = 0; c < cardiacTubes.length; c++) {
         const ct = cardiacTubes[c];
         ct.uniforms.uTime.value = s.reducedMotion ? 0 : elapsedTotal;
         ct.uniforms.uAudioRms.value = liveRms;
-        let tubeDim = 1.0;
-        if (activeEntry) {
-          const connected =
-            activeEntry.canonicalId === ct.nodeA ||
-            activeEntry.canonicalId === ct.nodeB ||
-            activeEntry.canonicalId === 'projects' ||
-            activeEntry.connectedIds.has(ct.nodeA) ||
-            activeEntry.connectedIds.has(ct.nodeB);
-          tubeDim = connected ? 1.0 : 0.22;
-        }
+        const live = !ct.intra || linkIsLive(ct.nodeA, ct.nodeB);
         ct.uniforms.uDimFactor.value = THREE.MathUtils.damp(
           ct.uniforms.uDimFactor.value,
-          tubeDim,
+          live ? 1.0 : 0,
           9.5,
           dt
         );
+        ct.mesh.visible = live || ct.uniforms.uDimFactor.value > LINK_HIDE_EPSILON;
+      }
+      for (let i = 0; i < pulseBeads.length; i++) {
+        const link = pulseBeads[i].link;
+        pulseBeads[i].mesh.visible = !link || linkIsLive(link.a, link.b);
       }
 
       // Never apply setViewOffset (EffectComposer + bloom seam). Instead, soft-pan the

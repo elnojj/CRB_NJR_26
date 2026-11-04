@@ -52,6 +52,7 @@ async function main(): Promise<void> {
     console.log(plan.output);
   }
 
+  let nodeTestFailures = 0;
   for (const [label, file] of [
     ['handInteraction', 'src/three/handInteraction.test.ts'],
     ['environmentRegistry', 'src/data/environmentRegistry.test.ts'],
@@ -64,6 +65,7 @@ async function main(): Promise<void> {
     const pass = run.output.match(/# pass (\d+)/)?.[1] || '0';
     console.log(`${label}: ${run.ok ? 'passed' : 'FAILED'} (node:test pass=${pass} fail=${fail})`);
     if (!run.ok) {
+      nodeTestFailures += 1;
       console.log(run.output);
     }
   }
@@ -106,7 +108,7 @@ async function main(): Promise<void> {
   );
   for (const f of regFails) console.log(`  FAIL ${f}`);
 
-  if (gui.failed > 0 || streams.failed > 0 || !plan.ok || !mathOk || !regOk) {
+  if (nodeTestFailures > 0 || gui.failed > 0 || streams.failed > 0 || !plan.ok || !mathOk || !regOk) {
     process.exit(1);
   }
   console.log('All self-tests passed.');

@@ -20,16 +20,30 @@ describe('visual guards: master canvas', () => {
     assert.ok(canvasSrc.includes('mediaGapBadges[ti].visible = !hasMedia'));
   });
 
-  it('galaxy dust is cut ~60% in density and opacity, depthWrite off, edge and plane faded', () => {
-    assert.match(canvasSrc, /GALAXY_DUST_COUNT_GPU = 1280;/);
-    assert.match(canvasSrc, /GALAXY_DUST_COUNT_SOFTWARE = 640;/);
-    assert.match(canvasSrc, /GALAXY_DUST_ALPHA_SCALE = 0\.4;/);
-    assert.match(canvasSrc, /SPIRAL_SHELL_COUNT = 170;/);
-    assert.match(canvasSrc, /vEdgeFade/);
-    assert.match(canvasSrc, /vBehindPlane/);
-    const galaxy = canvasSrc.slice(canvasSrc.indexOf('function buildLiquidGlassGalaxySphere'));
-    const mat = galaxy.slice(galaxy.indexOf('new THREE.ShaderMaterial'), galaxy.indexOf('new THREE.Points'));
-    assert.match(mat, /depthWrite: false/);
+  it('has no galaxy dust, spiral shell particles or backdrop nebula blooms', () => {
+    assert.ok(!canvasSrc.includes('buildLiquidGlassGalaxySphere'));
+    assert.ok(!/new THREE\.Points\(/.test(canvasSrc));
+    assert.ok(!canvasSrc.includes('GALAXY_DUST'));
+    assert.ok(!canvasSrc.includes('spiralPoints'));
+    assert.ok(!canvasSrc.includes('Cool ice bloom'));
+    assert.ok(!canvasSrc.includes('Soft gold dust'));
+    assert.ok(!canvasSrc.includes('iceRim'));
+  });
+
+  it('has no gray wireframe orbit rings or interior dome grid', () => {
+    assert.ok(!canvasSrc.includes('iceWireMat'));
+    assert.ok(!canvasSrc.includes('domeGrid'));
+    assert.ok(!canvasSrc.includes('isCageTorus'));
+    assert.ok(!canvasSrc.includes('goldRimMat'));
+  });
+
+  it('node halos are selection-only and in-sphere links render only when active', () => {
+    assert.ok(canvasSrc.includes('entry.haloMesh.visible = isHigh'));
+    assert.ok(canvasSrc.includes('haloMesh.visible = false'));
+    assert.ok(canvasSrc.includes('const linkIsLive'));
+    assert.ok(canvasSrc.includes('spokeLive ? baseDim + 0.35 : 0'));
+    assert.match(canvasSrc, /spoke\.mesh\.visible = false/);
+    assert.match(canvasSrc, /intra: false/);
   });
 });
 
@@ -42,6 +56,15 @@ describe('visual guards: bottom dock safe area', () => {
   it('does not override the CSS bottom offset with an inline style', () => {
     const dockStyle = voiceCardSrc.slice(voiceCardSrc.indexOf('const dockStyle'), voiceCardSrc.indexOf('const callLabel'));
     assert.ok(!/bottom:/.test(dockStyle));
+  });
+});
+
+describe('visual guards: toolbar dropdown', () => {
+  it('stations dropdown is anchored under the toolbar, not flowing inside the icon strip', () => {
+    const css = read('./chrome/floatingIconToggles.css');
+    assert.match(css, /\.floating-icon-toggles \{\s*position: relative/);
+    assert.match(css, /\.floating-icon-more-menu \{\s*position: absolute;\s*top: calc\(100% \+ 10px\);\s*right: 0/);
+    assert.match(css, /\.fim-item \{/);
   });
 });
 
