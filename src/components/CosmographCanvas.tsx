@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { disposeShellGeometryCache, seedShellGeometry } from '../three/geometryRegistry';
@@ -11,6 +12,7 @@ import {
 } from '../three/masterSphereShape';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { COLOUR_TOKENS } from '../tokens/colours';
@@ -101,13 +103,12 @@ import {
 } from '../data/peerSphereContent';
 import { createIstanbaMouldProof, type IstanbaProofHandle } from '../three/istanbaMouldProof';
 import { SpatialLabelBillboardLayer } from '../three/spatialLabelBillboards';
+import { SpatialPanelLayer, type SpatialPanelSpec } from '../three/spatialPanels';
 
 // ---------------------------------------------------------------------------
 // CEREBRO-NOJARA D0 v1.24 — SECTION 2: THREE.JS RENDERER, MATERIALS, LIGHTS
 // ---------------------------------------------------------------------------
-const AgX =
-  (THREE as unknown as { AgXToneMapping?: THREE.ToneMapping }).AgXToneMapping ??
-  THREE.ACESFilmicToneMapping;
+const AgX = THREE.ACESFilmicToneMapping;
 
 export function setupRenderer(canvas: HTMLCanvasElement): THREE.WebGLRenderer {
   const renderer = new THREE.WebGLRenderer({
@@ -488,6 +489,8 @@ export interface CosmographCanvasProps {
   handsActive?: boolean;
   /** Journey caption beat; null clears the caption when the journey ends. */
   onJourneyBeat?: (beat: JourneyBeat | null) => void;
+  /** Dashboard cards floating in the scene beside their nodes (CSS3D). */
+  spatialPanels?: SpatialPanelSpec[];
 }
 
 export const HQ_CENTER = sphereCenterVec('hq');
@@ -663,6 +666,8 @@ const CinemaFilmGrainVignetteShader = {
   `,
 };
 
+const EMPTY_SPATIAL_PANELS: SpatialPanelSpec[] = [];
+
 export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   activeSphere,
   focusedNodeId,
@@ -694,8 +699,20 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   idleOrbitAllowed = true,
   handsActive = false,
   onJourneyBeat,
+  spatialPanels = EMPTY_SPATIAL_PANELS,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
+  const spatialPanelsRef = useRef<SpatialPanelSpec[]>(spatialPanels);
+  spatialPanelsRef.current = spatialPanels;
+  const panelHostsRef = useRef(new Map<string, HTMLDivElement>());
+  const panelHostFor = (id: string): HTMLDivElement => {
+    let host = panelHostsRef.current.get(id);
+    if (!host) {
+      host = document.createElement('div');
+      panelHostsRef.current.set(id, host);
+    }
+    return host;
+  };
   const masterRootRef = useRef<THREE.Object3D | null>(null);
   const projectWorldHostRef = useRef<ProjectWorldHostHandle | null>(null);
   const [labels2D, setLabels2D] = useState<AnchoredLabel2D[]>([]);
@@ -1553,8 +1570,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const initH = container.clientHeight || window.innerHeight;
 
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.AgXToneMapping;
-    renderer.toneMappingExposure = 1.04;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
     // Deep ink void for intro AND workspace — never the old flat #101D27 navy slab.
     const voidColor = 0x03060c;
     renderer.setClearColor(voidColor, 1);
@@ -1571,6 +1588,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
     setWebglStatus('ACTIVE');
+    const panelLayer = new SpatialPanelLayer(container, (id) => panelHostsRef.current.get(id) ?? null);
+    panelLayer.setSize(initW, initH);
 
     const domEl = renderer.domElement;
     domEl.style.touchAction = 'none';
@@ -1738,10 +1757,18 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     let bloomPass: UnrealBloomPass | null = null;
     let cinemaPass: ShaderPass | null = null;
     if (!isSoftwareGl) {
-      composer = new EffectComposer(renderer);
-      const renderPass = new RenderPass(scene, camera);
-      renderPass.renderToScreen = true;
-      composer.addPass(renderPass);
+      const composerTarget = new THREE.WebGLRenderTarget(initW, initH, {
+        type: THREE.HalfFloatType,
+        samples: 4,
+      });
+      composer = new EffectComposer(renderer, composerTarget);
+      composer.setPixelRatio(renderer.getPixelRatio());
+      composer.setSize(initW, initH);
+      composer.addPass(new RenderPass(scene, camera));
+      // High threshold: only emissive nodes, connector pulses, media rings and specular peaks bloom.
+      bloomPass = new UnrealBloomPass(new THREE.Vector2(initW, initH), 0.42, 0.55, 0.88);
+      composer.addPass(bloomPass);
+      composer.addPass(new OutputPass());
     }
 
     // Sehly / Cerebro 39 Master Lighting Rig — toned down directional key & rim
@@ -1810,7 +1837,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const sharedGoldRibbedMat = new THREE.MeshPhysicalMaterial({
       color: 0x8C6A45,
       metalness: 0.85,
-      roughness: 0.34,
+      roughness: 0.25,
       clearcoat: 0.12,
       clearcoatRoughness: 0.35,
       sheen: MAT_GOLD_SHEEN.sheen,
@@ -2355,6 +2382,25 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       return { group, haloMesh, emissiveMats, objectCode, sculptureTag };
     };
 
+    const nodeGlowTexture = (() => {
+      const size = 128;
+      const c = document.createElement('canvas');
+      c.width = size;
+      c.height = size;
+      const ctx = c.getContext('2d');
+      if (ctx) {
+        const g = ctx.createRadialGradient(size / 2, size / 2, size * 0.18, size / 2, size / 2, size / 2);
+        g.addColorStop(0, 'rgba(255,255,255,0.9)');
+        g.addColorStop(0.45, 'rgba(255,255,255,0.28)');
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, size, size);
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      extraDisposables.push(tex);
+      return tex;
+    })();
     const NODE_MEDALLION_PX = 256;
     const isStillImageUrl = (url: string): boolean => !/\.(mp4|mov|webm|m4v)(\?|#|$)/i.test(url);
     const buildNodeMedallion = (thumbUrl: string | null, accent: THREE.Color): THREE.Sprite => {
@@ -2373,7 +2419,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const paintRing = () => {
         if (!ctx) return;
         clipCircle();
-        ctx.lineWidth = 8;
+        ctx.lineWidth = 12;
         ctx.strokeStyle = accentCss;
         ctx.stroke();
       };
@@ -2415,6 +2461,20 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const sprite = new THREE.Sprite(mat);
       sprite.scale.setScalar(0.78);
       sprite.renderOrder = 1;
+      const glowMat = new THREE.SpriteMaterial({
+        map: nodeGlowTexture,
+        color: accent,
+        transparent: true,
+        opacity: 0.55,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        toneMapped: false,
+      });
+      extraDisposables.push(glowMat);
+      const glow = new THREE.Sprite(glowMat);
+      glow.scale.setScalar(1.7);
+      glow.renderOrder = 0;
+      sprite.add(glow);
       return sprite;
     };
 
@@ -3551,6 +3611,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const comp = readHomeComposition(container);
       executeAtomicReframe(camera, w, h, comp.occludedBottomPx);
       renderer.setSize(w, h);
+      panelLayer.setSize(w, h);
       if (composer) {
         composer.setSize(w, h);
       }
@@ -4195,6 +4256,21 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         composer.render();
       }
 
+      panelLayer.update(
+        camera,
+        spatialPanelsRef.current,
+        (spec, out) => {
+          for (const entry of nodeRegistryRef.current.values()) {
+            if (entry.canonicalId === spec.nodeId && entry.sphere === spec.sphere && entry.groupMesh) {
+              entry.groupMesh.getWorldPosition(out);
+              return true;
+            }
+          }
+          return false;
+        },
+        dt
+      );
+
       // Project active 3D target (hovered, focused, or tour highlight) to 2D screen coordinates every frame for GuiFocusOverlay (z-35)
       if (callbacksRef.current.onProjectedTargetChange) {
         if (activeEntry) {
@@ -4450,6 +4526,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       if (composer) {
         composer.dispose();
       }
+      panelLayer.dispose();
       scene.traverse((obj) => {
         const mesh = obj as THREE.Mesh;
         if (mesh.geometry) {
@@ -4547,6 +4624,18 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         }
         className={`w-full h-full touch-none ${showReducedGraphicsFallback ? 'opacity-15 pointer-events-none' : ''}`}
       />
+
+      {webglStatus === 'ACTIVE' && !forceWebglFallback
+        ? spatialPanels.map((panel) => createPortal(panel.content, panelHostFor(panel.id), panel.id))
+        : (
+          <div className="cerebro-spatial-fallback" data-testid="spatial-panels-fallback">
+            {spatialPanels.map((panel) => (
+              <div key={panel.id} className="cerebro-spatial-panel" data-lod="full">
+                {panel.content}
+              </div>
+            ))}
+          </div>
+        )}
 
       {/* Reduced-Graphics Spatial View Fallback when WebGL is unavailable or forced for diagnostics */}
       {showReducedGraphicsFallback && (

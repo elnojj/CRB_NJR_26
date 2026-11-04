@@ -124,6 +124,8 @@ export const SPHERE_FALLBACK_REST_DATA_URI = `data:image/svg+xml;utf8,${encodeUR
   </svg>`
 )}`;
 
+import type { SpatialPanelSpec } from './spatialPanels';
+
 interface ExperienceCanvasProps {
   activeSphere: 'hq' | 'cde' | 'campaign-os' | 'about-us';
   focusedNodeId: string | null;
@@ -161,6 +163,7 @@ interface ExperienceCanvasProps {
   idleOrbitAllowed?: boolean;
   handsActive?: boolean;
   onJourneyBeat?: (beat: JourneyBeat | null) => void;
+  spatialPanels?: SpatialPanelSpec[];
 }
 
 export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
@@ -195,6 +198,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
   idleOrbitAllowed = true,
   handsActive = false,
   onJourneyBeat,
+  spatialPanels,
 }) => {
   // The OS setting is resolved once in App (see utils/motionPreference); do not re-join it here or
   // a device-level Reduce Motion silently freezes every camera flight.
@@ -236,6 +240,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
         idleOrbitAllowed={idleOrbitAllowed}
         handsActive={handsActive}
         onJourneyBeat={onJourneyBeat}
+        spatialPanels={spatialPanels}
       />
 
       {/* Reduced-Motion / Fallback Rest Sphere + Interactive 2D SVG Orbital Station Pins */}

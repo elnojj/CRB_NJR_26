@@ -115,7 +115,7 @@ export const NodeContentCard: React.FC<NodeContentCardProps> = ({ content, onClo
         </button>
       </header>
       {strip.length > 0 && (
-        <div className="cerebro-node-card__strip">
+        <div className="cerebro-node-card__strip" data-detail="true">
           {strip.map((thumb, idx) => (
             <span key={`${thumb.url}-${idx}`} className="cerebro-node-thumb cerebro-node-thumb--wide">
               <img src={thumb.url} alt="" loading="lazy" decoding="async" />
@@ -125,8 +125,12 @@ export const NodeContentCard: React.FC<NodeContentCardProps> = ({ content, onClo
         </div>
       )}
       <p className="cerebro-node-card__chip">{contentChip(content)}</p>
-      <p className="cerebro-node-card__summary">{content.summary}</p>
-      {content.honest && <p className="cerebro-node-card__honest">{content.honest}</p>}
+      <p className="cerebro-node-card__summary" data-detail="true">{content.summary}</p>
+      {content.honest && (
+        <p className="cerebro-node-card__honest" data-detail="true">
+          {content.honest}
+        </p>
+      )}
     </section>
   );
 };

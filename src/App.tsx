@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { resolveReducedMotion } from './utils/motionPreference';
 import { readSoundPreference, writeSoundPreference } from './utils/soundPreference';
 import { COLOUR_TOKENS, CdeDimensionId, StationId } from './tokens/colours';
@@ -56,6 +56,7 @@ import { firstMediaTileIndex } from './three/mediaTubeItems';
 import { resolveNodeContent, type DirectoryEntry, type NodeContent } from './data/nodeContent';
 import { hqOwnerOfPanel, HQ_NODE_LABEL, PROJECTS_PANELS, type HqNodeId } from './data/hqNodeWiring';
 import { HqPanelDock } from './components/HqPanelDock';
+import type { SpatialPanelSpec } from './three/spatialPanels';
 import { NodeBrowser, NodeContentCard } from './components/NodeBrowser';
 import {
   isConnectedSphereId,
@@ -2923,6 +2924,39 @@ export default function App() {
     [handleSelectNode]
   );
 
+  const spatialPanels = useMemo<SpatialPanelSpec[]>(() => {
+    if (!bootDone) return [];
+    const panels: SpatialPanelSpec[] = [];
+    const dockVisible = activeSphere === 'hq' && hqDockNode !== null;
+    if (dockVisible && hqDockNode) {
+      panels.push({
+        id: 'hq-dock',
+        nodeId: hqDockNode,
+        sphere: 'hq',
+        slot: 0,
+        content: (
+          <HqPanelDock
+            node={hqDockNode}
+            activePanel={activePanel}
+            onOpenPanel={(panelId) =>
+              executeTypedAction({ type: 'open_panel', action: 'open', panel: panelId }, 'hq_dock')
+            }
+          />
+        ),
+      });
+    }
+    if (selectedNodeContent) {
+      panels.push({
+        id: 'node-card',
+        nodeId: selectedNodeContent.nodeId,
+        sphere: selectedNodeContent.sphere,
+        slot: dockVisible && selectedNodeContent.sphere === 'hq' ? 1 : 0,
+        content: <NodeContentCard content={selectedNodeContent} onClose={() => setSelectedNodeContent(null)} />,
+      });
+    }
+    return panels;
+  }, [activePanel, activeSphere, bootDone, executeTypedAction, hqDockNode, selectedNodeContent]);
+
   // Live Page State Snapshot for Developer View & `get_page_state` (cerebro-ui/4)
   const pageStateSnapshot: Record<string, unknown> = {
     schema: CEREBRO_UI_SCHEMA_V4,
@@ -3937,6 +3971,7 @@ export default function App() {
         idleOrbitAllowed={idleOrbitAllowed && !handsActive && !journeyActive}
         handsActive={handsActive}
         onJourneyBeat={handleJourneyBeat}
+        spatialPanels={spatialPanels}
       />
 
       <JourneyCaption beat={journeyBeat} onSkip={toggleJourney} reducedMotion={reducedMotion} />
@@ -4483,15 +4518,6 @@ export default function App() {
         {/* Film / Owner Gate must not share chrome with the workspace dock. */}
         {bootDone && (
           <>
-            {activeSphere === 'hq' && hqDockNode ? (
-              <HqPanelDock
-                node={hqDockNode}
-                activePanel={activePanel}
-                onOpenPanel={(panelId) =>
-                  executeTypedAction({ type: 'open_panel', action: 'open', panel: panelId }, 'hq_dock')
-                }
-              />
-            ) : null}
             <NodeBrowser
               open={nodeBrowserOpen}
               activeSphere={activeSphere}
@@ -4499,7 +4525,6 @@ export default function App() {
               onClose={() => setNodeBrowserOpen(false)}
               onPick={handlePickDirectoryEntry}
             />
-            <NodeContentCard content={selectedNodeContent} onClose={() => setSelectedNodeContent(null)} />
           </>
         )}
         {bootDone && (

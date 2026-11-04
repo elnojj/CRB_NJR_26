@@ -11,8 +11,11 @@ export const HqPanelDock: React.FC<HqPanelDockProps> = ({ node, activePanel, onO
   const panels = panelsForHqNode(node);
   return (
     <nav className="cerebro-hq-dock" data-testid={`hq-dock-${node}`} aria-label={`${HQ_NODE_LABEL[node]} workspace`}>
-      <span className="cerebro-hq-dock__title">{HQ_NODE_LABEL[node]}</span>
-      <ul>
+      <span className="cerebro-hq-dock__title">
+        {HQ_NODE_LABEL[node]}
+        <em>{panels.length} tools</em>
+      </span>
+      <ul data-detail="true">
         {panels.map((panel) => (
           <li key={panel.panelId}>
             <button

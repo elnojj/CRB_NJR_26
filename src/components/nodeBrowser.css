@@ -327,3 +327,107 @@
   width: calc(100% - 18px);
   border-left: 2px solid rgba(180, 221, 255, 0.28);
 }
+
+
+/* ---- Spatial (CSS3D) panels: glass cards that float beside their node ---- */
+.cerebro-spatial-layer .cerebro-spatial-panel {
+  transition: opacity 0.18s ease-out;
+  will-change: transform, opacity;
+}
+.cerebro-spatial-panel {
+  position: relative;
+  border-radius: 20px;
+  background: linear-gradient(160deg, rgba(20, 34, 58, 0.78), rgba(8, 14, 26, 0.9));
+  border: 1px solid rgba(180, 221, 255, 0.34);
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.12),
+    0 0 26px rgba(101, 172, 255, 0.22),
+    0 18px 44px rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.2);
+  color: #f2f6f8;
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+.cerebro-spatial-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.14), transparent 38%);
+}
+.cerebro-spatial-panel .cerebro-node-card,
+.cerebro-spatial-panel .cerebro-hq-dock {
+  position: static;
+  transform: none;
+  left: auto;
+  top: auto;
+  bottom: auto;
+  z-index: auto;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.cerebro-spatial-panel .cerebro-node-card {
+  width: 300px;
+}
+.cerebro-spatial-panel .cerebro-hq-dock {
+  display: block;
+  width: 252px;
+  max-width: none;
+  padding: 12px;
+}
+.cerebro-spatial-panel .cerebro-hq-dock__title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.cerebro-spatial-panel .cerebro-hq-dock__title em {
+  font-style: normal;
+  font-size: 10px;
+  color: #f4d68c;
+  letter-spacing: 0.08em;
+}
+.cerebro-spatial-panel .cerebro-hq-dock ul {
+  display: grid;
+  gap: 5px;
+  overflow: visible;
+}
+.cerebro-spatial-panel .cerebro-hq-dock button {
+  width: 100%;
+  text-align: left;
+  white-space: normal;
+}
+.cerebro-spatial-panel .cerebro-hq-dock button em {
+  display: block;
+  margin: 2px 0 0;
+}
+.cerebro-spatial-panel[data-lod='badge'] [data-detail='true'] {
+  display: none;
+}
+.cerebro-spatial-panel[data-lod='badge'] .cerebro-node-card {
+  width: 190px;
+  padding: 10px 12px;
+}
+.cerebro-spatial-panel[data-lod='badge'] .cerebro-hq-dock {
+  width: 150px;
+  padding: 10px 12px;
+}
+.cerebro-spatial-panel[data-lod='badge'] .cerebro-hq-dock__title {
+  margin-bottom: 0;
+}
+.cerebro-spatial-fallback {
+  position: fixed;
+  left: 12px;
+  bottom: calc(150px + env(safe-area-inset-bottom, 0px));
+  z-index: 80;
+  display: grid;
+  gap: 10px;
+  pointer-events: none;
+}
+.cerebro-spatial-fallback .cerebro-spatial-panel {
+  pointer-events: auto;
+}
