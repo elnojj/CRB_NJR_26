@@ -82,7 +82,7 @@ import {
   HandsCameraBackdrop,
   HandsWireframeRig,
   HandDetectionMode,
-  HandGestureType,
+  type HandFlipDirection,
 } from './components/HandsOverlay';
 import { SpatialHealthLayout } from './components/spatial/SpatialHealthLayout';
 import {
@@ -471,7 +471,6 @@ export default function App() {
   const [gestureTrackingActive, setGestureTrackingActive] = useState<boolean>(true);
   // Always start one-hand; two-hands only when the user picks the 2× control.
   const [handMode, setHandMode] = useState<HandDetectionMode>('right-only');
-  const [activeGesture, setActiveGesture] = useState<HandGestureType>('pinch-orbit');
   // Spatial Health desk AR / wall calendar / node-chips (mounted in workspace chrome)
   // Cover-post default: sphere is the hero; desk AR / calendar stay cold until opened.
   const [spatialHealthOpen, setSpatialHealthOpen] = useState<boolean>(false);
@@ -3099,50 +3098,16 @@ export default function App() {
     setIsHandTrackingActive(handsActive);
   }, [handsActive]);
 
-  const handleTriggerHandGesture = useCallback(
-    (gesture: HandGestureType) => {
-      setActiveGesture(gesture);
-      handleUserTouchPauseTour();
-      switch (gesture) {
-        case 'pinch-orbit':
-          dispatchCamera('orbit', { deltaAzimuth: 0.55, deltaPolar: -0.08 });
-          break;
-        case 'spread-zoom':
-          setSpatialHealthOpen(true);
-          setSpatialHealthMode('dashboard');
-          dispatchCamera('zoom_in');
-          break;
-        case 'palm-stop':
-          dispatchCamera('stop');
-          if (spatialHealthMode === 'project') {
-            setSpatialHealthMode('dashboard');
-          }
-          break;
-        case 'point-select': {
-          const targetId = focusedNodeId || hoveredNodeId || selectedProjectId || 'SEVEN';
-          setSelectedProjectId(targetId);
-          setSpatialHealthOpen(true);
-          setSpatialHealthMode('project');
-          ensurePanelOpen(activeSphere === 'hq' ? 'projects' : 'cde-explorer', true);
-          break;
-        }
-        default: {
-          const _exhaustive: never = gesture;
-          void _exhaustive;
-          break;
-        }
-      }
+  const handleHandFlipNode = useCallback(
+    (direction: HandFlipDirection) => {
+      const order: ConnectedSphereId[] = ['hq', 'cde', 'campaign-os', 'about-us'];
+      const index = order.indexOf(activeSphere);
+      // The scene follows the hand: moving right brings the previous node in from the left.
+      const next = order[(index - direction + order.length) % order.length];
+      if (next === activeSphere) return;
+      executeTypedAction({ type: 'switch_sphere', sphere: next }, 'hands');
     },
-    [
-      activeSphere,
-      dispatchCamera,
-      ensurePanelOpen,
-      focusedNodeId,
-      handleUserTouchPauseTour,
-      hoveredNodeId,
-      selectedProjectId,
-      spatialHealthMode,
-    ]
+    [activeSphere, executeTypedAction]
   );
 
   const handleBootTakeOff = useCallback(() => {
@@ -3744,7 +3709,7 @@ export default function App() {
         color: COLOUR_TOKENS.textPrimary,
       }}
     >
-      {/* Optional Owner Gate via ?view=keypad only — public path is CerebroIntro. */}
+      {/* Optional Owner Gate via ?view=keypad only. */}
       {!bootDone && bootInitialMode === 'keypad' && (
         <BootLoader
           reducedMotion={reducedMotion}
@@ -3758,9 +3723,7 @@ export default function App() {
       <HandsWireframeRig
         active={handsActive}
         handMode={handMode}
-        activeGesture={activeGesture}
-        onChangeHandMode={setHandMode}
-        onTriggerGesture={handleTriggerHandGesture}
+        onFlipNode={handleHandFlipNode}
         onCloseHands={() => {
           forceStopSharedWebcamStream();
           setHandsActive(false);
@@ -3898,7 +3861,7 @@ export default function App() {
           )
         }
         gestureTrackingActive={handsActive ? gestureTrackingActive : false}
-        pointerOrbitEnabled={!handsActive}
+        pointerOrbitEnabled
         idleOrbitAllowed={idleOrbitAllowed && !handsActive}
       />
 

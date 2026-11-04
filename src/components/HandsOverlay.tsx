@@ -1,12 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
-import { COLOUR_TOKENS } from '../tokens/colours';
 import { soundEngine } from '../utils/soundEngine';
 import {
   getSharedWebcamStream,
   forceStopSharedWebcamStream,
   releaseSharedWebcamStream,
 } from '../utils/deviceStreamCoordinator';
+import { handControlBridge } from '../three/handControlBridge';
+import {
+  FINGERTIP_LANDMARKS,
+  FINGER_MCP_LANDMARKS,
+  HandGestureEngine,
+  computeHandMetrics,
+  type HandControlFrame,
+  type HandPosture,
+  type ScreenPoint,
+} from './handGestures';
 
 class LowPassFilter {
   y: number | null = null;
@@ -61,24 +70,14 @@ export class OneEuroFilter {
 }
 
 export type HandDetectionMode = 'two-hands' | 'left-only' | 'right-only';
-export type HandGestureType = 'pinch-orbit' | 'spread-zoom' | 'palm-stop' | 'point-select';
-
-interface SparkleParticle {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  opacity: number;
-  colour: string;
-}
+export type HandFlipDirection = -1 | 1;
 
 interface HandsOverlayProps {
   active: boolean;
   handMode: HandDetectionMode;
-  activeGesture: HandGestureType;
-  onChangeHandMode: (mode: HandDetectionMode) => void;
-  onTriggerGesture: (gesture: HandGestureType) => void;
   onCloseHands: () => void;
+  /** Hand moved far enough (grab-and-twist, or a sideways throw) to switch to the neighbouring node. */
+  onFlipNode?: (direction: HandFlipDirection) => void;
   /** Fired when landmarks disappear after a live track (R01 gesture-loss settle). */
   onTrackingLost?: () => void;
   /** Fired when landmarks reappear after a loss. */
@@ -87,16 +86,65 @@ interface HandsOverlayProps {
   dockClearancePx?: number;
 }
 
-const BASE_LEFT_LANDMARKS: [number, number][] = [
-  [0, 0],
-  [-50, -32], [-80, -65], [-98, -96], [-109, -124],
-  [-40, -115], [-45, -165], [-49, -205], [-51, -244],
-  [0, -126], [0, -182], [0, -228], [0, -267],
-  [37, -112], [43, -165], [47, -206], [48, -240],
-  [65, -89], [82, -130], [92, -162], [100, -186],
-];
+type TrackerStatus = 'camera' | 'model' | 'searching' | 'tracking' | 'error';
 
-const FINGERTIP_INDICES = new Set([4, 8, 12, 16, 20]);
+interface TrailPoint {
+  x: number;
+  y: number;
+  t: number;
+}
+
+interface HandView {
+  /** One entry per detected hand: 21 points in viewport pixels. */
+  hands: ScreenPoint[][];
+  posture: HandPosture;
+  throwAt: number;
+  trail: TrailPoint[];
+}
+
+const BONES: number[][] = [
+  [0, 1, 2, 3, 4],
+  [0, 5, 6, 7, 8],
+  [0, 9, 10, 11, 12],
+  [0, 13, 14, 15, 16],
+  [0, 17, 18, 19, 20],
+  [5, 9, 13, 17],
+];
+const PALM_JOINTS = [0, 1, 5, 9, 13, 17];
+const TRAIL_MS = 520;
+const THROW_FLASH_MS = 650;
+const THROW_NODE_DELAY_MS = 240;
+const DETECT_FLOOR_DESKTOP_MS = 33;
+const DETECT_FLOOR_PHONE_MS = 40;
+const DETECT_CEIL_MS = 120;
+const LOST_GRACE_MS = 150;
+
+const POSTURE_LABEL: Record<HandPosture, string> = {
+  none: 'HAND',
+  open: 'OPEN · pan',
+  point: 'POINT · pan',
+  claw: 'CLAW · zooming out',
+  grab: 'GRAB · orbit',
+};
+
+function statusText(status: TrackerStatus, detail: string): string {
+  switch (status) {
+    case 'camera':
+      return 'Requesting camera…';
+    case 'model':
+      return 'Loading hand model…';
+    case 'searching':
+      return 'Show your hand to the camera';
+    case 'tracking':
+      return 'Hand tracking live';
+    case 'error':
+      return detail;
+    default: {
+      const _exhaustive: never = status;
+      return _exhaustive;
+    }
+  }
+}
 
 /**
  * HandsCameraBackdrop is now a lightweight decorative layer;
@@ -111,68 +159,58 @@ export const HandsCameraBackdrop: React.FC<{ active: boolean }> = ({ active }) =
 export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
   active,
   handMode,
-  activeGesture,
-  onChangeHandMode,
-  onTriggerGesture,
   onCloseHands,
+  onFlipNode,
   onTrackingLost,
   onTrackingAcquired,
   dockClearancePx = 148,
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const filterXRef = useRef(new OneEuroFilter(60, 1.4, 0.05));
-  const filterYRef = useRef(new OneEuroFilter(60, 1.4, 0.05));
-  const landmarkFiltersRef = useRef<OneEuroFilter[][]>([]);
-  const [offset, setOffset] = useState<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
-  const [sparkles, setSparkles] = useState<SparkleParticle[]>([]);
-  const [activeNote, setActiveNote] = useState<string | null>(null);
-  const [hasLiveCam, setHasLiveCam] = useState(false);
-  const [cvStatusLabel, setCvStatusLabel] = useState<string>('Requesting camera...');
-  const [pinchRatio, setPinchRatio] = useState<number>(0.19);
-  const [pinchLocked, setPinchLocked] = useState<boolean>(true);
-  const [liveLandmarks, setLiveLandmarks] = useState<[number, number][][] | null>(null);
+  const [status, setStatus] = useState<TrackerStatus>('camera');
+  const [statusDetail, setStatusDetail] = useState('');
+  const [view, setView] = useState<HandView | null>(null);
+  const [viewport, setViewport] = useState(() => ({
+    w: typeof window !== 'undefined' ? window.innerWidth : 1366,
+    h: typeof window !== 'undefined' ? window.innerHeight : 1024,
+  }));
   const [isPhone, setIsPhone] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
   );
-  const nextSparkleId = useRef(1);
-  const pinchLockRef = useRef(true);
-  const lastGestureTimeRef = useRef(0);
-  const lastDetectAtRef = useRef(0);
-  const detectIntervalRef = useRef(50);
-  const lastUiPushRef = useRef(0);
-  const handModeRef = useRef(handMode);
-  const hadLiveTrackRef = useRef(false);
   const wantedHands = handMode === 'two-hands' ? 2 : 1;
 
   // Parent passes inline callbacks; keep them out of the camera effect deps so an
   // App re-render never tears down and re-acquires the webcam.
-  const onTriggerGestureRef = useRef(onTriggerGesture);
   const onCloseHandsRef = useRef(onCloseHands);
+  const onFlipNodeRef = useRef(onFlipNode);
   const onTrackingLostRef = useRef(onTrackingLost);
   const onTrackingAcquiredRef = useRef(onTrackingAcquired);
-  onTriggerGestureRef.current = onTriggerGesture;
   onCloseHandsRef.current = onCloseHands;
+  onFlipNodeRef.current = onFlipNode;
   onTrackingLostRef.current = onTrackingLost;
   onTrackingAcquiredRef.current = onTrackingAcquired;
 
-  useEffect(() => {
-    handModeRef.current = handMode;
-  }, [handMode]);
+  const viewportRef = useRef(viewport);
+  viewportRef.current = viewport;
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
     const sync = () => setIsPhone(mq.matches);
     sync();
     mq.addEventListener('change', sync);
-    return () => mq.removeEventListener('change', sync);
+    const onResize = () => setViewport({ w: window.innerWidth, h: window.innerHeight });
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    return () => {
+      mq.removeEventListener('change', sync);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+    };
   }, []);
 
-  // Request ONE shared camera MediaStream only when `active === true`, and stop all tracks on disable
   useEffect(() => {
     if (!active) {
-      setHasLiveCam(false);
-      setLiveLandmarks(null);
-      landmarkFiltersRef.current = [];
+      setView(null);
+      handControlBridge.reset();
       return;
     }
 
@@ -180,39 +218,90 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
     let landmarker: HandLandmarker | null = null;
     let stream: MediaStream | null = null;
     let rafId = 0;
-    const phone =
-      typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
+    let hadLiveTrack = false;
+    let throwTimer = 0;
+    const phone = window.matchMedia('(max-width: 767px)').matches;
+
+    const engine = new HandGestureEngine(640, 480);
+    const filters: OneEuroFilter[][] = [];
+    const trail: TrailPoint[] = [];
+    let throwAt = 0;
+    let lastSeenAt = 0;
+    let lastVideoTime = -1;
+    let lastDetectAt = 0;
+    let detectInterval = phone ? DETECT_FLOOR_PHONE_MS : DETECT_FLOOR_DESKTOP_MS;
+
+    const ensureFilters = (handCount: number) => {
+      while (filters.length < handCount) {
+        filters.push(Array.from({ length: 42 }, () => new OneEuroFilter(30, 1.8, 0.06, 1.0)));
+      }
+    };
+
+    const markLost = () => {
+      engine.reset();
+      handControlBridge.push(engine.update(null, performance.now()), performance.now());
+      filters.length = 0;
+      trail.length = 0;
+      setView(null);
+      setStatus('searching');
+      if (hadLiveTrack) {
+        hadLiveTrack = false;
+        onTrackingLostRef.current?.();
+      }
+    };
+
+    const emitFlip = (frame: HandControlFrame) => {
+      if (frame.flip !== 0) {
+        soundEngine.playNodeSelect(0);
+        onFlipNodeRef.current?.(frame.flip);
+      }
+      if (frame.throw) {
+        const { vx, vy } = frame.throw;
+        throwAt = frame.tMs;
+        soundEngine.playFlightWhoosh(550, Math.max(-1, Math.min(1, vx)));
+        if (Math.abs(vx) > Math.abs(vy)) {
+          const dir: HandFlipDirection = vx > 0 ? 1 : -1;
+          window.clearTimeout(throwTimer);
+          throwTimer = window.setTimeout(() => {
+            if (!cancelled) onFlipNodeRef.current?.(dir);
+          }, THROW_NODE_DELAY_MS);
+        }
+      }
+    };
 
     async function initSharedCameraAndMediaPipe() {
-      setCvStatusLabel('Requesting camera permission...');
+      setStatus('camera');
       try {
         stream = await getSharedWebcamStream({
           video: phone
             ? {
                 width: { ideal: 480 },
                 height: { ideal: 360 },
-                frameRate: { ideal: 24, max: 30 },
+                frameRate: { ideal: 30, max: 30 },
                 facingMode: 'user',
               }
-            : { width: { ideal: 720 }, height: { ideal: 405 }, facingMode: 'user' },
+            : {
+                width: { ideal: 640 },
+                height: { ideal: 480 },
+                frameRate: { ideal: 30, max: 60 },
+                facingMode: 'user',
+              },
         });
       } catch (err) {
         if (!cancelled) {
-          setHasLiveCam(false);
           const detail =
             err && typeof err === 'object' && 'message' in err
               ? String((err as Error).message)
               : 'Camera permission denied';
           // In-flight cancel from a deliberate toggle-off is not a permission failure.
           if (/cancelled/i.test(detail)) {
-            setCvStatusLabel('Camera off');
-            setLiveLandmarks(null);
+            setStatus('error');
+            setStatusDetail('Camera off');
             onTrackingLostRef.current?.();
             return;
           }
-          setCvStatusLabel(`${detail} — gesture disabled · orbit restored`);
-          setLiveLandmarks(null);
-          // Yield camera ownership so pointer orbit is not left blocked.
+          setStatus('error');
+          setStatusDetail('Camera blocked — touch orbit restored');
           onTrackingLostRef.current?.();
           onCloseHandsRef.current();
         }
@@ -230,13 +319,12 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
         videoEl.playsInline = true;
         videoEl.muted = true;
         await videoEl.play().catch(() => {});
-        setHasLiveCam(true);
       }
 
       try {
-        setCvStatusLabel('Loading MediaPipe HandLandmarker…');
+        setStatus('model');
         const vision = await FilesetResolver.forVisionTasks(
-          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
+          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.1/wasm'
         );
         if (cancelled) return;
         landmarker = await HandLandmarker.createFromOptions(vision, {
@@ -248,194 +336,102 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           },
           runningMode: 'VIDEO',
           numHands: wantedHands,
+          minHandDetectionConfidence: 0.5,
+          minHandPresenceConfidence: 0.5,
+          minTrackingConfidence: 0.5,
         });
         if (cancelled) return;
-        setCvStatusLabel(
-          wantedHands === 1
-            ? 'Tracking · one hand · WASM'
-            : 'Tracking · two hands · WASM'
-        );
-
-        const ensureFilters = (handCount: number) => {
-          while (landmarkFiltersRef.current.length < handCount) {
-            landmarkFiltersRef.current.push(
-              Array.from({ length: 42 }, () => new OneEuroFilter(30, 1.1, 0.02, 1.0))
-            );
-          }
-        };
-
-        /** Secondary EMA (α≈0.2) on normalized landmarks before screen mapping. */
-        const emaState: Array<Array<{ x: number; y: number } | null>> = [];
-        const emaAlpha = 0.2;
-        const smoothNorm = (hi: number, li: number, x: number, y: number) => {
-          while (emaState.length <= hi) emaState.push([]);
-          while (emaState[hi].length <= li) emaState[hi].push(null);
-          const prev = emaState[hi][li];
-          if (!prev) {
-            emaState[hi][li] = { x, y };
-            return { x, y };
-          }
-          const next = {
-            x: emaAlpha * x + (1 - emaAlpha) * prev.x,
-            y: emaAlpha * y + (1 - emaAlpha) * prev.y,
-          };
-          emaState[hi][li] = next;
-          return next;
-        };
+        setStatus('searching');
 
         const detectFrame = () => {
-          if (cancelled || !landmarker || !videoRef.current) return;
-          const v = videoRef.current;
-          const now = performance.now();
-          // Time-budgeted inference keeps WASM detection from starving the Three.js frame.
-          if (
-            v.readyState >= 2 &&
-            v.videoWidth > 0 &&
-            now - lastDetectAtRef.current >= detectIntervalRef.current
-          ) {
-            lastDetectAtRef.current = now;
-            let res: ReturnType<HandLandmarker['detectForVideo']>;
-            try {
-              res = landmarker.detectForVideo(v, now);
-            } catch {
-              rafId = requestAnimationFrame(detectFrame);
-              return;
-            }
-            const cost = performance.now() - now;
-            const floor = phone ? 80 : 50;
-            detectIntervalRef.current = Math.min(200, Math.max(floor, cost * 3));
-            if (res.landmarks && res.landmarks.length > 0) {
-              if (!hadLiveTrackRef.current) {
-                hadLiveTrackRef.current = true;
-                onTrackingAcquiredRef.current?.();
-              }
-              const mode = handModeRef.current;
-              const maxHands = mode === 'two-hands' ? 2 : 1;
-              const hands = res.landmarks.slice(0, maxHands);
-              ensureFilters(hands.length);
-              const mappedHands: [number, number][][] = hands.map((hand, hi) => {
-                const filters = landmarkFiltersRef.current[hi];
-                return hand.map((lm, li) => {
-                  const norm = smoothNorm(hi, li, lm.x, lm.y);
-                  const sx = (1 - norm.x) * 1366;
-                  const sy = norm.y * 1024;
-                  const fx = filters[li * 2].filter(sx, now);
-                  const fy = filters[li * 2 + 1].filter(sy, now);
-                  return [fx, fy] as [number, number];
-                });
-              });
-
-              const h0 = hands[0];
-              const palmLen = Math.max(
-                0.05,
-                Math.hypot(h0[9].x - h0[0].x, h0[9].y - h0[0].y, h0[9].z - h0[0].z)
-              );
-              const thumbIndexDist = Math.hypot(
-                h0[4].x - h0[8].x,
-                h0[4].y - h0[8].y,
-                h0[4].z - h0[8].z
-              );
-              const thumbPinkyDist = Math.hypot(
-                h0[4].x - h0[20].x,
-                h0[4].y - h0[20].y,
-                h0[4].z - h0[20].z
-              );
-              const ratio = Number((thumbIndexDist / palmLen).toFixed(2));
-
-              const dWristIndex = Math.hypot(h0[8].x - h0[0].x, h0[8].y - h0[0].y);
-              const dWristMiddle = Math.hypot(h0[12].x - h0[0].x, h0[12].y - h0[0].y);
-              const dWristRing = Math.hypot(h0[16].x - h0[0].x, h0[16].y - h0[0].y);
-              const dWristPinky = Math.hypot(h0[20].x - h0[0].x, h0[20].y - h0[0].y);
-
-              const panX = ((1 - h0[8].x) - 0.5) * 2;
-              const nowMs = performance.now();
-
-              // Throttle React state on phone — landmark paint at ~18–20fps is enough.
-              if (nowMs - lastUiPushRef.current > (phone ? 50 : 22)) {
-                lastUiPushRef.current = nowMs;
-                setLiveLandmarks(mappedHands);
-                setPinchRatio(ratio);
-              }
-
-              // 1. Pinch Orbit
-              if (!pinchLockRef.current && ratio <= 0.22) {
-                pinchLockRef.current = true;
-                setPinchLocked(true);
-                const played = soundEngine.playFingertipNote(1, panX);
-                setActiveNote(`${played.name} (${played.freq}Hz)`);
-                onTriggerGestureRef.current('pinch-orbit');
-              } else if (pinchLockRef.current && ratio >= 0.3) {
-                pinchLockRef.current = false;
-                setPinchLocked(false);
-              }
-
-              // 2. Palm Stop: Open flat palm facing camera with all fingers extended
-              const allFingersExtended =
-                dWristIndex > 1.35 * palmLen &&
-                dWristMiddle > 1.35 * palmLen &&
-                dWristRing > 1.35 * palmLen &&
-                dWristPinky > 1.35 * palmLen;
-
-              if (allFingersExtended && ratio > 0.45 && nowMs - lastGestureTimeRef.current > 650) {
-                lastGestureTimeRef.current = nowMs;
-                soundEngine.playPanelToggle(false, panX);
-                setActiveNote('PALM-STOP · FREEZE');
-                onTriggerGestureRef.current('palm-stop');
-              }
-              // 3. Point Select: Index finger extended, others curled
-              else if (
-                dWristIndex > 1.3 * palmLen &&
-                dWristMiddle < 1.05 * palmLen &&
-                dWristRing < 1.05 * palmLen &&
-                dWristPinky < 1.05 * palmLen &&
-                nowMs - lastGestureTimeRef.current > 600
-              ) {
-                lastGestureTimeRef.current = nowMs;
-                soundEngine.playNodeSelect(panX);
-                setActiveNote('POINT-SELECT · NODE');
-                onTriggerGestureRef.current('point-select');
-              }
-              // 4. Spread Zoom: Thumb and pinky spread wide or dual-hand spread
-              else if (
-                (thumbPinkyDist > 1.45 * palmLen ||
-                  (mode === 'two-hands' &&
-                    hands.length >= 2 &&
-                    Math.abs(hands[0][0].x - hands[1][0].x) > 0.4)) &&
-                nowMs - lastGestureTimeRef.current > 700
-              ) {
-                lastGestureTimeRef.current = nowMs;
-                soundEngine.playFlightWhoosh(550, panX);
-                setActiveNote('SPREAD-ZOOM');
-                onTriggerGestureRef.current('spread-zoom');
-              }
-            } else if (performance.now() - lastUiPushRef.current > 120) {
-              lastUiPushRef.current = performance.now();
-              setLiveLandmarks(null);
-              if (hadLiveTrackRef.current) {
-                hadLiveTrackRef.current = false;
-                onTrackingLostRef.current?.();
-              }
-            }
-          }
+          if (cancelled || !landmarker) return;
           rafId = requestAnimationFrame(detectFrame);
+          const v = videoRef.current;
+          if (!v || v.readyState < 2 || v.videoWidth === 0) return;
+          const now = performance.now();
+          if (now - lastDetectAt < detectInterval) return;
+          // Skip frames the camera has not refreshed yet — inference on a duplicate is wasted budget.
+          if (v.currentTime === lastVideoTime) return;
+          lastVideoTime = v.currentTime;
+          lastDetectAt = now;
+
+          let res: ReturnType<HandLandmarker['detectForVideo']>;
+          try {
+            res = landmarker.detectForVideo(v, now);
+          } catch {
+            return;
+          }
+          const cost = performance.now() - now;
+          const floor = phone ? DETECT_FLOOR_PHONE_MS : DETECT_FLOOR_DESKTOP_MS;
+          detectInterval = Math.min(DETECT_CEIL_MS, Math.max(floor, cost * 1.5));
+
+          const t = performance.now();
+          if (!res.landmarks || res.landmarks.length === 0) {
+            if (lastSeenAt > 0 && t - lastSeenAt > LOST_GRACE_MS) {
+              lastSeenAt = 0;
+              markLost();
+            }
+            return;
+          }
+
+          lastSeenAt = t;
+          const vw = v.videoWidth;
+          const vh = v.videoHeight;
+          engine.setViewport(vw, vh);
+          const hands = res.landmarks.slice(0, wantedHands);
+          ensureFilters(hands.length);
+          const camHands: ScreenPoint[][] = hands.map((hand, hi) =>
+            hand.map((lm, li) => ({
+              x: filters[hi][li * 2].filter((1 - lm.x) * vw, t),
+              y: filters[hi][li * 2 + 1].filter(lm.y * vh, t),
+            }))
+          );
+
+          const frame = engine.update(camHands[0], t);
+          handControlBridge.push(frame, t);
+          emitFlip(frame);
+
+          if (!hadLiveTrack) {
+            hadLiveTrack = true;
+            onTrackingAcquiredRef.current?.();
+          }
+
+          const vp = viewportRef.current;
+          const scale = Math.max(vp.w / vw, vp.h / vh);
+          const ox = (vp.w - vw * scale) / 2;
+          const oy = (vp.h - vh * scale) / 2;
+          const toScreen = (p: ScreenPoint): ScreenPoint => ({
+            x: p.x * scale + ox,
+            y: p.y * scale + oy,
+          });
+          const palm = toScreen(computeHandMetrics(camHands[0]).palm);
+          trail.push({ x: palm.x, y: palm.y, t });
+          while (trail.length > 0 && t - trail[0].t > TRAIL_MS) trail.shift();
+
+          setStatus('tracking');
+          setView({
+            hands: camHands.map((h) => h.map(toScreen)),
+            posture: frame.posture,
+            throwAt,
+            trail: trail.slice(),
+          });
         };
         rafId = requestAnimationFrame(detectFrame);
       } catch {
         if (!cancelled) {
-          setCvStatusLabel('Camera active · Touch/mouse gesture fallback');
-          setLiveLandmarks(null);
-          if (hadLiveTrackRef.current) {
-            hadLiveTrackRef.current = false;
-            onTrackingLostRef.current?.();
-          }
+          setStatus('error');
+          setStatusDetail('Hand model unavailable — touch orbit still works');
+          setView(null);
+          onTrackingLostRef.current?.();
         }
       }
     }
 
-    initSharedCameraAndMediaPipe();
+    void initSharedCameraAndMediaPipe();
 
     return () => {
       cancelled = true;
+      window.clearTimeout(throwTimer);
       if (rafId) cancelAnimationFrame(rafId);
       stream?.getTracks().forEach((track) => track.stop());
       // Force-stop so iOS Safari clears the green camera indicator even if refcount races.
@@ -451,273 +447,165 @@ export const HandsWireframeRig: React.FC<HandsOverlayProps> = ({
           // ignore
         }
       }
-      if (hadLiveTrackRef.current) {
-        hadLiveTrackRef.current = false;
+      handControlBridge.reset();
+      if (hadLiveTrack) {
+        hadLiveTrack = false;
         onTrackingLostRef.current?.();
       }
     };
   }, [active, wantedHands]);
 
-  useEffect(() => {
-    if (!active) return;
-    const interval = window.setInterval(() => {
-      setSparkles((prev) =>
-        prev
-          .map((s) => ({ ...s, opacity: s.opacity - 0.08, size: s.size * 0.96 }))
-          .filter((s) => s.opacity > 0.05)
-      );
-    }, 45);
-    return () => window.clearInterval(interval);
-  }, [active]);
-
   if (!active) return null;
 
-  const spawnSparklesAt = (x: number, y: number, colour = '#36E88D') => {
-    const idBase = nextSparkleId.current;
-    nextSparkleId.current += 3;
-    const added: SparkleParticle[] = [
-      { id: idBase, x: x + (Math.random() - 0.5) * 14, y: y + (Math.random() - 0.5) * 14, size: 6, opacity: 0.95, colour },
-      { id: idBase + 1, x: x + (Math.random() - 0.5) * 24, y: y + (Math.random() - 0.5) * 24, size: 4, opacity: 0.85, colour: '#B4DDFF' },
-      { id: idBase + 2, x: x + (Math.random() - 0.5) * 18, y: y + (Math.random() - 0.5) * 18, size: 5, opacity: 0.9, colour: '#4C8DFF' },
-    ];
-    setSparkles((prev) => [...prev.slice(-36), ...added]);
-  };
-
-  const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const normX = ((e.clientX - rect.left) / rect.width - 0.5) * 160;
-    const normY = ((e.clientY - rect.top) / rect.height - 0.5) * 110;
-    const now = performance.now();
-    const fx = filterXRef.current.filter(normX, now);
-    const fy = filterYRef.current.filter(normY, now);
-    if (now - lastUiPushRef.current < (isPhone ? 48 : 16)) return;
-    lastUiPushRef.current = now;
-    setOffset({ dx: fx, dy: fy });
-
-    const simRatio = activeGesture === 'pinch-orbit' ? 0.18 : activeGesture === 'spread-zoom' ? 0.42 : 0.34;
-    setPinchRatio(simRatio);
-    setPinchLocked(simRatio <= 0.22);
-
-    if (isPhone) return;
-    const svgX = ((e.clientX - rect.left) / rect.width) * 1366;
-    const svgY = ((e.clientY - rect.top) / rect.height) * 1024;
-    if (Math.random() > 0.72) {
-      spawnSparklesAt(svgX, svgY, simRatio <= 0.22 ? COLOUR_TOKENS.stationMedia : '#B4DDFF');
-    }
-  };
-
-  const getHandPoints = (side: 'left' | 'right'): [number, number][] | null => {
-    // Live track only — never invent a second ghost skeleton when only one hand is seen.
-    if (liveLandmarks && liveLandmarks.length > 0) {
-      if (handMode === 'two-hands') {
-        if (side === 'left') return liveLandmarks[0] || null;
-        return liveLandmarks[1] || null;
-      }
-      // Single-hand modes: always use the first detected hand for the active side.
-      if (handMode === 'left-only' && side === 'left') return liveLandmarks[0];
-      if (handMode === 'right-only' && side === 'right') return liveLandmarks[0];
-      return null;
-    }
-
-    // Touch/mouse fallback: draw only the active single-hand (or both if 2× selected).
-    if (handMode === 'left-only' && side !== 'left') return null;
-    if (handMode === 'right-only' && side !== 'right') return null;
-
-    const baseWristX = side === 'left' ? 355 + offset.dx * 0.85 : 1010 - offset.dx * 0.85;
-    const baseWristY = isPhone ? 820 + offset.dy * 0.55 : 895 + offset.dy * 0.75;
-    const mirror = side === 'left' ? 1 : -1;
-    const pinchScale = activeGesture === 'pinch-orbit' ? 0.72 : activeGesture === 'spread-zoom' ? 1.14 : 1.0;
-
-    return BASE_LEFT_LANDMARKS.map(([lx, ly], idx) => {
-      let modX = lx * mirror * pinchScale;
-      let modY = ly * pinchScale;
-      if (activeGesture === 'pinch-orbit' && (idx === 4 || idx === 8)) {
-        modX = -32 * mirror;
-        modY = -175;
-      } else if (activeGesture === 'point-select' && idx > 8 && !FINGERTIP_INDICES.has(8)) {
-        modY *= 0.65;
-      }
-      return [baseWristX + modX, baseWristY + modY] as [number, number];
-    });
-  };
-
-  const leftPts = getHandPoints('left');
-  const rightPts = getHandPoints('right');
-
-  const gestureMeta: Record<HandGestureType, { title: string; subtitle: string }> = {
-    'pinch-orbit': {
-      title: 'Pinch and move to orbit',
-      subtitle: handMode === 'two-hands' ? 'Two-hand spread controls zoom' : 'Single-hand pinch + drag orbits sphere',
-    },
-    'spread-zoom': {
-      title: 'Two-hand spread to zoom',
-      subtitle: 'Spread hands apart to zoom in · bring together to zoom out',
-    },
-    'palm-stop': {
-      title: 'Open palm to stop',
-      subtitle: 'Instant pose freeze · halts auto-orbit or tour',
-    },
-    'point-select': {
-      title: 'Point to select station or node',
-      subtitle: 'Fingertip trigger · selects 3D sphere nodes',
-    },
-  };
-
-  /** Cryo-glass tracking rig — hairline bones + tip dots. No filled gloves. */
-  const renderTrackingRig = (pts: [number, number][], side: 'left' | 'right') => {
-    const isPinchActive = pinchLocked || activeGesture === 'pinch-orbit';
-    const bones: number[][] = [
-      [0, 1, 2, 3, 4],
-      [0, 5, 6, 7, 8],
-      [0, 9, 10, 11, 12],
-      [0, 13, 14, 15, 16],
-      [0, 17, 18, 19, 20],
-      [5, 9, 13, 17],
-    ];
-    const tipIdx = [4, 8, 12, 16, 20];
-    const jointIdx = [0, 1, 5, 9, 13, 17];
-    const tipLabels = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky'];
-    const chainPath = (indices: number[]) =>
+  const renderHand = (pts: ScreenPoint[], hi: number, posture: HandPosture, primary: boolean) => {
+    const chain = (indices: number[]) =>
       indices
-        .map((i, n) => `${n === 0 ? 'M' : 'L'} ${pts[i][0].toFixed(1)} ${pts[i][1].toFixed(1)}`)
+        .map((i, n) => `${n === 0 ? 'M' : 'L'} ${pts[i].x.toFixed(1)} ${pts[i].y.toFixed(1)}`)
         .join(' ');
-    const thumbPt = pts[4];
-    const indexPt = pts[8];
-    const midX = (thumbPt[0] + indexPt[0]) * 0.5;
-    const midY = (thumbPt[1] + indexPt[1]) * 0.5;
-    const strokeW = isPhone ? 1.1 : 1.35;
-
+    const tips = FINGERTIP_LANDMARKS.map((i) => pts[i]);
+    const hull = tips.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    const converged = primary && (posture === 'claw' || posture === 'grab');
+    const tipR = isPhone ? 6 : 7;
     return (
-      <g key={side} className="cerebro-hands-track cursor-pointer" opacity={isPhone ? 0.78 : 0.92}>
-        {bones.map((indices, bi) => (
+      <g key={`hand-${hi}`} className="cerebro-hands-track" opacity={primary ? 1 : 0.6}>
+        {BONES.map((indices, bi) => (
           <path
-            key={`${side}-bone-${bi}`}
+            key={`bone-${bi}`}
             className="bone"
-            d={chainPath(indices)}
-            strokeWidth={strokeW}
+            d={chain(indices)}
+            strokeWidth={isPhone ? 2 : 2.4}
+            strokeOpacity={0.7}
           />
         ))}
-        {jointIdx.map((idx) => (
-          <circle
-            key={`${side}-joint-${idx}`}
-            className="joint"
-            cx={pts[idx][0]}
-            cy={pts[idx][1]}
-            r={isPhone ? 2.2 : 2.8}
-          />
-        ))}
-        {tipIdx.map((idx, tipOrder) => {
-          const [px, py] = pts[idx];
-          return (
-            <g key={`${side}-tip-${idx}`}>
-              <circle className="tip" cx={px} cy={py} r={isPhone ? 3.4 : 4.2} />
-              <circle
-                cx={px}
-                cy={py}
-                r={isPhone ? 14 : 16}
-                fill="transparent"
-                className="cursor-pointer pointer-events-auto"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const panX = px / 1366 - 0.5;
-                  const played = soundEngine.playFingertipNote(tipOrder, panX * 2);
-                  setActiveNote(`${tipLabels[tipOrder]} · ${played.name}`);
-                  spawnSparklesAt(px, py, COLOUR_TOKENS.sphereWireframe);
-                  onTriggerGesture(idx === 4 || idx === 8 ? 'pinch-orbit' : 'point-select');
-                }}
-              />
-            </g>
-          );
-        })}
-        <line
-          className={isPinchActive ? 'pinch-chord' : 'bone'}
-          x1={thumbPt[0]}
-          y1={thumbPt[1]}
-          x2={indexPt[0]}
-          y2={indexPt[1]}
-          strokeWidth={isPinchActive ? (isPhone ? 1.6 : 2) : 1}
-          strokeDasharray={isPinchActive ? undefined : '4 6'}
+        {converged &&
+          FINGER_MCP_LANDMARKS.map((mcp, n) => (
+            <line
+              key={`base-${mcp}`}
+              className="pinch-chord"
+              x1={pts[mcp].x}
+              y1={pts[mcp].y}
+              x2={tips[n].x}
+              y2={tips[n].y}
+              strokeWidth={1.6}
+            />
+          ))}
+        <polygon
+          points={hull}
+          fill={converged ? 'var(--token-tracking-valid)' : 'none'}
+          fillOpacity={converged ? 0.16 : 0}
+          stroke={converged ? 'var(--token-tracking-valid)' : 'var(--token-focus-glow)'}
+          strokeOpacity={converged ? 0.95 : 0.45}
+          strokeWidth={converged ? 2.4 : 1.4}
+          strokeDasharray={converged ? undefined : '5 6'}
+          strokeLinejoin="round"
         />
-        {isPinchActive && (
-          <circle
-            cx={midX}
-            cy={midY}
-            r={isPhone ? 3.5 : 4.5}
-            fill={COLOUR_TOKENS.trackingValid}
-            fillOpacity={0.85}
-          />
-        )}
+        {PALM_JOINTS.map((idx) => (
+          <circle key={`joint-${idx}`} className="joint" cx={pts[idx].x} cy={pts[idx].y} r={isPhone ? 3.5 : 4} />
+        ))}
+        {FINGERTIP_LANDMARKS.map((idx) => (
+          <g key={`tip-${idx}`}>
+            <circle cx={pts[idx].x} cy={pts[idx].y} r={tipR + 5} fill="var(--token-focus-glow)" fillOpacity={0.18} />
+            <circle className="tip" cx={pts[idx].x} cy={pts[idx].y} r={tipR} fillOpacity={1} />
+          </g>
+        ))}
       </g>
     );
   };
 
+  const now = typeof performance !== 'undefined' ? performance.now() : 0;
+  const trailPts = view ? view.trail.filter((p) => now - p.t <= TRAIL_MS) : [];
+  const throwFlash = view !== null && now - view.throwAt <= THROW_FLASH_MS;
+  const postureLabel = view ? (throwFlash ? 'THROW' : POSTURE_LABEL[view.posture]) : null;
+  const palmAnchor = view ? view.hands[0][9] : null;
+  const chipTone =
+    status === 'tracking'
+      ? 'var(--token-tracking-valid)'
+      : status === 'error'
+        ? '#FF8A8A'
+        : 'var(--token-focus-glow)';
+
   return (
-    <>
-      {/*
-        Sampling video must stay in the DOM for MediaPipe, but NEVER paint full-bleed.
-        A mirrored object-cover webcam of the monitor created a second ghosted "page"
-        of the UI (vertical seam / duplicated spheres). Keep it 1×1 and invisible.
-      */}
-      <div
-        className="pointer-events-none select-none"
+    <div className="fixed inset-0 z-[15] pointer-events-none select-none" data-testid="hands-gesture-hud">
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        viewBox={`0 0 ${viewport.w} ${viewport.h}`}
+        preserveAspectRatio="none"
         aria-hidden="true"
-        style={{
-          position: 'fixed',
-          left: 0,
-          top: 0,
-          width: 1,
-          height: 1,
-          overflow: 'hidden',
-          opacity: 0,
-          zIndex: -1,
-        }}
       >
-        <video
-          ref={videoRef}
-          playsInline
-          muted
-          autoPlay
-          width={640}
-          height={480}
-          controls={false}
-          disablePictureInPicture
-          style={{ width: 640, height: 480 }}
-        />
-      </div>
+        {trailPts.length > 1 && (
+          <polyline
+            points={trailPts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')}
+            fill="none"
+            stroke={throwFlash ? 'var(--token-tracking-valid)' : 'var(--token-focus-glow)'}
+            strokeOpacity={throwFlash ? 0.9 : 0.4}
+            strokeWidth={throwFlash ? 5 : 3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
+        {view && view.hands.map((pts, hi) => renderHand(pts, hi, view.posture, hi === 0))}
+        {view && palmAnchor && postureLabel && (
+          <g transform={`translate(${palmAnchor.x.toFixed(1)} ${(palmAnchor.y + 54).toFixed(1)})`}>
+            <rect
+              x={-(postureLabel.length * 4.6 + 12)}
+              y={-13}
+              width={postureLabel.length * 9.2 + 24}
+              height={26}
+              rx={13}
+              fill="rgba(6, 12, 24, 0.72)"
+              stroke="var(--token-focus-glow)"
+              strokeOpacity={0.5}
+            />
+            <text
+              textAnchor="middle"
+              y={4}
+              fontSize={12}
+              letterSpacing="0.08em"
+              fill="var(--token-focus-glow)"
+              style={{ fontFamily: 'inherit' }}
+            >
+              {postureLabel}
+            </text>
+          </g>
+        )}
+      </svg>
 
-      {/* Interactive Hand Rig & Control Bar — no decorative sphere arc (WebGL owns spheres). */}
-      <div className="fixed inset-0 z-[15] pointer-events-none select-none flex flex-col justify-between p-4 md:p-6">
-        <svg
-          className="fixed inset-0 w-full h-full pointer-events-auto"
-          viewBox="0 0 1366 1024"
-          preserveAspectRatio="xMidYMid meet"
-          onPointerMove={handlePointerMove}
+      <div
+        className="absolute flex items-end gap-2"
+        style={{ left: 12, bottom: dockClearancePx + 8 }}
+      >
+        <div
+          className="overflow-hidden rounded-lg"
+          style={{
+            width: isPhone ? 96 : 120,
+            height: isPhone ? 72 : 90,
+            border: `1px solid ${chipTone}`,
+            background: 'rgba(6, 12, 24, 0.8)',
+            opacity: 0.92,
+          }}
         >
-          {sparkles.map((sp) => (
-            <g key={sp.id} opacity={sp.opacity * 0.65}>
-              <circle
-                cx={sp.x}
-                cy={sp.y}
-                r={Math.min(3.5, sp.size * 0.55)}
-                fill={COLOUR_TOKENS.sphereWireframe}
-              />
-            </g>
-          ))}
-
-          {/* Tracking only — camera on/off lives solely on the Call · Hands · Chat dock. */}
-          {leftPts && (handMode === 'two-hands' || handMode === 'left-only') &&
-            renderTrackingRig(leftPts, 'left')}
-          {rightPts && (handMode === 'two-hands' || handMode === 'right-only') &&
-            renderTrackingRig(rightPts, 'right')}
-        </svg>
-
-        {/* No second camera HUD — Call · Hands · Chat dock is the only on/off control. */}
-        <p className="sr-only" aria-live="polite" data-testid="hands-gesture-hud">
-          {hasLiveCam
-            ? `Hand camera tracking · ${gestureMeta[activeGesture].title}`
-            : cvStatusLabel}
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            autoPlay
+            controls={false}
+            disablePictureInPicture
+            style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
+          />
+        </div>
+        <p
+          className="rounded-full px-3 py-1 text-[11px] tracking-wide"
+          style={{
+            color: chipTone,
+            background: 'rgba(6, 12, 24, 0.72)',
+            border: `1px solid ${chipTone}`,
+          }}
+          aria-live="polite"
+        >
+          {statusText(status, statusDetail)}
         </p>
       </div>
-    </>
+    </div>
   );
 };

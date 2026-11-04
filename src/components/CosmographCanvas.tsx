@@ -65,6 +65,7 @@ import {
 } from '../three/projectWorldHost';
 import { getProjectWorldManifest } from '../data/projectWorldManifest';
 import { introBridge } from '../intro/bridge';
+import { handControlBridge } from '../three/handControlBridge';
 import {
   CAMERA_MOTION_TARGETS,
   clampNodeFocusMs,
@@ -650,6 +651,11 @@ const _scratchVec2 = new THREE.Vector3();
 const _scratchRight = new THREE.Vector3();
 const _scratchUp = new THREE.Vector3();
 const _scratchForward = new THREE.Vector3();
+const _handWorldUp = new THREE.Vector3(0, 1, 0);
+const HAND_PAN_MAX = 14;
+const HAND_FLIGHT_GRACE_MS = 800;
+const SHOW_MISSING_MEDIA_PLACEHOLDERS = true;
+const HAND_ZOOM_OUT_UNITS_PER_SEC = 7.5;
 const _scratchColor = new THREE.Color();
 
 /**
@@ -948,6 +954,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     reducedMotion,
     audioRms: 0,
     lastUserInputTime: 0,
+    handThrowAzVel: 0,
+    handThrowPolarVel: 0,
     // Constellation overview — pull back wide enough that HQ/CDE/Campaign/About all read.
     targetCenter: sphereNetworkCentroid(),
     currentCenter: sphereNetworkCentroid(),
@@ -3231,16 +3239,51 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       return tex;
     };
 
-    // Placeholder plates (no verified url/poster) keep their slot but render no card.
+    // Slots with no verified url/poster render an empty outline frame so gaps are easy to spot
+    // while reviewing the journey. Flip SHOW_MISSING_MEDIA_PLACEHOLDERS to hide them.
     const tubeItemHasMedia = (item: ProjectMediaTubeItem | undefined): boolean =>
       Boolean(item?.url || item?.posterUrl);
-    const buildTileMaterial = (item: ProjectMediaTubeItem | undefined): THREE.MeshBasicMaterial =>
-      new THREE.MeshBasicMaterial({
-        map: item && tubeItemHasMedia(item) ? buildTileCanvasTexture(item) : null,
+    const buildMissingMediaTexture = (slotLabel: string): THREE.CanvasTexture => {
+      const c = document.createElement('canvas');
+      c.width = 320;
+      c.height = 180;
+      const ctx = c.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, 320, 180);
+        ctx.strokeStyle = 'rgba(180, 221, 255, 0.55)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([10, 8]);
+        ctx.strokeRect(6, 6, 308, 168);
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(180, 221, 255, 0.7)';
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`MISSING MEDIA · ${slotLabel}`, 160, 94);
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    };
+    const buildTileMaterial = (
+      item: ProjectMediaTubeItem | undefined,
+      slotIndex: number
+    ): THREE.MeshBasicMaterial => {
+      const hasMedia = item !== undefined && tubeItemHasMedia(item);
+      let map: THREE.CanvasTexture | null = null;
+      if (item && hasMedia) {
+        map = buildTileCanvasTexture(item);
+      } else if (SHOW_MISSING_MEDIA_PLACEHOLDERS) {
+        map = buildMissingMediaTexture(`#${String(slotIndex + 1).padStart(2, '0')}`);
+      }
+      return new THREE.MeshBasicMaterial({
+        map,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.94,
+        opacity: hasMedia ? 0.94 : 0.8,
       });
+    };
+    const tileIsVisible = (item: ProjectMediaTubeItem | undefined): boolean =>
+      SHOW_MISSING_MEDIA_PLACEHOLDERS || tubeItemHasMedia(item);
 
     let mountedTubeProjectId = 'SEVEN';
     const initialTubeItems = buildProjectMediaTubeItems('SEVEN');
@@ -3262,8 +3305,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       }
       tileGeo.computeVertexNormals();
 
-      const tileMesh = new THREE.Mesh(tileGeo, buildTileMaterial(initialTubeItems[idx]));
-      tileMesh.visible = tubeItemHasMedia(initialTubeItems[idx]);
+      const tileMesh = new THREE.Mesh(tileGeo, buildTileMaterial(initialTubeItems[idx], idx));
+      tileMesh.visible = tileIsVisible(initialTubeItems[idx]);
       tileMesh.position.set(Math.sin(theta) * r, y, Math.cos(theta) * r);
       tileMesh.lookAt(0, y, 0);
       // Flip so front face points outward/inward cleanly
@@ -3725,6 +3768,78 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         peerAssemblies['about-us'].coreCrystalMat.emissiveIntensity = coreEmissive;
       }
 
+      // Hand control: pan / orbit / claw zoom-out / throw momentum from the hand-tracking bridge.
+      const hand = handControlBridge.consume(now);
+      const throwMomentum = Math.abs(s.handThrowAzVel) + Math.abs(s.handThrowPolarVel) > 0.01;
+      const handMoving =
+        hand.panX !== 0 ||
+        hand.panY !== 0 ||
+        hand.orbit !== 0 ||
+        hand.zoomOut > 0 ||
+        hand.throwImpulse !== null ||
+        throwMomentum;
+      // A node-to-node flight owns the camera for its first moments; hand input may interrupt it after that.
+      const flightProtected = s.flightActive && now - s.flightStartTime < HAND_FLIGHT_GRACE_MS;
+      if (flightProtected) {
+        s.handThrowAzVel = 0;
+        s.handThrowPolarVel = 0;
+      }
+      if (handMoving && !flightProtected && !s.reducedMotion) {
+        s.flightActive = false;
+        s.activeLoopMode = 'off';
+        s.stoppedExplicitly = false;
+        s.lastUserInputTime = now;
+
+        if (hand.panX !== 0 || hand.panY !== 0) {
+          const fovRad = THREE.MathUtils.degToRad(camera.fov);
+          const worldH = 2 * s.radius * Math.tan(fovRad / 2);
+          const worldW = worldH * camera.aspect;
+          _scratchForward
+            .set(
+              -Math.sin(s.polar) * Math.sin(s.azimuth),
+              -Math.cos(s.polar),
+              -Math.sin(s.polar) * Math.cos(s.azimuth)
+            )
+            .normalize();
+          _scratchRight.crossVectors(_scratchForward, _handWorldUp).normalize();
+          _scratchUp.crossVectors(_scratchRight, _scratchForward).normalize();
+          // The scene follows the hand: hand right → content right → camera shifts left.
+          s.targetPanOffset
+            .addScaledVector(_scratchRight, -hand.panX * worldW)
+            .addScaledVector(_scratchUp, -hand.panY * worldH);
+          if (s.targetPanOffset.length() > HAND_PAN_MAX) s.targetPanOffset.setLength(HAND_PAN_MAX);
+        }
+
+        if (hand.orbit !== 0) s.targetAzimuth += hand.orbit;
+
+        if (hand.throwImpulse) {
+          s.handThrowAzVel = THREE.MathUtils.clamp(-hand.throwImpulse.vx * 3.2, -5, 5);
+          s.handThrowPolarVel = THREE.MathUtils.clamp(hand.throwImpulse.vy * 1.4, -2, 2);
+        }
+        if (throwMomentum || hand.throwImpulse) {
+          s.targetAzimuth += s.handThrowAzVel * dt;
+          s.targetPolar = THREE.MathUtils.clamp(
+            s.targetPolar + s.handThrowPolarVel * dt,
+            0.14,
+            Math.PI - 0.14
+          );
+          const decay = Math.exp(-2.4 * dt);
+          s.handThrowAzVel *= decay;
+          s.handThrowPolarVel *= decay;
+          if (Math.abs(s.handThrowAzVel) < 0.01) s.handThrowAzVel = 0;
+          if (Math.abs(s.handThrowPolarVel) < 0.01) s.handThrowPolarVel = 0;
+        }
+
+        if (hand.zoomOut > 0) {
+          s.targetRadius = THREE.MathUtils.clamp(
+            s.targetRadius + HAND_ZOOM_OUT_UNITS_PER_SEC * hand.zoomOut * dt,
+            3.2,
+            38.0
+          );
+          s.targetPanOffset.multiplyScalar(Math.exp(-1.6 * dt));
+        }
+      }
+
       // Gesture-loss settle: drain residual azimuth velocity within 400ms, never teleport.
       if (s.gestureLossSettleUntil > 0) {
         const remain = s.gestureLossSettleUntil - now;
@@ -4006,14 +4121,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           const freshItems = buildProjectMediaTubeItems(mountedTubeProjectId);
           for (let ti = 0; ti < mediaTubeTileMeshes.length; ti++) {
             const item = freshItems[ti];
-            if (item) {
-              const mesh = mediaTubeTileMeshes[ti];
-              const oldMat = mesh.material as THREE.MeshBasicMaterial;
-              oldMat.map?.dispose();
-              oldMat.dispose();
-              mesh.material = buildTileMaterial(item);
-              mesh.visible = tubeItemHasMedia(item);
-            }
+            const mesh = mediaTubeTileMeshes[ti];
+            const oldMat = mesh.material as THREE.MeshBasicMaterial;
+            oldMat.map?.dispose();
+            oldMat.dispose();
+            mesh.material = buildTileMaterial(item, ti);
+            mesh.visible = tileIsVisible(item);
           }
         }
 

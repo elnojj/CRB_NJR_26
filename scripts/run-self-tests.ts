@@ -56,6 +56,16 @@ async function main(): Promise<void> {
     console.log(plan.output);
   }
 
+  const hands = await runNodeTestFile('src/components/handGestures.test.ts');
+  const handsFail = hands.output.match(/# fail (\d+)/)?.[1] || '0';
+  const handsPass = hands.output.match(/# pass (\d+)/)?.[1] || '0';
+  console.log(
+    `handGestures: ${hands.ok ? 'passed' : 'FAILED'} (node:test pass=${handsPass} fail=${handsFail})`
+  );
+  if (!hands.ok) {
+    console.log(hands.output);
+  }
+
   // Lightweight camera / spatial math checks (Three.js-free)
   const { masterPose, flightMs, buildClosedOrbitalLoopPoints } = await import(
     '../src/three/spatialNavigation.tsx'
