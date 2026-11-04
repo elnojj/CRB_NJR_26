@@ -151,6 +151,7 @@ import {
   CEREBRO_UI_SCHEMA_V4,
 } from './gui/runtimeRegistry';
 import { TeamChatChip } from './components/TeamChatChip';
+import { JourneyCaption } from './components/JourneyCaption';
 import {
   CDE_TAXONOMY,
   masterPose,
@@ -460,7 +461,8 @@ export default function App() {
   });
   const [tourHighlightId, setTourHighlightId] = useState<string | null>(null);
   const [captionBubble, setCaptionBubble] = useState<string | null>(null);
-  const [journeyActive, setJourneyActive] = useState(false);
+  const [journeyBeat, setJourneyBeat] = useState<JourneyBeat | null>(null);
+  const journeyActive = journeyBeat !== null;
 
   // 5. Hands Overlay State
   const [handsActive, setHandsActive] = useState<boolean>(false);
@@ -3138,8 +3140,7 @@ export default function App() {
   );
 
   const handleJourneyBeat = useCallback((beat: JourneyBeat | null) => {
-    setJourneyActive(beat !== null);
-    setCaptionBubble(beat ? `${beat.headlineEn}${beat.supportEn ? ` — ${beat.supportEn}` : ''}` : null);
+    setJourneyBeat(beat);
   }, []);
 
   const toggleJourney = useCallback(() => {
@@ -3844,6 +3845,8 @@ export default function App() {
         onSpatialSphereDetent={handleSpatialSphereDetent}
         onJourneyBeat={handleJourneyBeat}
       />
+
+      <JourneyCaption beat={journeyBeat} onSkip={toggleJourney} />
 
       {/* 3A. Z-35 Focus Pointer, Projected 3D Target Ring, S04 Flight Route & GUI v3.0 QA Inspector */}
       <GuiFocusOverlay
