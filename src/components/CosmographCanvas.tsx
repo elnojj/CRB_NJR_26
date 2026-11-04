@@ -89,6 +89,7 @@ import {
   sphereCenterVec,
   sphereNetworkCentroid,
 } from '../three/sphereNetwork';
+import { isAppleMobileWebKit, shouldUseFlatGlass } from '../three/glassFallback';
 import {
   ABOUT_US_NODES,
   CAMPAIGN_OS_NODES,
@@ -1647,6 +1648,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       return;
     }
 
+    const useFlatGlass = shouldUseFlatGlass({
+      softwareGl: isSoftwareGl,
+      appleMobile: isAppleMobileWebKit(typeof navigator === 'undefined' ? undefined : navigator),
+    });
+
     const rendererAttempts: THREE.WebGLRendererParameters[] = [
       {
         antialias: !isSoftwareGl,
@@ -1986,35 +1992,35 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     // 3. Shared Liquid Glass Core Material — unified with SHARED_OUTER_SHELL_MATERIAL_PRESET
     // so left, center, and right spheres never render as opaque mirrored chrome.
     const sharedBrushedSilverCoreMat = createSharedOuterShellMaterial({
-      softwareGl: isSoftwareGl,
+      softwareGl: useFlatGlass,
       face: 'front',
     });
     extraDisposables.push(sharedBrushedSilverCoreMat);
 
     // Translucent Inner Core Envelope — unified with SHARED_OUTER_SHELL_MATERIAL_PRESET
     const sharedInnerSilverEnvelopeMat = createSharedOuterShellMaterial({
-      softwareGl: isSoftwareGl,
+      softwareGl: useFlatGlass,
       face: 'front',
     });
     extraDisposables.push(sharedInnerSilverEnvelopeMat);
 
     // 4. Optical Portal Liquid Glass — same preset as MAT_LIQUID_GLASS_SHELL
     const sharedPortalDarkGlassMat = createSharedOuterShellMaterial({
-      softwareGl: isSoftwareGl,
+      softwareGl: useFlatGlass,
       face: 'front',
     });
     extraDisposables.push(sharedPortalDarkGlassMat);
 
     // 5. Cool Ice / Focus Blue Accent Material — translucent liquid glass with ice tint
     const sharedCoolIceNodeMat = createSharedOuterShellMaterial({
-      softwareGl: isSoftwareGl,
+      softwareGl: useFlatGlass,
       face: 'front',
     });
     extraDisposables.push(sharedCoolIceNodeMat);
 
     // 6. Refractive Liquid Glass Sub-Sphere Material (SHARED_OUTER_SHELL_MATERIAL_PRESET)
     const sharedCrystalGlassBubbleMat = createSharedOuterShellMaterial({
-      softwareGl: isSoftwareGl,
+      softwareGl: useFlatGlass,
       face: 'front',
     });
     extraDisposables.push(sharedCrystalGlassBubbleMat);
@@ -2022,11 +2028,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     // 7. Outer Refractive Liquid Glass Shell (Master Containment Sphere r = 1.0R = 6.2u)
     // Shared MeshPhysicalMaterial preset from src/three/sphereNetwork.ts across all 4 spheres.
     const sharedOpticalGlassMat = createSharedOuterShellMaterial({
-      softwareGl: isSoftwareGl,
+      softwareGl: useFlatGlass,
       face: 'front',
     });
     const sharedBackOpticalGlassMat = createSharedOuterShellMaterial({
-      softwareGl: isSoftwareGl,
+      softwareGl: useFlatGlass,
       face: 'back',
     });
     void SHARED_OUTER_SHELL_MATERIAL_PRESET;
@@ -2034,7 +2040,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     // Shared Liquid Glass Material (replaces legacy chrome titanium)
     const sharedTitaniumMat = createSharedOuterShellMaterial({
-      softwareGl: isSoftwareGl,
+      softwareGl: useFlatGlass,
       face: 'front',
     });
 
@@ -2279,7 +2285,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       coreGroup.position.copy(coreLocalPos);
 
       const coreCrystalMat = createSharedOuterShellMaterial({
-        softwareGl: isSoftwareGl,
+        softwareGl: useFlatGlass,
         face: 'front',
       });
       coreCrystalMat.emissive = new THREE.Color(coreColour);

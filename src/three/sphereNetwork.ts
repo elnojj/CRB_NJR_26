@@ -17,6 +17,7 @@ import {
   GUI_CAMERA_PRESETS,
 } from '../gui/cameraPresets';
 import type { GuiRect } from '../gui/CollisionManager';
+import { GLASS_EMISSIVE_FLOOR } from './glassFallback';
 
 export type ConnectedSphereId = 'hq' | 'cde' | 'campaign-os' | 'about-us';
 
@@ -60,6 +61,7 @@ export const SHARED_OUTER_SHELL_MATERIAL_PRESET: SharedOuterShellMaterialPreset 
 } as const;
 
 export function createSharedOuterShellMaterial(options?: {
+  /** Flat (non-transmission) glass: software rasterizers and Apple mobile WebKit. */
   softwareGl?: boolean;
   face?: 'front' | 'back';
   side?: THREE.Side;
@@ -86,6 +88,10 @@ export function createSharedOuterShellMaterial(options?: {
     attenuationColor: attenuation,
     attenuationDistance: SHARED_OUTER_SHELL_MATERIAL_PRESET.attenuationDistance,
     envMapIntensity: SHARED_OUTER_SHELL_MATERIAL_PRESET.envMapIntensity,
+    emissive: new THREE.Color(GLASS_EMISSIVE_FLOOR.color),
+    emissiveIntensity: softwareGl
+      ? GLASS_EMISSIVE_FLOOR.flatIntensity
+      : GLASS_EMISSIVE_FLOOR.transmissiveIntensity,
     sheen: 0,
     sheenRoughness: 1,
     transparent: true,

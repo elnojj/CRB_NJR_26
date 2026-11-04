@@ -57,6 +57,7 @@ async function main(): Promise<void> {
     ['environmentRegistry', 'src/data/environmentRegistry.test.ts'],
     ['mediaTubeTiles', 'src/data/mediaTubeTiles.test.ts'],
     ['visualGuards', 'src/components/visualGuards.test.ts'],
+    ['glassFallback', 'src/three/glassFallback.test.ts'],
   ] as const) {
     const run = await runNodeTestFile(file);
     const fail = run.output.match(/# fail (\d+)/)?.[1] || '0';
