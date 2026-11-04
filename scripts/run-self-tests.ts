@@ -52,19 +52,10 @@ async function main(): Promise<void> {
     console.log(plan.output);
   }
 
-  const hands = await runNodeTestFile('src/components/handGestures.test.ts');
-  const handsFail = hands.output.match(/# fail (\d+)/)?.[1] || '0';
-  const handsPass = hands.output.match(/# pass (\d+)/)?.[1] || '0';
-  console.log(
-    `handGestures: ${hands.ok ? 'passed' : 'FAILED'} (node:test pass=${handsPass} fail=${handsFail})`
-  );
-  if (!hands.ok) {
-    console.log(hands.output);
-  }
-
   for (const [label, file] of [
     ['handInteraction', 'src/three/handInteraction.test.ts'],
     ['environmentRegistry', 'src/data/environmentRegistry.test.ts'],
+    ['mediaTubeTiles', 'src/data/mediaTubeTiles.test.ts'],
   ] as const) {
     const run = await runNodeTestFile(file);
     const fail = run.output.match(/# fail (\d+)/)?.[1] || '0';

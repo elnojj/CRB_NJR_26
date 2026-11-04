@@ -6,14 +6,18 @@ import {
   NASA_ROSTER,
   NODES,
   PEOPLE,
+  AGENT_ACTION_DISABLED_REASON_EN,
   agentActionsFor,
+  agentCardView,
   environmentForSphere,
   getNode,
+  matchKeyword,
   matchKeywordTarget,
   nodesInEnvironment,
   nodesInStation,
   resolveAssociationId,
 } from './environmentRegistry.ts';
+import { planRegistryNavigation } from '../utils/registryNavigation.ts';
 import { JOURNEY_MEDIA_MANIFEST, MEDIA_GAPS, getMediaRecord, mediaForNode } from './journeyMediaManifest.ts';
 import { JOURNEY_BASE_DURATION_SEC, JOURNEY_BEATS, buildJourneyStops, journeyBeatAt } from '../three/camera/journeyConfig.ts';
 
@@ -83,7 +87,7 @@ describe('environment registry', () => {
     assert.deepEqual(proposed, ['NASAQ', 'NABR', 'MADAR']);
     for (const agent of NASA_ROSTER) {
       assert.equal(agent.runtimeConnection, 'none');
-      assert.equal(agent.taskState, 'unknown');
+      assert.equal(agent.taskState, 'unassigned');
       for (const env of ENVIRONMENT_IDS) {
         assert.deepEqual(agentActionsFor(agent, env), { talk: false, assign: false, run: false });
       }
@@ -97,6 +101,56 @@ describe('environment registry', () => {
     assert.deepEqual(agentActionsFor(verified, 'env_cde'), { talk: false, assign: false, run: false });
     const untested = { ...verified, binding: { ...verified.binding, lastPassedTestIso: null } };
     assert.deepEqual(agentActionsFor(untested, 'env_hq'), { talk: false, assign: false, run: false });
+  });
+
+  it('builds a card for every agent with the four contract states kept apart and no live claims', () => {
+    for (const agent of NASA_ROSTER) {
+      const view = agentCardView(agent, 'env_hq');
+      assert.equal(view.label, agent.label);
+      assert.equal(view.runtimeConnection.state, 'disconnected');
+      assert.match(view.runtimeConnection.textEn, /Disconnected/);
+      assert.equal(view.taskState.state, 'unassigned');
+      assert.match(view.taskState.textEn, /Idle · unassigned/);
+      assert.deepEqual(view.actions, { talk: false, assign: false, run: false });
+      assert.equal(view.actionsDisabledReasonEn, AGENT_ACTION_DISABLED_REASON_EN);
+      if (agent.label === 'DOCUMENTED') {
+        assert.equal(view.documentedProfile.present, true);
+        assert.equal(view.proposedRole.present, false);
+      } else {
+        assert.equal(view.documentedProfile.present, false);
+        assert.match(view.documentedProfile.textEn, /Not documented/);
+        assert.equal(view.proposedRole.present, true);
+      }
+      assert.notEqual(view.documentedProfile.textEn, view.proposedRole.textEn);
+    }
+  });
+
+  it('shows a card as bound and actionable only for a verified, tested, scoped binding', () => {
+    const base = NASA_ROSTER[0];
+    const live = { ...base, runtimeConnection: 'bound' as const, binding: { verified: true, scopes: ['env_hq' as const], lastPassedTestIso: '2026-11-04T00:00:00Z' } };
+    const view = agentCardView(live, 'env_hq');
+    assert.equal(view.runtimeConnection.state, 'bound');
+    assert.deepEqual(view.actions, { talk: true, assign: true, run: true });
+    assert.equal(view.actionsDisabledReasonEn, null);
+    const wrongEnv = agentCardView(live, 'env_cde');
+    assert.deepEqual(wrongEnv.actions, { talk: false, assign: false, run: false });
+    const claimedButUntested = agentCardView({ ...live, binding: { ...live.binding, lastPassedTestIso: null } }, 'env_hq');
+    assert.equal(claimedButUntested.runtimeConnection.state, 'bound');
+    assert.deepEqual(claimedButUntested.actions, { talk: false, assign: false, run: false });
+  });
+
+  it('routes agent names to their own card and the roster words to the whole roster', () => {
+    assert.equal(matchKeywordTarget('talk to Samna')?.associationId, 'hq__nasa__samna');
+    assert.equal(matchKeyword('show me Fakir')?.rosterOnly, false);
+    assert.equal(matchKeyword('show me the NASA agents')?.rosterOnly, true);
+    const one = planRegistryNavigation('show me Rasma');
+    assert.equal(one?.nasaRoster?.highlightNodeId, 'rasma');
+    assert.match(one?.captionEn ?? '', /no runtime connection/);
+    const all = planRegistryNavigation('open the NASA agents');
+    assert.equal(all?.nasaRoster?.highlightNodeId, null);
+    assert.equal(planRegistryNavigation('show me El Batron')?.nasaRoster, undefined);
+    const proposed = planRegistryNavigation('show me MADAR');
+    assert.match(proposed?.captionEn ?? '', /PROPOSED/);
   });
 
   it('marks the task register as disconnected instead of inventing live data', () => {

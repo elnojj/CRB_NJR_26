@@ -1,0 +1,15 @@
+export const PROJECT_MEDIA_TUBE_SPECS = {
+  radiusU: 5.4,
+  columns: 8,
+  visibleRows: 3,
+  maxMountedTiles: 24,
+  slotSizeU: [3.2, 1.8] as const,
+  rowPitchU: 2.25,
+  idleRadPerSec: 0.025,
+  spinClampRadPerSec: 2.0,
+  damping60Hz: 0.92,
+  hoverSpeedMultiplier: 0.35,
+  focusMs: 650,
+  fullviewMs: 1100,
+  returnMs: 850,
+} as const;

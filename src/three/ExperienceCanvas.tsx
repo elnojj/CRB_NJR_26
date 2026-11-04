@@ -161,7 +161,6 @@ interface ExperienceCanvasProps {
   projectWorldState?: 'entry' | 'active' | 'suspended' | 'exiting' | 'unavailable' | null;
   idleOrbitAllowed?: boolean;
   handsActive?: boolean;
-  onHandStep?: (direction: -1 | 1) => void;
   onJourneyBeat?: (beat: JourneyBeat | null) => void;
 }
 
@@ -196,7 +195,6 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
   projectWorldState = null,
   idleOrbitAllowed = true,
   handsActive = false,
-  onHandStep,
   onJourneyBeat,
 }) => {
   const osReducedMotion = useReducedMotion();
@@ -237,7 +235,6 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
         projectWorldState={projectWorldState}
         idleOrbitAllowed={idleOrbitAllowed}
         handsActive={handsActive}
-        onHandStep={onHandStep}
         onJourneyBeat={onJourneyBeat}
       />
 

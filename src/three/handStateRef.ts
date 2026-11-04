@@ -1,4 +1,3 @@
-import type { HandControlFrame } from '../components/handGestures';
 
 /**
  * Mutable hand state shared between the MediaPipe tracker (writer), the 3D glove,
@@ -11,8 +10,6 @@ import type { HandControlFrame } from '../components/handGestures';
  */
 
 export type HandDetectionMode = 'two-hands' | 'left-only' | 'right-only';
-
-export type HandFlipDirection = -1 | 1;
 
 export const MAX_HANDS = 2;
 export const LANDMARK_COUNT = 21;
@@ -35,8 +32,6 @@ export interface HandSlot {
   velocity: [number, number, number];
   /** Detector handedness score 0..1 for this hand; 1 when the runtime does not report one. */
   confidence: number;
-  /** Engine output for the latest detection (posture, pan, orbit, zoom, throw). */
-  control: HandControlFrame | null;
 }
 
 export interface HandState {
@@ -58,7 +53,6 @@ function createSlot(): HandSlot {
     pinching: false,
     velocity: [0, 0, 0],
     confidence: 1,
-    control: null,
   };
 }
 
@@ -84,7 +78,6 @@ export function resetHandState(): void {
     hand.pinching = false;
     hand.pinchDistance = 1;
     hand.velocity = [0, 0, 0];
-    hand.control = null;
   }
 }
 

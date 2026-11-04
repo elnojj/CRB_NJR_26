@@ -4,7 +4,6 @@ import {
   forceStopSharedWebcamStream,
   releaseSharedWebcamStream,
 } from '../utils/deviceStreamCoordinator';
-import { HandGestureEngine, type ScreenPoint } from '../components/handGestures';
 import { OneEuroFilter } from './oneEuroFilter';
 import {
   GLOVE_PLANE_Z,
@@ -70,7 +69,6 @@ export class HandTracker {
   private landmarker: HandLandmarker | null = null;
   private stream: MediaStream | null = null;
   private video: VideoWithFrameCallback | null = null;
-  private engine = new HandGestureEngine(640, 480);
   private runtimes: SlotRuntime[] = [createRuntime(), createRuntime()];
   private cancelled = false;
   private frameHandle = 0;
@@ -254,7 +252,6 @@ export class HandTracker {
 
     const aspect = vw / vh;
     const { halfW, halfH } = gloveFrustum;
-    this.engine.setViewport(vw, vh);
 
     for (let hi = 0; hi < MAX_HANDS; hi += 1) {
       const slot = state.hands[hi];
@@ -263,7 +260,6 @@ export class HandTracker {
         slot.present = false;
         slot.pinching = false;
         slot.confidence = 0;
-        slot.control = null;
         this.runtimes[hi] = createRuntime();
         continue;
       }
@@ -334,16 +330,6 @@ export class HandTracker {
       slot.pinching = pinch < PINCH_THRESHOLD ? true : pinch > PINCH_RELEASE ? false : slot.pinching;
       slot.present = true;
       slot.confidence = picked[hi].score;
-
-      if (hi === 0) {
-        const pts: ScreenPoint[] = [];
-        for (let li = 0; li < LANDMARK_COUNT; li += 1) {
-          pts.push({ x: (1 - fx[li]) * vw, y: fy[li] * vh });
-        }
-        slot.control = this.engine.update(pts, t);
-      } else {
-        slot.control = null;
-      }
     }
 
     state.tracking = true;
@@ -357,13 +343,11 @@ export class HandTracker {
   }
 
   private markLost(t: number): void {
-    this.engine.reset();
     const state = handStateRef.current;
     for (const slot of state.hands) {
       slot.present = false;
       slot.pinching = false;
       slot.velocity = [0, 0, 0];
-      slot.control = null;
     }
     this.runtimes = [createRuntime(), createRuntime()];
     state.tracking = false;

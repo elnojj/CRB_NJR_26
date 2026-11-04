@@ -1,4 +1,4 @@
-import { ENVIRONMENTS, matchKeywordTarget, type NodeDef } from '../data/environmentRegistry';
+import { ENVIRONMENTS, matchKeyword, type NodeDef } from '../data/environmentRegistry';
 import type { WorkspaceAction } from './actionDispatcher';
 
 /**
@@ -11,6 +11,8 @@ export interface RegistryNavigationPlan {
   node: NodeDef;
   actions: WorkspaceAction[];
   captionEn: string;
+  /** Set when the phrase leads to the NASA roster. `highlightNodeId` is null when the whole roster was named. */
+  nasaRoster?: { highlightNodeId: string | null };
 }
 
 const NAVIGATION_VERB = /\b(show|open|take|go|fly|bring|navigate|play|see|view|who|where|visit|take me)\b/i;
@@ -20,11 +22,13 @@ export function planRegistryNavigation(text: string): RegistryNavigationPlan | n
   if (LEAVE_TO_SPECIFIC_INTENT.test(text)) return null;
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
   if (wordCount > 4 && !NAVIGATION_VERB.test(text)) return null;
-  const node = matchKeywordTarget(text);
-  if (!node) return null;
+  const match = matchKeyword(text);
+  if (!match) return null;
+  const { node } = match;
   const env = ENVIRONMENTS[node.envId];
   const actions: WorkspaceAction[] = [];
   let captionEn = node.titleEn;
+  let nasaRoster: RegistryNavigationPlan['nasaRoster'];
 
   switch (node.kind) {
     case 'project': {
@@ -52,7 +56,10 @@ export function planRegistryNavigation(text: string): RegistryNavigationPlan | n
       break;
     case 'agent':
       actions.push({ type: 'switch_sphere', sphere: env.sphereId });
-      captionEn = `NASA · ${node.titleEn}${node.status === 'proposed' ? ' · PROPOSED' : ''} · no runtime connection`;
+      nasaRoster = { highlightNodeId: match.rosterOnly ? null : node.nodeId };
+      captionEn = match.rosterOnly
+        ? 'NASA · 8 documented, 3 proposed · no runtime connection'
+        : `NASA · ${node.titleEn}${node.status === 'proposed' ? ' · PROPOSED' : ''} · no runtime connection`;
       break;
     case 'person':
     case 'story':
@@ -69,7 +76,7 @@ export function planRegistryNavigation(text: string): RegistryNavigationPlan | n
       return unhandled;
     }
   }
-  return { node, actions, captionEn };
+  return { node, actions, captionEn, nasaRoster };
 }
 
 /** Registry routing wins only over generic parses; specific intents (a named tab, a transport verb) keep their own path. */

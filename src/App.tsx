@@ -79,8 +79,9 @@ import {
   FourTierState,
 } from './data/blueprintData';
 import { HandsCameraPreview } from './components/HandsCameraPreview';
-import type { HandDetectionMode, HandFlipDirection } from './three/handStateRef';
+import type { HandDetectionMode } from './three/handStateRef';
 import type { JourneyBeat } from './three/camera/journeyConfig';
+import { tubeTargetForBeat } from './data/mediaTubeTiles';
 import type {
   AudienceLevel,
   CustomTaskItem,
@@ -151,6 +152,7 @@ import {
 } from './gui/runtimeRegistry';
 import { TeamChatChip } from './components/TeamChatChip';
 import { LiveSubtitles, type SubtitleLine } from './components/LiveSubtitles';
+import { NasaAgentCards } from './components/NasaAgentCards';
 import { JourneyCaption } from './components/JourneyCaption';
 import { planRegistryNavigation, registryPlanShouldOverride } from './utils/registryNavigation';
 import {
@@ -297,6 +299,7 @@ export default function App() {
     return isConnectedSphereId(snap.activeSphere) ? snap.activeSphere : 'hq';
   });
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+  const [nasaRoster, setNasaRoster] = useState<{ highlightNodeId: string | null } | null>(null);
   const [openPanels, setOpenPanels] = useState<string[]>(
     () => readSessionSnapshot().openPanels
   );
@@ -380,6 +383,8 @@ export default function App() {
     projectId: string;
     focusedTileIndex: number | null;
     savedPanels: string[];
+    /** Sphere the tube is centred on when a journey beat opened it away from the active sphere. */
+    sphere?: ConnectedSphereId;
   }>({
     active: false,
     projectId: 'SEVEN',
@@ -2119,7 +2124,7 @@ export default function App() {
               if (prev.savedPanels.length > 0) {
                 setOpenPanels(prev.savedPanels);
               }
-              return { ...prev, active: false, focusedTileIndex: null, savedPanels: [] };
+              return { ...prev, active: false, focusedTileIndex: null, savedPanels: [], sphere: undefined };
             });
             setCaptionBubble('Closed 3D Project Media Tube · Sphere shell restored');
           } else if (action.action === 'focus_tile') {
@@ -2509,6 +2514,7 @@ export default function App() {
           if (isLiveVoiceTranscript && shouldDeduplicateAction(planned, 'voice_transcript')) continue;
           executeTypedAction(planned, 'command_bar');
         }
+        setNasaRoster(registryPlan.nasaRoster ?? null);
         setCaptionBubble(registryPlan.captionEn);
         appendTranscript('Cerebro', registryPlan.captionEn, 'registry_navigation');
         return;
@@ -3120,20 +3126,26 @@ export default function App() {
     setIsHandTrackingActive(handsActive);
   }, [handsActive]);
 
-  const handleHandFlipNode = useCallback(
-    (direction: HandFlipDirection) => {
-      const order: ConnectedSphereId[] = ['hq', 'cde', 'campaign-os', 'about-us'];
-      const index = order.indexOf(activeSphere);
-      // The scene follows the hand: moving right brings the previous node in from the left.
-      const next = order[(index - direction + order.length) % order.length];
-      if (next === activeSphere) return;
-      executeTypedAction({ type: 'switch_sphere', sphere: next }, 'hands');
-    },
-    [activeSphere, executeTypedAction]
-  );
-
+  const journeyOpenedTubeRef = useRef(false);
   const handleJourneyBeat = useCallback((beat: JourneyBeat | null) => {
     setJourneyBeat(beat);
+    const tubeTarget = beat ? tubeTargetForBeat(beat) : null;
+    if (tubeTarget) {
+      journeyOpenedTubeRef.current = true;
+      setMediaTubeState((prev) => ({
+        active: true,
+        projectId: tubeTarget.tubeProjectId,
+        focusedTileIndex: tubeTarget.tileIndex,
+        savedPanels: prev.savedPanels,
+        sphere: tubeTarget.sphere,
+      }));
+    } else if (beat === null) {
+      // Journey ended or was interrupted: a tube left open stays under the user's control.
+      journeyOpenedTubeRef.current = false;
+    } else if (journeyOpenedTubeRef.current) {
+      journeyOpenedTubeRef.current = false;
+      setMediaTubeState((prev) => ({ ...prev, active: false, focusedTileIndex: null, sphere: undefined }));
+    }
   }, []);
 
   const toggleJourney = useCallback(() => {
@@ -3833,12 +3845,14 @@ export default function App() {
         pointerOrbitEnabled
         idleOrbitAllowed={idleOrbitAllowed && !handsActive && !journeyActive}
         handsActive={handsActive}
-        onHandStep={handleHandFlipNode}
         onJourneyBeat={handleJourneyBeat}
       />
 
       <JourneyCaption beat={journeyBeat} onSkip={toggleJourney} reducedMotion={reducedMotion} />
       <LiveSubtitles line={subtitleLine} />
+      {nasaRoster && activeSphere === 'hq' ? (
+        <NasaAgentCards highlightNodeId={nasaRoster.highlightNodeId} onClose={() => setNasaRoster(null)} />
+      ) : null}
 
       {/* 3A. Z-35 Focus Pointer, Projected 3D Target Ring, S04 Flight Route & GUI v3.0 QA Inspector */}
       <GuiFocusOverlay

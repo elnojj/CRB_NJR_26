@@ -400,63 +400,39 @@ export class SplineJourney {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Hand interaction priority state machine. Strict order, first match wins:
-//   UI_INTERACT > CAMERA_TWO_HAND > CAMERA_CLAW_ZOOM > CAMERA_SPHERE_ORBIT > CAMERA_FLICK_THROW > CAMERA_PALM_PAN
+// Hand interaction state machine. Strict order, first match wins:
+//   UI_INTERACT > CAMERA_TWO_HAND
+// One hand never moves the camera: it only positions the pointer, lights a hover and pokes a node
+// (all in NodeInteractionLayer). Only both hands tracked together drive dolly, roll, pitch and pan.
 // ---------------------------------------------------------------------------------------------
 
-export type HandInteractionState =
-  | 'IDLE'
-  | 'UI_INTERACT'
-  | 'CAMERA_TWO_HAND'
-  | 'CAMERA_CLAW_ZOOM'
-  | 'CAMERA_SPHERE_ORBIT'
-  | 'CAMERA_FLICK_THROW'
-  | 'CAMERA_PALM_PAN';
+export type HandInteractionState = 'IDLE' | 'UI_INTERACT' | 'CAMERA_TWO_HAND';
 
 export interface HandCameraIntent {
   state: HandInteractionState;
-  /** Pan as a fraction of the viewport this frame (hand right / up positive). */
+  /** Pan as a fraction of the viewport this frame (parallel open palms, hand right / up positive). */
   panX: number;
   panY: number;
-  dAzimuth: number;
+  /** Two-hand pitch in radians. */
   dPolar: number;
-  /** 0..1 while the claw is held. */
-  zoomOut: number;
   /** Two-hand dolly in metres of pinch-midpoint distance change. Positive pushes the camera forward. */
   dolly: number;
   /** Two-hand horizon roll in radians. */
   roll: number;
-  /** Hand-direction step to the neighbouring node / journey stop (flip or horizontal throw). */
-  step: -1 | 0 | 1;
   /** The camera is being moved by hand this frame (interrupts a running journey). */
   steering: boolean;
 }
 
 const HAND_TUNING = {
-  motionDampRate: 30,
-  throwAzimuthGain: 3.2,
-  throwAzimuthMax: 5,
-  throwPolarGain: 1.4,
-  throwPolarMax: 2,
-  throwDecayPerSec: 2.4,
-  throwRestVelocity: 0.05,
-  throwStepDelayMs: 240,
   uiReleaseHoldMs: 350,
   freshMs: 250,
 } as const;
 
 function idleIntent(state: HandInteractionState): HandCameraIntent {
-  return { state, panX: 0, panY: 0, dAzimuth: 0, dPolar: 0, zoomOut: 0, dolly: 0, roll: 0, step: 0, steering: false };
+  return { state, panX: 0, panY: 0, dPolar: 0, dolly: 0, roll: 0, steering: false };
 }
 
 export class HandInteractionMachine {
-  private lastFrameId = -1;
-  private pendingPanX = 0;
-  private pendingPanY = 0;
-  private pendingAz = 0;
-  private throwAz = 0;
-  private throwPolar = 0;
-  private pendingStep: { dir: -1 | 1; at: number } | null = null;
   private uiHoldUntil = 0;
   private state: HandInteractionState = 'IDLE';
   private readonly twoHand = new TwoHandGestureTracker();
@@ -470,24 +446,15 @@ export class HandInteractionMachine {
   }
 
   reset(): void {
-    this.pendingPanX = 0;
-    this.pendingPanY = 0;
-    this.pendingAz = 0;
-    this.throwAz = 0;
-    this.throwPolar = 0;
-    this.pendingStep = null;
     this.state = 'IDLE';
     this.twoHand.reset();
   }
 
   evaluate(nowMs: number, dt: number, ui: UiInteractResult | null, hands: HandState): HandCameraIntent {
     const fresh = hands.active && hands.tracking && nowMs - hands.updatedAtMs <= HAND_TUNING.freshMs;
-    const control = fresh ? hands.hands[0].control : null;
-    const newFrame = hands.frameId !== this.lastFrameId;
-    this.lastFrameId = hands.frameId;
 
-    // 1. UI_INTERACT — grabbing or poking a 3D control never moves the camera.
-    if (ui && (ui.locked || ui.hovering)) {
+    // 1. UI_INTERACT: an engaged poke on a node never moves the camera.
+    if (ui?.locked) {
       this.uiHoldUntil = nowMs + HAND_TUNING.uiReleaseHoldMs;
       this.reset();
       this.state = 'UI_INTERACT';
@@ -498,106 +465,22 @@ export class HandInteractionMachine {
       return idleIntent('UI_INTERACT');
     }
 
-    const intent = idleIntent('IDLE');
-
-    // 2. CAMERA_TWO_HAND — only while both hands are tracked together. One hand never reaches this.
+    // 2. CAMERA_TWO_HAND: only while both hands are tracked together. One hand never reaches this.
     const two = fresh ? this.twoHand.evaluate(nowMs, hands.hands, dt) : (this.twoHand.reset(), null);
-    if (two) {
-      this.pendingPanX = 0;
-      this.pendingPanY = 0;
-      this.pendingAz = 0;
-      this.throwAz = 0;
-      this.throwPolar = 0;
-      this.pendingStep = null;
-      this.state = 'CAMERA_TWO_HAND';
-      intent.state = this.state;
-      intent.dolly = two.dolly;
-      intent.roll = two.roll;
-      intent.dPolar = two.pitch;
-      intent.panX = two.panX;
-      intent.panY = two.panY;
-      intent.steering = two.dolly !== 0 || two.roll !== 0 || two.pitch !== 0 || two.panX !== 0 || two.panY !== 0;
-      return intent;
-    }
-
-    if (control && newFrame) {
-      if (control.posture === 'grab') {
-        this.pendingAz += control.orbit;
-      } else if (control.posture === 'open') {
-        this.pendingPanX += control.pan.x;
-        this.pendingPanY += control.pan.y;
-      }
-      if (control.flip !== 0) this.queueStep(control.flip, nowMs, 0);
-      if (control.throw) {
-        const { vx, vy } = control.throw;
-        this.throwAz = THREE.MathUtils.clamp(-vx * HAND_TUNING.throwAzimuthGain, -HAND_TUNING.throwAzimuthMax, HAND_TUNING.throwAzimuthMax);
-        this.throwPolar = THREE.MathUtils.clamp(vy * HAND_TUNING.throwPolarGain, -HAND_TUNING.throwPolarMax, HAND_TUNING.throwPolarMax);
-        if (Math.abs(vx) > Math.abs(vy)) this.queueStep(vx > 0 ? 1 : -1, nowMs, HAND_TUNING.throwStepDelayMs);
-      }
-    }
-
-    // Smooth the 30 Hz detections over 60 fps frames (THREE.MathUtils.damp on the pending deltas).
-    const k = 1 - Math.exp(-HAND_TUNING.motionDampRate * dt);
-    const takePanX = this.pendingPanX * k;
-    const takePanY = this.pendingPanY * k;
-    const takeAz = this.pendingAz * k;
-    this.pendingPanX -= takePanX;
-    this.pendingPanY -= takePanY;
-    this.pendingAz -= takeAz;
-
-    const throwing = Math.abs(this.throwAz) + Math.abs(this.throwPolar) > HAND_TUNING.throwRestVelocity;
-    const posture = control?.posture ?? 'none';
-
-    // 3. CAMERA_CLAW_ZOOM
-    if (posture === 'claw' && control) {
-      this.state = 'CAMERA_CLAW_ZOOM';
-      intent.state = this.state;
-      intent.zoomOut = control.zoomOut;
-      intent.steering = true;
-    } else if (posture === 'grab') {
-      // 4. CAMERA_SPHERE_ORBIT
-      this.state = 'CAMERA_SPHERE_ORBIT';
-      intent.state = this.state;
-      intent.dAzimuth = takeAz;
-      intent.steering = takeAz !== 0;
-    } else if (throwing) {
-      // 5. CAMERA_FLICK_THROW — inertial impulse with exponential decay.
-      this.state = 'CAMERA_FLICK_THROW';
-      intent.state = this.state;
-      intent.dAzimuth = this.throwAz * dt;
-      intent.dPolar = this.throwPolar * dt;
-      intent.steering = true;
-    } else if (posture === 'open') {
-      // 6. CAMERA_PALM_PAN (pointing is reserved for hover glow and poke)
-      this.state = 'CAMERA_PALM_PAN';
-      intent.state = this.state;
-      intent.panX = takePanX;
-      intent.panY = takePanY;
-      intent.steering = takePanX !== 0 || takePanY !== 0;
-    } else {
+    if (!two) {
       this.state = 'IDLE';
+      return idleIntent('IDLE');
     }
-
-    if (throwing) {
-      const decay = Math.exp(-HAND_TUNING.throwDecayPerSec * dt);
-      this.throwAz *= decay;
-      this.throwPolar *= decay;
-      if (Math.abs(this.throwAz) + Math.abs(this.throwPolar) <= HAND_TUNING.throwRestVelocity) {
-        this.throwAz = 0;
-        this.throwPolar = 0;
-      }
-    }
-
-    if (this.pendingStep && nowMs >= this.pendingStep.at) {
-      intent.step = this.pendingStep.dir;
-      this.pendingStep = null;
-    }
-    return intent;
-  }
-
-  private queueStep(dir: -1 | 1, nowMs: number, delayMs: number): void {
-    if (this.pendingStep) return;
-    this.pendingStep = { dir, at: nowMs + delayMs };
+    this.state = 'CAMERA_TWO_HAND';
+    return {
+      state: this.state,
+      dolly: two.dolly,
+      roll: two.roll,
+      dPolar: two.pitch,
+      panX: two.panX,
+      panY: two.panY,
+      steering: two.dolly !== 0 || two.roll !== 0 || two.pitch !== 0 || two.panX !== 0 || two.panY !== 0,
+    };
   }
 }
 

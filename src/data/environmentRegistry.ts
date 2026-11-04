@@ -159,7 +159,7 @@ export type AgentRecord = {
   proposedRoleEn: string | null;
   label: 'DOCUMENTED' | 'PROPOSED';
   runtimeConnection: 'none' | 'bound';
-  taskState: 'unknown';
+  taskState: 'unassigned';
   binding: AgentBinding;
 };
 
@@ -170,7 +170,7 @@ export const NASA_ROSTER: readonly AgentRecord[] = NASA_AGENTS.map((a) => ({
   proposedRoleEn: a.proposedRoleEn,
   label: a.proposed ? 'PROPOSED' : 'DOCUMENTED',
   runtimeConnection: 'none',
-  taskState: 'unknown',
+  taskState: 'unassigned',
   binding: { verified: false, scopes: [], lastPassedTestIso: null },
 }));
 
@@ -179,6 +179,56 @@ export type AgentActions = { talk: boolean; assign: boolean; run: boolean };
 export function agentActionsFor(agent: AgentRecord, envId: EnvironmentId): AgentActions {
   const ok = agent.binding.verified && agent.binding.lastPassedTestIso !== null && agent.binding.scopes.includes(envId);
   return { talk: ok, assign: ok, run: ok };
+}
+
+export type AgentActionId = keyof AgentActions;
+
+export const AGENT_ACTION_IDS: readonly AgentActionId[] = ['talk', 'assign', 'run'];
+
+export const AGENT_ACTION_DISABLED_REASON_EN =
+  'Needs a permissioned binding that has passed a live test in this environment.';
+
+/** The four contract states a card must show, already phrased for display. Nothing here implies a live connection. */
+export type AgentCardView = {
+  associationId: string;
+  nodeId: string;
+  name: string;
+  label: AgentRecord['label'];
+  documentedProfile: { present: boolean; textEn: string };
+  proposedRole: { present: boolean; textEn: string };
+  runtimeConnection: { state: 'disconnected' | 'bound'; textEn: string };
+  taskState: { state: AgentRecord['taskState']; textEn: string };
+  actions: AgentActions;
+  actionsDisabledReasonEn: string | null;
+};
+
+export function agentCardView(agent: AgentRecord, envId: EnvironmentId): AgentCardView {
+  const actions = agentActionsFor(agent, envId);
+  const anyEnabled = actions.talk || actions.assign || actions.run;
+  const bound = agent.runtimeConnection === 'bound' && agent.binding.verified;
+  return {
+    associationId: agent.associationId,
+    nodeId: agent.associationId.split('__')[2],
+    name: agent.name,
+    label: agent.label,
+    documentedProfile: {
+      present: agent.documentedProfileEn !== null,
+      textEn: agent.documentedProfileEn ?? 'Not documented in the source material.',
+    },
+    proposedRole: {
+      present: agent.proposedRoleEn !== null,
+      textEn: agent.proposedRoleEn ?? 'None proposed. The documented profile is the only role on record.',
+    },
+    runtimeConnection: bound
+      ? { state: 'bound', textEn: 'Bound and tested.' }
+      : { state: 'disconnected', textEn: 'Disconnected. No verified runtime binding.' },
+    taskState:
+      agent.taskState === 'unassigned'
+        ? { state: 'unassigned', textEn: 'Idle · unassigned. No task register is connected.' }
+        : { state: agent.taskState, textEn: 'Unknown.' },
+    actions,
+    actionsDisabledReasonEn: anyEnabled ? null : AGENT_ACTION_DISABLED_REASON_EN,
+  };
 }
 
 const HQ_NODES = make('env_hq', [
@@ -274,8 +324,21 @@ export function environmentOfAssociation(raw: string): EnvironmentDef | null {
 }
 
 /** Keyword navigation for typed and spoken commands. Returns an association id or null. */
-const KEYWORD_TARGETS: readonly { pattern: RegExp; associationId: string }[] = [
+type KeywordTarget = { pattern: RegExp; associationId: string; rosterOnly?: boolean };
+
+const KEYWORD_TARGETS: readonly KeywordTarget[] = [
   { pattern: /\b(el[\s-]?batron|batron|الباترون)\b/i, associationId: 'hq__proj__bat' },
+  { pattern: /\bsamna\b/i, associationId: 'hq__nasa__samna' },
+  { pattern: /\bfakir\b/i, associationId: 'hq__nasa__fakir' },
+  { pattern: /\bgrandy\b/i, associationId: 'hq__nasa__grandy' },
+  { pattern: /\bbilal\b/i, associationId: 'hq__nasa__bilal' },
+  { pattern: /\bkatib\b/i, associationId: 'hq__nasa__katib' },
+  { pattern: /\bmusa\b/i, associationId: 'hq__nasa__musa' },
+  { pattern: /\brasma\b/i, associationId: 'hq__nasa__rasma' },
+  { pattern: /\bsardy\b/i, associationId: 'hq__nasa__sardy' },
+  { pattern: /\bnasaq\b/i, associationId: 'hq__nasa__nasaq' },
+  { pattern: /\bnabr\b/i, associationId: 'hq__nasa__nabr' },
+  { pattern: /\bmadar\b/i, associationId: 'hq__nasa__madar' },
   { pattern: /\b(yah|young\s*(&|and)\s*human)\b/i, associationId: 'hq__proj__yah' },
   { pattern: /\bseven\b/i, associationId: 'hq__proj__seven' },
   { pattern: /\bbsocial\b/i, associationId: 'hq__proj__bsocial' },
@@ -286,12 +349,20 @@ const KEYWORD_TARGETS: readonly { pattern: RegExp; associationId: string }[] = [
   { pattern: /\bkhaled\b/i, associationId: 'about__people__khaled' },
   { pattern: /\btarek\b/i, associationId: 'about__people__tarek' },
   { pattern: /\b(showreel)\b/i, associationId: 'about__studio__showreel' },
-  { pattern: /\b(nasa|agents?)\b/i, associationId: 'hq__nasa__fakir' },
+  { pattern: /\b(nasa|agents?)\b/i, associationId: 'hq__nasa__fakir', rosterOnly: true },
 ];
 
-export function matchKeywordTarget(text: string): NodeDef | null {
-  for (const { pattern, associationId } of KEYWORD_TARGETS) {
-    if (pattern.test(text)) return getNode(associationId);
+export type KeywordMatch = { node: NodeDef; /** The phrase named the roster as a whole, not one agent. */ rosterOnly: boolean };
+
+export function matchKeyword(text: string): KeywordMatch | null {
+  for (const { pattern, associationId, rosterOnly } of KEYWORD_TARGETS) {
+    if (!pattern.test(text)) continue;
+    const node = getNode(associationId);
+    if (node) return { node, rosterOnly: rosterOnly === true };
   }
   return null;
+}
+
+export function matchKeywordTarget(text: string): NodeDef | null {
+  return matchKeyword(text)?.node ?? null;
 }

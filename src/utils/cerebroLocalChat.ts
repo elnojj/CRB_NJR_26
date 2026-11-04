@@ -4,7 +4,7 @@
 export type LocalChatTurn = { role: 'user' | 'model'; text: string };
 
 export function buildLocalCerebroReply(message: string, history: LocalChatTurn[] = []): string {
-  const text = message.trim();
+  const text = message.replace(/^\[project:[^\]]*\]\s*/, '').trim();
   const lower = text.toLowerCase();
   const turn = history.filter((h) => h.role === 'user').length + 1;
 

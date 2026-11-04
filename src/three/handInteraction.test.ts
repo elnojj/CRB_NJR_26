@@ -80,7 +80,7 @@ function oneHand(nowMs: number, spec: HandSpec, frameId = 1): HandState {
   return state;
 }
 
-const NO_UI: UiInteractResult = { locked: false, hovering: false, grabbedId: null };
+const NO_UI: UiInteractResult = { locked: false, hoverId: null };
 
 describe('two-hand gating', () => {
   it('returns null unless both hands are present', () => {
@@ -183,28 +183,50 @@ describe('HandInteractionMachine with two hands', () => {
   it('lets UI_INTERACT outrank the two-hand transform', () => {
     const machine = new HandInteractionMachine();
     const hands = twoHands(1000, { x: -0.2, y: 0, pinching: true }, { x: 0.2, y: 0, pinching: true });
-    const intent = machine.evaluate(1010, 0.033, { locked: true, hovering: true, grabbedId: 'n' }, hands);
+    const intent = machine.evaluate(1010, 0.033, { locked: true, hoverId: 'n' }, hands);
     assert.equal(intent.state, 'UI_INTERACT');
     assert.equal(intent.dolly, 0);
   });
 
-  it('no longer pans the camera while the hand is only pointing', () => {
+  it('never moves the camera for one hand, whatever the gesture or how fast it travels', () => {
+    const gestures: HandSpec[] = [
+      { x: 0, y: 0, pointing: true },
+      { x: 0, y: 0, pinching: true },
+      { x: 0, y: 0 },
+      { x: 0, y: 0, velocity: [3, 0] },
+    ];
+    for (const gesture of gestures) {
+      const machine = new HandInteractionMachine();
+      let now = 1000;
+      for (let i = 0; i < 40; i += 1) {
+        now += FRAME;
+        const hands = oneHand(now, { ...gesture, x: gesture.x + i * 0.02, y: gesture.y - i * 0.01 }, i + 1);
+        const intent = machine.evaluate(now, FRAME / 1000, NO_UI, hands);
+        assert.equal(intent.state, 'IDLE');
+        assert.equal(intent.panX, 0);
+        assert.equal(intent.panY, 0);
+        assert.equal(intent.dPolar, 0);
+        assert.equal(intent.dolly, 0);
+        assert.equal(intent.roll, 0);
+        assert.equal(intent.steering, false);
+      }
+    }
+  });
+
+  it('is exposed only through two-hand states: IDLE, UI_INTERACT and CAMERA_TWO_HAND', () => {
     const machine = new HandInteractionMachine();
-    const hands = oneHand(1000, { x: 0, y: 0 });
-    hands.hands[0].control = {
-      tMs: 1000,
-      tracking: true,
-      posture: 'point',
-      pan: { x: 0.2, y: 0 },
-      zoomOut: 0,
-      orbit: 0,
-      flip: 0,
-      throw: null,
-      grabbing: false,
-    };
-    const intent = machine.evaluate(1010, 0.033, NO_UI, hands);
-    assert.equal(intent.panX, 0);
-    assert.equal(intent.steering, false);
+    const seen = new Set<string>();
+    let now = 1000;
+    for (let i = 0; i < 30; i += 1) {
+      now += FRAME;
+      const gap = 0.2 + i * 0.004;
+      const hands = i % 2 === 0
+        ? twoHands(now, { x: -gap, y: 0, pinching: true }, { x: gap, y: 0, pinching: true }, i + 1)
+        : oneHand(now, { x: 0, y: 0, pointing: true }, i + 1);
+      seen.add(machine.evaluate(now, FRAME / 1000, i === 29 ? { locked: true, hoverId: 'n' } : NO_UI, hands).state);
+    }
+    for (const state of seen) assert.ok(['IDLE', 'UI_INTERACT', 'CAMERA_TWO_HAND'].includes(state), state);
+    assert.ok(seen.has('CAMERA_TWO_HAND'));
   });
 });
 
@@ -316,7 +338,7 @@ describe('NodeInteractionLayer', () => {
     assert.equal(hover.locked, false, 'hover alone never blocks the camera');
     const engaged = layer.update(1020, pointAt(0.01, 0, 0.05).hands, true);
     assert.equal(engaged.locked, true);
-    assert.equal(engaged.hovering, true);
+    assert.equal(engaged.hoverId, node.id);
   });
 
   it('ignores low-confidence tracking', () => {
@@ -328,7 +350,7 @@ describe('NodeInteractionLayer', () => {
     assert.equal(selected.length, 0);
   });
 
-  it('selects on pinch over a node and locks orbit until the pinch opens', () => {
+  it('does not select or lock on a pinch: one hand only points, hovers and pokes', () => {
     const { layer, selected } = makeLayer([node]);
     const pinchState = (pinching: boolean) => {
       const s = createHandState();
@@ -337,15 +359,37 @@ describe('NodeInteractionLayer', () => {
       return s;
     };
     layer.update(1000, pinchState(false).hands, true);
-    const grab = layer.update(1020, pinchState(true).hands, true);
-    assert.deepEqual(selected, [node.id]);
-    assert.equal(grab.locked, true);
-    assert.equal(grab.grabbedId, node.id);
-    const still = layer.update(1040, pinchState(true).hands, true);
-    assert.equal(still.locked, true);
-    assert.equal(selected.length, 1, 'holding the pinch does not re-select');
-    const released = layer.update(1060, pinchState(false).hands, true);
-    assert.equal(released.locked, false);
+    for (let i = 1; i < 6; i += 1) {
+      const r = layer.update(1000 + i * 20, pinchState(true).hands, true);
+      assert.equal(r.locked, false);
+    }
+    assert.deepEqual(selected, []);
+  });
+
+  it('stands down completely while both hands are tracked, even when one points and pokes a node', () => {
+    const { layer, selected, hovers } = makeLayer([node]);
+    const both = (reach: number) => {
+      const s = pointAt(0.01, 0.01, reach);
+      setHand(s.hands[1], { x: 0.3, y: 0.1 });
+      return s;
+    };
+    for (let i = 0; i < 12; i += 1) {
+      const r = layer.update(1000 + i * 20, both(0.07).hands, true);
+      assert.equal(r.locked, false);
+      assert.equal(r.hoverId, null);
+    }
+    assert.deepEqual(selected, []);
+    assert.deepEqual(hovers, []);
+  });
+
+  it('resumes single-hand hover as soon as the second hand leaves', () => {
+    const { layer } = makeLayer([node]);
+    const s2 = pointAt(0.01, 0.01, 0);
+    setHand(s2.hands[1], { x: 0.3, y: 0.1 });
+    layer.update(1000, s2.hands, true);
+    assert.equal(layer.hoveredNodeId(), null);
+    layer.update(1020, pointAt(0.01, 0.01, 0).hands, true);
+    assert.equal(layer.hoveredNodeId(), node.id);
   });
 });
 

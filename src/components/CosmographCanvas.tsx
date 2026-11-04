@@ -21,7 +21,11 @@ import {
   VISIBLE_PROJECTS_DATA,
   ProjectHealth,
 } from '../data/sourceData';
-import { PUBLIC_BRAND_MEDIA } from '../data/publicBrandMedia';
+import {
+  PROJECT_MEDIA_TUBE_SPECS,
+  buildProjectMediaTubeItems,
+  type ProjectMediaTubeItem,
+} from '../three/mediaTubeItems';
 import { soundEngine } from '../utils/soundEngine';
 import {
   CustomDomain3D,
@@ -417,173 +421,18 @@ export interface CameraCommandPayload {
   loopMode?: CameraLoopMode;
 }
 
-export interface ProjectMediaTubeItem {
-  index: number;
-  id: string;
-  projectId: string;
-  title: string;
-  subtitle: string;
-  kind: 'image' | 'video' | 'pdf';
-  aspect: '16:9' | '4:3' | '1:1' | 'A4';
-  accentHex: string;
-  url?: string;
-  posterUrl?: string;
-  isRealVideo?: boolean;
-}
-
-export const PROJECT_MEDIA_TUBE_SPECS = {
-  radiusU: 5.4,
-  columns: 8,
-  visibleRows: 3,
-  maxMountedTiles: 24,
-  slotSizeU: [3.2, 1.8] as const,
-  rowPitchU: 2.25,
-  idleRadPerSec: 0.025,
-  spinClampRadPerSec: 2.0,
-  damping60Hz: 0.92,
-  hoverSpeedMultiplier: 0.35,
-  focusMs: 650,
-  fullviewMs: 1100,
-  returnMs: 850,
-} as const;
-
-export function buildProjectMediaTubeItems(projectId: string): ProjectMediaTubeItem[] {
-  const cleanProj = (projectId || 'SEVEN').toUpperCase();
-  const baseKinds: Array<'image' | 'video' | 'pdf'> = ['image', 'video', 'pdf', 'image'];
-  const baseAspects: Array<'16:9' | '4:3' | '1:1' | 'A4'> = ['16:9', '16:9', 'A4', '4:3'];
-
-  return Array.from({ length: PROJECT_MEDIA_TUBE_SPECS.maxMountedTiles }).map((_, idx) => {
-    const defaultKind = baseKinds[idx % baseKinds.length];
-    const defaultAspect = baseAspects[idx % baseAspects.length];
-    const row = Math.floor(idx / PROJECT_MEDIA_TUBE_SPECS.columns) + 1;
-    const col = (idx % PROJECT_MEDIA_TUBE_SPECS.columns) + 1;
-    const defaultAccent =
-      defaultKind === 'video' ? '#D4AF37' : defaultKind === 'pdf' ? '#C5CCD6' : '#FFF4D0';
-
-    // 1. EL-BATRON: Real El Batron showreel on the first available video tile (tile 0)
-    if (cleanProj === 'EL-BATRON') {
-      if (idx === 0) {
-        return {
-          index: idx,
-          id: `tube-el-batron-${String(idx + 1).padStart(2, '0')}`,
-          projectId: cleanProj,
-          title: PUBLIC_BRAND_MEDIA.elBatron.title,
-          subtitle: 'VIDEO · 720p Official Showreel · 16:9',
-          kind: 'video',
-          aspect: '16:9',
-          accentHex: '#D4AF37',
-          url: PUBLIC_BRAND_MEDIA.elBatron.url,
-          posterUrl: PUBLIC_BRAND_MEDIA.elBatron.posterUrl,
-          isRealVideo: true,
-        };
-      }
-      if (defaultKind === 'video') {
-        return {
-          index: idx,
-          id: `tube-el-batron-${String(idx + 1).padStart(2, '0')}`,
-          projectId: cleanProj,
-          title: `El Batron · Live Spatial Audio Rig (${row}.${col})`,
-          subtitle: 'VIDEO · No cleared video linked · 16:9',
-          kind: 'video',
-          aspect: '16:9',
-          accentHex: '#D4AF37',
-          isRealVideo: false,
-        };
-      }
-    }
-
-    // 2. NOJARA Studios: Showreel 2023 and LaLiga in distinct slots (tiles 0 and 1)
-    if (cleanProj === 'NOJARA') {
-      if (idx === 0) {
-        return {
-          index: idx,
-          id: `tube-nojara-${String(idx + 1).padStart(2, '0')}`,
-          projectId: cleanProj,
-          title: PUBLIC_BRAND_MEDIA.showreel2023.title,
-          subtitle: 'VIDEO · 720p Master Showreel · 16:9',
-          kind: 'video',
-          aspect: '16:9',
-          accentHex: '#D4AF37',
-          url: PUBLIC_BRAND_MEDIA.showreel2023.url,
-          posterUrl: PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
-          isRealVideo: true,
-        };
-      }
-      if (idx === 1) {
-        return {
-          index: idx,
-          id: `tube-nojara-${String(idx + 1).padStart(2, '0')}`,
-          projectId: cleanProj,
-          title: PUBLIC_BRAND_MEDIA.laligaFilm.title,
-          subtitle: 'VIDEO · 720p Official Film · 16:9',
-          kind: 'video',
-          aspect: '16:9',
-          accentHex: '#D4AF37',
-          url: PUBLIC_BRAND_MEDIA.laligaFilm.url,
-          posterUrl: PUBLIC_BRAND_MEDIA.laligaFilm.posterUrl,
-          isRealVideo: true,
-        };
-      }
-    }
-
-    // 3. SEVEN: Real verified Tabuk renders on image tiles
-    if (cleanProj === 'SEVEN') {
-      if (idx === 0) {
-        return {
-          index: idx,
-          id: `tube-seven-${String(idx + 1).padStart(2, '0')}`,
-          projectId: cleanProj,
-          title: 'SEVEN Tabuk — Concept Render Desktop',
-          subtitle: 'IMAGE · Attached 06 Render · 16:9',
-          kind: 'image',
-          aspect: '16:9',
-          accentHex: '#FFF4D0',
-          url: '/assets/aistudio/06_SEVEN_Tabuk_concept_render_desktop_3840x2160_a125f8eb.jpg',
-          posterUrl: '/assets/aistudio/06_SEVEN_Tabuk_concept_render_desktop_3840x2160_a125f8eb.jpg',
-          isRealVideo: false,
-        };
-      }
-      if (idx === 3) {
-        return {
-          index: idx,
-          id: `tube-seven-${String(idx + 1).padStart(2, '0')}`,
-          projectId: cleanProj,
-          title: 'SEVEN Tabuk — Concept Render Mobile',
-          subtitle: 'IMAGE · Attached 06 Render · 9:16',
-          kind: 'image',
-          aspect: '16:9',
-          accentHex: '#FFF4D0',
-          url: '/assets/aistudio/06_SEVEN_Tabuk_concept_render_mobile_1080x1920_8efe6dff.jpg',
-          posterUrl: '/assets/aistudio/06_SEVEN_Tabuk_concept_render_mobile_1080x1920_8efe6dff.jpg',
-          isRealVideo: false,
-        };
-      }
-    }
-
-    // Default / Unknown project truthful document items
-    const isVideo = defaultKind === 'video';
-    const sub = isVideo
-      ? 'VIDEO · No cleared video linked · 16:9'
-      : `${defaultKind.toUpperCase()} · Row ${row} Col ${col} · ${defaultAspect}`;
-
-    return {
-      index: idx,
-      id: `tube-${cleanProj.toLowerCase()}-${String(idx + 1).padStart(2, '0')}`,
-      projectId: cleanProj,
-      title: `${cleanProj} · ${defaultKind === 'video' ? 'Walkthrough Reel' : defaultKind === 'pdf' ? 'Executive Dossier' : 'Keyframe Plate'} (${row}.${col})`,
-      subtitle: sub,
-      kind: defaultKind,
-      aspect: defaultAspect,
-      accentHex: defaultAccent,
-      isRealVideo: false,
-    };
-  });
-}
+export {
+  PROJECT_MEDIA_TUBE_SPECS,
+  buildProjectMediaTubeItems,
+  type ProjectMediaTubeItem,
+} from '../three/mediaTubeItems';
 
 export interface MediaTubeStateProp {
   active: boolean;
   projectId: string;
   focusedTileIndex: number | null;
+  /** Centre the tube on this sphere instead of the active one (journey beats fly across spheres). */
+  sphere?: ConnectedSphereId;
   filterKind?: 'all' | 'image' | 'video' | 'pdf';
 }
 
@@ -629,8 +478,6 @@ export interface CosmographCanvasProps {
   idleOrbitAllowed?: boolean;
   /** Hand camera is live: mounts the 3D glove and spatial controls on the camera. */
   handsActive?: boolean;
-  /** Hand flip / horizontal throw: step to the neighbouring node (hand direction, +1 = hand moved right). */
-  onHandStep?: (direction: -1 | 1) => void;
   /** Journey caption beat; null clears the caption when the journey ends. */
   onJourneyBeat?: (beat: JourneyBeat | null) => void;
 }
@@ -670,9 +517,7 @@ const HAND_JITTER_FILTER_MS = 120;
 const HAND_DOLLY_GAIN = 4.5;
 const HAND_ROLL_MAX_DEG = 25;
 const HAND_ROLL_RELAX_PER_SEC = 1.5;
-const JOURNEY_HAND_PAN_INTERRUPT = 0.004;
 const SHOW_MISSING_MEDIA_PLACEHOLDERS = true;
-const HAND_ZOOM_OUT_UNITS_PER_SEC = 7.5;
 
 interface JourneyAdoptState {
   azimuth: number;
@@ -994,7 +839,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   projectWorldState = null,
   idleOrbitAllowed = true,
   handsActive = false,
-  onHandStep,
   onJourneyBeat,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
@@ -1022,8 +866,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     onSelectMediaTubeTile,
     onOpenMediaTubeFullView,
     onCloseMediaTube,
-    onHandStep,
-    onJourneyBeat,
+      onJourneyBeat,
   });
   callbacksRef.current = {
     onSelectNode,
@@ -1035,8 +878,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     onSelectMediaTubeTile,
     onOpenMediaTubeFullView,
     onCloseMediaTube,
-    onHandStep,
-    onJourneyBeat,
+      onJourneyBeat,
   };
   const handsActiveRef = useRef(handsActive);
   handsActiveRef.current = handsActive;
@@ -3925,17 +3767,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const uiResult = handsActiveRef.current ? nodeInteraction.update(now, handState.hands, handsFresh) : null;
       const intent = handInteractionMachine.evaluate(now, dt, uiResult, handsFresh ? handState : { ...handState, active: false });
 
-      if (intent.step !== 0) {
-        if (splineJourney.isActive()) splineJourney.step(intent.step);
-        else callbacksRef.current.onHandStep?.(intent.step);
-      }
-
       const cameraAutomated = splineJourney.isActive() || s.flightActive;
-      const deliberateHand =
-        intent.state === 'CAMERA_CLAW_ZOOM' ||
-        intent.state === 'CAMERA_SPHERE_ORBIT' ||
-        intent.state === 'CAMERA_TWO_HAND' ||
-        Math.abs(intent.panX) + Math.abs(intent.panY) > JOURNEY_HAND_PAN_INTERRUPT;
+      const deliberateHand = intent.state === 'CAMERA_TWO_HAND';
       const handTakeover = handJitterGate.update(now, cameraAutomated && deliberateHand);
       if (handTakeover && splineJourney.isActive()) splineJourney.stop('interrupted');
       const journeyOwnsCamera = splineJourney.isActive();
@@ -3965,7 +3798,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           if (s.targetPanOffset.length() > HAND_PAN_MAX) s.targetPanOffset.setLength(HAND_PAN_MAX);
         }
 
-        if (intent.dAzimuth !== 0) s.targetAzimuth += intent.dAzimuth;
         if (intent.dPolar !== 0) {
           s.targetPolar = THREE.MathUtils.clamp(s.targetPolar + intent.dPolar, 0.14, Math.PI - 0.14);
         }
@@ -3978,15 +3810,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           const next = THREE.MathUtils.clamp(handRollDeg + THREE.MathUtils.radToDeg(intent.roll), -HAND_ROLL_MAX_DEG, HAND_ROLL_MAX_DEG);
           s.targetRollDeg += next - handRollDeg;
           handRollDeg = next;
-        }
-
-        if (intent.zoomOut > 0) {
-          s.targetRadius = THREE.MathUtils.clamp(
-            s.targetRadius + HAND_ZOOM_OUT_UNITS_PER_SEC * intent.zoomOut * dt,
-            3.2,
-            38.0
-          );
-          s.targetPanOffset.multiplyScalar(Math.exp(-1.6 * dt));
         }
       }
 
@@ -4277,7 +4100,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         ? shellFrontBaseOpacity * 0.22
         : shellFrontBaseOpacity;
       if (tubeActive) {
-        const activeCenter = resolveSphereCenter(s.activeSphere);
+        const activeCenter = resolveSphereCenter(tubeProp?.sphere ?? s.activeSphere);
         mediaTubeGroup.position.copy(activeCenter);
 
         if (tubeProp?.projectId && tubeProp.projectId !== mountedTubeProjectId) {
