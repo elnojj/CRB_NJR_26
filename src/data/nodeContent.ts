@@ -4,7 +4,7 @@
  * Media is real only when the browser can load it (a same-origin file or a public URL). Anything else is
  * reported as an honest empty state, never replaced with a stand-in picture.
  */
-import { CDE_DIMENSIONS, CEREBRO_STATIONS, VISIBLE_PROJECTS_DATA } from './sourceData';
+import { CDE_DIMENSIONS, CEREBRO_STATIONS, HQ_NESTED_PROJECT_PARENT, HQ_PROJECTS_DATA, VISIBLE_PROJECTS_DATA } from './sourceData';
 import { ABOUT_US_NODES, CAMPAIGN_OS_NODES } from './peerSphereContent';
 import {
   PROJECT_MEDIA_TUBE_SPECS,
@@ -35,6 +35,8 @@ export type NodeContent = {
   thumbs: NodeThumb[];
   /** Why there is no media, when there is none. */
   honest: string | null;
+  /** Station this node sits under, or null for a top-level node. */
+  parentId: string | null;
 };
 
 const NOJARA_TUBE = 'NOJARA';
@@ -48,7 +50,7 @@ const SPHERE_LABEL: Record<ConnectedSphereId, string> = {
 
 const NO_MEDIA_REASON: Record<string, string> = {
   tasks: 'This node holds register records, not media.',
-  people: 'This node holds people and responsibilities. No approved portrait is available to show.',
+  people: 'This node holds the NASA roster: people, agents and responsibilities. No approved media is available to show.',
   files: 'This node holds documents and register evidence, not media.',
 };
 
@@ -78,8 +80,10 @@ function mediaFor(sources: readonly string[]): MediaSummary {
   return { tubeKey: mixTubeKey(unique), focusTile: 0, videoCount, imageCount, thumbs };
 }
 
-function withMedia(base: Omit<NodeContent, keyof MediaSummary | 'honest'>, media: MediaSummary, fallbackHonest: string): NodeContent {
-  return { ...base, ...media, honest: media.tubeKey ? null : fallbackHonest };
+type NodeBase = Omit<NodeContent, keyof MediaSummary | 'honest' | 'parentId'> & { parentId?: string | null };
+
+function withMedia(base: NodeBase, media: MediaSummary, fallbackHonest: string): NodeContent {
+  return { ...base, parentId: base.parentId ?? null, ...media, honest: media.tubeKey ? null : fallbackHonest };
 }
 
 function projectName(projectId: string): string {
@@ -93,16 +97,13 @@ function resolveHq(nodeId: string, nodeType: ContentNodeType): NodeContent | nul
     if (!station) return null;
     const base = { nodeId, sphere, nodeType, title: station.label, kindLabel: 'HQ station', summary: station.summary };
     if (nodeId === 'projects') {
-      const ids = VISIBLE_PROJECTS_DATA.map((p) => p.id);
+      const ids = HQ_PROJECTS_DATA.map((p) => p.id);
       return withMedia(base, mediaFor(ids), 'No project has approved media to show yet.');
-    }
-    if (nodeId === 'media') {
-      return withMedia(base, mediaFor([NOJARA_TUBE, 'SEVEN']), 'No approved media to show yet.');
     }
     return withMedia(base, EMPTY_MEDIA, NO_MEDIA_REASON[nodeId] ?? 'No media attached to this node.');
   }
   if (nodeType === 'project') {
-    const project = VISIBLE_PROJECTS_DATA.find((p) => p.id === nodeId);
+    const project = HQ_PROJECTS_DATA.find((p) => p.id === nodeId);
     if (!project) return null;
     return withMedia(
       {
@@ -110,7 +111,8 @@ function resolveHq(nodeId: string, nodeType: ContentNodeType): NodeContent | nul
         sphere,
         nodeType,
         title: project.code,
-        kindLabel: 'Project',
+        kindLabel: 'Project in Projects',
+        parentId: HQ_NESTED_PROJECT_PARENT,
         summary: `${project.name}. ${project.progressLabel}.`,
       },
       mediaFor([project.id]),
@@ -258,10 +260,12 @@ export type DirectoryEntry = NodeContent & { chip: string };
 export function nodeDirectory(): Record<ConnectedSphereId, DirectoryEntry[]> {
   const entry = (content: NodeContent | null): DirectoryEntry[] =>
     content ? [{ ...content, chip: contentChip(content) }] : [];
-  const hq: DirectoryEntry[] = [
-    ...CEREBRO_STATIONS.flatMap((st) => entry(resolveNodeContent(st.id, 'station', 'hq'))),
-    ...VISIBLE_PROJECTS_DATA.flatMap((p) => entry(resolveNodeContent(p.id, 'project', 'hq'))),
-  ];
+  const hq: DirectoryEntry[] = CEREBRO_STATIONS.flatMap((st) => [
+    ...entry(resolveNodeContent(st.id, 'station', 'hq')),
+    ...(st.id === HQ_NESTED_PROJECT_PARENT
+      ? HQ_PROJECTS_DATA.flatMap((p) => entry(resolveNodeContent(p.id, 'project', 'hq')))
+      : []),
+  ]);
   const cde: DirectoryEntry[] = [
     ...CDE_DIMENSIONS.flatMap((dim) => [
       ...entry(resolveNodeContent(dim.id, 'dimension', 'cde')),

@@ -79,7 +79,7 @@ MANDATORY TONE OF VOICE CONSTITUTION:
    - Speak in terms of what is visually happening in the 3D space.
 
 4. 3D SPATIAL DUAL-SPHERE TOPOLOGY:
-   - HQ Sphere [0, 0, 0]: 5 Stations (Projects: 17 portfolio projects; Tasks; People: 12 crew/AI; Files; Media: Showreels).
+   - HQ Sphere [0, 0, 0]: 5 Stations (Projects: 17 portfolio projects; Tasks; NASA: 12 crew/AI; Files; Media: Showreels).
    - CDE Sphere [38, 4, -22]: 4 Dimensions (Creative Strategy, Production Leadership, Talent & Culture, Media Technology / NJR+), 8 subdomains, and 8 story chapters.
    - Connected Satellites: Campaign OS, About Us, Brand Systems.
 

@@ -7,6 +7,7 @@ import {
   CDE_DIMENSIONS,
   PROJECTS_DATA,
   VISIBLE_PROJECTS_DATA,
+  HQ_PROJECTS_DATA,
   PEOPLE_DATA,
   RACI_MATRIX,
   SHOWREEL_ITEMS,
@@ -53,6 +54,8 @@ import {
 } from './three/ExperienceCanvas';
 import { firstMediaTileIndex } from './three/mediaTubeItems';
 import { resolveNodeContent, type DirectoryEntry, type NodeContent } from './data/nodeContent';
+import { hqOwnerOfPanel, HQ_NODE_LABEL, PROJECTS_PANELS, type HqNodeId } from './data/hqNodeWiring';
+import { HqPanelDock } from './components/HqPanelDock';
 import { NodeBrowser, NodeContentCard } from './components/NodeBrowser';
 import {
   isConnectedSphereId,
@@ -315,6 +318,12 @@ export default function App() {
   const [voiceAuthFailed, setVoiceAuthFailed] = useState(false);
   const [hydrationPhase, setHydrationPhase] = useState(() => hydrationSequence()[0]);
   const activePanel: string | null = openPanels.length > 0 ? openPanels[openPanels.length - 1] : null;
+  const hqDockNode: HqNodeId | null =
+    focusedNodeId === 'people'
+      ? 'people'
+      : focusedNodeId === 'projects' || HQ_PROJECTS_DATA.some((p) => p.id === focusedNodeId)
+        ? 'projects'
+        : null;
   const [minimisedChips, setMinimisedChips] = useState<MinimisedChip[]>([]);
   const [panelScrollById, setPanelScrollById] = useState<Record<string, number>>({});
   const [panelDraftsById, setPanelDraftsById] = useState<Record<string, string>>({});
@@ -1278,28 +1287,14 @@ export default function App() {
         case 'open_station': {
           pushNavSnapshot();
           setActiveSphere('hq');
-          setFocusedNodeId(action.station);
+          const stationOwner = hqOwnerOfPanel(action.station) ?? action.station;
+          setFocusedNodeId(stationOwner);
           ensurePanelOpen(action.station, true);
-          // Media station: expand showreel previews inside the sphere (past armature cage).
-          if (action.station === 'media') {
-            setMediaTubeState((prev) => ({
-              active: true,
-              projectId: 'NOJARA',
-              focusedTileIndex: 0,
-              savedPanels: prev.savedPanels.length > 0 ? prev.savedPanels : [...openPanels],
-            }));
-            dispatchCamera('set_angle', {
-              targetSphere: 'hq',
-              anglePreset: 'tube_front',
-            });
-            setCaptionBubble('Media');
-          } else {
-            dispatchCamera('focus_node', { targetSphere: 'hq', targetNodeId: action.station });
-            setMediaTubeState((prev) =>
-              prev.active ? { ...prev, active: false, focusedTileIndex: null, sphere: undefined } : prev
-            );
-            setCaptionBubble(`Station · ${action.station.toUpperCase()}`);
-          }
+          dispatchCamera('focus_node', { targetSphere: 'hq', targetNodeId: stationOwner });
+          setMediaTubeState((prev) =>
+            prev.active ? { ...prev, active: false, focusedTileIndex: null, sphere: undefined } : prev
+          );
+          setCaptionBubble(`Station · ${(HQ_NODE_LABEL[stationOwner as keyof typeof HQ_NODE_LABEL] ?? stationOwner).toUpperCase()}`);
           return {
             ok: true,
             action: 'open_station',
@@ -1307,7 +1302,7 @@ export default function App() {
             resultingState: {
               activeSphere: 'hq',
               openPanels: [action.station],
-              mediaTube: action.station === 'media',
+              mediaTube: false,
             },
             operationId: opId,
           };
@@ -1498,6 +1493,7 @@ export default function App() {
           const targetPanel = action.panel || 'projects';
           const knownPanels = new Set([
             'projects',
+            'gmail',
             'project-detail',
             'tasks',
             'files',
@@ -1536,6 +1532,11 @@ export default function App() {
           }
           pushNavSnapshot();
           ensurePanelOpen(targetPanel, true);
+          const panelOwner = hqOwnerOfPanel(targetPanel);
+          if (panelOwner && activeSphere === 'hq') {
+            setFocusedNodeId(panelOwner);
+            dispatchCamera('focus_node', { targetSphere: 'hq', targetNodeId: panelOwner });
+          }
           return {
             ok: true,
             action: 'open_panel',
@@ -4331,10 +4332,9 @@ export default function App() {
               <div className="fim-rule" />
               {(
                 [
-                  { id: 'decisions', label: 'Reviews' },
-                  { id: 'team-room', label: 'Team' },
-                  { id: 'minutes', label: 'Meeting notes' },
-                  { id: 'timeline', label: 'Timeline' },
+                  ...PROJECTS_PANELS.filter((panel) =>
+                    ['decisions', 'team-room', 'minutes', 'timeline', 'gmail'].includes(panel.panelId)
+                  ).map((panel) => ({ id: panel.panelId, label: panel.label })),
                   { id: 'build', label: 'Development' },
                   { id: 'settings', label: 'Settings' },
                 ] as const
@@ -4483,6 +4483,15 @@ export default function App() {
         {/* Film / Owner Gate must not share chrome with the workspace dock. */}
         {bootDone && (
           <>
+            {activeSphere === 'hq' && hqDockNode ? (
+              <HqPanelDock
+                node={hqDockNode}
+                activePanel={activePanel}
+                onOpenPanel={(panelId) =>
+                  executeTypedAction({ type: 'open_panel', action: 'open', panel: panelId }, 'hq_dock')
+                }
+              />
+            ) : null}
             <NodeBrowser
               open={nodeBrowserOpen}
               activeSphere={activeSphere}

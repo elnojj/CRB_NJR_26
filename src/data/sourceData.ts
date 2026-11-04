@@ -220,8 +220,8 @@ const ALL_STATIONS: StationNode[] = [
   {
     id: 'people',
     code: 'ST-03',
-    label: 'People',
-    labelAr: 'الفريق والمسؤوليات',
+    label: 'NASA',
+    labelAr: 'ناسا',
     colour: COLOUR_TOKENS.stationPeople,
     position: [1.45, -1.85, 1.15],
     summary: 'HQ (39, Shweekar) · Team & Contracts (12 Crew + Collaborators) · RACI Matrix',
@@ -250,7 +250,7 @@ const ALL_STATIONS: StationNode[] = [
 ];
 
 /** Stations with nothing verified to show (no connected register, no verified file access): not part of the scene. */
-export const DISABLED_STATION_IDS: ReadonlySet<string> = new Set(['tasks', 'files']);
+export const DISABLED_STATION_IDS: ReadonlySet<string> = new Set(['tasks', 'files', 'media']);
 
 export const CEREBRO_STATIONS: StationNode[] = ALL_STATIONS.filter((st) => !DISABLED_STATION_IDS.has(st.id));
 
@@ -783,6 +783,14 @@ export const VISIBLE_PROJECTS_DATA = PROJECTS_DATA.filter((p) =>
   isProjectVisibleInWorkspace(p.id)
 );
 
+/** Projects kept out of the HQ environment only; they stay in CDE and Campaign OS. */
+/** HQ projects that sit under the Projects station instead of being top-level HQ nodes. */
+export const HQ_NESTED_PROJECT_PARENT = 'projects';
+
+export const HQ_HIDDEN_PROJECT_IDS: ReadonlySet<string> = new Set(['EL-BATRON']);
+
+export const HQ_PROJECTS_DATA = VISIBLE_PROJECTS_DATA.filter((p) => !HQ_HIDDEN_PROJECT_IDS.has(p.id));
+
 /** Contract: never use legacy "6 Suns · 4 Real" — derive count from source. */
 export const PROJECT_PROVENANCE_COUNTS = (() => {
   const visible = VISIBLE_PROJECTS_DATA;
@@ -792,8 +800,10 @@ export const PROJECT_PROVENANCE_COUNTS = (() => {
   const badgeLabel = `${registerCount} Register · ${sampleCount} Sample`;
   const projectsStation = CEREBRO_STATIONS.find((s) => s.id === 'projects');
   if (projectsStation) {
-    projectsStation.badgeCount = badgeLabel;
-    projectsStation.summary = `${totalCount} programmes from source register (${registerCount} verified, ${sampleCount} sample).`;
+    const hqRegister = HQ_PROJECTS_DATA.filter((p) => !p.isSample).length;
+    const hqSample = HQ_PROJECTS_DATA.length - hqRegister;
+    projectsStation.badgeCount = `${hqRegister} Register · ${hqSample} Sample`;
+    projectsStation.summary = `${HQ_PROJECTS_DATA.length} programme${HQ_PROJECTS_DATA.length === 1 ? '' : 's'} in HQ (${hqRegister} verified, ${hqSample} sample).`;
   }
   return {
     registerCount,
@@ -1609,14 +1619,14 @@ export const GUIDED_TOUR_STOPS: TourStop[] = [
   },
   {
     stopIndex: 3,
-    title: 'Stop 03 · People Station (HQ, Team & RACI Matrix)',
+    title: 'Stop 03 · NASA Station (HQ, Team & RACI Matrix)',
     sphere: 'hq',
     targetId: 'people',
     panelToOpen: 'people',
     durationSec: 30,
-    narrationEn: 'At People station. Sub-panels cover HQ leadership, Grok crew bots under Kinzo and Baghira, and the per-project RACI accountability matrix.',
-    narrationAr: 'محطة الفريق: الإدارة، فريق الـ Agents، ومصفوفة RACI.',
-    captionBubbleText: 'People Station: 39 (Founder & CDE) · Shweekar (PMO) · RACI Matrix',
+    narrationEn: 'At NASA station. Sub-panels cover HQ leadership, Grok crew bots under Kinzo and Baghira, and the per-project RACI accountability matrix.',
+    narrationAr: 'محطة ناسا: الإدارة، فريق الـ Agents، ومصفوفة RACI.',
+    captionBubbleText: 'NASA Station: 39 (Founder & CDE) · Shweekar (PMO) · RACI Matrix',
   },
   {
     stopIndex: 4,

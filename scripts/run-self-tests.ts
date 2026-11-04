@@ -58,6 +58,7 @@ async function main(): Promise<void> {
     ['environmentRegistry', 'src/data/environmentRegistry.test.ts'],
     ['mediaTubeTiles', 'src/data/mediaTubeTiles.test.ts'],
     ['nodeContent', 'src/data/nodeContent.test.ts'],
+    ['hqNodeWiring', 'src/data/hqNodeWiring.test.ts'],
     ['visualGuards', 'src/components/visualGuards.test.ts'],
     ['glassFallback', 'src/three/glassFallback.test.ts'],
     ['motionPreference', 'src/utils/motionPreference.test.ts'],

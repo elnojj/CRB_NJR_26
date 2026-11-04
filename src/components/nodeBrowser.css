@@ -265,3 +265,65 @@
     width: auto;
   }
 }
+
+.cerebro-hq-dock {
+  position: fixed;
+  left: 50%;
+  top: 104px;
+  transform: translateX(-50%);
+  z-index: 40;
+  width: min(94vw, 760px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 14px;
+  background: rgba(10, 16, 28, 0.82);
+  border: 1px solid rgba(180, 221, 255, 0.18);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.cerebro-hq-dock__title {
+  flex: none;
+  font: 600 11px/1 var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #b4ddff;
+}
+.cerebro-hq-dock ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.cerebro-hq-dock li {
+  flex: none;
+}
+.cerebro-hq-dock button {
+  min-height: 40px;
+  padding: 6px 12px;
+  white-space: nowrap;
+  border-radius: 10px;
+  border: 1px solid rgba(180, 221, 255, 0.12);
+  background: rgba(16, 24, 40, 0.9);
+  color: #f2f6f8;
+  font: 500 13px/1.2 var(--font-sans, system-ui, sans-serif);
+  cursor: pointer;
+}
+.cerebro-hq-dock button[data-active='true'] {
+  border-color: #d4af37;
+}
+.cerebro-hq-dock button em {
+  margin-left: 6px;
+  font-style: normal;
+  font-size: 11px;
+  color: #e3b567;
+}
+.cerebro-node-row[data-child='true'] {
+  margin-left: 18px;
+  width: calc(100% - 18px);
+  border-left: 2px solid rgba(180, 221, 255, 0.28);
+}

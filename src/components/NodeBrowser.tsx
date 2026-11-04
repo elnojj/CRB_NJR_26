@@ -62,7 +62,7 @@ export const NodeBrowser: React.FC<NodeBrowserProps> = ({
             onClick={() => setTab(t.id)}
           >
             {t.label}
-            <span>{DIRECTORY[t.id].length}</span>
+            <span>{DIRECTORY[t.id].filter((entry) => !entry.parentId).length}</span>
           </button>
         ))}
       </div>
@@ -77,6 +77,7 @@ export const NodeBrowser: React.FC<NodeBrowserProps> = ({
                 data-testid={`node-row-${entry.sphere}-${entry.nodeId}`}
                 data-active={focusedNodeId === entry.nodeId ? 'true' : 'false'}
                 data-has-media={hasMedia ? 'true' : 'false'}
+                data-child={entry.parentId ? 'true' : 'false'}
                 onClick={() => onPick(entry)}
               >
                 <Thumb entry={entry} />

@@ -1667,6 +1667,7 @@ export function parseNaturalLanguageIntent(rawInput: string): WorkspaceAction | 
   if (
     lower.includes('open_station(people)') ||
     lower.includes('open people') ||
+    lower.includes('open nasa') ||
     lower.includes('الفريق')
   ) {
     return { type: 'open_station', station: 'people' };

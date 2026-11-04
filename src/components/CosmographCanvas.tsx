@@ -19,8 +19,11 @@ import {
   CDE_DIMENSIONS,
   PROJECTS_DATA,
   VISIBLE_PROJECTS_DATA,
+  HQ_NESTED_PROJECT_PARENT,
+  HQ_PROJECTS_DATA,
   ProjectHealth,
 } from '../data/sourceData';
+import { HQ_NODE_LINKS } from '../data/hqNodeWiring';
 import { contentChip, resolveNodeContent } from '../data/nodeContent';
 import {
   PROJECT_MEDIA_TUBE_SPECS,
@@ -2419,7 +2422,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       nodeType: AnchoredLabel2D['nodeType'],
       scale = 1.0,
       pulseIndex = 0,
-      connectedIds: string[] = []
+      connectedIds: string[] = [],
+      parent?: { id: string; localPos: [number, number, number] }
     ) => {
       // Strictly clamp every node inside the 6.2u Master Containment Sphere
       const posVec = clampInsideSphere(new THREE.Vector3(...localPos), 4.45);
@@ -2456,14 +2460,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       parentGroup.add(nodeGroup);
 
-      const midCtrl = posVec.clone().multiplyScalar(0.52);
-      midCtrl.y += 0.38;
+      const spokeOrigin = parent ? new THREE.Vector3(...parent.localPos) : new THREE.Vector3(0, 0, 0);
+      const midCtrl = parent
+        ? spokeOrigin.clone().lerp(posVec, 0.5)
+        : posVec.clone().multiplyScalar(0.52);
+      midCtrl.y += parent ? 0.18 : 0.38;
       clampInsideSphere(midCtrl, 4.35);
-      const curve = new THREE.QuadraticBezierCurve3(
-        new THREE.Vector3(0, 0, 0),
-        midCtrl,
-        posVec
-      );
+      const curve = new THREE.QuadraticBezierCurve3(spokeOrigin, midCtrl, posVec);
       const spokeColor =
         nodeType === 'station' || nodeType === 'dimension' ? 0xd4af37 : 0x65acff;
       const spoke = createCardiacConnectorTube({
@@ -2503,11 +2506,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             : sphereTag === 'campaign-os'
               ? 'core-campaign-os'
               : 'core-about-us';
-      spokeBead.link = { a: coreId, b: canonicalId };
-      const connSet = new Set<string>([coreId, ...connectedIds]);
-      const coreEntry = nodeRegistryRef.current.get(coreId);
-      if (coreEntry) {
-        coreEntry.connectedIds.add(canonicalId);
+      const anchorId = parent?.id ?? coreId;
+      spokeBead.link = { a: anchorId, b: canonicalId };
+      const connSet = new Set<string>([anchorId, ...connectedIds]);
+      const anchorEntry = nodeRegistryRef.current.get(anchorId);
+      if (anchorEntry) {
+        anchorEntry.connectedIds.add(canonicalId);
       }
 
       nodeRegistryRef.current.set(registryKey, {
@@ -2581,11 +2585,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       ...(hqAssembly.root.userData || {}),
       masterSphere: true,
       masterRadius: MASTER_SPHERE.radius,
-      portalCountLabel: projectPortalCountLabel(VISIBLE_PROJECTS_DATA.length),
+      portalCountLabel: projectPortalCountLabel(HQ_PROJECTS_DATA.length),
     };
     masterRootRef.current = hqAssembly.root;
 
-    const allProjectIds = VISIBLE_PROJECTS_DATA.map((p) => p.id);
+    const allProjectIds = HQ_PROJECTS_DATA.map((p) => p.id);
     CEREBRO_STATIONS.forEach((st, idx) => {
       buildNodeWithSignal(
         hqAssembly.root,
@@ -2600,15 +2604,40 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         'station',
         1.08,
         idx,
-        allProjectIds
+        st.id === 'people' ? ['projects'] : [...allProjectIds, 'people']
       );
     });
 
-    VISIBLE_PROJECTS_DATA.forEach((proj, idx) => {
+    HQ_NODE_LINKS.forEach((link) => {
+      const stationA = CEREBRO_STATIONS.find((st) => st.id === link.a);
+      const stationB = CEREBRO_STATIONS.find((st) => st.id === link.b);
+      if (!stationA || !stationB) return;
+      nodeRegistryRef.current.get(link.a)?.connectedIds.add(link.b);
+      nodeRegistryRef.current.get(link.b)?.connectedIds.add(link.a);
+      buildCardiacHeartbeatTube(
+        hqAssembly.root,
+        stationA.position,
+        stationB.position,
+        link.a,
+        link.b,
+        '#D4AF37'
+      );
+    });
+
+    const hqNestParent = CEREBRO_STATIONS.find((st) => st.id === HQ_NESTED_PROJECT_PARENT);
+    HQ_PROJECTS_DATA.forEach((proj, idx) => {
       const healthCol = getProjectHealthColour(proj.health);
-      const nextProj = VISIBLE_PROJECTS_DATA[(idx + 1) % VISIBLE_PROJECTS_DATA.length];
+      const nextProj = HQ_PROJECTS_DATA[(idx + 1) % HQ_PROJECTS_DATA.length];
       const prevProj =
-        VISIBLE_PROJECTS_DATA[(idx + VISIBLE_PROJECTS_DATA.length - 1) % VISIBLE_PROJECTS_DATA.length];
+        HQ_PROJECTS_DATA[(idx + HQ_PROJECTS_DATA.length - 1) % HQ_PROJECTS_DATA.length];
+      const peers = HQ_PROJECTS_DATA.length > 1 ? [nextProj.id, prevProj.id] : [];
+      const childPos: [number, number, number] = hqNestParent
+        ? [
+            hqNestParent.position[0] - 1.15,
+            hqNestParent.position[1] + 0.85,
+            hqNestParent.position[2] + 0.3 + idx * 0.4,
+          ]
+        : proj.sunPositionHq;
       buildNodeWithSignal(
         hqAssembly.root,
         HQ_CENTER,
@@ -2618,20 +2647,23 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         proj.code,
         `${proj.health} · ${proj.progressLabel}`,
         healthCol,
-        proj.sunPositionHq,
+        childPos,
         'project',
         0.82,
         idx + 10,
-        ['projects', 'tasks', 'files', 'media', 'people', nextProj.id, prevProj.id]
+        [HQ_NESTED_PROJECT_PARENT, ...peers],
+        hqNestParent ? { id: hqNestParent.id, localPos: hqNestParent.position } : undefined
       );
-      buildCardiacHeartbeatTube(
-        hqAssembly.root,
-        proj.sunPositionHq,
-        nextProj.sunPositionHq,
-        proj.id,
-        nextProj.id,
-        healthCol
-      );
+      if (HQ_PROJECTS_DATA.length > 1) {
+        buildCardiacHeartbeatTube(
+          hqAssembly.root,
+          childPos,
+          nextProj.sunPositionHq,
+          proj.id,
+          nextProj.id,
+          healthCol
+        );
+      }
     });
 
     const cdeAssembly = buildSphereAssembly(CDE_CENTER, 'cde', COLOUR_TOKENS.stationMedia);
@@ -4592,7 +4624,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             <div className="pt-2 border-t border-[color:var(--token-divider)]">
               <div className="font-mono text-[12px] text-[#C5CCD6] mb-1.5">PROJECTS</div>
               <div className="flex flex-wrap gap-1.5">
-                {VISIBLE_PROJECTS_DATA.map((p) => (
+                {(activeSphere === 'hq' ? HQ_PROJECTS_DATA : VISIBLE_PROJECTS_DATA).map((p) => (
                   <button
                     key={p.id}
                     type="button"

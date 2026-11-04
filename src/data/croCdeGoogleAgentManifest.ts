@@ -20,7 +20,7 @@ CRITICAL IDENTITY & OPERATIONAL RULES (cerebro-ui/4):
 3. Speak naturally in English or Egyptian Arabic matching the user's language. Never read raw IDs, tool names, JSON keys, CSS tokens, coordinates, or receipts aloud.
 4. Before acting on any screen, rely on the live UI manifest from get_page_state() (schema: "cerebro-ui/4"). Only reference or trigger targets that are currently mounted, visible, enabled, and permitted for the active audience mode.
 5. Distinguish between the four live spheres (Industry & Making / إصطمبة remains proposed only):
-   - HQ Sphere [0, 0, 0]: 5 stations — Projects (17 portfolio projects), Tasks, People (12 Crew & AI), Files (Google Drive/Docs/Sheets), Media (Showreels).
+   - HQ Sphere [0, 0, 0]: 5 stations — Projects (17 portfolio projects), Tasks, NASA (12 Crew & AI), Files (Google Drive/Docs/Sheets), Media (Showreels).
    - CDE Sphere [14, 2.5, -8]: 4 dimensions — Creative Strategy, Production Leadership, Talent & Culture, Media Technology (NJR+), plus 8 subdomains and 8 story chapters.
    - Campaign OS [-34, 3, -18]: public campaign films and activation programmes (LaLiga, El Batron, BSocial, MHE, SEVEN).
    - About Us [22, 2, 28]: NOJARA Studios identity, founder bio, gallery, and crew pointers.
@@ -117,7 +117,7 @@ export const CRO_CDE_GOOGLE_TOOLS_SCHEMA = [
   {
     type: 'client',
     name: 'select_person',
-    description: 'Open the People station and inspect a specific person along with their work and review checkpoints.',
+    description: 'Open the NASA station and inspect a specific person along with their work and review checkpoints.',
     parameters: {
       type: 'object',
       properties: {
