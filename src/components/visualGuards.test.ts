@@ -77,7 +77,7 @@ describe('visual guards: master canvas', () => {
 
 describe('visual guards: bottom dock safe area', () => {
   it('adds the safe-area inset to the dock gap instead of max()-ing with it', () => {
-    assert.match(dockCss, /bottom: calc\(var\(--cerebro-dock-gap\) \+ env\(safe-area-inset-bottom, 0px\)\)/);
+    assert.match(dockCss, /bottom: calc\(\s*var\(--cerebro-dock-gap\) \+ var\(--cerebro-kb-inset, 0px\) \+\s*env\(safe-area-inset-bottom, 0px\) \* var\(--cerebro-safe-scale, 1\)\s*\);/);
     assert.match(dockCss, /@media \(pointer: coarse\)/);
   });
 
