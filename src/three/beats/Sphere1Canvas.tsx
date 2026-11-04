@@ -4,6 +4,7 @@ import type { CameraCommandPayload, CameraTelemetry } from '../../components/Cos
 import { AdaptiveResolution } from '../adaptiveResolution';
 import { readDeviceFacts, resolveDeviceProfile } from '../deviceProfile';
 import { MediaPlaybackManager } from '../mediaPlayback';
+import { soundEngine } from '../../utils/soundEngine';
 import { BeatsCameraRig, focalToVerticalFovDeg, type JourneyEndReason } from './BeatsCameraRig';
 import { Sphere1Environment } from './Sphere1Environment';
 import { isolateScene } from './disposal';
@@ -122,6 +123,7 @@ export const Sphere1Canvas = forwardRef<Sphere1Handle, Sphere1CanvasProps>(funct
     });
     rig.setCallbacks({
       onBeat: (index) => {
+        soundEngine.playNodeSelect(0);
         environment.beats.setActiveBeat(index, propsRef.current.reducedMotion);
         propsRef.current.onBeat?.(index, environment.beats.getContent(index));
       },
@@ -136,6 +138,7 @@ export const Sphere1Canvas = forwardRef<Sphere1Handle, Sphere1CanvasProps>(funct
       startJourney: () => {
         environment.attachAudioListener(camera);
         rig.startJourney(environment.beats.getKeyframes());
+        soundEngine.triggerFlightWhoosh(4600, 0);
       },
       stopJourney: () => rig.stopJourney('skipped'),
       showBeat: (index) => environment.beats.setActiveBeat(index, propsRef.current.reducedMotion),
@@ -191,6 +194,7 @@ export const Sphere1Canvas = forwardRef<Sphere1Handle, Sphere1CanvasProps>(funct
       lastMs = nowMs;
 
       environment.update(dt, timer.getElapsed(), propsRef.current.audioRms ?? 0);
+      soundEngine.updateBreathingModulation(timer.getElapsed(), propsRef.current.audioRms ?? 0);
       rig.update(dt);
       renderer.render(scene, camera);
 
