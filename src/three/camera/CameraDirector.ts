@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import type { CameraCommandPayload } from '../../components/CosmographCanvas';
 import { GUI_CAMERA_PRESETS, type GuiCameraPresetId } from '../../gui/cameraPresets';
-import type { HandState } from '../handStateRef';
+import type { HandDetectionMode, HandState } from '../handStateRef';
 import type { UiInteractResult } from '../nodeInteraction';
 import {
   JOURNEY_BASE_DURATION_SEC,
@@ -18,7 +18,9 @@ import {
   type JourneyBeat,
   type JourneyStop,
 } from './journeyConfig';
+import { OneHandGestureTracker } from './oneHandGestures';
 import { TwoHandGestureTracker } from './twoHandGestures';
+import { isPointingPose } from '../nodeInteraction';
 
 export type CameraDirectorMode =
   | 'idle'
@@ -401,19 +403,24 @@ export class SplineJourney {
 
 // ---------------------------------------------------------------------------------------------
 // Hand interaction state machine. Strict order, first match wins:
-//   UI_INTERACT > CAMERA_TWO_HAND
-// One hand never moves the camera: it only positions the pointer, lights a hover and pokes a node
-// (all in NodeInteractionLayer). Only both hands tracked together drive dolly, roll, pitch and pan.
+//   UI_INTERACT > CAMERA_TWO_HAND | CAMERA_ONE_HAND
+// The Hands toggle picks exactly one camera authority, so the two can never fight:
+//   2 hands  both hands tracked together drive dolly, roll, pitch and pan; a lone hand only points,
+//            lights a hover and pokes a node (NodeInteractionLayer).
+//   1 hand   only one hand is tracked. An open or pointing hand points and pokes; a pinching hand grabs
+//            the scene and orbits it.
 // ---------------------------------------------------------------------------------------------
 
-export type HandInteractionState = 'IDLE' | 'UI_INTERACT' | 'CAMERA_TWO_HAND';
+export type HandInteractionState = 'IDLE' | 'UI_INTERACT' | 'CAMERA_TWO_HAND' | 'CAMERA_ONE_HAND';
 
 export interface HandCameraIntent {
   state: HandInteractionState;
   /** Pan as a fraction of the viewport this frame (parallel open palms, hand right / up positive). */
   panX: number;
   panY: number;
-  /** Two-hand pitch in radians. */
+  /** One-hand orbit in radians (hand right turns the scene right). */
+  dAzimuth: number;
+  /** Pitch in radians, from either camera authority. */
   dPolar: number;
   /** Two-hand dolly in metres of pinch-midpoint distance change. Positive pushes the camera forward. */
   dolly: number;
@@ -429,16 +436,25 @@ const HAND_TUNING = {
 } as const;
 
 function idleIntent(state: HandInteractionState): HandCameraIntent {
-  return { state, panX: 0, panY: 0, dPolar: 0, dolly: 0, roll: 0, steering: false };
+  return { state, panX: 0, panY: 0, dAzimuth: 0, dPolar: 0, dolly: 0, roll: 0, steering: false };
 }
 
 export class HandInteractionMachine {
   private uiHoldUntil = 0;
   private state: HandInteractionState = 'IDLE';
   private readonly twoHand = new TwoHandGestureTracker();
+  private readonly oneHand = new OneHandGestureTracker();
+  private mode: HandDetectionMode = 'two-hands';
 
   setFrustum(halfW: number, halfH: number): void {
     this.twoHand.setFrustum(halfW, halfH);
+    this.oneHand.setFrustum(halfW, halfH);
+  }
+
+  setMode(mode: HandDetectionMode): void {
+    if (mode === this.mode) return;
+    this.mode = mode;
+    this.reset();
   }
 
   getState(): HandInteractionState {
@@ -448,6 +464,7 @@ export class HandInteractionMachine {
   reset(): void {
     this.state = 'IDLE';
     this.twoHand.reset();
+    this.oneHand.reset();
   }
 
   evaluate(nowMs: number, dt: number, ui: UiInteractResult | null, hands: HandState): HandCameraIntent {
@@ -465,6 +482,8 @@ export class HandInteractionMachine {
       return idleIntent('UI_INTERACT');
     }
 
+    if (this.mode === 'one-hand') return this.evaluateOneHand(nowMs, hands, fresh);
+
     // 2. CAMERA_TWO_HAND: only while both hands are tracked together. One hand never reaches this.
     const two = fresh ? this.twoHand.evaluate(nowMs, hands.hands, dt) : (this.twoHand.reset(), null);
     if (!two) {
@@ -479,7 +498,24 @@ export class HandInteractionMachine {
       dPolar: two.pitch,
       panX: two.panX,
       panY: two.panY,
+      dAzimuth: 0,
       steering: two.dolly !== 0 || two.roll !== 0 || two.pitch !== 0 || two.panX !== 0 || two.panY !== 0,
+    };
+  }
+
+  private evaluateOneHand(nowMs: number, hands: HandState, fresh: boolean): HandCameraIntent {
+    const slot = fresh ? hands.hands.find((h) => h.present) : undefined;
+    const grab = slot ? this.oneHand.evaluate(nowMs, slot, isPointingPose(slot.landmarks)) : (this.oneHand.reset(), null);
+    if (!grab) {
+      this.state = 'IDLE';
+      return idleIntent('IDLE');
+    }
+    this.state = 'CAMERA_ONE_HAND';
+    return {
+      ...idleIntent(this.state),
+      dAzimuth: grab.dAzimuth,
+      dPolar: grab.dPolar,
+      steering: grab.dAzimuth !== 0 || grab.dPolar !== 0,
     };
   }
 }

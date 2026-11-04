@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { after, describe, it } from 'node:test';
 import * as THREE from 'three';
 import { HandInteractionMachine, IntentJitterGate } from './camera/CameraDirector.ts';
+import { ONE_HAND_TUNING, OneHandGestureTracker } from './camera/oneHandGestures.ts';
 import { TWO_HAND_TUNING, TwoHandGestureTracker } from './camera/twoHandGestures.ts';
+import { selectTrackedHands } from './handTracker.ts';
 import { createHandState, type HandSlot, type HandState } from './handStateRef.ts';
 import {
   NODE_HOVER_DWELL_MS,
@@ -227,6 +229,97 @@ describe('HandInteractionMachine with two hands', () => {
     }
     for (const state of seen) assert.ok(['IDLE', 'UI_INTERACT', 'CAMERA_TWO_HAND'].includes(state), state);
     assert.ok(seen.has('CAMERA_TWO_HAND'));
+  });
+});
+
+describe('Hands toggle: one hand versus two hands', () => {
+  const grab = (t: number, x: number, y = 0.1) => oneHand(t, { x, y, pinching: true });
+
+  it('one-hand mode orbits only while a hand is pinching and never fires from an open hand', () => {
+    const m = new HandInteractionMachine();
+    m.setMode('one-hand');
+    const open = m.evaluate(1000, 0.033, NO_UI, oneHand(1000, { x: 0, y: 0.1 }));
+    assert.equal(open.state, 'IDLE');
+    assert.equal(open.steering, false);
+
+    m.evaluate(1033, 0.033, NO_UI, grab(1033, 0));
+    const held = m.evaluate(1033 + ONE_HAND_TUNING.engageHoldMs + 1, 0.033, NO_UI, grab(1033 + ONE_HAND_TUNING.engageHoldMs + 1, 0));
+    assert.equal(held.state, 'CAMERA_ONE_HAND');
+    assert.equal(held.steering, false, 'a held pinch with no travel is neutral');
+
+    const t = 1033 + ONE_HAND_TUNING.engageHoldMs + 34;
+    const moved = m.evaluate(t, 0.033, NO_UI, grab(t, 0.04));
+    assert.equal(moved.state, 'CAMERA_ONE_HAND');
+    assert.ok(moved.dAzimuth < 0, 'hand right turns the scene right (negative azimuth change)');
+    assert.equal(moved.steering, true);
+  });
+
+  it('one-hand mode needs a short pinch hold before the scene is grabbed', () => {
+    const m = new HandInteractionMachine();
+    m.setMode('one-hand');
+    m.evaluate(1000, 0.033, NO_UI, grab(1000, 0));
+    const early = m.evaluate(1033, 0.033, NO_UI, grab(1033, 0.05));
+    assert.equal(early.steering, false);
+  });
+
+  it('a pointing pose never grabs the scene, even with thumb and index close', () => {
+    const tracker = new OneHandGestureTracker();
+    const hand = (t: number, x: number) => oneHand(t, { x, y: 0.1, pinching: true }).hands[0];
+    assert.equal(tracker.evaluate(1000, hand(1000, 0), true), null);
+    assert.equal(tracker.evaluate(1200, hand(1200, 0.05), true), null);
+    assert.equal(tracker.evaluate(1233, hand(1233, 0.1), false)?.dAzimuth, 0, 'a fresh grab starts neutral');
+  });
+
+  it('a poke in progress locks the camera in one-hand mode', () => {
+    const m = new HandInteractionMachine();
+    m.setMode('one-hand');
+    const r = m.evaluate(1000, 0.033, { locked: true, hoverId: 'n1' }, grab(1000, 0));
+    assert.equal(r.state, 'UI_INTERACT');
+    assert.equal(r.steering, false);
+  });
+
+  it('one-hand mode ignores a second hand: two hands never reach the dolly path', () => {
+    const m = new HandInteractionMachine();
+    m.setMode('one-hand');
+    const at = (t: number, gap: number) => twoHands(t, { x: -gap, y: 0, pinching: true }, { x: gap, y: 0, pinching: true });
+    m.evaluate(1000, 0.033, NO_UI, at(1000, 0.2));
+    const r = m.evaluate(1200, 0.033, NO_UI, at(1200, 0.26));
+    assert.equal(r.dolly, 0);
+    assert.equal(r.roll, 0);
+  });
+
+  it('two-hand mode keeps a lone pinching hand away from the camera', () => {
+    const m = new HandInteractionMachine();
+    m.setMode('two-hands');
+    m.evaluate(1000, 0.033, NO_UI, grab(1000, 0));
+    const r = m.evaluate(1300, 0.033, NO_UI, grab(1300, 0.06));
+    assert.equal(r.steering, false);
+    assert.equal(r.state, 'IDLE');
+  });
+
+  it('switching modes drops any half-formed gesture', () => {
+    const m = new HandInteractionMachine();
+    m.setMode('one-hand');
+    m.evaluate(1000, 0.033, NO_UI, grab(1000, 0));
+    m.setMode('two-hands');
+    m.setMode('one-hand');
+    const r = m.evaluate(1033, 0.033, NO_UI, grab(1033, 0.05));
+    assert.equal(r.steering, false);
+  });
+
+  it('selectTrackedHands keeps the most confident hand in one-hand mode and both, left to right, in two-hand mode', () => {
+    const lm = (x: number) => [{ x }];
+    const hands = [
+      { lm: lm(0.7), score: 0.7 },
+      { lm: lm(0.2), score: 0.95 },
+    ];
+    const one = selectTrackedHands(hands, 'one-hand');
+    assert.equal(one.length, 1);
+    assert.equal(one[0].score, 0.95);
+    const two = selectTrackedHands(hands, 'two-hands');
+    assert.equal(two.length, 2);
+    assert.equal(two[0].lm[0].x, 0.7);
+    assert.deepEqual(selectTrackedHands([], 'one-hand'), []);
   });
 });
 

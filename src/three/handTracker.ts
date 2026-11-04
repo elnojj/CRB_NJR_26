@@ -60,6 +60,28 @@ function createRuntime(): SlotRuntime {
   };
 }
 
+export interface DetectedHand<T> {
+  lm: T;
+  score: number;
+}
+
+/**
+ * One-hand mode keeps only the most confident hand, so a second hand wandering into frame can never turn
+ * into a camera gesture. Two-hand mode keeps both, ordered left to right so slots stay stable.
+ */
+export function selectTrackedHands<T extends ArrayLike<{ x: number }>>(
+  detected: readonly DetectedHand<T>[],
+  mode: HandDetectionMode
+): DetectedHand<T>[] {
+  if (mode === 'one-hand') {
+    if (detected.length === 0) return [];
+    return [detected.reduce((best, h) => (h.score > best.score ? h : best))];
+  }
+  const picked = detected.slice(0, 2);
+  if (picked.length === 2) picked.sort((a, b) => b.lm[0].x - a.lm[0].x);
+  return picked;
+}
+
 type VideoWithFrameCallback = HTMLVideoElement & {
   requestVideoFrameCallback?: (cb: (now: number) => void) => number;
   cancelVideoFrameCallback?: (handle: number) => void;
@@ -85,6 +107,8 @@ export class HandTracker {
 
   setMode(mode: HandDetectionMode): void {
     this.mode = mode;
+    // Fewer hands to find is a cheaper detection pass, so the model is told as well.
+    void this.landmarker?.setOptions({ numHands: mode === 'one-hand' ? 1 : MAX_HANDS });
   }
 
   async start(video: HTMLVideoElement, mode: HandDetectionMode, phone: boolean): Promise<void> {
@@ -145,7 +169,7 @@ export class HandTracker {
       HandLandmarker.createFromOptions(vision, {
         baseOptions: { modelAssetPath: MODEL_URL, delegate },
         runningMode: 'VIDEO',
-        numHands: MAX_HANDS,
+        numHands: this.mode === 'one-hand' ? 1 : MAX_HANDS,
         minHandDetectionConfidence: 0.5,
         minHandPresenceConfidence: 0.5,
         minTrackingConfidence: 0.5,
@@ -191,7 +215,7 @@ export class HandTracker {
     this.landmarker = await HandLandmarker.createFromOptions(vision, {
       baseOptions: { modelAssetPath: MODEL_URL, delegate: 'CPU' },
       runningMode: 'VIDEO',
-      numHands: MAX_HANDS,
+      numHands: this.mode === 'one-hand' ? 1 : MAX_HANDS,
     });
     this.delegate = 'CPU';
     this.callbacks.onStatus(this.hadTrack ? 'tracking' : 'searching', '', 'CPU');
@@ -235,10 +259,7 @@ export class HandTracker {
     const state = handStateRef.current;
     const t = performance.now();
     const detected = (result.landmarks ?? []).map((lm, i) => ({ lm, score: result.handedness?.[i]?.[0]?.score ?? 1 }));
-    const wanted = this.mode === 'two-hands' ? 2 : 1;
-    const picked = detected.slice(0, wanted);
-    // Slot 0 is the hand on the left of the camera view so the pair keeps a stable order frame to frame.
-    if (picked.length === 2) picked.sort((a, b) => b.lm[0].x - a.lm[0].x);
+    const picked = selectTrackedHands(detected, this.mode);
     const hands = picked.map((p) => p.lm);
 
     if (hands.length === 0) {

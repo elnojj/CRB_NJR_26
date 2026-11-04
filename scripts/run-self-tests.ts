@@ -63,6 +63,10 @@ async function main(): Promise<void> {
     ['glassFallback', 'src/three/glassFallback.test.ts'],
     ['hudLayout', 'src/three/hudLayout.test.ts'],
     ['browserEngine', 'src/lib/browserEngine.test.ts'],
+    ['deviceProfile', 'src/three/deviceProfile.test.ts'],
+    ['mediaPlayback', 'src/three/mediaPlayback.test.ts'],
+    ['mediaTubeLayer', 'src/three/mediaTubeLayer.test.ts'],
+    ['nodeTokens', 'src/three/nodeTokens.test.ts'],
     ['motionPreference', 'src/utils/motionPreference.test.ts'],
     ['keyboardInset', 'src/gui/keyboardInset.test.ts'],
   ] as const) {

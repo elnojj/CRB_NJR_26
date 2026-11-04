@@ -3371,22 +3371,25 @@ export default function App() {
     [audienceLevel, pendingTaskProposal, appendTranscript, ensurePanelOpen]
   );
 
+  // One toggle, three stops: off -> 1 hand -> 2 hands -> off.
   const handleToggleHands = useCallback(() => {
-    setHandsActive((wasActive) => {
-      if (wasActive) {
-        // iOS Safari: stop tracks immediately so the green camera indicator clears.
-        // Generation bump also cancels any in-flight getUserMedia so re-enable is not jammed.
-        forceStopSharedWebcamStream();
-        setIsHandTrackingActive(false);
-        return false;
-      }
-      // Fresh enable — clear any zombie stream, then start one-hand until the user picks 2×.
+    if (!handsActive) {
+      // Fresh enable — clear any zombie stream first so a stale getUserMedia cannot jam the re-enable.
       forceStopSharedWebcamStream();
-      setHandMode('two-hands');
+      setHandMode('one-hand');
       setIsHandTrackingActive(true);
-      return true;
-    });
-  }, []);
+      setHandsActive(true);
+      return;
+    }
+    if (handMode === 'one-hand') {
+      setHandMode('two-hands');
+      return;
+    }
+    // iOS Safari: stop tracks immediately so the green camera indicator clears.
+    forceStopSharedWebcamStream();
+    setIsHandTrackingActive(false);
+    setHandsActive(false);
+  }, [handsActive, handMode]);
 
   useEffect(() => {
     setIsHandTrackingActive(handsActive);
@@ -4111,6 +4114,7 @@ export default function App() {
         pointerOrbitEnabled
         idleOrbitAllowed={idleOrbitAllowed && !handsActive && !journeyActive}
         handsActive={handsActive}
+        handMode={handMode}
         onJourneyBeat={handleJourneyBeat}
         spatialPanels={spatialPanels}
       />
@@ -4529,6 +4533,7 @@ export default function App() {
           voiceState={voiceState}
           activePocket={activePocket}
           handsActive={handsActive}
+          handMode={handMode}
           ambienceMuted={ambienceMuted}
           tourState={tourState}
           audienceLevel={audienceLevel}

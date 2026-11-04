@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
 import { nodeDirectory, type DirectoryEntry, type NodeContent, contentChip } from '../data/nodeContent';
 import type { ConnectedSphereId } from '../three/sphereNetwork';
+import { nodeTokenDataUrl } from '../three/nodeTokens';
+import { resolveReducedMotion } from '../utils/motionPreference';
 import './nodeBrowser.css';
 
 const SPHERE_TABS: ReadonlyArray<{ id: ConnectedSphereId; label: string }> = [
@@ -12,10 +15,31 @@ const SPHERE_TABS: ReadonlyArray<{ id: ConnectedSphereId; label: string }> = [
 
 const DIRECTORY = nodeDirectory();
 
-function Thumb({ entry }: { entry: Pick<NodeContent, 'thumbs'> }) {
+function safeStorage(): Storage | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+const SPHERE_ACCENT: Record<ConnectedSphereId, string> = {
+  hq: '#4f9bff',
+  cde: '#38c6e8',
+  'campaign-os': '#d4af37',
+  'about-us': '#e8d9a8',
+};
+
+/** A node with no approved media shows its generated token, never a blank box or a stand-in photo. */
+function Thumb({ entry }: { entry: Pick<NodeContent, 'thumbs' | 'title' | 'nodeType' | 'sphere'> }) {
   const first = entry.thumbs[0];
   if (!first) {
-    return <span className="cerebro-node-thumb cerebro-node-thumb--empty" aria-hidden="true" />;
+    const token = nodeTokenDataUrl({ accentCss: SPHERE_ACCENT[entry.sphere], nodeType: entry.nodeType, label: entry.title });
+    return (
+      <span className="cerebro-node-thumb cerebro-node-thumb--token" aria-hidden="true">
+        <img src={token} alt="" decoding="async" />
+      </span>
+    );
   }
   return (
     <span className="cerebro-node-thumb" aria-hidden="true">
@@ -41,6 +65,19 @@ export const NodeBrowser: React.FC<NodeBrowserProps> = ({
   onPick,
 }) => {
   const [tab, setTab] = useState<ConnectedSphereId>(activeSphere);
+  const listRef = useRef<HTMLUListElement | null>(null);
+
+  // Rows settle in one after another when the browser opens or the tab changes. The context reverts on
+  // cleanup so a fast tab switch never leaves a row half faded.
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!open || !list || resolveReducedMotion(window.location.search, safeStorage())) return undefined;
+    const ctx = gsap.context(() => {
+      gsap.from(list.children, { y: 14, autoAlpha: 0, duration: 0.75, ease: 'power3.out', stagger: 0.06 });
+    }, list);
+    return () => ctx.revert();
+  }, [open, tab]);
+
   if (!open) return null;
   const entries = DIRECTORY[tab];
   return (
@@ -66,7 +103,7 @@ export const NodeBrowser: React.FC<NodeBrowserProps> = ({
           </button>
         ))}
       </div>
-      <ul className="cerebro-node-browser__list">
+      <ul className="cerebro-node-browser__list" ref={listRef}>
         {entries.map((entry) => {
           const hasMedia = entry.tubeKey !== null;
           return (

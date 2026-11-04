@@ -9,7 +9,8 @@
  * so a pinch distance of 0.035 means about 3.5 cm.
  */
 
-export type HandDetectionMode = 'two-hands' | 'left-only' | 'right-only';
+/** `one-hand` tracks the single most confident hand; `two-hands` tracks both. Chosen on the Hands toggle. */
+export type HandDetectionMode = 'one-hand' | 'two-hands';
 
 export const MAX_HANDS = 2;
 export const LANDMARK_COUNT = 21;

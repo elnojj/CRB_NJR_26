@@ -150,8 +150,13 @@
   display: block;
 }
 
-.cerebro-node-thumb--empty {
-  border: 1px dashed rgba(180, 221, 255, 0.22);
+.cerebro-node-thumb--token {
+  background: transparent;
+  overflow: visible;
+}
+
+.cerebro-node-thumb--token img {
+  object-fit: contain;
 }
 
 .cerebro-node-thumb--wide {

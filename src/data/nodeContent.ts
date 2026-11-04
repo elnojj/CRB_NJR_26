@@ -16,7 +16,7 @@ import type { ConnectedSphereId } from '../three/sphereNetwork';
 
 export type ContentNodeType = 'core' | 'station' | 'dimension' | 'subdomain' | 'project';
 
-export type NodeThumb = { url: string; kind: 'image' | 'video' };
+export type NodeThumb = { url: string; kind: 'image' | 'video'; /** Playable file for video thumbs; `url` stays the still poster. */ videoUrl?: string };
 
 export type NodeContent = {
   nodeId: string;
@@ -60,7 +60,9 @@ const EMPTY_MEDIA: MediaSummary = { tubeKey: null, focusTile: 0, videoCount: 0, 
 
 function thumbOf(item: ProjectMediaTubeItem): NodeThumb | null {
   const url = item.posterUrl ?? item.url;
-  return url ? { url, kind: item.kind === 'video' ? 'video' : 'image' } : null;
+  if (!url) return null;
+  if (item.kind !== 'video') return { url, kind: 'image' };
+  return { url, kind: 'video', videoUrl: item.url };
 }
 
 /** Media summary for a set of sources (project ids, NOJARA, GALLERY). */

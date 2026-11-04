@@ -78,7 +78,7 @@ import { NodeInteractionLayer } from '../three/nodeInteraction';
 import { isEditableTarget } from '../gui/keyboardInset';
 import { createBackgroundStarfield } from '../three/backgroundStarfield';
 import { isolateDecorativeGeometry, type CosmeticFade } from '../three/decorativeIsolation';
-import { handIsFresh, handStateRef } from '../three/handStateRef';
+import { handIsFresh, handStateRef, type HandDetectionMode } from '../three/handStateRef';
 import { IntentJitterGate, handInteractionMachine, splineJourney } from '../three/camera/CameraDirector';
 import type { JourneyBeat } from '../three/camera/journeyConfig';
 import {
@@ -96,6 +96,12 @@ import {
   sphereNetworkCentroid,
 } from '../three/sphereNetwork';
 import { shouldUseFlatGlass } from '../three/glassFallback';
+import { AdaptiveResolution } from '../three/adaptiveResolution';
+import { readDeviceFacts, resolveDeviceProfile } from '../three/deviceProfile';
+import { MediaPlaybackManager } from '../three/mediaPlayback';
+import { MediaTubeLayer } from '../three/mediaTubeLayer';
+import { NodeVideoMedallions } from '../three/nodeVideoMedallions';
+import { paintNodeToken } from '../three/nodeTokens';
 import {
   ABOUT_US_NODES,
   CAMPAIGN_OS_NODES,
@@ -489,6 +495,8 @@ export interface CosmographCanvasProps {
   idleOrbitAllowed?: boolean;
   /** Hand camera is live: mounts the 3D glove and spatial controls on the camera. */
   handsActive?: boolean;
+  /** Hands toggle: one tracked hand (pinch to orbit) or two (dolly, roll, pitch, pan). */
+  handMode?: HandDetectionMode;
   /** Journey caption beat; null clears the caption when the journey ends. */
   onJourneyBeat?: (beat: JourneyBeat | null) => void;
   /** Dashboard cards floating in the scene beside their nodes (CSS3D). */
@@ -700,6 +708,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   projectWorldState = null,
   idleOrbitAllowed = true,
   handsActive = false,
+  handMode = 'two-hands',
   onJourneyBeat,
   spatialPanels = EMPTY_SPATIAL_PANELS,
 }) => {
@@ -755,6 +764,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   };
   const handsActiveRef = useRef(handsActive);
   handsActiveRef.current = handsActive;
+  const handModeRef = useRef(handMode);
+  handModeRef.current = handMode;
 
   const mediaTubeStateRef = useRef<MediaTubeStateProp | null>(mediaTubeState);
   mediaTubeStateRef.current = mediaTubeState;
@@ -1526,12 +1537,28 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       forceFlat: new URLSearchParams(window.location.search).get('glass') === 'flat',
     });
 
+    const deviceProfile = resolveDeviceProfile(readDeviceFacts(isSoftwareGl));
+    const mediaPlayback = new MediaPlaybackManager({
+      maxVideos: deviceProfile.maxVideoTextures,
+      reducedMotion: () => stateRef.current.reducedMotion,
+    });
+    const resolutionGovernor = new AdaptiveResolution({
+      cap: deviceProfile.pixelRatioCap,
+      floor: deviceProfile.pixelRatioFloor,
+      initial: deviceProfile.initialPixelRatio,
+      budgetMs: deviceProfile.budgetFrameMs,
+    });
+    let lastFrameAt = 0;
+    let playbackClock = 0;
+
     const rendererAttempts: THREE.WebGLRendererParameters[] = [
       {
-        antialias: !isSoftwareGl,
+        // The composer renders into its own multisampled target on a real GPU, so the canvas
+        // itself only needs antialiasing on desktop; tablets and phones save the memory.
+        antialias: !isSoftwareGl && deviceProfile.tier === 'desktop',
         alpha: true,
         powerPreference: 'high-performance',
-        preserveDrawingBuffer: true,
+        preserveDrawingBuffer: deviceProfile.preserveDrawingBuffer,
       },
       {
         antialias: false,
@@ -1573,16 +1600,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0;
+    renderer.toneMappingExposure = 1.0 + deviceProfile.exposureLift;
     // Deep ink void for intro AND workspace — never the old flat #101D27 navy slab.
     const voidColor = 0x03060c;
     renderer.setClearColor(voidColor, 1);
-    const coarsePointer =
-      typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
-    const pixelRatioCap = coarsePointer ? 1.5 : 2;
-    renderer.setPixelRatio(
-      isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, pixelRatioCap)
-    );
+    renderer.setPixelRatio(resolutionGovernor.pixelRatio);
     renderer.setSize(initW, initH);
     renderer.shadowMap.enabled = !isSoftwareGl;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1773,14 +1795,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     if (!isSoftwareGl) {
       const composerTarget = new THREE.WebGLRenderTarget(initW, initH, {
         type: THREE.HalfFloatType,
-        samples: 4,
+        samples: deviceProfile.msaaSamples,
       });
       composer = new EffectComposer(renderer, composerTarget);
       composer.setPixelRatio(renderer.getPixelRatio());
       composer.setSize(initW, initH);
       composer.addPass(new RenderPass(scene, camera));
       // High threshold: only emissive nodes, connector pulses, media rings and specular peaks bloom.
-      bloomPass = new UnrealBloomPass(new THREE.Vector2(initW, initH), 0.42, 0.55, 0.88);
+      bloomPass = new UnrealBloomPass(new THREE.Vector2(initW, initH), deviceProfile.bloomStrength, 0.55, 0.88);
       composer.addPass(bloomPass);
       composer.addPass(new OutputPass());
     }
@@ -2416,8 +2438,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       return tex;
     })();
     const NODE_MEDALLION_PX = 256;
+    const nodeVideos = new NodeVideoMedallions(mediaPlayback);
     const isStillImageUrl = (url: string): boolean => !/\.(mp4|mov|webm|m4v)(\?|#|$)/i.test(url);
-    const buildNodeMedallion = (thumbUrl: string | null, accent: THREE.Color): THREE.Sprite => {
+    const buildNodeMedallion = (
+      thumbUrl: string | null,
+      accent: THREE.Color,
+      label: string,
+      nodeType: AnchoredLabel2D['nodeType']
+    ): THREE.Sprite => {
       const c = document.createElement('canvas');
       c.width = NODE_MEDALLION_PX;
       c.height = NODE_MEDALLION_PX;
@@ -2437,20 +2465,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         ctx.strokeStyle = accentCss;
         ctx.stroke();
       };
-      if (ctx) {
-        ctx.clearRect(0, 0, NODE_MEDALLION_PX, NODE_MEDALLION_PX);
-        const grad = ctx.createRadialGradient(half * 0.8, half * 0.7, 8, half, half, half);
-        grad.addColorStop(0, '#ffffff');
-        grad.addColorStop(0.35, accentCss);
-        grad.addColorStop(1, '#0a1630');
-        clipCircle();
-        ctx.fillStyle = grad;
-        ctx.fill();
-        paintRing();
-      }
+      if (ctx) paintNodeToken(ctx, NODE_MEDALLION_PX, { accentCss, nodeType, label });
       const tex = new THREE.CanvasTexture(c);
       tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = 4;
+      tex.anisotropy = deviceProfile.anisotropy;
       if (thumbUrl && ctx) {
         const img = new Image();
         img.crossOrigin = 'anonymous';
@@ -2522,8 +2540,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       nodeGroup.position.copy(posVec);
       nodeGroup.scale.setScalar(scale);
 
-      const thumb = resolveNodeContent(canonicalId, nodeType, sphereTag)?.thumbs.find((t) => isStillImageUrl(t.url));
-      nodeGroup.add(buildNodeMedallion(thumb?.url ?? null, col));
+      const nodeThumbs = resolveNodeContent(canonicalId, nodeType, sphereTag)?.thumbs ?? [];
+      const thumb = nodeThumbs.find((t) => isStillImageUrl(t.url));
+      const medallion = buildNodeMedallion(thumb?.url ?? null, col, label, nodeType);
+      nodeGroup.add(medallion);
+      const playable = nodeThumbs.find((t) => t.videoUrl);
+      if (playable?.videoUrl) nodeVideos.register(canonicalId, medallion, playable.videoUrl, `#${col.getHexString()}`);
 
       const hitProxy = new THREE.Mesh(
         new THREE.SphereGeometry(1.3, 16, 16),
@@ -3150,161 +3172,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     cometWeaveLine.visible = false;
     scene.add(cometWeaveLine);
 
-    // -------------------------------------------------------------------------
-    // v4.0 3D Cylindrical Project Media Tube (`project.open_tube`) inside single WebGL scene
-    // radiusU: 5.4, columns: 8, visibleRows: 3, maxMountedTiles: 24, slotSizeU: [3.2, 1.8], rowPitchU: 2.25
-    // -------------------------------------------------------------------------
-    const mediaTubeGroup = new THREE.Group();
-    mediaTubeGroup.visible = false;
+    // v4.0 3D cylindrical project media tube (`project.open_tube`): 24 slots, real media autoplays
+    // within the device's decoder budget, empty slots show generated tokens. See MediaTubeLayer.
+    const mediaTubeLayer = new MediaTubeLayer({ playback: mediaPlayback, anisotropy: deviceProfile.anisotropy });
+    const mediaTubeGroup = mediaTubeLayer.group;
     scene.add(mediaTubeGroup);
-
-    const mediaTubeTileMeshes: THREE.Mesh[] = [];
-    // Tiles show the media itself and nothing else: no kind badge, file name, subtitle or extension.
-    const TILE_TEX_W = 640;
-    const TILE_TEX_H = 360;
-    const buildTileCanvasTexture = (tile: ProjectMediaTubeItem): THREE.CanvasTexture => {
-      const c = document.createElement('canvas');
-      c.width = TILE_TEX_W;
-      c.height = TILE_TEX_H;
-      const ctx = c.getContext('2d');
-
-      const drawFrame = () => {
-        if (!ctx) return;
-        ctx.strokeStyle = tile.accentHex;
-        ctx.globalAlpha = 0.85;
-        ctx.lineWidth = 3;
-        ctx.strokeRect(1.5, 1.5, TILE_TEX_W - 3, TILE_TEX_H - 3);
-        ctx.globalAlpha = 1;
-      };
-
-      const drawBaseCard = () => {
-        if (!ctx) return;
-        const grad = ctx.createLinearGradient(0, 0, TILE_TEX_W, TILE_TEX_H);
-        grad.addColorStop(0, '#142632');
-        grad.addColorStop(1, '#101D27');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, TILE_TEX_W, TILE_TEX_H);
-        const rad = ctx.createRadialGradient(
-          TILE_TEX_W / 2,
-          TILE_TEX_H / 2,
-          20,
-          TILE_TEX_W / 2,
-          TILE_TEX_H / 2,
-          TILE_TEX_W * 0.4
-        );
-        rad.addColorStop(0, `${tile.accentHex}44`);
-        rad.addColorStop(1, 'rgba(16, 29, 39, 0)');
-        ctx.fillStyle = rad;
-        ctx.fillRect(0, 0, TILE_TEX_W, TILE_TEX_H);
-        drawFrame();
-      };
-
-      drawBaseCard();
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = 4;
-
-      if (tile.posterUrl) {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-          if (!ctx) return;
-          try {
-            const iw = img.naturalWidth || TILE_TEX_W;
-            const ih = img.naturalHeight || TILE_TEX_H;
-            // Contain-fit: the whole frame stays visible at its own aspect ratio, never cropped or stretched.
-            const scale = Math.min(TILE_TEX_W / iw, TILE_TEX_H / ih);
-            const dw = iw * scale;
-            const dh = ih * scale;
-            ctx.fillStyle = '#05090E';
-            ctx.fillRect(0, 0, TILE_TEX_W, TILE_TEX_H);
-            ctx.drawImage(img, (TILE_TEX_W - dw) / 2, (TILE_TEX_H - dh) / 2, dw, dh);
-            drawFrame();
-            tex.needsUpdate = true;
-          } catch {
-            // Clean fallback to already rendered base card
-          }
-        };
-        img.onerror = () => {
-          // CORS or decode failure: retains clean base card
-        };
-        img.src = tile.posterUrl;
-      }
-      return tex;
-    };
-
-    // Slots with no verified url/poster never render a planar panel. They show a small 3D
-    // "gap" badge (open-arc ring + emissive core) at the slot position instead.
-    const tubeItemHasMedia = (item: ProjectMediaTubeItem | undefined): boolean =>
-      Boolean(item?.url || item?.posterUrl);
-    const buildTileMaterial = (item: ProjectMediaTubeItem | undefined): THREE.MeshBasicMaterial => {
-      const hasMedia = item !== undefined && tubeItemHasMedia(item);
-      return new THREE.MeshBasicMaterial({
-        map: item && hasMedia ? buildTileCanvasTexture(item) : null,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.94,
-      });
-    };
-    const mediaGapArcGeo = new THREE.TorusGeometry(0.34, 0.022, 10, 48, Math.PI * 1.5);
-    const mediaGapCoreGeo = new THREE.SphereGeometry(0.075, 16, 16);
-    const mediaGapArcMat = new THREE.MeshBasicMaterial({
-      color: 0xb4ddff,
-      transparent: true,
-      opacity: 0.78,
-      depthWrite: false,
-    });
-    const mediaGapCoreMat = new THREE.MeshBasicMaterial({
-      color: 0xf2f6f8,
-      transparent: true,
-      opacity: 0.9,
-      depthWrite: false,
-    });
-    extraDisposables.push(mediaGapArcGeo, mediaGapCoreGeo, mediaGapArcMat, mediaGapCoreMat);
-    const mediaGapBadges: THREE.Group[] = [];
-
-    let mountedTubeProjectId = 'SEVEN';
-    const initialTubeItems = buildProjectMediaTubeItems('SEVEN');
-    const [tileW, tileH] = PROJECT_MEDIA_TUBE_SPECS.slotSizeU;
-    for (let idx = 0; idx < PROJECT_MEDIA_TUBE_SPECS.maxMountedTiles; idx++) {
-      const col = idx % PROJECT_MEDIA_TUBE_SPECS.columns;
-      const row = Math.floor(idx / PROJECT_MEDIA_TUBE_SPECS.columns);
-      const theta = (col / PROJECT_MEDIA_TUBE_SPECS.columns) * Math.PI * 2;
-      const y = (1 - row) * PROJECT_MEDIA_TUBE_SPECS.rowPitchU;
-      const r = PROJECT_MEDIA_TUBE_SPECS.radiusU;
-
-      const tileGeo = new THREE.PlaneGeometry(tileW * 0.62, tileH * 0.62, 8, 1);
-      // Gently curve tile vertices along cylinder arc
-      const posAttr = tileGeo.attributes.position;
-      for (let v = 0; v < posAttr.count; v++) {
-        const vx = posAttr.getX(v);
-        const arcAngle = vx / r;
-        posAttr.setZ(v, (1 - Math.cos(arcAngle)) * r * 0.35);
-      }
-      tileGeo.computeVertexNormals();
-
-      const tileMesh = new THREE.Mesh(tileGeo, buildTileMaterial(initialTubeItems[idx]));
-      tileMesh.visible = tubeItemHasMedia(initialTubeItems[idx]);
-      tileMesh.position.set(Math.sin(theta) * r, y, Math.cos(theta) * r);
-      // lookAt points the plane's front (+Z) at the axis, so media reads correctly from inside the tube.
-      tileMesh.lookAt(0, y, 0);
-      tileMesh.userData = {
-        isMediaTubeTile: true,
-        tileIndex: idx,
-      };
-      mediaTubeGroup.add(tileMesh);
-      mediaTubeTileMeshes.push(tileMesh);
-
-      const gapBadge = new THREE.Group();
-      gapBadge.add(new THREE.Mesh(mediaGapArcGeo, mediaGapArcMat));
-      gapBadge.add(new THREE.Mesh(mediaGapCoreGeo, mediaGapCoreMat));
-      gapBadge.position.copy(tileMesh.position);
-      gapBadge.lookAt(0, y, 0);
-      gapBadge.visible = !tubeItemHasMedia(initialTubeItems[idx]);
-      gapBadge.userData = { isMediaGapBadge: true, tileIndex: idx };
-      mediaTubeGroup.add(gapBadge);
-      mediaGapBadges.push(gapBadge);
-    }
+    const mediaTubeTileMeshes = mediaTubeLayer.tileMeshes;
 
     isolateDecorativeGeometry(scene, cosmeticFade, camera);
 
@@ -3723,6 +3596,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const dt = Math.min(clock.getDelta(), GUI_WORLD_MOTION_TOKENS.dtClampMs / 1000);
       const elapsedTotal = clock.getElapsedTime();
       const now = performance.now();
+      const rawFrameMs = lastFrameAt > 0 ? now - lastFrameAt : 0;
+      lastFrameAt = now;
       const s = stateRef.current;
 
       cosmeticFade.value = THREE.MathUtils.damp(
@@ -3783,12 +3658,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const handState = handStateRef.current;
       const handsFresh = handsActiveRef.current && handIsFresh(now);
       glove.update(dt);
+      handInteractionMachine.setMode(handModeRef.current);
       handInteractionMachine.setFrustum(gloveFrustum.halfW, gloveFrustum.halfH);
       const uiResult = handsActiveRef.current ? nodeInteraction.update(now, handState.hands, handsFresh) : null;
       const intent = handInteractionMachine.evaluate(now, dt, uiResult, handsFresh ? handState : { ...handState, active: false });
 
       const cameraAutomated = splineJourney.isActive() || s.flightActive;
-      const deliberateHand = intent.state === 'CAMERA_TWO_HAND';
+      const deliberateHand = intent.state === 'CAMERA_TWO_HAND' || intent.state === 'CAMERA_ONE_HAND';
       const handTakeover = handJitterGate.update(now, cameraAutomated && deliberateHand);
       if (handTakeover && splineJourney.isActive()) splineJourney.stop('interrupted');
       const journeyOwnsCamera = splineJourney.isActive();
@@ -3816,6 +3692,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             .addScaledVector(_scratchRight, -intent.panX * worldW)
             .addScaledVector(_scratchUp, -intent.panY * worldH);
           if (s.targetPanOffset.length() > HAND_PAN_MAX) s.targetPanOffset.setLength(HAND_PAN_MAX);
+        }
+
+        if (intent.dAzimuth !== 0) {
+          s.targetAzimuth += intent.dAzimuth;
         }
 
         if (intent.dPolar !== 0) {
@@ -4081,21 +3961,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         mediaTubeGroup.position.copy(activeCenter);
         if (s.activeAnglePreset === 'tube_front' && !s.flightActive) s.targetCenter.copy(activeCenter);
 
-        if (tubeProp?.projectId && tubeProp.projectId !== mountedTubeProjectId) {
-          mountedTubeProjectId = tubeProp.projectId;
-          const freshItems = buildProjectMediaTubeItems(mountedTubeProjectId);
-          for (let ti = 0; ti < mediaTubeTileMeshes.length; ti++) {
-            const item = freshItems[ti];
-            const mesh = mediaTubeTileMeshes[ti];
-            const oldMat = mesh.material as THREE.MeshBasicMaterial;
-            oldMat.map?.dispose();
-            oldMat.dispose();
-            mesh.material = buildTileMaterial(item);
-            const hasMedia = tubeItemHasMedia(item);
-            mesh.visible = hasMedia;
-            mediaGapBadges[ti].visible = !hasMedia;
-          }
-        }
+        if (tubeProp?.projectId) mediaTubeLayer.mount(tubeProp.projectId, s.reducedMotion);
 
         if (typeof tubeProp?.focusedTileIndex === 'number') {
           const col = tubeProp.focusedTileIndex % PROJECT_MEDIA_TUBE_SPECS.columns;
@@ -4117,18 +3983,20 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           );
         }
         mediaTubeGroup.rotation.y = s.tubeRotationY;
-
-        for (let ti = 0; ti < mediaTubeTileMeshes.length; ti++) {
-          const m = mediaTubeTileMeshes[ti];
-          const isFocusedTile = tubeProp?.focusedTileIndex === ti;
-          m.scale.setScalar(isFocusedTile ? 1.18 : 1.0);
-          const gapBadge = mediaGapBadges[ti];
-          gapBadge.scale.setScalar(isFocusedTile ? 1.35 : 1.0);
-          if (gapBadge.visible && !s.reducedMotion) {
-            gapBadge.children[0].rotation.z += dt * 0.6;
-          }
-        }
       }
+      // Decoder grants change before the slots sync, so a released video never reaches the renderer.
+      playbackClock += dt;
+      if (playbackClock >= 0.25) {
+        playbackClock = 0;
+        mediaPlayback.reconcile();
+      }
+      nodeVideos.update({ camera, focusedNodeId: s.focusedNodeId ?? null, suspended: tubeActive });
+      mediaTubeLayer.update(dt, {
+        camera,
+        active: tubeActive,
+        focusedTileIndex: typeof tubeProp?.focusedTileIndex === 'number' ? tubeProp.focusedTileIndex : null,
+        reducedMotion: s.reducedMotion,
+      });
 
       if (cinemaPass) {
         cinemaPass.uniforms.uTime.value =
@@ -4299,6 +4167,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         renderer.render(scene, camera);
       } else {
         composer.render();
+      }
+
+      if (!isSoftwareGl) {
+        const nextRatio = resolutionGovernor.sample(rawFrameMs, now);
+        if (nextRatio !== null) {
+          renderer.setPixelRatio(nextRatio);
+          composer?.setPixelRatio(nextRatio);
+        }
       }
 
       panelLayer.update(
@@ -4553,6 +4429,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       handInteractionMachine.reset();
       nodeInteraction.reset();
       glove.dispose();
+      nodeVideos.dispose();
+      mediaTubeLayer.dispose();
+      mediaPlayback.dispose();
       unsubscribeHud();
       hudBridge.setActive(false);
       hud.dispose();

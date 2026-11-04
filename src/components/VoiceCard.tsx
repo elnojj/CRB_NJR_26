@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { hudBridge, useSpatialHudActive, type HudDockSpec } from '../three/hudBridge';
 import type { AudienceLevel } from '../state/panelTypes';
+import type { HandDetectionMode } from '../three/handStateRef';
 import {
   GoogleAiStudioVoiceBridge,
   sendGeminiChatTurn,
@@ -65,6 +66,7 @@ interface VoiceCardProps {
   voiceState: VoiceState;
   activePocket: VoicePocket;
   handsActive: boolean;
+  handMode: HandDetectionMode;
   ambienceMuted?: boolean;
   browserFullscreen?: boolean;
   tourState: {
@@ -213,6 +215,7 @@ function IconChat({ active }: { active?: boolean }) {
 export const VoiceCard: React.FC<VoiceCardProps> = ({
   voiceState,
   handsActive,
+  handMode,
   selectedProjectId,
   openAgentModalTrigger,
   onToggleHands,
@@ -453,12 +456,19 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   };
 
   const callLabel = voiceLive ? 'End call' : 'Call';
-  const handsLabel = handsActive ? 'Hands on' : 'Hands';
+  const handsLabel = handsActive ? (handMode === 'one-hand' ? 'Hands · 1' : 'Hands · 2') : 'Hands';
+  const handsAria = !handsActive
+    ? 'Turn on hand camera, one hand'
+    : handMode === 'one-hand'
+      ? 'One hand active, switch to two hands'
+      : 'Two hands active, turn off hand camera';
   const chatLabel = chatOpen ? 'Close chat' : 'Chat';
   const statusLine = voiceLive
     ? bridgeDetail || bridgeStatus
     : handsActive
-      ? 'Hands on · camera live · tap again to stop'
+      ? handMode === 'one-hand'
+        ? '1 hand · point to touch · pinch to orbit · tap for 2'
+        : '2 hands · pinch both to dolly, roll, pitch · tap to stop'
       : chatOpen
         ? 'Chat with Cerebro'
         : 'Call · Hands · Chat · Nodes';
@@ -652,7 +662,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
             data-testid="cerebro-btn-hands"
             data-active={handsActive ? 'true' : 'false'}
             aria-pressed={handsActive}
-            aria-label={handsActive ? 'Turn off hand camera' : 'Turn on hand camera'}
+            aria-label={handsAria}
             onClick={onToggleHands}
           >
             <IconHands active={handsActive} />

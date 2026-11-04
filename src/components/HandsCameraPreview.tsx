@@ -12,14 +12,14 @@ interface HandsCameraPreviewProps {
   dockClearancePx?: number;
 }
 
-function statusText(status: HandTrackerStatus, detail: string, delegate: HandDelegate | null): string {
+function statusText(status: HandTrackerStatus, detail: string, delegate: HandDelegate | null, mode: HandDetectionMode): string {
   switch (status) {
     case 'camera':
       return 'Requesting camera…';
     case 'model':
       return 'Loading hand model…';
     case 'searching':
-      return 'Show your hand to the camera';
+      return mode === 'one-hand' ? 'Show one hand to the camera' : 'Show both hands to the camera';
     case 'tracking':
       return delegate ? `Hand tracking live · ${delegate}` : 'Hand tracking live';
     case 'error':
@@ -101,7 +101,7 @@ export const HandsCameraPreview: React.FC<HandsCameraPreviewProps> = ({
         />
       </div>
       <p className="sr-only" role="status" aria-live="polite">
-        {statusText(status, detail, delegate)}
+        {statusText(status, detail, delegate, handMode)}
       </p>
     </div>
   );

@@ -15,9 +15,12 @@ describe('visual guards: master canvas', () => {
     assert.ok(!canvasSrc.includes('setLineDash'));
   });
 
-  it('shows a 3D gap badge per tube slot and keeps tiles hidden without media', () => {
-    assert.ok(canvasSrc.includes('isMediaGapBadge'));
-    assert.ok(canvasSrc.includes('mediaGapBadges[ti].visible = !hasMedia'));
+  it('shows a generated token per empty tube slot and keeps tiles hidden without media', () => {
+    const layerSrc = read('../three/mediaTubeLayer.ts');
+    assert.ok(layerSrc.includes('isMediaTokenSlot'));
+    assert.ok(layerSrc.includes('slot.tile.visible = hasMedia'));
+    assert.ok(layerSrc.includes('slot.token.visible = !hasMedia'));
+    assert.ok(canvasSrc.includes('new MediaTubeLayer('));
   });
 
   it('has no galaxy dust, spiral shell particles or backdrop nebula blooms', () => {
@@ -153,9 +156,10 @@ describe('visual guards: journey caption', () => {
 
 describe('visual guards: media tiles show only the media', () => {
   it('tile textures draw no kind badge, title, subtitle or file name, and contain-fit the poster', () => {
-    const a = canvasSrc.indexOf('const buildTileCanvasTexture');
-    const b = canvasSrc.indexOf('const tubeItemHasMedia');
-    const tileSrc = canvasSrc.slice(a, b);
+    const layerSrc = read('../three/mediaTubeLayer.ts');
+    const a = layerSrc.indexOf('private buildPosterTexture');
+    const b = layerSrc.indexOf('private ', a + 10) < 0 ? layerSrc.length : layerSrc.indexOf('private ', a + 10);
+    const tileSrc = layerSrc.slice(a, b);
     assert.ok(!tileSrc.includes('fillText'));
     assert.ok(!tileSrc.includes('tile.title'));
     assert.ok(!tileSrc.includes('tile.subtitle'));

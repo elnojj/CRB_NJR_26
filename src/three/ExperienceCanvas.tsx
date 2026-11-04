@@ -14,6 +14,7 @@ import {
   buildProjectMediaTubeItems,
 } from '../components/CosmographCanvas';
 import type { JourneyBeat } from './camera/journeyConfig';
+import type { HandDetectionMode } from './handStateRef';
 import {
   CustomDomain3D,
   DomainMaterialPreset,
@@ -162,6 +163,7 @@ interface ExperienceCanvasProps {
   projectWorldState?: 'entry' | 'active' | 'suspended' | 'exiting' | 'unavailable' | null;
   idleOrbitAllowed?: boolean;
   handsActive?: boolean;
+  handMode?: HandDetectionMode;
   onJourneyBeat?: (beat: JourneyBeat | null) => void;
   spatialPanels?: SpatialPanelSpec[];
 }
@@ -197,6 +199,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
   projectWorldState = null,
   idleOrbitAllowed = true,
   handsActive = false,
+  handMode,
   onJourneyBeat,
   spatialPanels,
 }) => {
@@ -239,6 +242,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
         projectWorldState={projectWorldState}
         idleOrbitAllowed={idleOrbitAllowed}
         handsActive={handsActive}
+        handMode={handMode}
         onJourneyBeat={onJourneyBeat}
         spatialPanels={spatialPanels}
       />
