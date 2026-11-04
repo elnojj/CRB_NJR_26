@@ -1,4 +1,4 @@
-import firebaseConfig from '../../../../firebase-applet-config.json';
+import { readServerFirebaseApiKey } from '../../../config/firebaseConfig';
 
 export type VoiceIdentity = { uid: string };
 
@@ -8,8 +8,10 @@ export async function verifyVoiceIdentity(
   fetcher: typeof fetch = fetch,
   signal?: AbortSignal
 ): Promise<VoiceIdentity | null> {
+  const apiKey = readServerFirebaseApiKey(process.env);
+  if (!apiKey) return null;
   const response = await fetcher(
-    `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${firebaseConfig.apiKey}`,
+    `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

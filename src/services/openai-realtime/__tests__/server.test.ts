@@ -1,6 +1,6 @@
 import { verifyVoiceIdentity } from '../server/identity';
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import { test, type TestContext } from 'node:test';
 import { EventEmitter } from 'node:events';
 import type { Request, Response as ExpressResponse } from 'express';
 import { createOpenAiRealtimeHandler } from '../server/sessionHandler';
@@ -97,7 +97,20 @@ test('upstream quota, invalid model and network failures return safe retryable e
   assert.equal(result.status, 504);
 });
 
-test('Firebase account lookup validates the identity token and rejects disabled/invalid accounts', async () => {
+function withFirebaseKey(t: TestContext, key: string): void {
+  const previous = { server: process.env.FIREBASE_API_KEY, client: process.env.VITE_FIREBASE_API_KEY };
+  process.env.FIREBASE_API_KEY = key;
+  process.env.VITE_FIREBASE_API_KEY = '';
+  t.after(() => {
+    if (previous.server === undefined) delete process.env.FIREBASE_API_KEY;
+    else process.env.FIREBASE_API_KEY = previous.server;
+    if (previous.client === undefined) delete process.env.VITE_FIREBASE_API_KEY;
+    else process.env.VITE_FIREBASE_API_KEY = previous.client;
+  });
+}
+
+test('Firebase account lookup validates the identity token and rejects disabled/invalid accounts', async (t) => {
+  withFirebaseKey(t, 'test-key');
   const seen: unknown[] = [];
   const fetcher = (async (_url, options) => {
     seen.push(JSON.parse(String(options?.body)));
@@ -109,6 +122,17 @@ test('Firebase account lookup validates the identity token and rejects disabled/
   assert.equal(await verifyVoiceIdentity('disabled', async () => new Response(JSON.stringify({
     users: [{ localId: 'uid-123', disabled: true }],
   }))), null);
+});
+
+test('Firebase account lookup refuses every token when no API key is configured', async (t) => {
+  withFirebaseKey(t, '');
+  let called = false;
+  const fetcher = (async () => {
+    called = true;
+    return new Response(JSON.stringify({ users: [{ localId: 'uid-123' }] }));
+  }) as typeof fetch;
+  assert.equal(await verifyVoiceIdentity('firebase-token', fetcher), null);
+  assert.equal(called, false);
 });
 
 test('disconnecting the HTTP client aborts upstream signaling and removes lifecycle listeners', async () => {

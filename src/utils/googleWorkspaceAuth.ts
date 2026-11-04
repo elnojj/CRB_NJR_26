@@ -4,9 +4,10 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   onAuthStateChanged,
+  type Auth,
   User,
 } from 'firebase/auth';
-import firebaseConfig from '../../firebase-applet-config.json';
+import { readClientFirebaseConfig } from '../config/firebaseConfig';
 
 export const SCOPES = [
   'https://mail.google.com/',
@@ -62,8 +63,22 @@ export const SCOPES = [
   'https://www.googleapis.com/auth/drive.scripts',
 ] as const;
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
+let authInstance: Auth | null = null;
+
+/** Firebase is created on first use so a build without Firebase variables still loads. */
+function resolveAuth(): Auth | null {
+  if (authInstance) return authInstance;
+  const config = readClientFirebaseConfig(import.meta.env);
+  if (!config) return null;
+  authInstance = getAuth(getApps().length === 0 ? initializeApp(config) : getApp());
+  return authInstance;
+}
+
+function requireAuth(): Auth {
+  const auth = resolveAuth();
+  if (!auth) throw new Error('Google sign-in is not configured: set the VITE_FIREBASE_* variables.');
+  return auth;
+}
 
 const provider = new GoogleAuthProvider();
 SCOPES.forEach((scope) => {
@@ -81,6 +96,11 @@ export const initAuth = (
   onAuthSuccess?: (user: User, token: string) => void,
   onAuthFailure?: () => void
 ) => {
+  const auth = resolveAuth();
+  if (!auth) {
+    onAuthFailure?.();
+    return () => {};
+  }
   return onAuthStateChanged(auth, async (user: User | null) => {
     if (user) {
       if (cachedAccessToken) {
@@ -102,7 +122,7 @@ export const googleSignIn = async (): Promise<{
 } | null> => {
   try {
     isSigningIn = true;
-    const result = await signInWithPopup(auth, provider);
+    const result = await signInWithPopup(requireAuth(), provider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
     if (!credential?.accessToken) {
       throw new Error('Failed to get access token from Firebase Auth');
@@ -123,10 +143,10 @@ export const getAccessToken = async (): Promise<string | null> => {
 };
 
 /** Shared auth instance for authenticated service adapters. */
-export const getWorkspaceAuth = () => auth;
+export const getWorkspaceAuth = () => requireAuth();
 
 export const logout = async () => {
-  await auth.signOut();
+  await resolveAuth()?.signOut();
   cachedAccessToken = null;
 };
 

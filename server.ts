@@ -1034,7 +1034,6 @@ async function startServer() {
         'metadata.json',
         'server.ts',
         '.env.example',
-        'firebase-applet-config.json',
       ];
       for (const f of topFiles) {
         const full = path.join(rootDir, f);

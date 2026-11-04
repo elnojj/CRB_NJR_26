@@ -36,7 +36,6 @@ const rawSourceModules = import.meta.glob(
     '/server/**/*.ts',
     '/api/**/*.ts',
     '/.env.example',
-    '/firebase-applet-config.json',
   ],
   { query: '?raw', import: 'default' }
 );
