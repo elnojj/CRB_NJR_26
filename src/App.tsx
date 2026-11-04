@@ -2491,13 +2491,16 @@ export default function App() {
       }
 
       const isLiveVoiceTranscript = text.startsWith('__user_voice__:');
+      const isChatMessage = text.startsWith('__user_chat__:');
       const cleanInput = isLiveVoiceTranscript
         ? text.replace('__user_voice__:', '').trim()
-        : text;
+        : isChatMessage
+          ? text.replace('__user_chat__:', '').trim()
+          : text;
       if (!cleanInput) return;
 
       appendTranscript('39', cleanInput);
-      if (isLiveVoiceTranscript) showSubtitle('you', cleanInput);
+      if (isLiveVoiceTranscript || isChatMessage) showSubtitle('you', cleanInput);
 
       const typedAction = parseNaturalLanguageIntent(cleanInput);
       const registryPlan = planRegistryNavigation(cleanInput);
@@ -2511,7 +2514,7 @@ export default function App() {
         return;
       }
       if (!typedAction) {
-        if (!isLiveVoiceTranscript) {
+        if (!isLiveVoiceTranscript && !isChatMessage) {
           orchestrateScreenCommandWithGemini(cleanInput, {
             activeSphere,
             activePanel,
