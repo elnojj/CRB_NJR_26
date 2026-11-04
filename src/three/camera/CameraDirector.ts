@@ -256,6 +256,7 @@ export class SplineJourney {
   private beatIndex = -1;
   private active = false;
   private sampled = false;
+  private startedAtMs = 0;
   private callbacks: JourneyCallbacks = {};
   private readonly pose: JourneyPose = {
     position: new THREE.Vector3(),
@@ -276,6 +277,10 @@ export class SplineJourney {
     return this.sampled ? this.pose : null;
   }
 
+  elapsedMs(nowMs: number): number {
+    return this.active ? nowMs - this.startedAtMs : 0;
+  }
+
   getBeatIndex(): number {
     return this.beatIndex;
   }
@@ -287,6 +292,7 @@ export class SplineJourney {
   start(options: { reducedMotion?: boolean; durationSec?: number } = {}): void {
     this.dispose();
     this.sampled = false;
+    this.startedAtMs = performance.now();
     this.stops = buildJourneyStops();
     const scale = (options.durationSec ?? (options.reducedMotion ? 36 : JOURNEY_BASE_DURATION_SEC)) / JOURNEY_BASE_DURATION_SEC;
     this.positionCurve = new THREE.CatmullRomCurve3(

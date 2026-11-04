@@ -668,6 +668,8 @@ const _handProbe = new THREE.Vector3();
 const _handNodeProbe = new THREE.Vector3();
 const HAND_PAN_MAX = 14;
 const HAND_FLIGHT_GRACE_MS = 800;
+const JOURNEY_HAND_GRACE_MS = 1500;
+const JOURNEY_HAND_PAN_INTERRUPT = 0.004;
 const HAND_ZOOM_RADII = [30, 16, 6.5] as const;
 const HAND_SPHERE_ORDER = ['hq', 'cde', 'campaign-os', 'about-us'] as const;
 const SHOW_MISSING_MEDIA_PLACEHOLDERS = true;
@@ -3914,6 +3916,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         else callbacksRef.current.onHandStep?.(intent.step);
       }
 
+      if (
+        splineJourney.isActive() &&
+        splineJourney.elapsedMs(now) > JOURNEY_HAND_GRACE_MS &&
+        (intent.state === 'CAMERA_CLAW_ZOOM' ||
+          intent.state === 'CAMERA_SPHERE_ORBIT' ||
+          Math.abs(intent.panX) + Math.abs(intent.panY) > JOURNEY_HAND_PAN_INTERRUPT)
+      ) {
+        splineJourney.stop('interrupted');
+      }
       const journeyOwnsCamera = splineJourney.isActive();
       const flightProtected = s.flightActive && now - s.flightStartTime < HAND_FLIGHT_GRACE_MS;
       if (intent.steering && !journeyOwnsCamera && !flightProtected && !s.reducedMotion) {
