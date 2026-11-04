@@ -1,6 +1,7 @@
 import { PUBLIC_BRAND_MEDIA } from '../data/publicBrandMedia';
 import { TUBE_TILE_BY_SLOT } from '../data/mediaTubeTiles';
 import { PROJECT_MEDIA_TUBE_SPECS } from './mediaTubeSpecs';
+import { HOTSPOT26_LOCAL_CACHE } from '../media/hotspot26Inventory';
 
 export { PROJECT_MEDIA_TUBE_SPECS };
 
@@ -159,6 +160,59 @@ function buildBaseProjectMediaTubeItems(projectId: string): ProjectMediaTubeItem
  */
 export function buildProjectMediaTubeItems(projectId: string): ProjectMediaTubeItem[] {
   const cleanProj = (projectId || 'SEVEN').toUpperCase();
+  if (isMixTubeKey(cleanProj)) return buildMixTubeItems(cleanProj);
+  return buildSingleProjectTubeItems(cleanProj);
+}
+
+const MIX_PREFIX = 'MIX:';
+const GALLERY_SOURCE = 'GALLERY';
+
+export function isMixTubeKey(key: string): boolean {
+  return key.toUpperCase().startsWith(MIX_PREFIX);
+}
+
+/** One tube that gathers the real media of several sources (project ids, NOJARA, GALLERY). */
+export function mixTubeKey(sources: readonly string[]): string {
+  const unique = Array.from(new Set(sources.map((src) => src.toUpperCase())));
+  return `${MIX_PREFIX}${unique.join(',')}`;
+}
+
+const hasRealMedia = (item: ProjectMediaTubeItem): boolean => Boolean(item.url || item.posterUrl);
+
+function galleryItems(): ProjectMediaTubeItem[] {
+  return Object.values(HOTSPOT26_LOCAL_CACHE).map((url, idx) => ({
+    index: idx,
+    id: `tube-gallery-${String(idx + 1).padStart(2, '0')}`,
+    projectId: GALLERY_SOURCE,
+    title: 'Gallery',
+    subtitle: 'IMAGE · Local file',
+    kind: 'image' as const,
+    aspect: '16:9' as const,
+    accentHex: '#FFF4D0',
+    url,
+    posterUrl: url,
+    isRealVideo: false,
+  }));
+}
+
+/** Real media for one mix source, in tube order; placeholders are never included. */
+export function realMediaForSource(source: string): ProjectMediaTubeItem[] {
+  const key = source.toUpperCase();
+  const items = key === GALLERY_SOURCE ? galleryItems() : buildSingleProjectTubeItems(key);
+  return items.filter(hasRealMedia);
+}
+
+function buildMixTubeItems(key: string): ProjectMediaTubeItem[] {
+  const sources = key.slice(MIX_PREFIX.length).split(',').filter(Boolean);
+  const real = sources.flatMap(realMediaForSource);
+  const base = buildSingleProjectTubeItems(key);
+  return base.map((placeholder, idx) => {
+    const item = real[idx];
+    return item ? { ...item, index: idx } : placeholder;
+  });
+}
+
+function buildSingleProjectTubeItems(cleanProj: string): ProjectMediaTubeItem[] {
   return buildBaseProjectMediaTubeItems(cleanProj).map((base) => {
     const planned = TUBE_TILE_BY_SLOT.get(`${cleanProj}:${base.index}`);
     if (!planned) return base;
@@ -185,9 +239,8 @@ export function buildProjectMediaTubeItems(projectId: string): ProjectMediaTubeI
 /** Index of the first tile in a project's tube that carries real media (url or poster); null if none. */
 export function firstMediaTileIndex(projectId: string): number | null {
   const items = buildProjectMediaTubeItems(projectId);
-  const hasMedia = (item: (typeof items)[number]) => Boolean(item.url || item.posterUrl);
   const found =
-    items.find((item) => item.index < PROJECT_MEDIA_TUBE_SPECS.columns && hasMedia(item)) ??
-    items.find(hasMedia);
+    items.find((item) => item.index < PROJECT_MEDIA_TUBE_SPECS.columns && hasRealMedia(item)) ??
+    items.find(hasRealMedia);
   return found ? found.index : null;
 }

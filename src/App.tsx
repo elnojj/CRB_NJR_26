@@ -52,6 +52,8 @@ import {
   buildProjectMediaTubeItems,
 } from './three/ExperienceCanvas';
 import { firstMediaTileIndex } from './three/mediaTubeItems';
+import { resolveNodeContent, type DirectoryEntry, type NodeContent } from './data/nodeContent';
+import { NodeBrowser, NodeContentCard } from './components/NodeBrowser';
 import {
   isConnectedSphereId,
   type ConnectedSphereId,
@@ -385,6 +387,8 @@ export default function App() {
     }
     return false;
   });
+  const [nodeBrowserOpen, setNodeBrowserOpen] = useState(false);
+  const [selectedNodeContent, setSelectedNodeContent] = useState<NodeContent | null>(null);
   const [mediaTubeState, setMediaTubeState] = useState<{
     active: boolean;
     projectId: string;
@@ -2856,6 +2860,32 @@ export default function App() {
     }
   }, [dispatchCamera, selectedProjectId]);
 
+  // Every node shows what it holds: its media opens as a tube in front of the camera, and nodes
+  // without displayable media close any open tube and say why in the content card.
+  const openNodeContent = useCallback(
+    (content: NodeContent | null) => {
+      setSelectedNodeContent(content);
+      if (!content) return;
+      const tubeKey = content.tubeKey;
+      if (tubeKey === null) {
+        setMediaTubeState((prev) =>
+          prev.active ? { ...prev, active: false, focusedTileIndex: null, sphere: undefined } : prev
+        );
+        return;
+      }
+      setActiveSphere(content.sphere);
+      setMediaTubeState((prev) => ({
+        active: true,
+        projectId: tubeKey,
+        focusedTileIndex: content.focusTile,
+        sphere: content.sphere,
+        savedPanels: prev.savedPanels.length > 0 ? prev.savedPanels : [...openPanels],
+      }));
+      dispatchCamera('set_angle', { targetSphere: content.sphere, anglePreset: 'tube_front' });
+    },
+    [dispatchCamera, openPanels]
+  );
+
   // Handle 3D node or floating label click from CosmographCanvas — flies camera & dispatches actionDispatcher action
   const handleSelectNode = useCallback(
     (id: string, nodeType: AnchoredLabel2D['nodeType'], sphere: ConnectedSphereId) => {
@@ -2868,9 +2898,28 @@ export default function App() {
         dispatchCamera('center', { targetSphere: sphere });
         return;
       }
+      const content = resolveNodeContent(id, nodeType, sphere);
+      if (sphere === 'campaign-os' || sphere === 'about-us') {
+        // Peer-sphere nodes have no station or project record behind them; they are described by their content.
+        pushNavSnapshot();
+        setActiveSphere(sphere);
+        setFocusedNodeId(id);
+        setOpenPanels([]);
+        openNodeContent(content);
+        return;
+      }
       executeTypedAction(buildNodeSelectionAction(id, nodeType, sphere), 'sphere_node');
+      openNodeContent(content);
     },
-    [dispatchCamera, executeTypedAction, handleUserTouchPauseTour, pushNavSnapshot]
+    [dispatchCamera, executeTypedAction, handleUserTouchPauseTour, openNodeContent, pushNavSnapshot]
+  );
+
+  const handlePickDirectoryEntry = useCallback(
+    (entry: DirectoryEntry) => {
+      if (window.innerWidth <= 1100) setNodeBrowserOpen(false);
+      handleSelectNode(entry.nodeId, entry.nodeType, entry.sphere);
+    },
+    [handleSelectNode]
   );
 
   // Live Page State Snapshot for Developer View & `get_page_state` (cerebro-ui/4)
@@ -4433,6 +4482,18 @@ export default function App() {
         </div>
         {/* Film / Owner Gate must not share chrome with the workspace dock. */}
         {bootDone && (
+          <>
+            <NodeBrowser
+              open={nodeBrowserOpen}
+              activeSphere={activeSphere}
+              focusedNodeId={focusedNodeId}
+              onClose={() => setNodeBrowserOpen(false)}
+              onPick={handlePickDirectoryEntry}
+            />
+            <NodeContentCard content={selectedNodeContent} onClose={() => setSelectedNodeContent(null)} />
+          </>
+        )}
+        {bootDone && (
         <VoiceCard
           voiceState={voiceState}
           activePocket={activePocket}
@@ -4458,6 +4519,8 @@ export default function App() {
             setShowGuiQaHud(false);
           }}
           onToggleFullscreen={() => void toggleBrowserFullscreen()}
+          onOpenNodes={() => setNodeBrowserOpen((open) => !open)}
+          nodesOpen={nodeBrowserOpen}
           browserFullscreen={browserFullscreen}
           onSimulateCommand={handleSimulateCommand}
           onExecuteToolCall={handleExecuteToolCall}

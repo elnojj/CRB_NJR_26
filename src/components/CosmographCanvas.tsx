@@ -21,6 +21,7 @@ import {
   VISIBLE_PROJECTS_DATA,
   ProjectHealth,
 } from '../data/sourceData';
+import { contentChip, resolveNodeContent } from '../data/nodeContent';
 import {
   PROJECT_MEDIA_TUBE_SPECS,
   buildProjectMediaTubeItems,
@@ -372,6 +373,8 @@ export interface AnchoredLabel2D {
   id: string;
   label: string;
   sublabel?: string;
+  /** What the node holds at a glance, e.g. "1 video · 2 photos" or "No media yet". */
+  contentLine?: string;
   objectCode?: string;
   sculptureTag?: string;
   colour: string;
@@ -854,6 +857,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         canonicalId: string;
         label: string;
         sublabel?: string;
+        contentLine?: string;
         objectCode?: string;
         sculptureTag?: string;
         colour: string;
@@ -1403,6 +1407,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       return;
     }
     const sphereCenter = resolveSphereCenter(activeSphere);
+    if (s.activeAnglePreset === 'tube_front' && mediaTubeStateRef.current?.active) {
+      s.targetCenter.copy(sphereCenter);
+      return;
+    }
     if (focusedNodeId) {
       const node = resolveNodeEntry(focusedNodeId, activeSphere);
       if (node) {
@@ -2365,7 +2373,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       nodeGroup.scale.setScalar(scale);
 
       const hitProxy = new THREE.Mesh(
-        new THREE.SphereGeometry(1.05, 16, 16),
+        new THREE.SphereGeometry(1.3, 16, 16),
         new THREE.MeshBasicMaterial({
           transparent: true,
           opacity: 0,
@@ -2441,6 +2449,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         canonicalId,
         label,
         sublabel: sublabel || undefined,
+        contentLine: contentChip(resolveNodeContent(canonicalId, nodeType, sphereTag)) || undefined,
         objectCode,
         sculptureTag,
         colour: colourHex,
@@ -3855,6 +3864,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       if (tubeActive) {
         const activeCenter = resolveSphereCenter(tubeProp?.sphere ?? s.activeSphere);
         mediaTubeGroup.position.copy(activeCenter);
+        if (s.activeAnglePreset === 'tube_front' && !s.flightActive) s.targetCenter.copy(activeCenter);
 
         if (tubeProp?.projectId && tubeProp.projectId !== mountedTubeProjectId) {
           mountedTubeProjectId = tubeProp.projectId;
@@ -4154,6 +4164,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             id: entry.canonicalId,
             label: entry.label,
             sublabel: entry.sublabel,
+            contentLine: entry.contentLine,
             objectCode: entry.objectCode,
             sculptureTag: entry.sculptureTag,
             colour: entry.colour,
@@ -4253,6 +4264,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                 : showBillboardMeta
                   ? entry.sublabel
                   : undefined,
+            meta: entry.contentLine,
             colour: entry.colour,
             worldPos: entry.worldPos.clone(),
             sphereCenter: s.currentCenter.clone(),
@@ -4644,10 +4656,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               (item.nodeType === 'project' && (item.isFocused || isAttentionProject));
             const x = Math.round(item.x);
             const y = Math.round(item.y);
-            // Cover-post: hide cold project chips; keep stations + attention only
-            if (!item.isFocused && !isPrimaryStation) {
-              return null;
-            }
+            const isCompactChip = !item.isFocused && !isPrimaryStation;
             // Stations/core/dimensions render as WebGL sprites — keep DOM as invisible hit targets.
             const useHitTargetOnly = isSpatialBillboard && webglStatus === 'ACTIVE';
             return (
@@ -4734,9 +4743,17 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                     <span className="ig-title font-sans font-medium text-[#F2F6F8]">
                       {item.label}
                     </span>
-                    {item.sublabel && (
+                    {item.sublabel && !isCompactChip && (
                       <span className="ig-sub font-sans text-[#D0DCE3]">
                         {item.sublabel}
+                      </span>
+                    )}
+                    {item.contentLine && !useHitTargetOnly && (
+                      <span
+                        className="ig-sub font-mono text-[#F4D68C]"
+                        data-testid={`node-content-${item.id}`}
+                      >
+                        {item.contentLine}
                       </span>
                     )}
                   </div>

@@ -57,6 +57,7 @@ async function main(): Promise<void> {
     ['handInteraction', 'src/three/handInteraction.test.ts'],
     ['environmentRegistry', 'src/data/environmentRegistry.test.ts'],
     ['mediaTubeTiles', 'src/data/mediaTubeTiles.test.ts'],
+    ['nodeContent', 'src/data/nodeContent.test.ts'],
     ['visualGuards', 'src/components/visualGuards.test.ts'],
     ['glassFallback', 'src/three/glassFallback.test.ts'],
     ['motionPreference', 'src/utils/motionPreference.test.ts'],

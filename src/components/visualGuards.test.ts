@@ -187,4 +187,13 @@ describe('visual guards: brand lockup', () => {
     const src = read('../three/spatialLabelBillboards.ts');
     assert.match(src, /clamp\(dist \* 0\.085, 0\.3, 5\.2\)/);
   });
+
+  it('every node is visible, pickable and describes its contents', () => {
+    const app = read('../App.tsx');
+    assert.match(app, /<NodeBrowser/);
+    assert.match(app, /resolveNodeContent\(id, nodeType, sphere\)/);
+    assert.ok(!/hide cold project chips/.test(canvasSrc), 'cold chips must not be hidden');
+    assert.match(canvasSrc, /contentLine: contentChip\(/);
+    assert.match(read('./VoiceCard.tsx'), /data-testid="cerebro-btn-nodes"/);
+  });
 });

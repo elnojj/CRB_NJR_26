@@ -63,7 +63,7 @@
 
 .cerebro-dock__actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -447,7 +447,7 @@
 
 @media (max-width: 767px) {
   .cerebro-dock {
-    width: min(100vw - 16px, 360px);
+    width: min(100vw - 16px, 440px);
   }
 
   .cerebro-chat,

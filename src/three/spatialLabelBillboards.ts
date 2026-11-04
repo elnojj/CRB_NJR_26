@@ -9,6 +9,8 @@ export type SpatialBillboardSpec = {
   id: string;
   label: string;
   sublabel?: string;
+  /** What the node holds (media counts), drawn as a third line. */
+  meta?: string;
   colour: string;
   worldPos: THREE.Vector3;
   /** Sphere / cluster center used for back-face occlusion. */
@@ -32,12 +34,13 @@ const MACRO_DIST = 14;
 function paintLabelCanvas(
   label: string,
   sublabel: string | undefined,
+  meta: string | undefined,
   colour: string,
   focused: boolean
 ): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
-  canvas.height = 160;
+  canvas.height = meta ? 200 : 160;
   const ctx = canvas.getContext('2d')!;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -46,8 +49,9 @@ function paintLabelCanvas(
   const titleW = ctx.measureText(label).width;
   ctx.font = '500 24px "JetBrains Mono", ui-monospace, monospace';
   const subW = sublabel ? ctx.measureText(sublabel).width : 0;
-  const boxW = Math.min(480, Math.max(titleW, subW) + padX * 2);
-  const boxH = sublabel ? 112 : 78;
+  const metaW = meta ? ctx.measureText(meta).width : 0;
+  const boxW = Math.min(480, Math.max(titleW, subW, metaW) + padX * 2);
+  const boxH = (sublabel ? 112 : 78) + (meta ? 40 : 0);
   const x = (canvas.width - boxW) / 2;
   const y = (canvas.height - boxH) / 2;
 
@@ -67,6 +71,11 @@ function paintLabelCanvas(
     ctx.fillStyle = 'rgba(189, 203, 211, 0.95)';
     ctx.font = '500 24px "JetBrains Mono", ui-monospace, monospace';
     ctx.fillText(sublabel, canvas.width / 2, y + 78);
+  }
+  if (meta) {
+    ctx.fillStyle = 'rgba(244, 214, 140, 0.95)';
+    ctx.font = '500 24px "JetBrains Mono", ui-monospace, monospace';
+    ctx.fillText(meta, canvas.width / 2, y + boxH - 26);
   }
   return canvas;
 }
@@ -119,12 +128,12 @@ export class SpatialLabelBillboardLayer {
       const dist = camera.position.distanceTo(spec.worldPos);
       const showMeta = Boolean(spec.focused) || dist < MACRO_DIST || camDist < MACRO_DIST;
       const effectiveSub = showMeta ? spec.sublabel : undefined;
-      const fingerprint = `${spec.label}|${effectiveSub ?? ''}|${spec.colour}|${spec.focused ? 1 : 0}|${front ? 1 : 0}`;
+      const fingerprint = `${spec.label}|${effectiveSub ?? ''}|${spec.meta ?? ''}|${spec.colour}|${spec.focused ? 1 : 0}|${front ? 1 : 0}`;
 
       let entry = this.sprites.get(spec.id);
       if (!entry) {
         const map = new THREE.CanvasTexture(
-          paintLabelCanvas(spec.label, effectiveSub, spec.colour, !!spec.focused)
+          paintLabelCanvas(spec.label, effectiveSub, spec.meta, spec.colour, !!spec.focused)
         );
         map.colorSpace = THREE.SRGBColorSpace;
         const mat = new THREE.SpriteMaterial({
@@ -144,7 +153,7 @@ export class SpatialLabelBillboardLayer {
       if (entry.fingerprint !== fingerprint) {
         const mat = entry.sprite.material as THREE.SpriteMaterial;
         const map = mat.map as THREE.CanvasTexture;
-        map.image = paintLabelCanvas(spec.label, effectiveSub, spec.colour, !!spec.focused);
+        map.image = paintLabelCanvas(spec.label, effectiveSub, spec.meta, spec.colour, !!spec.focused);
         map.needsUpdate = true;
         entry.fingerprint = fingerprint;
       }
@@ -157,7 +166,7 @@ export class SpatialLabelBillboardLayer {
       sprite.position.y += 1.15;
       // Constant angular size: labels shrink with the camera instead of filling the screen up close.
       const s = THREE.MathUtils.clamp(dist * 0.085, 0.3, 5.2);
-      sprite.scale.set(s, s * 0.32, 1);
+      sprite.scale.set(s, s * ((spec.meta ? 200 : 160) / 512), 1);
       sprite.renderOrder = Math.round(1000 - dist);
 
       _projected.copy(sprite.position).project(camera);

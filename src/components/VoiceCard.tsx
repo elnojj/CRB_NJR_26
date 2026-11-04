@@ -87,6 +87,8 @@ interface VoiceCardProps {
   onOpenTeamChat?: () => void;
   onOpenOptics?: () => void;
   onToggleFullscreen?: () => void;
+  onOpenNodes?: () => void;
+  nodesOpen?: boolean;
   onSimulateCommand: (rawInput: string) => void;
   onExecuteToolCall?: (
     toolName: string,
@@ -174,6 +176,18 @@ function IconHands({ active }: { active?: boolean }) {
   );
 }
 
+function IconNodes({ active }: { active?: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="2.4" stroke="currentColor" strokeWidth="1.6" fill={active ? 'currentColor' : 'none'} fillOpacity={active ? 0.25 : 0} />
+      <circle cx="5.5" cy="6.5" r="1.8" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="18.5" cy="6.5" r="1.8" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="12" cy="19" r="1.8" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M7 7.6l3.3 2.9M17 7.6l-3.3 2.9M12 14.4v2.8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function IconChat({ active }: { active?: boolean }) {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -201,6 +215,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   selectedProjectId,
   openAgentModalTrigger,
   onToggleHands,
+  onOpenNodes,
+  nodesOpen,
   onSimulateCommand,
   onExecuteToolCall,
   onSendCompose,
@@ -432,7 +448,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const dockStyle: React.CSSProperties = {
     left: '50%',
     transform: 'translateX(-50%)',
-    width: 'min(360px, calc(100vw - 24px))',
+    width: 'min(440px, calc(100vw - 24px))',
   };
 
   const callLabel = voiceLive ? 'End call' : 'Call';
@@ -444,7 +460,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       ? 'Hands on · camera live · tap again to stop'
       : chatOpen
         ? 'Chat with Cerebro'
-        : 'Call · Hands · Chat';
+        : 'Call · Hands · Chat · Nodes';
 
   return (
     <div
@@ -591,7 +607,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       <div
         className="cerebro-dock__capsule"
         role="toolbar"
-        aria-label="Cerebro controls: Call, Hands, Chat"
+        aria-label="Cerebro controls: Call, Hands, Chat, Nodes"
       >
         <p className="cerebro-dock__status" aria-live="polite">
           {statusLine}
@@ -633,6 +649,20 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
             <IconChat active={chatOpen} />
             <span>{chatLabel}</span>
           </button>
+          {onOpenNodes && (
+            <button
+              type="button"
+              className="cerebro-dock__btn"
+              data-testid="cerebro-btn-nodes"
+              data-active={nodesOpen ? 'true' : 'false'}
+              aria-pressed={Boolean(nodesOpen)}
+              aria-label="Browse all nodes"
+              onClick={onOpenNodes}
+            >
+              <IconNodes active={nodesOpen} />
+              <span>Nodes</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
