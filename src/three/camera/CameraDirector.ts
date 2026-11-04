@@ -354,6 +354,8 @@ export class SplineJourney {
     }
     if (this.reduced) {
       tl.seek(`stop-${next}`);
+      this.proxy.u = next / last;
+      this.proxy.focal = this.stops[next].focalMm;
       this.callbacks.onCut?.();
       return;
     }

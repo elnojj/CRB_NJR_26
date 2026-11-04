@@ -253,7 +253,7 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
   {
     id: 'about-tarek-portrait',
     driveFileId: DRIVE.tarekAfrima,
-    title: 'Tarek Mojara — AFRIMA Summit 2022',
+    title: 'Tarek Nojara — AFRIMA Summit 2022',
     kind: 'image',
     mimeType: 'image/jpeg',
     role: 'about-portrait',
@@ -290,7 +290,7 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
   {
     id: 'about-el-gouna',
     driveFileId: DRIVE.elGouna,
-    title: 'Tarek Mojara — El Gouna Film Festival',
+    title: 'Tarek Nojara — El Gouna Film Festival',
     kind: 'image',
     mimeType: 'image/jpeg',
     role: 'about-gallery',
@@ -307,7 +307,7 @@ export const DRIVE_MEDIA_ASSETS: DriveMediaAsset[] = [
   {
     id: 'about-production-set',
     driveFileId: DRIVE.productionSet,
-    title: 'Tarek Mojara — production set',
+    title: 'Tarek Nojara — production set',
     kind: 'image',
     mimeType: 'image/jpeg',
     role: 'about-gallery',
@@ -442,11 +442,30 @@ export const ABOUT_US_BIOS: AboutUsBio[] = [
     ],
   },
   {
-    id: 'tarek-mojara',
-    name: 'Tarek Mojara (39)',
-    role: 'Founder and Culture and Design Engineer',
+    id: 'shweekar-ahmed',
+    name: 'Shweekar Ahmed',
+    role: 'PMO collaborator',
     summary:
-      'Founder and Culture and Design Engineer of NOJARA Studios — never titled CEO. Presented as founder, creative producer, and strategist across Cairo and Riyadh.',
+      'Shweekar Ahmed is the designated collaborator with PMO access in the Cerebro handoff. An approved photo has been supplied; it is listed in the journey media manifest and is not yet served from a playable runtime location.',
+    evidenceNote: 'Source: Cerebro KB handoff §2 and the supplied photo (Drive id 15gAJwJvL1Yma0MCGQOJmej6zZRlViu9-). No further credits are claimed.',
+    driveFolderId: '1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh',
+    mediaAssetIds: [],
+  },
+  {
+    id: 'khaled-al-shaalan',
+    name: 'Khaled Al Shaalan',
+    role: 'Role pending confirmation',
+    summary: 'Khaled Al Shaalan appears in the studio register. No portrait has been confirmed, and no substitute image is shown.',
+    evidenceNote: 'Portrait is an explicit gap until confirmed.',
+    driveFolderId: '1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh',
+    mediaAssetIds: [],
+  },
+  {
+    id: 'tarek-nojara',
+    name: 'Tarek Nojara',
+    role: 'Founder / Creative Producer / Strategist and Culture and Design Engineer',
+    summary:
+      'Founder and Culture and Design Engineer of NOJARA Studios, presented as founder, creative producer and strategist across Cairo and Riyadh. Never titled CEO.',
     evidenceNote:
       'Source: SEVEN verified facts + Owner-Source-Excerpts. Egypt Entrepreneur Awards: Media Entrepreneur of the Year finalist (not winner). Celebrity / festival images do not establish campaign credit unless separately verified.',
     portraitAssetId: 'about-tarek-portrait',

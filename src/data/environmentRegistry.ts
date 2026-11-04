@@ -70,7 +70,7 @@ export type PersonRecord = {
 
 /** People are stored once; environment nodes reference them by `personId`. */
 export const PEOPLE: Readonly<Record<'shweekar' | 'khaled' | 'tarek', PersonRecord>> = {
-  shweekar: { personId: 'shweekar', displayName: 'Shweekar Ahmed', displayNameAr: 'شويكار أحمد', roleEn: null, portraitAssetId: 'img-person-shweekar', portraitGap: false, status: 'verified' },
+  shweekar: { personId: 'shweekar', displayName: 'Shweekar Ahmed', displayNameAr: 'شويكار أحمد', roleEn: 'PMO collaborator', portraitAssetId: 'img-person-shweekar', portraitGap: false, status: 'verified' },
   khaled: { personId: 'khaled', displayName: 'Khaled Al Shaalan', displayNameAr: 'خالد الشعلان', roleEn: null, portraitAssetId: null, portraitGap: true, status: 'verified' },
   tarek: { personId: 'tarek', displayName: 'Tarek Nojara', displayNameAr: 'طارق نُچارة', roleEn: 'Founder / Creative Producer / Strategist and Culture and Design Engineer', portraitAssetId: null, portraitGap: false, status: 'verified' },
 };

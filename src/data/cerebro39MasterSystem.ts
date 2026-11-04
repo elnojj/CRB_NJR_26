@@ -56,7 +56,7 @@ export const CONTINUOUS_180S_CHAPTERS: ContinuousShotChapter[] = [
     endSec: 30,
     startFrame: 360,
     endFrame: 900,
-    visualStory: 'Tarek Mojara, real portfolio media',
+    visualStory: 'Tarek Nojara, real portfolio media',
     direction:
       'Pass the shell surface into an approved Tarek portrait medallion and a recessed video aperture. Founder name is prominent. Route the camera onward through the same aperture volume.',
     targetSphere: 'hq',

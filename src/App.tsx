@@ -150,7 +150,9 @@ import {
   CEREBRO_UI_SCHEMA_V4,
 } from './gui/runtimeRegistry';
 import { TeamChatChip } from './components/TeamChatChip';
+import { LiveSubtitles, type SubtitleLine } from './components/LiveSubtitles';
 import { JourneyCaption } from './components/JourneyCaption';
+import { planRegistryNavigation, registryPlanShouldOverride } from './utils/registryNavigation';
 import {
   CDE_TAXONOMY,
   masterPose,
@@ -460,6 +462,12 @@ export default function App() {
   });
   const [tourHighlightId, setTourHighlightId] = useState<string | null>(null);
   const [captionBubble, setCaptionBubble] = useState<string | null>(null);
+  const [subtitleLine, setSubtitleLine] = useState<SubtitleLine | null>(null);
+  const subtitleSeq = useRef(0);
+  const showSubtitle = useCallback((speaker: SubtitleLine['speaker'], text: string) => {
+    subtitleSeq.current += 1;
+    setSubtitleLine({ id: subtitleSeq.current, speaker, text });
+  }, []);
   const [journeyBeat, setJourneyBeat] = useState<JourneyBeat | null>(null);
   const journeyActive = journeyBeat !== null;
 
@@ -2464,6 +2472,7 @@ export default function App() {
         const cleanReply = text.replace('__agent_reply__:', '').trim();
         if (!soundMuted) setVoiceState('Speaking');
         setCaptionBubble(cleanReply);
+        if (cleanReply) showSubtitle('cerebro', cleanReply);
         appendTranscript('Cerebro', cleanReply, 'live_response');
         window.setTimeout(() => setVoiceState('Ready'), 1100);
         return;
@@ -2475,6 +2484,7 @@ export default function App() {
       if (text.startsWith('__user_voice_live__:')) {
         const liveSpeech = text.replace('__user_voice_live__:', '').trim();
         if (liveSpeech) {
+          showSubtitle('you', liveSpeech);
           appendTranscript('39', liveSpeech, 'live_voice_transcript_context_only');
         }
         return;
@@ -2487,8 +2497,19 @@ export default function App() {
       if (!cleanInput) return;
 
       appendTranscript('39', cleanInput);
+      if (isLiveVoiceTranscript) showSubtitle('you', cleanInput);
 
       const typedAction = parseNaturalLanguageIntent(cleanInput);
+      const registryPlan = planRegistryNavigation(cleanInput);
+      if (registryPlan && registryPlanShouldOverride(typedAction)) {
+        for (const planned of registryPlan.actions) {
+          if (isLiveVoiceTranscript && shouldDeduplicateAction(planned, 'voice_transcript')) continue;
+          executeTypedAction(planned, 'command_bar');
+        }
+        setCaptionBubble(registryPlan.captionEn);
+        appendTranscript('Cerebro', registryPlan.captionEn, 'registry_navigation');
+        return;
+      }
       if (!typedAction) {
         if (!isLiveVoiceTranscript) {
           orchestrateScreenCommandWithGemini(cleanInput, {
@@ -2525,6 +2546,7 @@ export default function App() {
       handleExecuteToolCall,
       openPanels,
       selectedProjectId,
+      showSubtitle,
       soundMuted,
     ]
   );
@@ -3812,7 +3834,8 @@ export default function App() {
         onJourneyBeat={handleJourneyBeat}
       />
 
-      <JourneyCaption beat={journeyBeat} onSkip={toggleJourney} />
+      <JourneyCaption beat={journeyBeat} onSkip={toggleJourney} reducedMotion={reducedMotion} />
+      <LiveSubtitles line={subtitleLine} />
 
       {/* 3A. Z-35 Focus Pointer, Projected 3D Target Ring, S04 Flight Route & GUI v3.0 QA Inspector */}
       <GuiFocusOverlay

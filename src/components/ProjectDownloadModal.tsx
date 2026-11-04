@@ -83,7 +83,7 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
         null,
         2
       );
-      collected['README.md'] = `# CEREBRO + CDE (v1.25 — NOJARA Studios)\n\nOwner: 39 (Tarek Mojara), Founder and Culture and Design Engineer, NOJARA Studios (est. 2016), Cairo–Riyadh.\n\n## Quick Start\n\`\`\`bash\nnpm install\nnpm run dev\n\`\`\`\n`;
+      collected['README.md'] = `# CEREBRO + CDE (v1.25 — NOJARA Studios)\n\nOwner: 39 (Tarek Nojara), Founder and Culture and Design Engineer, NOJARA Studios (est. 2016), Cairo–Riyadh.\n\n## Quick Start\n\`\`\`bash\nnpm install\nnpm run dev\n\`\`\`\n`;
 
       if (active) {
         setFilesMap(collected);
@@ -116,7 +116,7 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
         JSON.stringify(
           {
             exportedAt: new Date().toISOString(),
-            owner: '39 (Tarek Mojara) — Founder and Culture and Design Engineer',
+            owner: '39 (Tarek Nojara) — Founder and Culture and Design Engineer',
             sourceMap: SOURCE_MAP,
             colourTable: COLOUR_TABLE,
             missingItems: MISSING_ITEMS,
@@ -267,7 +267,7 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
                 type="button"
                 onClick={() =>
                   handleDownloadJson('NOJARA_HQ_26_Register_Snapshot.json', {
-                    owner: '39 (Tarek Mojara) — Founder and Culture and Design Engineer',
+                    owner: '39 (Tarek Nojara) — Founder and Culture and Design Engineer',
                     sourceMap: SOURCE_MAP,
                     colourTable: COLOUR_TABLE,
                     projects: PROJECTS_DATA,

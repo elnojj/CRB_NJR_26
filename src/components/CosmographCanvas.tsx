@@ -67,6 +67,7 @@ import { getProjectWorldManifest } from '../data/projectWorldManifest';
 import { HandGlove3D } from '../three/HandGlove3D';
 import { gloveFrustum } from '../three/handTracker';
 import { NodeInteractionLayer } from '../three/nodeInteraction';
+import { isolateDecorativeGeometry, type CosmeticFade } from '../three/decorativeIsolation';
 import { handIsFresh, handStateRef } from '../three/handStateRef';
 import { IntentJitterGate, handInteractionMachine, splineJourney } from '../three/camera/CameraDirector';
 import type { JourneyBeat } from '../three/camera/journeyConfig';
@@ -1965,6 +1966,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     scene.add(camera);
 
     const glove = new HandGlove3D(camera);
+    const cosmeticFade: CosmeticFade = { value: 0 };
     const handJitterGate = new IntentJitterGate(HAND_JITTER_FILTER_MS);
     let handRollDeg = 0;
     const nodeInteraction = new NodeInteractionLayer({
@@ -3476,6 +3478,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       mediaTubeTileMeshes.push(tileMesh);
     }
 
+    isolateDecorativeGeometry(scene, cosmeticFade, camera);
+
     if (!isSoftwareGl) {
       renderer.compile(scene, camera);
     }
@@ -3858,6 +3862,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const elapsedTotal = clock.getElapsedTime();
       const now = performance.now();
       const s = stateRef.current;
+
+      cosmeticFade.value = THREE.MathUtils.damp(
+        cosmeticFade.value,
+        mediaTubeStateRef.current?.active || s.focusedNodeId ? 1 : 0,
+        4,
+        dt
+      );
+      if (frameCounter % 90 === 0) isolateDecorativeGeometry(scene, cosmeticFade, camera);
 
       glassUniforms.uTime.value = s.reducedMotion ? 0 : elapsedTotal;
       // Intro: damp soundtrack RMS into glass so caustics don't strobe over the video plate.

@@ -57,7 +57,7 @@ export const CEREBRO_17_PROJECTS: ProjectV11Item[] = [
     status: 'Waiting on 39',
     health: 'At risk',
     ownerCode: '39',
-    leadName: 'Tarek Mojara (39) · Khalid Al-Shaalan',
+    leadName: 'Tarek Nojara (39) · Khaled Al Shaalan',
     summary:
       '8-chapter interactive executive portal, 30 sculptural 3D design assets, and Tabuk destination activation blueprint ("A reason to return").',
     kpis: [
@@ -115,7 +115,7 @@ export const CEREBRO_17_PROJECTS: ProjectV11Item[] = [
     status: 'Waiting on 39',
     health: 'On track',
     ownerCode: '39',
-    leadName: 'Mohammed Alhamdan · Tarek Mojara (39)',
+    leadName: 'Mohammed Alhamdan · Tarek Nojara (39)',
     summary:
       'High-impact celebrity & talent brand architecture, retail capsule drops, and regional campaign activations with Wahag, Floward, and Barry.',
     kpis: [
@@ -231,7 +231,7 @@ export const CEREBRO_17_PROJECTS: ProjectV11Item[] = [
     status: 'Waiting on 39',
     health: 'At risk',
     ownerCode: '39',
-    leadName: 'Tarek Mojara (39) · Katib (KT)',
+    leadName: 'Tarek Nojara (39) · Katib (KT)',
     summary:
       'Immersive exhibition of unrealized architectural monuments, counterfactual design artifacts, and interactive holographic archives.',
     kpis: [
@@ -288,7 +288,7 @@ export const CEREBRO_17_PROJECTS: ProjectV11Item[] = [
     status: 'Active',
     health: 'On track',
     ownerCode: '39',
-    leadName: 'Tarek Mojara (39) · Baghira (BG)',
+    leadName: 'Tarek Nojara (39) · Baghira (BG)',
     summary:
       'Proprietary execution intelligence engine powering CEREBRO HQ, CDE Universe, 22-tool voice orchestration, and MediaPipe hand rigs.',
     kpis: [
@@ -428,7 +428,7 @@ export const CEREBRO_17_PROJECTS: ProjectV11Item[] = [
     status: 'Waiting on 39',
     health: 'On track',
     ownerCode: '39',
-    leadName: 'Tarek Mojara (39) · Fakir (FK)',
+    leadName: 'Tarek Nojara (39) · Fakir (FK)',
     summary:
       'Tactile mud-brick and brass olfactory bar, interactive scent organ, and Najdi craft archive.',
     kpis: [
@@ -527,7 +527,7 @@ export const INITIAL_TASK_BOARD_CARDS: TaskBoardCard[] = [
     title: 'Lock Arabic NOJARA orthography (نوجارا vs نوچارا) on SEVEN cover',
     projectCode: 'SEVEN',
     ownerCode: '39',
-    ownerName: 'Tarek Mojara (39)',
+    ownerName: 'Tarek Nojara (39)',
     column: 'Waiting',
     priority: 'HIGH',
     dueDate: '28 Oct 2026',
@@ -773,7 +773,7 @@ export const MORNING_BRIEFING_DATA = {
       time: '09:30 CAI',
       title: 'SEVEN × NOJARA Tabuk Portal Final Walkthrough',
       project: 'SEVEN',
-      owner: '39 · Khalid Al-Shaalan',
+      owner: '39 · Khaled Al Shaalan',
     },
     {
       id: 'MB-T2',
@@ -795,21 +795,21 @@ export const MORNING_BRIEFING_DATA = {
       id: 'MB-M1',
       slot: '10:00 – 10:45',
       title: 'SEVEN Executive Pitch Sync (Riyadh / Google Meet)',
-      attendees: 'Tarek Mojara, Khalid Al-Shaalan, Shweekar',
+      attendees: 'Tarek Nojara, Khaled Al Shaalan, Shweekar',
       location: 'Google Meet · Riyadh Link',
     },
     {
       id: 'MB-M2',
       slot: '13:00 – 13:45',
       title: 'YAH Season 02 Sonic Lab & Residency Review',
-      attendees: 'Tarek Mojara, KR, Waseem',
+      attendees: 'Tarek Nojara, KR, Waseem',
       location: 'Cairo Studio 01',
     },
     {
       id: 'MB-M3',
       slot: '16:30 – 17:15',
       title: 'CEREBRO + CDE v1.1 Architecture Sign-off',
-      attendees: 'Tarek Mojara, Grandy, Rasma, Baghira',
+      attendees: 'Tarek Nojara, Grandy, Rasma, Baghira',
       location: 'CEREBRO Spatial Room',
     },
   ],
@@ -853,7 +853,7 @@ export const INITIAL_GMAIL_THREADS: GmailThreadItem[] = [
     id: 'GML-01',
     subject: 'SEVEN × NOJARA — Tabuk Destination Portal v0.4 & 30 Asset Pack',
     from: 'Khalid Al-Shaalan <khalid@nojara.com>',
-    to: 'Tarek Mojara <me@nojara.com>',
+    to: 'Tarek Nojara <me@nojara.com>',
     timestamp: 'Today · 08:42',
     projectCode: 'SEVEN',
     unread: true,
@@ -865,7 +865,7 @@ export const INITIAL_GMAIL_THREADS: GmailThreadItem[] = [
     id: 'GML-02',
     subject: 'MHE × Wahag / Floward — Q4 Production Schedule & Term Sheet',
     from: 'Shweekar <shweekar@nojara.com>',
-    to: 'Tarek Mojara <me@nojara.com>',
+    to: 'Tarek Nojara <me@nojara.com>',
     timestamp: 'Today · 07:55',
     projectCode: 'MHE',
     unread: true,
@@ -877,7 +877,7 @@ export const INITIAL_GMAIL_THREADS: GmailThreadItem[] = [
     id: 'GML-03',
     subject: 'B-Social Acoustic Simulation & Cardioid Array Unblock Quote',
     from: 'Bilal (BL) <bilal@nojara.com>',
-    to: 'Tarek Mojara <me@nojara.com>',
+    to: 'Tarek Nojara <me@nojara.com>',
     timestamp: 'Yesterday · 19:20',
     projectCode: 'BSOCIAL',
     unread: false,
@@ -889,7 +889,7 @@ export const INITIAL_GMAIL_THREADS: GmailThreadItem[] = [
     id: 'GML-04',
     subject: 'YAH Season 02 — Cohort 03 Fellowship Roster & Sonic Lab Mix',
     from: 'KR <kr@nojara.com>',
-    to: 'Tarek Mojara <me@nojara.com>',
+    to: 'Tarek Nojara <me@nojara.com>',
     timestamp: '25 Oct · 16:10',
     projectCode: 'YAH',
     unread: false,
@@ -923,7 +923,7 @@ export const INITIAL_CALENDAR_WEEK_EVENTS: CalendarGridEvent[] = [
     durationHours: 2,
     projectCode: 'SEVEN',
     location: 'Riyadh · Google Meet',
-    attendees: '39, Khalid Al-Shaalan, Shweekar',
+    attendees: '39, Khaled Al Shaalan, Shweekar',
     meetLink: 'https://meet.google.com/new',
   },
   {
@@ -1014,7 +1014,7 @@ export const CREW_12_ROSTER: CrewMember12[] = [
   {
     code: '39',
     id: 'p-39',
-    name: 'Tarek Mojara (39)',
+    name: 'Tarek Nojara (39)',
     nameAr: 'طارق نوجارا',
     title: 'Founder and Culture and Design Engineer',
     tier: 'Owner',
@@ -1402,7 +1402,7 @@ export const FILE_VIEWER_DOCUMENTS: FileViewerDocument[] = [
       heading: `Sheet Tab ${idx + 1} / 14 — NOJARA_HQ_26 Master PMO Register`,
       subheading: 'Live Google Sheets Sync Ready · 52 Verified Records',
       body: 'Structured PMO register tracking SEVEN, YAH, MHE, BSOCIAL, and 13 additional NOJARA portfolio programmes.',
-      callouts: ['Accountable: 39 (Tarek Mojara)', 'Sync Mode: Google Sheets API v4 + Local Store'],
+      callouts: ['Accountable: 39 (Tarek Nojara)', 'Sync Mode: Google Sheets API v4 + Local Store'],
       sheetRows: [
         ['Record ID', 'Project', 'Deliverable / Milestone', 'Owner', 'Status'],
         ['REG-01', 'SEVEN', 'Tabuk 8-Chapter Executive Portal', '39 · RS', 'Waiting on 39'],

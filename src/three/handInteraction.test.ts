@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { after, describe, it } from 'node:test';
 import * as THREE from 'three';
 import { HandInteractionMachine, IntentJitterGate } from './camera/CameraDirector.ts';
 import { TWO_HAND_TUNING, TwoHandGestureTracker } from './camera/twoHandGestures.ts';
@@ -346,5 +346,49 @@ describe('NodeInteractionLayer', () => {
     assert.equal(selected.length, 1, 'holding the pinch does not re-select');
     const released = layer.update(1060, pinchState(false).hands, true);
     assert.equal(released.locked, false);
+  });
+});
+
+describe('SplineJourney interruption and reduced motion', () => {
+  const created: Array<{ dispose: () => void }> = [];
+  after(() => created.forEach((j) => j.dispose()));
+
+  it('hands the exact sampled pose to the orbit rig when interrupted, with no waiting period', async () => {
+    const { SplineJourney } = await import('./camera/CameraDirector.ts');
+    const journey = new SplineJourney();
+    created.push(journey);
+    const ends: string[] = [];
+    journey.setCallbacks({ onEnd: (reason) => ends.push(reason) });
+    journey.start();
+    assert.equal(journey.isActive(), true);
+    const before = journey.sample();
+    assert.ok(before);
+    const sampled = before.position.clone();
+    journey.stop('interrupted');
+    assert.equal(journey.isActive(), false);
+    assert.deepEqual(ends, ['interrupted']);
+    const last = journey.lastPose();
+    assert.ok(last);
+    assert.ok(last.position.distanceTo(sampled) < 1e-9, 'no jump between the last visible pose and the handoff pose');
+    journey.dispose();
+  });
+
+  it('cuts instead of flying in reduced motion and signals each cut for the dissolve', async () => {
+    const { SplineJourney } = await import('./camera/CameraDirector.ts');
+    const journey = new SplineJourney();
+    created.push(journey);
+    let cuts = 0;
+    journey.setCallbacks({ onCut: () => (cuts += 1) });
+    journey.start({ reducedMotion: true });
+    const start = journey.sample()?.position.clone();
+    assert.ok(start);
+    journey.step(1);
+    journey.step(1);
+    journey.step(1);
+    assert.ok(cuts >= 3);
+    const after = journey.sample()?.position.clone();
+    assert.ok(after);
+    assert.ok(after.distanceTo(start) > 1, 'the pose jumped to a new stop at once');
+    journey.dispose();
   });
 });
