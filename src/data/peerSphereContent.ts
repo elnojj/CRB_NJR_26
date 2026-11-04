@@ -35,22 +35,6 @@ export const CAMPAIGN_OS_NODES: PeerSphereNodeSpec[] = [
     nodeType: 'project',
   },
   {
-    id: 'camp-bsocial',
-    label: 'BSOCIAL',
-    sublabel: PROJECT_SHOTS.BSOCIAL ? 'Activation · cutdown' : 'Activation',
-    colour: '#E6A2B4',
-    position: [1.35, -1.45, 0.75],
-    nodeType: 'project',
-  },
-  {
-    id: 'camp-mhe',
-    label: 'MHE',
-    sublabel: 'Abu Hamdan · campaigns',
-    colour: '#3DDC97',
-    position: [-1.55, -1.25, 0.85],
-    nodeType: 'project',
-  },
-  {
     id: 'camp-seven',
     label: 'SEVEN',
     sublabel: 'Destination participation',

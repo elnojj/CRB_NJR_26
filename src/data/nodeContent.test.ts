@@ -10,9 +10,9 @@ describe('node content: every node in every environment is described', () => {
 
   it('lists nodes for all four environments', () => {
     for (const sphere of SPHERES) assert.ok(directory[sphere].length > 0, `${sphere} has nodes`);
-    assert.equal(directory.hq.length, 12);
-    assert.equal(directory.cde.length, 19);
-    assert.equal(directory['campaign-os'].length, 6);
+    assert.equal(directory.hq.length, 5);
+    assert.equal(directory.cde.length, 9);
+    assert.equal(directory['campaign-os'].length, 4);
     assert.equal(directory['about-us'].length, 6);
   });
 
@@ -43,10 +43,15 @@ describe('node content: every node in every environment is described', () => {
     }
   });
 
-  it('never invents media: projects without approved media stay empty', () => {
+  it('disabled nodes are absent from every environment', () => {
+    const disabledIds = ['YAH', 'MHE', 'BSOCIAL', 'AL-AHRAM', 'MUSEUM-OF-ALMOST', 'tasks', 'files', 'camp-bsocial', 'camp-mhe'];
+    for (const sphere of SPHERES) {
+      for (const entry of directory[sphere]) {
+        assert.ok(!disabledIds.includes(entry.nodeId), `${sphere}:${entry.nodeId} should be disabled`);
+      }
+    }
     for (const id of ['YAH', 'MHE', 'BSOCIAL', 'AL-AHRAM', 'MUSEUM-OF-ALMOST']) {
-      const content = resolveNodeContent(id, 'project', 'hq');
-      assert.equal(content?.tubeKey, null, id);
+      assert.equal(resolveNodeContent(id, 'project', 'hq'), null, id);
     }
   });
 

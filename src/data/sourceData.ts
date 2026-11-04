@@ -196,7 +196,7 @@ export interface StationNode {
   badgeCount: string;
 }
 
-export const CEREBRO_STATIONS: StationNode[] = [
+const ALL_STATIONS: StationNode[] = [
   {
     id: 'projects',
     code: 'ST-01',
@@ -248,6 +248,11 @@ export const CEREBRO_STATIONS: StationNode[] = [
     badgeCount: '5 Showreels',
   },
 ];
+
+/** Stations with nothing verified to show (no connected register, no verified file access): not part of the scene. */
+export const DISABLED_STATION_IDS: ReadonlySet<string> = new Set(['tasks', 'files']);
+
+export const CEREBRO_STATIONS: StationNode[] = ALL_STATIONS.filter((st) => !DISABLED_STATION_IDS.has(st.id));
 
 export interface RegisterRecord {
   id: string;
@@ -760,7 +765,15 @@ export const PROJECTS_DATA: ProjectSummary[] = [
 ];
 
 /** Projects hidden from spatial graph, drawers, and portfolio counts. */
-export const EXCLUDED_PROJECT_IDS = new Set<string>(['GONDWANA']);
+export const EXCLUDED_PROJECT_IDS = new Set<string>([
+  'GONDWANA',
+  // No verified media in the approved folder (see MEDIA_GAPS): kept out of every environment.
+  'YAH',
+  'MHE',
+  'BSOCIAL',
+  'AL-AHRAM',
+  'MUSEUM-OF-ALMOST',
+]);
 
 export function isProjectVisibleInWorkspace(projectId: string): boolean {
   return !EXCLUDED_PROJECT_IDS.has(projectId);
@@ -1371,7 +1384,7 @@ export interface CdeDimensionNode {
   }[];
 }
 
-export const CDE_DIMENSIONS: CdeDimensionNode[] = [
+const ALL_CDE_DIMENSIONS: CdeDimensionNode[] = [
   {
     id: 'strategy',
     label: 'Creative Strategy',
@@ -1421,6 +1434,15 @@ export const CDE_DIMENSIONS: CdeDimensionNode[] = [
     ],
   },
 ];
+
+export const CDE_DIMENSIONS: CdeDimensionNode[] = ALL_CDE_DIMENSIONS
+  .map((dim) => ({
+    ...dim,
+    subdomains: dim.subdomains
+      .map((sub) => ({ ...sub, projectIds: sub.projectIds.filter((id) => !EXCLUDED_PROJECT_IDS.has(id)) }))
+      .filter((sub) => sub.projectIds.length > 0),
+  }))
+  .filter((dim) => dim.subdomains.length > 0);
 
 export interface StoryChapter {
   index: number;

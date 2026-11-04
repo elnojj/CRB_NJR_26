@@ -181,8 +181,6 @@ const CAMPAIGN_SOURCES: Readonly<Record<string, { sources: string[]; tile?: numb
   'camp-laliga': { sources: [NOJARA_TUBE], tile: 1 },
   'camp-nojara-showreel': { sources: [NOJARA_TUBE], tile: 0 },
   'camp-el-batron': { sources: ['EL-BATRON'] },
-  'camp-bsocial': { sources: ['BSOCIAL'] },
-  'camp-mhe': { sources: ['MHE'] },
   'camp-seven': { sources: ['SEVEN'] },
 };
 

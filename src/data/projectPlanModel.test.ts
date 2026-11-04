@@ -21,8 +21,8 @@ describe('projectPlanModel', () => {
   it('keeps open-register-work distinct from indexed register rows', () => {
     const open = selectOpenRegisterWorkCount();
     const indexed = selectIndexedRegisterRecordCount();
-    // Visible register after Gondwana purge (17+14+18+3+4+2+1 = 59).
-    assert.equal(open.count, 59);
+    // Visible register once Gondwana and the content-less projects (YAH, MHE, BSOCIAL, AL-AHRAM, MUSEUM-OF-ALMOST) are disabled.
+    assert.equal(open.count, 18);
     assert.ok(indexed.count > 0);
     assert.notEqual(open.count, indexed.count);
     assert.match(open.definition, /openTaskCount/);
