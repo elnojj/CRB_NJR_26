@@ -3,6 +3,7 @@
  * Call = voice · Hands = camera · Chat = liquid-motion text chat.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { hudBridge, useSpatialHudActive, type HudDockSpec } from '../three/hudBridge';
 import type { AudienceLevel } from '../state/panelTypes';
 import {
   GoogleAiStudioVoiceBridge,
@@ -462,11 +463,29 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         ? 'Chat with Cerebro'
         : 'Call · Hands · Chat · Nodes';
 
+  const hudActive = useSpatialHudActive();
+  const dockSpec: HudDockSpec = {
+    status: statusLine,
+    buttons: [
+      { id: 'call', label: callLabel, active: voiceLive, onSelect: () => void handleCall() },
+      { id: 'hands', label: handsLabel, active: handsActive, onSelect: onToggleHands },
+      { id: 'chat', label: chatLabel, active: chatOpen, onSelect: () => setChatOpen((v) => !v) },
+      ...(onOpenNodes
+        ? [{ id: 'nodes' as const, label: 'Nodes', active: Boolean(nodesOpen), onSelect: onOpenNodes }]
+        : []),
+    ],
+  };
+  useEffect(() => {
+    hudBridge.setDock(dockSpec);
+  });
+  useEffect(() => () => hudBridge.setDock(null), []);
+
   return (
     <div
       className="cerebro-dock"
       data-testid="voice-card"
       data-voice-capsule="c06"
+      data-hud={hudActive ? 'true' : 'false'}
       style={dockStyle}
       onPointerDown={(e) => e.stopPropagation()}
     >
@@ -559,6 +578,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
             >
               Attach
             </button>
+            <div className="cerebro-chat__bezel">
             <textarea
               ref={inputRef}
               className="cerebro-chat__input"
@@ -578,6 +598,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
                 }
               }}
             />
+            </div>
             <button
               type="submit"
               className="cerebro-chat__send"
@@ -605,7 +626,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       )}
 
       <div
-        className="cerebro-dock__capsule"
+        className={`cerebro-dock__capsule${hudActive ? ' cerebro-dock__capsule--mirror' : ''}`}
         role="toolbar"
         aria-label="Cerebro controls: Call, Hands, Chat, Nodes"
       >

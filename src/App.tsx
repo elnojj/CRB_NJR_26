@@ -181,6 +181,8 @@ import {
   toggleBrowserFullscreen,
 } from './utils/browserFullscreen';
 import { FloatingIconToggles } from './components/chrome/FloatingIconToggles';
+import { MoreMenuList } from './components/chrome/MoreMenuList';
+import { hudBridge, useSpatialHudActive, type HudMenuSpec } from './three/hudBridge';
 import { CosmographPilotGame } from './components/game/CosmographPilotGame';
 import { BioScienceExplorer } from './components/spatial/BioScienceExplorer';
 import { ImageStudioModal } from './components/spatial/ImageStudioModal';
@@ -2924,6 +2926,145 @@ export default function App() {
     [handleSelectNode]
   );
 
+  const hudActive = useSpatialHudActive();
+  const moreMenuSpec: HudMenuSpec = (() => {
+    const pick = (action: () => void) => () => {
+      setShowMoreMenu(false);
+      action();
+    };
+    return {
+      title: 'Stations & Tools',
+      onClose: () => setShowMoreMenu(false),
+      sections: [
+        {
+          id: 'stations',
+          title: 'Stations & Views',
+          items: CEREBRO_STATIONS.map((st) => ({
+            id: st.id,
+            label: st.label,
+            meta: String(st.badgeCount),
+            onSelect: pick(() => executeTypedAction({ type: 'open_station', station: st.id }, 'header')),
+          })),
+        },
+        {
+          id: 'triage',
+          items: [
+            {
+              id: 'urgent',
+              label: 'Urgent',
+              meta: String(VISIBLE_PROJECTS_DATA.filter((p) => p.health === 'At risk').length),
+              testId: 'chip-whats-urgent',
+              onSelect: pick(() => ensurePanelOpen('tasks')),
+            },
+            {
+              id: 'reviews',
+              label: 'Reviews',
+              meta: String(decisions.filter((d) => d.status === 'PENDING').length),
+              testId: 'chip-approve-pending',
+              onSelect: pick(() => ensurePanelOpen('decisions')),
+            },
+            {
+              id: 'blocked',
+              label: 'Blocked',
+              meta: String(VISIBLE_PROJECTS_DATA.filter((p) => p.health === 'Blocked').length),
+              testId: 'chip-unblock-this',
+              onSelect: pick(() => {
+                setSelectedProjectId('BSOCIAL');
+                setProjectTabsById((prev) => ({ ...prev, BSOCIAL: 'decisions' }));
+                ensurePanelOpen('decisions');
+              }),
+            },
+          ],
+        },
+        {
+          id: 'panels',
+          items: [
+            ...PROJECTS_PANELS.filter((panel) =>
+              ['decisions', 'team-room', 'minutes', 'timeline', 'gmail'].includes(panel.panelId)
+            ).map((panel) => ({ id: panel.panelId, label: panel.label })),
+            { id: 'build', label: 'Development' },
+            { id: 'settings', label: 'Settings' },
+          ].map((item) => ({
+            id: `panel-${item.id}`,
+            label: item.label,
+            onSelect: pick(() =>
+              executeTypedAction(
+                {
+                  type: 'open_panel',
+                  action: 'open',
+                  panel: item.id as Extract<WorkspaceAction, { type: 'open_panel' }>['panel'],
+                },
+                'more_menu'
+              )
+            ),
+          })),
+        },
+        {
+          id: 'simulators',
+          title: 'Simulators & Intelligence',
+          items: [
+            {
+              id: 'pilot',
+              label: 'Station 18 Pilot Simulator',
+              meta: '3D',
+              tone: 'mint',
+              testId: 'open-pilot-game-btn',
+              onSelect: pick(() => setShowPilotGame(true)),
+            },
+            {
+              id: 'bioscience',
+              label: 'AlphaFold BioScience',
+              meta: 'PDB',
+              tone: 'blue',
+              testId: 'open-bioscience-btn',
+              onSelect: pick(() => setShowBioScience(true)),
+            },
+            {
+              id: 'image-studio',
+              label: 'Creative Image Studio',
+              meta: 'Nano',
+              tone: 'light',
+              testId: 'open-image-studio-btn',
+              onSelect: pick(() => setShowImageStudio(true)),
+            },
+          ],
+        },
+        {
+          id: 'developer',
+          items: [
+            {
+              id: 'developer-view',
+              label: 'Developer View & Self-Tests',
+              testId: 'open-developer-view-btn',
+              onSelect: pick(() => setShowDeveloperDrawer(true)),
+            },
+            {
+              id: 'gui-qa',
+              label: 'GUI v3.0 Layout & Lens QA',
+              testId: 'open-gui-qa-hud-btn',
+              onSelect: pick(() => setShowGuiQaHud((v) => !v)),
+            },
+          ],
+        },
+      ],
+    };
+  })();
+
+  useEffect(() => {
+    hudBridge.setMenu(showMoreMenu ? moreMenuSpec : null);
+  });
+
+  useEffect(() => () => hudBridge.setMenu(null), []);
+
+  useEffect(() => {
+    if (!showMoreMenu) return undefined;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowMoreMenu(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showMoreMenu]);
+
   const spatialPanels = useMemo<SpatialPanelSpec[]>(() => {
     if (!bootDone) return [];
     const panels: SpatialPanelSpec[] = [];
@@ -4302,155 +4443,11 @@ export default function App() {
               onClick: () => setShowMoreMenu((v) => !v),
             },
           ]}
+          moreMenuMirror={hudActive}
           moreMenu={
             <>
-              <div className="fim-section">Stations & Views</div>
-              {CEREBRO_STATIONS.map((st) => (
-                <button
-                  key={st.id}
-                  type="button"
-                  className="fim-item"
-                  onClick={() => {
-                    setShowMoreMenu(false);
-                    executeTypedAction({ type: 'open_station', station: st.id }, 'header');
-                  }}
-                >
-                  <span>{st.label}</span>
-                  <span className="fim-meta">{st.badgeCount}</span>
-                </button>
-              ))}
-              <div className="fim-rule" />
-              <button
-                type="button"
-                className="fim-item"
-                data-testid="chip-whats-urgent"
-                onClick={() => {
-                  setShowMoreMenu(false);
-                  ensurePanelOpen('tasks');
-                }}
-              >
-                <span>Urgent</span>
-                <span className="fim-meta">
-                  {VISIBLE_PROJECTS_DATA.filter((p) => p.health === 'At risk').length}
-                </span>
-              </button>
-              <button
-                type="button"
-                className="fim-item"
-                data-testid="chip-approve-pending"
-                onClick={() => {
-                  setShowMoreMenu(false);
-                  ensurePanelOpen('decisions');
-                }}
-              >
-                <span>Reviews</span>
-                <span className="fim-meta">
-                  {decisions.filter((d) => d.status === 'PENDING').length}
-                </span>
-              </button>
-              <button
-                type="button"
-                className="fim-item"
-                data-testid="chip-unblock-this"
-                onClick={() => {
-                  setShowMoreMenu(false);
-                  setSelectedProjectId('BSOCIAL');
-                  setProjectTabsById((prev) => ({ ...prev, BSOCIAL: 'decisions' }));
-                  ensurePanelOpen('decisions');
-                }}
-              >
-                <span>Blocked</span>
-                <span className="fim-meta">
-                  {VISIBLE_PROJECTS_DATA.filter((p) => p.health === 'Blocked').length}
-                </span>
-              </button>
-              <div className="fim-rule" />
-              {(
-                [
-                  ...PROJECTS_PANELS.filter((panel) =>
-                    ['decisions', 'team-room', 'minutes', 'timeline', 'gmail'].includes(panel.panelId)
-                  ).map((panel) => ({ id: panel.panelId, label: panel.label })),
-                  { id: 'build', label: 'Development' },
-                  { id: 'settings', label: 'Settings' },
-                ] as const
-              ).map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className="fim-item"
-                  onClick={() => {
-                    setShowMoreMenu(false);
-                    executeTypedAction(
-                      { type: 'open_panel', action: 'open', panel: item.id },
-                      'more_menu'
-                    );
-                  }}
-                >
-                  {item.label}
-                </button>
-              ))}
-              <div className="fim-rule" />
-              <div className="fim-section">Simulators & Intelligence</div>
-              <button
-                type="button"
-                className="fim-item text-[#9AFFE0]"
-                data-testid="open-pilot-game-btn"
-                onClick={() => {
-                  setShowMoreMenu(false);
-                  setShowPilotGame(true);
-                }}
-              >
-                <span>Station 18 Pilot Simulator</span>
-                <span className="fim-meta">3D</span>
-              </button>
-              <button
-                type="button"
-                className="fim-item text-[#65ACFF]"
-                data-testid="open-bioscience-btn"
-                onClick={() => {
-                  setShowMoreMenu(false);
-                  setShowBioScience(true);
-                }}
-              >
-                <span>AlphaFold BioScience</span>
-                <span className="fim-meta">PDB</span>
-              </button>
-              <button
-                type="button"
-                className="fim-item text-[#F2F6F8]"
-                data-testid="open-image-studio-btn"
-                onClick={() => {
-                  setShowMoreMenu(false);
-                  setShowImageStudio(true);
-                }}
-              >
-                <span>Creative Image Studio</span>
-                <span className="fim-meta">Nano</span>
-              </button>
-              <div className="fim-rule" />
+              <MoreMenuList spec={moreMenuSpec} />
               <div className="sr-only" data-testid="header-overview-status" aria-hidden="true" />
-              <button
-                type="button"
-                className="fim-item"
-                data-testid="open-developer-view-btn"
-                onClick={() => {
-                  setShowMoreMenu(false);
-                  setShowDeveloperDrawer(true);
-                }}
-              >
-                Developer View & Self-Tests
-              </button>
-              <button
-                type="button"
-                className="fim-item"
-                data-testid="open-gui-qa-hud-btn"
-                onClick={() => {
-                  setShowMoreMenu(false);
-                  setShowGuiQaHud((v) => !v);
-                }}
-              >
-                GUI v3.0 Layout & Lens QA
-              </button>
             </>
           }
         />

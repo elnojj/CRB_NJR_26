@@ -27,6 +27,8 @@ type Props = {
   toggles: ToggleSpec[];
   moreOpen?: boolean;
   moreMenu?: React.ReactNode;
+  /** True while the 3D spatial menu is showing: the DOM list stays mounted but visually hidden. */
+  moreMenuMirror?: boolean;
 };
 
 function Glyph({ id }: { id: FloatingToggleId }) {
@@ -145,7 +147,7 @@ function Glyph({ id }: { id: FloatingToggleId }) {
   }
 }
 
-export function FloatingIconToggles({ toggles, moreOpen, moreMenu }: Props) {
+export function FloatingIconToggles({ toggles, moreOpen, moreMenu, moreMenuMirror }: Props) {
   return (
     <div
       data-testid="floating-icon-toggles"
@@ -174,7 +176,10 @@ export function FloatingIconToggles({ toggles, moreOpen, moreMenu }: Props) {
           </button>
         ))}
       {moreOpen && moreMenu ? (
-        <div className="floating-icon-more-menu" data-testid="floating-more-menu">
+        <div
+          className={`floating-icon-more-menu${moreMenuMirror ? ' floating-icon-more-menu--mirror' : ''}`}
+          data-testid="floating-more-menu"
+        >
           {moreMenu}
         </div>
       ) : null}

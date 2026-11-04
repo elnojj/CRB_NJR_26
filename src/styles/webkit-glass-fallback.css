@@ -1,0 +1,25 @@
+/*
+ * WebKit (Safari, and every iOS/iPadOS browser) cannot reliably composite backdrop-filter inside CSS 3D transforms or
+ * on top of a WebGL canvas: the blur drops out and translucent glass turns muddy. On WebKit every glass surface becomes
+ * semi-opaque matte carbon-black so text stays legible. <html data-engine="webkit"> is set from navigator.userAgent.
+ */
+html[data-engine='webkit'] .cerebro-spatial-panel,
+html[data-engine='webkit'] .cerebro-dock__capsule,
+html[data-engine='webkit'] .cerebro-chat,
+html[data-engine='webkit'] .cerebro-chat--docked,
+html[data-engine='webkit'] .floating-icon-more-menu,
+html[data-engine='webkit'] .floating-icon-toggle {
+  background: rgba(8, 10, 15, 0.92);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+html[data-engine='webkit'] .cerebro-spatial-panel::before {
+  display: none;
+}
+
+html[data-engine='webkit'] .cerebro-spatial-panel {
+  box-shadow:
+    0 0 0 1px rgba(30, 94, 255, 0.28),
+    0 14px 34px rgba(0, 0, 0, 0.6);
+}

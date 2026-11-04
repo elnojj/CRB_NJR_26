@@ -104,6 +104,8 @@ import {
 import { createIstanbaMouldProof, type IstanbaProofHandle } from '../three/istanbaMouldProof';
 import { SpatialLabelBillboardLayer } from '../three/spatialLabelBillboards';
 import { SpatialPanelLayer, type SpatialPanelSpec } from '../three/spatialPanels';
+import { SpatialHudLayer } from '../three/spatialHud';
+import { hudBridge } from '../three/hudBridge';
 
 // ---------------------------------------------------------------------------
 // CEREBRO-NOJARA D0 v1.24 — SECTION 2: THREE.JS RENDERER, MATERIALS, LIGHTS
@@ -1695,6 +1697,18 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     const camera = new THREE.PerspectiveCamera(46, initW / initH, 0.1, 200);
     scene.add(camera);
+
+    const hud = new SpatialHudLayer(camera, renderer.domElement, { softwareGl: isSoftwareGl });
+    hud.onActivate = () => soundEngine.playNodeSelect(0);
+    camera.add(hud.group);
+    const syncHudFromBridge = () => {
+      const snapshot = hudBridge.get();
+      hud.setMenu(snapshot.menu);
+      hud.setDock(snapshot.dock);
+    };
+    const unsubscribeHud = hudBridge.subscribe(syncHudFromBridge);
+    syncHudFromBridge();
+    hudBridge.setActive(true);
 
     const glove = new HandGlove3D(camera);
     const cosmeticFade: CosmeticFade = { value: 0 };
@@ -3392,6 +3406,22 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       e.preventDefault();
     };
 
+    const onHudPointerDown = (e: PointerEvent) => {
+      if (e.target !== domEl) return;
+      if (hud.handlePointerDown(e)) {
+        // The HUD owns this gesture: keep orbit, journey-interrupt and node-pick handlers out of it.
+        e.stopImmediatePropagation();
+        domEl.setPointerCapture?.(e.pointerId);
+        soundEngine.unlock();
+      }
+    };
+
+    const onHudPointerUp = (e: PointerEvent) => {
+      if (hud.handlePointerUp(e)) {
+        domEl.releasePointerCapture?.(e.pointerId);
+      }
+    };
+
     const onPointerDown = (e: PointerEvent) => {
       if (!container.contains(e.target as Node)) return;
       if (!pointerOrbitEnabledRef.current) {
@@ -3420,6 +3450,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     };
 
     const onPointerMove = (e: PointerEvent) => {
+      if (!isDragging && activePointers.size < 2) {
+        const hudHit = hud.handlePointerMove(e);
+        if (hudHit) {
+          domEl.style.cursor = hudHit.zone === 'menu-item' || hudHit.zone === 'menu-close' || hudHit.zone === 'dock-button' ? 'pointer' : 'default';
+          return;
+        }
+      }
       if (!pointerOrbitEnabledRef.current) return;
       if (activePointers.has(e.pointerId)) {
         activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -3578,6 +3615,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     const onWheel = (e: WheelEvent) => {
       if (!container.contains(e.target as Node)) return;
+      if (hud.handleWheel(e)) {
+        e.preventDefault();
+        return;
+      }
       e.preventDefault();
       recordUserInput();
       interruptJourney();
@@ -3590,6 +3631,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     };
 
     domEl.addEventListener('contextmenu', onContextMenu);
+    domEl.addEventListener('pointerdown', onHudPointerDown, { capture: true });
+    window.addEventListener('pointerup', onHudPointerUp, { capture: true });
     domEl.addEventListener('pointerdown', onPointerDown);
     domEl.addEventListener('pointerdown', recordUserInput);
     domEl.addEventListener('pointerdown', interruptJourney);
@@ -4250,6 +4293,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         camera.updateMatrixWorld();
       }
 
+      hud.update(dt, curW, curH);
+
       if (isSoftwareGl || !composer) {
         renderer.render(scene, camera);
       } else {
@@ -4508,10 +4553,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       handInteractionMachine.reset();
       nodeInteraction.reset();
       glove.dispose();
+      unsubscribeHud();
+      hudBridge.setActive(false);
+      hud.dispose();
       document.removeEventListener('visibilitychange', onVisibilityChange);
       domEl.removeEventListener('webglcontextlost', handleContextLost);
       domEl.removeEventListener('webglcontextrestored', handleContextRestored);
       domEl.removeEventListener('contextmenu', onContextMenu);
+      domEl.removeEventListener('pointerdown', onHudPointerDown, { capture: true });
+      window.removeEventListener('pointerup', onHudPointerUp, { capture: true });
       domEl.removeEventListener('pointerdown', onPointerDown);
       domEl.removeEventListener('pointerdown', recordUserInput);
       domEl.removeEventListener('pointerdown', interruptJourney);

@@ -2,6 +2,10 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import './styles/cerebro-shell.css';
+import './styles/webkit-glass-fallback.css';
+import { applyEngineAttributes } from './lib/browserEngine';
+
+applyEngineAttributes();
 
 /**
  * Primary experience is always the full CEREBRO HQ App:

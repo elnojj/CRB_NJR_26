@@ -30,6 +30,29 @@
   }
 }
 
+/* The 3D glass dock owns the bottom edge: the DOM chat floats above it. --cerebro-hud-dock-clear is published by the
+   WebGL HUD; with the iOS keyboard open the chat sits just above the keyboard instead. */
+.cerebro-dock[data-hud='true'] {
+  bottom: max(
+    var(--cerebro-hud-dock-clear, 0px),
+    calc(var(--cerebro-dock-gap) + var(--cerebro-kb-inset, 0px))
+  );
+}
+
+.cerebro-dock .cerebro-dock__capsule--mirror {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+}
+
 .cerebro-dock > * {
   pointer-events: auto;
 }
@@ -397,16 +420,39 @@
   background: rgba(5, 9, 14, 0.35);
 }
 
+/* Carbon-black bezel around the DOM-native input: sharp cobalt border while focused. */
+.cerebro-chat__bezel {
+  flex: 1 1 auto;
+  display: flex;
+  min-width: 0;
+  padding: 3px;
+  border-radius: 15px;
+  background: rgba(8, 10, 15, 0.86);
+  border: 1px solid rgba(30, 94, 255, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+  transition:
+    border-color 0.14s ease-out,
+    box-shadow 0.14s ease-out;
+}
+
+.cerebro-chat__bezel:focus-within {
+  border-color: #1e5eff;
+  box-shadow:
+    0 0 0 1px #1e5eff,
+    0 0 20px rgba(30, 94, 255, 0.38);
+}
+
 .cerebro-chat__input {
   flex: 1 1 auto;
+  min-width: 0;
   -webkit-appearance: none;
   appearance: none;
   min-height: 44px;
   max-height: 96px;
   resize: none;
   border-radius: 12px;
-  border: 1px solid rgba(180, 221, 255, 0.22);
-  background: rgba(8, 14, 22, 0.72);
+  border: 0;
+  background: transparent;
   color: #f2f6f8;
   padding: 12px 12px;
   font-size: 16px; /* keeps iOS from zooming */
@@ -415,8 +461,7 @@
 }
 
 .cerebro-chat__input:focus {
-  outline: 2px solid #65acff;
-  outline-offset: 1px;
+  outline: none;
 }
 
 .cerebro-chat__icon-btn,

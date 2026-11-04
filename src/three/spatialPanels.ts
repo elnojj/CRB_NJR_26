@@ -22,7 +22,8 @@ export const PANEL_BADGE_DISTANCE = 20;
 const BADGE_ZOOM = 0.7;
 const EDGE_MARGIN_PX = 10;
 const TOP_RESERVE_PX = 112;
-const BOTTOM_RESERVE_PX = 170;
+const BOTTOM_RESERVE_PX = 140;
+const MIN_FIT_ZOOM = 0.55;
 const NODE_CLEARANCE_PX = 64;
 const PIN_DEPTH = 6;
 
@@ -129,7 +130,11 @@ export class SpatialPanelLayer {
 
       const detailTarget = inView ? 1 - smoothstep(PANEL_FULL_DISTANCE, PANEL_BADGE_DISTANCE, distance) : 1;
       state.detail += (detailTarget - state.detail) * blend;
-      const zoom = BADGE_ZOOM + (1 - BADGE_ZOOM) * state.detail;
+      const fit = Math.max(
+        MIN_FIT_ZOOM,
+        Math.min(1, (this.height - TOP_RESERVE_PX - BOTTOM_RESERVE_PX) / Math.max(1, h))
+      );
+      const zoom = (BADGE_ZOOM + (1 - BADGE_ZOOM) * state.detail) * fit;
       const lod = state.detail < 0.5 ? 'badge' : 'full';
       if (lod !== state.lod) {
         state.lod = lod;
