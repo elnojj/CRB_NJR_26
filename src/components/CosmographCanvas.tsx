@@ -1912,8 +1912,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           shader,
           rimColVec,
           bodyColVec,
-          isBack ? 3.0 : 3.8,
-          isBack ? 0.16 : 0.34
+          isBack ? 2.6 : 3.0,
+          isBack ? 0.24 : 0.75
         );
         if (!patchedOpaque) {
           shader.fragmentShader = shader.fragmentShader.replace(
@@ -2193,14 +2193,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         group.add(outerLiquidShell);
 
         const cageRingA = new THREE.Mesh(
-          new THREE.TorusGeometry(0.72, 0.018, 16, 64),
+          new THREE.TorusGeometry(0.72, 0.036, 16, 64),
           sharedGoldRibbedMat
         );
         cageRingA.rotation.set(Math.PI / 2.2, 0.25, 0);
         group.add(cageRingA);
 
         const cageRingB = new THREE.Mesh(
-          new THREE.TorusGeometry(0.72, 0.016, 16, 64),
+          new THREE.TorusGeometry(0.72, 0.032, 16, 64),
           sharedPolishedGoldMat
         );
         cageRingB.rotation.set(0.28, -0.35, Math.PI / 3);
@@ -2219,14 +2219,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         group.add(outerGlassShell);
 
         const portalApertureRim = new THREE.Mesh(
-          new THREE.TorusGeometry(0.72, 0.024, 20, 64),
+          new THREE.TorusGeometry(0.72, 0.048, 20, 64),
           sharedGoldRibbedMat
         );
         portalApertureRim.rotation.set(0.18, -0.22, 0.12);
         group.add(portalApertureRim);
 
         const goldOrbit = new THREE.Mesh(
-          new THREE.TorusGeometry(0.78, 0.014, 16, 64),
+          new THREE.TorusGeometry(0.78, 0.028, 16, 64),
           sharedPolishedGoldMat
         );
         goldOrbit.rotation.set(-0.48, -0.32, 0.25);
@@ -2245,14 +2245,14 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         group.add(medallionGlass);
 
         const goldBezelRing = new THREE.Mesh(
-          new THREE.TorusGeometry(0.72, 0.028, 20, 64),
+          new THREE.TorusGeometry(0.72, 0.056, 20, 64),
           sharedPolishedGoldMat
         );
         goldBezelRing.rotation.set(0.24, -0.28, -0.14);
         group.add(goldBezelRing);
 
         const meridianRail = new THREE.Mesh(
-          new THREE.TorusGeometry(0.76, 0.014, 16, 64),
+          new THREE.TorusGeometry(0.76, 0.028, 16, 64),
           sharedGoldRibbedMat
         );
         meridianRail.rotation.set(1.12, 0.42, -0.35);
@@ -2276,7 +2276,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         group.add(liquidShell);
 
         const bronzeRail = new THREE.Mesh(
-          new THREE.TorusGeometry(0.74, 0.02, 18, 64),
+          new THREE.TorusGeometry(0.74, 0.040, 18, 64),
           sharedGoldRibbedMat
         );
         bronzeRail.rotation.set(0.65, 0.42, -0.32);
@@ -2317,7 +2317,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         group.add(outerGlass);
 
         const orbitalRing = new THREE.Mesh(
-          new THREE.TorusGeometry(0.68, 0.016, 16, 56),
+          new THREE.TorusGeometry(0.68, 0.032, 16, 56),
           pulseIndex % 2 === 0 ? sharedPolishedGoldMat : sharedGoldRibbedMat
         );
         orbitalRing.rotation.set(0.52 + (pulseIndex % 3) * 0.25, -0.36, 0.28);
@@ -2341,6 +2341,69 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       group.add(haloMesh);
 
       return { group, haloMesh, emissiveMats, objectCode, sculptureTag };
+    };
+
+    const NODE_MEDALLION_PX = 256;
+    const isStillImageUrl = (url: string): boolean => !/\.(mp4|mov|webm|m4v)(\?|#|$)/i.test(url);
+    const buildNodeMedallion = (thumbUrl: string | null, accent: THREE.Color): THREE.Sprite => {
+      const c = document.createElement('canvas');
+      c.width = NODE_MEDALLION_PX;
+      c.height = NODE_MEDALLION_PX;
+      const ctx = c.getContext('2d');
+      const half = NODE_MEDALLION_PX / 2;
+      const accentCss = `#${accent.getHexString()}`;
+      const clipCircle = () => {
+        if (!ctx) return;
+        ctx.beginPath();
+        ctx.arc(half, half, half - 10, 0, Math.PI * 2);
+        ctx.closePath();
+      };
+      const paintRing = () => {
+        if (!ctx) return;
+        clipCircle();
+        ctx.lineWidth = 8;
+        ctx.strokeStyle = accentCss;
+        ctx.stroke();
+      };
+      if (ctx) {
+        ctx.clearRect(0, 0, NODE_MEDALLION_PX, NODE_MEDALLION_PX);
+        const grad = ctx.createRadialGradient(half * 0.8, half * 0.7, 8, half, half, half);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.35, accentCss);
+        grad.addColorStop(1, '#0a1630');
+        clipCircle();
+        ctx.fillStyle = grad;
+        ctx.fill();
+        paintRing();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 4;
+      if (thumbUrl && ctx) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const iw = img.naturalWidth || NODE_MEDALLION_PX;
+          const ih = img.naturalHeight || NODE_MEDALLION_PX;
+          const cover = Math.max(NODE_MEDALLION_PX / iw, NODE_MEDALLION_PX / ih);
+          const dw = iw * cover;
+          const dh = ih * cover;
+          ctx.save();
+          clipCircle();
+          ctx.clip();
+          ctx.drawImage(img, (NODE_MEDALLION_PX - dw) / 2, (NODE_MEDALLION_PX - dh) / 2, dw, dh);
+          ctx.restore();
+          paintRing();
+          tex.needsUpdate = true;
+        };
+        img.src = thumbUrl;
+      }
+      const mat = new THREE.SpriteMaterial({ map: tex, alphaTest: 0.5, transparent: false, toneMapped: false, depthWrite: true });
+      extraDisposables.push(tex, mat);
+      const sprite = new THREE.Sprite(mat);
+      sprite.scale.setScalar(0.78);
+      sprite.renderOrder = 1;
+      return sprite;
     };
 
     const buildNodeWithSignal = (
@@ -2371,6 +2434,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       } = buildSculpturalNodeArchetype(canonicalId, nodeType, col, pulseIndex);
       nodeGroup.position.copy(posVec);
       nodeGroup.scale.setScalar(scale);
+
+      const thumb = resolveNodeContent(canonicalId, nodeType, sphereTag)?.thumbs.find((t) => isStillImageUrl(t.url));
+      nodeGroup.add(buildNodeMedallion(thumb?.url ?? null, col));
 
       const hitProxy = new THREE.Mesh(
         new THREE.SphereGeometry(1.3, 16, 16),
