@@ -9,14 +9,16 @@ import gsap from 'gsap';
 import type { CameraCommandPayload } from '../../components/CosmographCanvas';
 import { GUI_CAMERA_PRESETS, type GuiCameraPresetId } from '../../gui/cameraPresets';
 import type { HandState } from '../handStateRef';
-import type { UiInteractResult } from '../spatialControls';
+import type { UiInteractResult } from '../nodeInteraction';
 import {
   JOURNEY_BASE_DURATION_SEC,
+  JOURNEY_BEATS,
   buildJourneyStops,
   journeyBeatAt,
   type JourneyBeat,
   type JourneyStop,
 } from './journeyConfig';
+import { TwoHandGestureTracker } from './twoHandGestures';
 
 export type CameraDirectorMode =
   | 'idle'
@@ -245,6 +247,8 @@ export interface JourneyPose {
 export interface JourneyCallbacks {
   onBeat?: (beat: JourneyBeat, index: number) => void;
   onEnd?: (reason: 'complete' | 'skipped' | 'interrupted') => void;
+  /** Reduced motion: the pose jumped to the next stop, so the view should dissolve instead of fly. */
+  onCut?: () => void;
 }
 
 export class SplineJourney {
@@ -257,6 +261,7 @@ export class SplineJourney {
   private active = false;
   private sampled = false;
   private startedAtMs = 0;
+  private reduced = false;
   private callbacks: JourneyCallbacks = {};
   private readonly pose: JourneyPose = {
     position: new THREE.Vector3(),
@@ -294,7 +299,8 @@ export class SplineJourney {
     this.sampled = false;
     this.startedAtMs = performance.now();
     this.stops = buildJourneyStops();
-    const scale = (options.durationSec ?? (options.reducedMotion ? 36 : JOURNEY_BASE_DURATION_SEC)) / JOURNEY_BASE_DURATION_SEC;
+    this.reduced = options.reducedMotion === true;
+    const scale = (options.durationSec ?? JOURNEY_BASE_DURATION_SEC) / JOURNEY_BASE_DURATION_SEC;
     this.positionCurve = new THREE.CatmullRomCurve3(
       this.stops.map((s) => new THREE.Vector3(...s.position)),
       false,
@@ -320,8 +326,16 @@ export class SplineJourney {
       const from = this.stops[i];
       const to = this.stops[i + 1];
       const duration = Math.max(0.2, (to.atSec - from.atSec) * scale);
-      tl.to(this.proxy, { u: (i + 1) / last, focal: to.focalMm, duration }, `stop-${i}`);
-      tl.addLabel(`stop-${i + 1}`, `>`);
+      if (this.reduced) {
+        const beat = JOURNEY_BEATS[i];
+        const at = (beat ? beat.startSec : JOURNEY_BASE_DURATION_SEC) * scale;
+        tl.set(this.proxy, { u: (i + 1) / last, focal: to.focalMm }, at);
+        tl.call(() => this.callbacks.onCut?.(), undefined, at);
+        tl.addLabel(`stop-${i + 1}`, at);
+      } else {
+        tl.to(this.proxy, { u: (i + 1) / last, focal: to.focalMm, duration }, `stop-${i}`);
+        tl.addLabel(`stop-${i + 1}`, `>`);
+      }
     }
     this.timeline = tl;
     this.sample();
@@ -336,6 +350,11 @@ export class SplineJourney {
     const next = THREE.MathUtils.clamp(current + direction, 0, last);
     if (next === last && direction === 1 && current === last) {
       this.finish('skipped');
+      return;
+    }
+    if (this.reduced) {
+      tl.seek(`stop-${next}`);
+      this.callbacks.onCut?.();
       return;
     }
     tl.tweenTo(`stop-${next}`, { duration: 1.4, ease: 'power2.inOut' });
@@ -380,12 +399,13 @@ export class SplineJourney {
 
 // ---------------------------------------------------------------------------------------------
 // Hand interaction priority state machine. Strict order, first match wins:
-//   UI_INTERACT > CAMERA_CLAW_ZOOM > CAMERA_SPHERE_ORBIT > CAMERA_FLICK_THROW > CAMERA_PALM_PAN
+//   UI_INTERACT > CAMERA_TWO_HAND > CAMERA_CLAW_ZOOM > CAMERA_SPHERE_ORBIT > CAMERA_FLICK_THROW > CAMERA_PALM_PAN
 // ---------------------------------------------------------------------------------------------
 
 export type HandInteractionState =
   | 'IDLE'
   | 'UI_INTERACT'
+  | 'CAMERA_TWO_HAND'
   | 'CAMERA_CLAW_ZOOM'
   | 'CAMERA_SPHERE_ORBIT'
   | 'CAMERA_FLICK_THROW'
@@ -400,6 +420,10 @@ export interface HandCameraIntent {
   dPolar: number;
   /** 0..1 while the claw is held. */
   zoomOut: number;
+  /** Two-hand dolly in metres of pinch-midpoint distance change. Positive pushes the camera forward. */
+  dolly: number;
+  /** Two-hand horizon roll in radians. */
+  roll: number;
   /** Hand-direction step to the neighbouring node / journey stop (flip or horizontal throw). */
   step: -1 | 0 | 1;
   /** The camera is being moved by hand this frame (interrupts a running journey). */
@@ -420,7 +444,7 @@ const HAND_TUNING = {
 } as const;
 
 function idleIntent(state: HandInteractionState): HandCameraIntent {
-  return { state, panX: 0, panY: 0, dAzimuth: 0, dPolar: 0, zoomOut: 0, step: 0, steering: false };
+  return { state, panX: 0, panY: 0, dAzimuth: 0, dPolar: 0, zoomOut: 0, dolly: 0, roll: 0, step: 0, steering: false };
 }
 
 export class HandInteractionMachine {
@@ -433,6 +457,11 @@ export class HandInteractionMachine {
   private pendingStep: { dir: -1 | 1; at: number } | null = null;
   private uiHoldUntil = 0;
   private state: HandInteractionState = 'IDLE';
+  private readonly twoHand = new TwoHandGestureTracker();
+
+  setFrustum(halfW: number, halfH: number): void {
+    this.twoHand.setFrustum(halfW, halfH);
+  }
 
   getState(): HandInteractionState {
     return this.state;
@@ -446,6 +475,7 @@ export class HandInteractionMachine {
     this.throwPolar = 0;
     this.pendingStep = null;
     this.state = 'IDLE';
+    this.twoHand.reset();
   }
 
   evaluate(nowMs: number, dt: number, ui: UiInteractResult | null, hands: HandState): HandCameraIntent {
@@ -468,10 +498,30 @@ export class HandInteractionMachine {
 
     const intent = idleIntent('IDLE');
 
+    // 2. CAMERA_TWO_HAND — only while both hands are tracked together. One hand never reaches this.
+    const two = fresh ? this.twoHand.evaluate(nowMs, hands.hands, dt) : (this.twoHand.reset(), null);
+    if (two) {
+      this.pendingPanX = 0;
+      this.pendingPanY = 0;
+      this.pendingAz = 0;
+      this.throwAz = 0;
+      this.throwPolar = 0;
+      this.pendingStep = null;
+      this.state = 'CAMERA_TWO_HAND';
+      intent.state = this.state;
+      intent.dolly = two.dolly;
+      intent.roll = two.roll;
+      intent.dPolar = two.pitch;
+      intent.panX = two.panX;
+      intent.panY = two.panY;
+      intent.steering = two.dolly !== 0 || two.roll !== 0 || two.pitch !== 0 || two.panX !== 0 || two.panY !== 0;
+      return intent;
+    }
+
     if (control && newFrame) {
       if (control.posture === 'grab') {
         this.pendingAz += control.orbit;
-      } else if (control.posture === 'open' || control.posture === 'point') {
+      } else if (control.posture === 'open') {
         this.pendingPanX += control.pan.x;
         this.pendingPanY += control.pan.y;
       }
@@ -496,27 +546,27 @@ export class HandInteractionMachine {
     const throwing = Math.abs(this.throwAz) + Math.abs(this.throwPolar) > HAND_TUNING.throwRestVelocity;
     const posture = control?.posture ?? 'none';
 
-    // 2. CAMERA_CLAW_ZOOM
+    // 3. CAMERA_CLAW_ZOOM
     if (posture === 'claw' && control) {
       this.state = 'CAMERA_CLAW_ZOOM';
       intent.state = this.state;
       intent.zoomOut = control.zoomOut;
       intent.steering = true;
     } else if (posture === 'grab') {
-      // 3. CAMERA_SPHERE_ORBIT
+      // 4. CAMERA_SPHERE_ORBIT
       this.state = 'CAMERA_SPHERE_ORBIT';
       intent.state = this.state;
       intent.dAzimuth = takeAz;
       intent.steering = takeAz !== 0;
     } else if (throwing) {
-      // 4. CAMERA_FLICK_THROW — inertial impulse with exponential decay.
+      // 5. CAMERA_FLICK_THROW — inertial impulse with exponential decay.
       this.state = 'CAMERA_FLICK_THROW';
       intent.state = this.state;
       intent.dAzimuth = this.throwAz * dt;
       intent.dPolar = this.throwPolar * dt;
       intent.steering = true;
-    } else if (posture === 'open' || posture === 'point') {
-      // 5. CAMERA_PALM_PAN
+    } else if (posture === 'open') {
+      // 6. CAMERA_PALM_PAN (pointing is reserved for hover glow and poke)
       this.state = 'CAMERA_PALM_PAN';
       intent.state = this.state;
       intent.panX = takePanX;
@@ -546,6 +596,30 @@ export class HandInteractionMachine {
   private queueStep(dir: -1 | 1, nowMs: number, delayMs: number): void {
     if (this.pendingStep) return;
     this.pendingStep = { dir, at: nowMs + delayMs };
+  }
+}
+
+/**
+ * Short filter that keeps an accidental twitch from taking over an automated camera move. Deliberate
+ * input that persists for `holdMs` opens the gate; the gate closes the moment the input stops.
+ * It is a jitter filter, not a lockout: nothing is ignored for a fixed period after a move starts.
+ */
+export class IntentJitterGate {
+  private since = -1;
+
+  constructor(private readonly holdMs: number) {}
+
+  update(nowMs: number, active: boolean): boolean {
+    if (!active) {
+      this.since = -1;
+      return false;
+    }
+    if (this.since < 0) this.since = nowMs;
+    return nowMs - this.since >= this.holdMs;
+  }
+
+  reset(): void {
+    this.since = -1;
   }
 }
 

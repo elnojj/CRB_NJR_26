@@ -80,7 +80,6 @@ import {
 } from './data/blueprintData';
 import { HandsCameraPreview } from './components/HandsCameraPreview';
 import type { HandDetectionMode, HandFlipDirection } from './three/handStateRef';
-import type { SpatialButtonId } from './three/spatialControls';
 import type { JourneyBeat } from './three/camera/journeyConfig';
 import type {
   AudienceLevel,
@@ -467,8 +466,8 @@ export default function App() {
   // 5. Hands Overlay State
   const [handsActive, setHandsActive] = useState<boolean>(false);
   const [gestureTrackingActive, setGestureTrackingActive] = useState<boolean>(true);
-  // Always start one-hand; two-hands only when the user picks the 2× control.
-  const [handMode, setHandMode] = useState<HandDetectionMode>('right-only');
+  // Two-hand transforms need both hands tracked together; a single visible hand still points and pokes.
+  const [handMode, setHandMode] = useState<HandDetectionMode>('two-hands');
   // Spatial Health desk AR / wall calendar / node-chips (mounted in workspace chrome)
   // Cover-post default: sphere is the hero; desk AR / calendar stay cold until opened.
   const [spatialHealthOpen, setSpatialHealthOpen] = useState<boolean>(false);
@@ -2756,7 +2755,7 @@ export default function App() {
       setActiveSphere('cde');
       setOpenPanels(['story-journey']);
     } else if (view === 'hands') {
-      setHandMode('right-only');
+      setHandMode('two-hands');
       setHandsActive(true);
     } else if (view === 'audit' || view === 'developer') {
       setShowDeveloperDrawer(true);
@@ -3086,7 +3085,7 @@ export default function App() {
       }
       // Fresh enable — clear any zombie stream, then start one-hand until the user picks 2×.
       forceStopSharedWebcamStream();
-      setHandMode('right-only');
+      setHandMode('two-hands');
       setIsHandTrackingActive(true);
       return true;
     });
@@ -3106,37 +3105,6 @@ export default function App() {
       executeTypedAction({ type: 'switch_sphere', sphere: next }, 'hands');
     },
     [activeSphere, executeTypedAction]
-  );
-
-  const handleSpatialSphereDetent = useCallback(
-    (index: number) => {
-      const order: ConnectedSphereId[] = ['hq', 'cde', 'campaign-os', 'about-us'];
-      const next = order[Math.min(order.length - 1, Math.max(0, index))];
-      if (next === activeSphere) return;
-      executeTypedAction({ type: 'switch_sphere', sphere: next }, 'hands');
-    },
-    [activeSphere, executeTypedAction]
-  );
-
-  const handleSpatialButton = useCallback(
-    (id: SpatialButtonId) => {
-      switch (id) {
-        case 'overview':
-          executeTypedAction({ type: 'open_dashboard', mode: 'toggle' }, 'hands');
-          return;
-        case 'media':
-          executeTypedAction({ type: 'open_station', station: 'media' }, 'hands');
-          return;
-        case 'journey':
-          dispatchCamera(journeyActive ? 'journey_stop' : 'journey_start');
-          return;
-        default: {
-          const unhandled: never = id;
-          return unhandled;
-        }
-      }
-    },
-    [dispatchCamera, executeTypedAction, journeyActive]
   );
 
   const handleJourneyBeat = useCallback((beat: JourneyBeat | null) => {
@@ -3841,8 +3809,6 @@ export default function App() {
         idleOrbitAllowed={idleOrbitAllowed && !handsActive && !journeyActive}
         handsActive={handsActive}
         onHandStep={handleHandFlipNode}
-        onSpatialButton={handleSpatialButton}
-        onSpatialSphereDetent={handleSpatialSphereDetent}
         onJourneyBeat={handleJourneyBeat}
       />
 

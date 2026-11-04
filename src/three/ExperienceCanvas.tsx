@@ -14,7 +14,6 @@ import {
   ProjectMediaTubeItem,
   buildProjectMediaTubeItems,
 } from '../components/CosmographCanvas';
-import type { SpatialButtonId } from './spatialControls';
 import type { JourneyBeat } from './camera/journeyConfig';
 import {
   CustomDomain3D,
@@ -163,8 +162,6 @@ interface ExperienceCanvasProps {
   idleOrbitAllowed?: boolean;
   handsActive?: boolean;
   onHandStep?: (direction: -1 | 1) => void;
-  onSpatialButton?: (id: SpatialButtonId) => void;
-  onSpatialSphereDetent?: (index: number) => void;
   onJourneyBeat?: (beat: JourneyBeat | null) => void;
 }
 
@@ -200,8 +197,6 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
   idleOrbitAllowed = true,
   handsActive = false,
   onHandStep,
-  onSpatialButton,
-  onSpatialSphereDetent,
   onJourneyBeat,
 }) => {
   const osReducedMotion = useReducedMotion();
@@ -243,8 +238,6 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
         idleOrbitAllowed={idleOrbitAllowed}
         handsActive={handsActive}
         onHandStep={onHandStep}
-        onSpatialButton={onSpatialButton}
-        onSpatialSphereDetent={onSpatialSphereDetent}
         onJourneyBeat={onJourneyBeat}
       />
 

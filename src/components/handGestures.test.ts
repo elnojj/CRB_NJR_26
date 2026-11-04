@@ -11,7 +11,7 @@ import {
 } from './handGestures.ts';
 import { HandInteractionMachine } from '../three/camera/CameraDirector.ts';
 import { createHandState } from '../three/handStateRef.ts';
-import type { UiInteractResult } from '../three/spatialControls.ts';
+import type { UiInteractResult } from '../three/nodeInteraction.ts';
 
 type Pose = 'open' | 'claw' | 'grab' | 'point';
 

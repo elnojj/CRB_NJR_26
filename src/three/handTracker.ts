@@ -81,7 +81,7 @@ export class HandTracker {
   private lastDetectAt = 0;
   private interval = MIN_INTERVAL_MS;
   private delegate: HandDelegate | null = null;
-  private mode: HandDetectionMode = 'right-only';
+  private mode: HandDetectionMode = 'two-hands';
 
   constructor(private readonly callbacks: HandTrackerCallbacks) {}
 
@@ -236,9 +236,12 @@ export class HandTracker {
   private ingest(result: ReturnType<HandLandmarker['detectForVideo']>, vw: number, vh: number): void {
     const state = handStateRef.current;
     const t = performance.now();
-    const detected = result.landmarks ?? [];
+    const detected = (result.landmarks ?? []).map((lm, i) => ({ lm, score: result.handedness?.[i]?.[0]?.score ?? 1 }));
     const wanted = this.mode === 'two-hands' ? 2 : 1;
-    const hands = detected.slice(0, wanted);
+    const picked = detected.slice(0, wanted);
+    // Slot 0 is the hand on the left of the camera view so the pair keeps a stable order frame to frame.
+    if (picked.length === 2) picked.sort((a, b) => b.lm[0].x - a.lm[0].x);
+    const hands = picked.map((p) => p.lm);
 
     if (hands.length === 0) {
       if (this.lastSeenAt > 0 && t - this.lastSeenAt > LOST_GRACE_MS) {
@@ -259,6 +262,7 @@ export class HandTracker {
       if (!lm) {
         slot.present = false;
         slot.pinching = false;
+        slot.confidence = 0;
         slot.control = null;
         this.runtimes[hi] = createRuntime();
         continue;
@@ -329,6 +333,7 @@ export class HandTracker {
       slot.pinchDistance = pinch;
       slot.pinching = pinch < PINCH_THRESHOLD ? true : pinch > PINCH_RELEASE ? false : slot.pinching;
       slot.present = true;
+      slot.confidence = picked[hi].score;
 
       if (hi === 0) {
         const pts: ScreenPoint[] = [];

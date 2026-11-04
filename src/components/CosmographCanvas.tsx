@@ -66,9 +66,9 @@ import {
 import { getProjectWorldManifest } from '../data/projectWorldManifest';
 import { HandGlove3D } from '../three/HandGlove3D';
 import { gloveFrustum } from '../three/handTracker';
-import { SpatialControlLayer, type SpatialButtonId } from '../three/spatialControls';
+import { NodeInteractionLayer } from '../three/nodeInteraction';
 import { handIsFresh, handStateRef } from '../three/handStateRef';
-import { handInteractionMachine, splineJourney } from '../three/camera/CameraDirector';
+import { IntentJitterGate, handInteractionMachine, splineJourney } from '../three/camera/CameraDirector';
 import type { JourneyBeat } from '../three/camera/journeyConfig';
 import {
   CAMERA_MOTION_TARGETS,
@@ -630,8 +630,6 @@ export interface CosmographCanvasProps {
   handsActive?: boolean;
   /** Hand flip / horizontal throw: step to the neighbouring node (hand direction, +1 = hand moved right). */
   onHandStep?: (direction: -1 | 1) => void;
-  onSpatialButton?: (id: SpatialButtonId) => void;
-  onSpatialSphereDetent?: (index: number) => void;
   /** Journey caption beat; null clears the caption when the journey ends. */
   onJourneyBeat?: (beat: JourneyBeat | null) => void;
 }
@@ -667,11 +665,11 @@ const _handWorldUp = new THREE.Vector3(0, 1, 0);
 const _handProbe = new THREE.Vector3();
 const _handNodeProbe = new THREE.Vector3();
 const HAND_PAN_MAX = 14;
-const HAND_FLIGHT_GRACE_MS = 800;
-const JOURNEY_HAND_GRACE_MS = 1500;
+const HAND_JITTER_FILTER_MS = 120;
+const HAND_DOLLY_GAIN = 4.5;
+const HAND_ROLL_MAX_DEG = 25;
+const HAND_ROLL_RELAX_PER_SEC = 1.5;
 const JOURNEY_HAND_PAN_INTERRUPT = 0.004;
-const HAND_ZOOM_RADII = [30, 16, 6.5] as const;
-const HAND_SPHERE_ORDER = ['hq', 'cde', 'campaign-os', 'about-us'] as const;
 const SHOW_MISSING_MEDIA_PLACEHOLDERS = true;
 const HAND_ZOOM_OUT_UNITS_PER_SEC = 7.5;
 
@@ -715,6 +713,33 @@ function adoptJourneyPose(s: JourneyAdoptState, position: THREE.Vector3, target:
   s.azimuth = s.targetAzimuth = azimuth;
   s.focalLengthMm = s.targetFocalLengthMm = focalMm;
   s.cameraRollDeg = s.targetRollDeg = 0;
+}
+
+
+const _captureDir = new THREE.Vector3();
+const _captureLook = new THREE.Vector3();
+const _captureTarget = new THREE.Vector3();
+
+/**
+ * Deliberate input during a scripted move (flight curve or lemniscate loop): freeze the pose the
+ * camera is actually showing, hand it to the orbit rig, and let the scripted move end. The camera
+ * never jumps toward the move's destination, and any banking roll relaxes instead of snapping.
+ */
+function captureLiveCameraPose(s: JourneyAdoptState, camera: THREE.PerspectiveCamera): void {
+  const scripted = s.flightActive || s.activeLoopMode === 'lemniscate';
+  if (scripted) {
+    const roll = s.cameraRollDeg;
+    camera.getWorldDirection(_captureDir);
+    const distance = Math.max(3.2, camera.position.distanceTo(_captureLook.copy(s.currentCenter).add(s.panOffset)));
+    _captureTarget.copy(camera.position).addScaledVector(_captureDir, distance);
+    adoptJourneyPose(s, camera.position, _captureTarget, s.focalLengthMm);
+    s.cameraRollDeg = roll;
+  }
+  s.flightActive = false;
+  s.flightCurve = null;
+  s.flightLookAtCurve = null;
+  s.flightIsInterSphere = false;
+  s.activeLoopMode = 'off';
 }
 
 function beginJourney(s: JourneyAdoptState, reducedMotion: boolean): void {
@@ -969,8 +994,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   idleOrbitAllowed = true,
   handsActive = false,
   onHandStep,
-  onSpatialButton,
-  onSpatialSphereDetent,
   onJourneyBeat,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
@@ -999,8 +1022,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     onOpenMediaTubeFullView,
     onCloseMediaTube,
     onHandStep,
-    onSpatialButton,
-    onSpatialSphereDetent,
     onJourneyBeat,
   });
   callbacksRef.current = {
@@ -1014,8 +1035,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     onOpenMediaTubeFullView,
     onCloseMediaTube,
     onHandStep,
-    onSpatialButton,
-    onSpatialSphereDetent,
     onJourneyBeat,
   };
   const handsActiveRef = useRef(handsActive);
@@ -1946,31 +1965,16 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     scene.add(camera);
 
     const glove = new HandGlove3D(camera);
-    const controls = new SpatialControlLayer({
-      onZoomDetent: (index) => {
-        const st = stateRef.current;
-        st.flightActive = false;
-        st.activeLoopMode = 'off';
-        st.stoppedExplicitly = false;
-        st.lastUserInputTime = performance.now();
-        st.targetRadius = HAND_ZOOM_RADII[Math.min(HAND_ZOOM_RADII.length - 1, Math.max(0, index))];
-      },
-      onSphereDetent: (index) => callbacksRef.current.onSpatialSphereDetent?.(index),
-      onButton: (id) => {
-        if (id === 'journey') {
-          if (splineJourney.isActive()) splineJourney.stop('skipped');
-          else beginJourney(stateRef.current, stateRef.current.reducedMotion);
-          return;
-        }
-        callbacksRef.current.onSpatialButton?.(id);
-      },
-      probeNode: (point, snapRadius) => {
+    const handJitterGate = new IntentJitterGate(HAND_JITTER_FILTER_MS);
+    let handRollDeg = 0;
+    const nodeInteraction = new NodeInteractionLayer({
+      probeNode: (point, radius, preferId) => {
         const rect = renderer.domElement.getBoundingClientRect();
         if (rect.height <= 0) return null;
         const st = stateRef.current;
         const ndc = _handProbe.copy(point).applyMatrix4(camera.projectionMatrix);
         const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * Math.abs(point.z);
-        const maxPx = (snapRadius / (2 * halfH)) * rect.height;
+        const maxPx = (radius / (2 * halfH)) * rect.height;
         const px = (ndc.x * 0.5 + 0.5) * rect.width;
         const py = (-ndc.y * 0.5 + 0.5) * rect.height;
         let bestId: string | null = null;
@@ -1980,6 +1984,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           _handNodeProbe.copy(entry.worldPos).project(camera);
           if (_handNodeProbe.z > 1) continue;
           const d = Math.hypot(px - (_handNodeProbe.x * 0.5 + 0.5) * rect.width, py - (-_handNodeProbe.y * 0.5 + 0.5) * rect.height);
+          if (preferId && entry.canonicalId === preferId && d <= maxPx) return preferId;
           if (d < bestDist) {
             bestDist = d;
             bestId = entry.canonicalId;
@@ -1987,7 +1992,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         }
         return bestId;
       },
-      onNodeGrab: (nodeId) => {
+      onHover: (nodeId) => {
+        stateRef.current.HoveredNodeId = nodeId;
+      },
+      onNodeSelect: (nodeId) => {
         const st = stateRef.current;
         for (const entry of nodeRegistryRef.current.values()) {
           if (entry.canonicalId === nodeId && entry.sphere === st.activeSphere) {
@@ -1997,7 +2005,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         }
       },
     });
-    camera.add(controls.group);
 
     splineJourney.setCallbacks({
       onBeat: (beat) => callbacksRef.current.onJourneyBeat?.(beat),
@@ -3604,8 +3611,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         const tf = getTwoFingerState();
         if (tf) {
           const s = stateRef.current;
-          s.flightActive = false;
-          s.activeLoopMode = 'off';
+          captureLiveCameraPose(s, camera);
           s.stoppedExplicitly = false;
 
           // Two-finger drag (pan)
@@ -3673,8 +3679,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         lastY = e.clientY;
 
         const s = stateRef.current;
-        s.flightActive = false;
-        s.activeLoopMode = 'off';
+        captureLiveCameraPose(s, camera);
         s.stoppedExplicitly = false;
 
         if (e.shiftKey || e.buttons === 2 || e.buttons === 4) {
@@ -3760,8 +3765,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       interruptJourney();
       callbacksRef.current.onUserTouchPauseTour();
       const s = stateRef.current;
-      s.flightActive = false;
-      s.activeLoopMode = 'off';
+      captureLiveCameraPose(s, camera);
       s.targetRadius = THREE.MathUtils.clamp(s.targetRadius + e.deltaY * 0.012, 3.2, 42.0);
       setTouchIndicator({ active: true, x: e.clientX, y: e.clientY, mode: 'pinch' });
       window.setTimeout(() => setTouchIndicator((prev) => ({ ...prev, active: false })), 350);
@@ -3905,10 +3909,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const handState = handStateRef.current;
       const handsFresh = handsActiveRef.current && handIsFresh(now);
       glove.update(dt);
-      controls.layout(gloveFrustum.halfW, gloveFrustum.halfH);
-      controls.setVisible(handsActiveRef.current);
-      controls.setSphereValue(Math.max(0, HAND_SPHERE_ORDER.indexOf(s.activeSphere as (typeof HAND_SPHERE_ORDER)[number])));
-      const uiResult = handsActiveRef.current ? controls.update(dt, handState.hands, handsFresh) : null;
+      handInteractionMachine.setFrustum(gloveFrustum.halfW, gloveFrustum.halfH);
+      const uiResult = handsActiveRef.current ? nodeInteraction.update(now, handState.hands, handsFresh) : null;
       const intent = handInteractionMachine.evaluate(now, dt, uiResult, handsFresh ? handState : { ...handState, active: false });
 
       if (intent.step !== 0) {
@@ -3916,20 +3918,18 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         else callbacksRef.current.onHandStep?.(intent.step);
       }
 
-      if (
-        splineJourney.isActive() &&
-        splineJourney.elapsedMs(now) > JOURNEY_HAND_GRACE_MS &&
-        (intent.state === 'CAMERA_CLAW_ZOOM' ||
-          intent.state === 'CAMERA_SPHERE_ORBIT' ||
-          Math.abs(intent.panX) + Math.abs(intent.panY) > JOURNEY_HAND_PAN_INTERRUPT)
-      ) {
-        splineJourney.stop('interrupted');
-      }
+      const cameraAutomated = splineJourney.isActive() || s.flightActive;
+      const deliberateHand =
+        intent.state === 'CAMERA_CLAW_ZOOM' ||
+        intent.state === 'CAMERA_SPHERE_ORBIT' ||
+        intent.state === 'CAMERA_TWO_HAND' ||
+        Math.abs(intent.panX) + Math.abs(intent.panY) > JOURNEY_HAND_PAN_INTERRUPT;
+      const handTakeover = handJitterGate.update(now, cameraAutomated && deliberateHand);
+      if (handTakeover && splineJourney.isActive()) splineJourney.stop('interrupted');
       const journeyOwnsCamera = splineJourney.isActive();
-      const flightProtected = s.flightActive && now - s.flightStartTime < HAND_FLIGHT_GRACE_MS;
+      const flightProtected = cameraAutomated && !handTakeover && !journeyOwnsCamera;
       if (intent.steering && !journeyOwnsCamera && !flightProtected && !s.reducedMotion) {
-        s.flightActive = false;
-        s.activeLoopMode = 'off';
+        captureLiveCameraPose(s, camera);
         s.stoppedExplicitly = false;
         s.lastUserInputTime = now;
 
@@ -3958,6 +3958,16 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           s.targetPolar = THREE.MathUtils.clamp(s.targetPolar + intent.dPolar, 0.14, Math.PI - 0.14);
         }
 
+        if (intent.dolly !== 0) {
+          s.targetRadius = THREE.MathUtils.clamp(s.targetRadius * Math.exp(-intent.dolly * HAND_DOLLY_GAIN), 3.2, 38.0);
+        }
+
+        if (intent.roll !== 0) {
+          const next = THREE.MathUtils.clamp(handRollDeg + THREE.MathUtils.radToDeg(intent.roll), -HAND_ROLL_MAX_DEG, HAND_ROLL_MAX_DEG);
+          s.targetRollDeg += next - handRollDeg;
+          handRollDeg = next;
+        }
+
         if (intent.zoomOut > 0) {
           s.targetRadius = THREE.MathUtils.clamp(
             s.targetRadius + HAND_ZOOM_OUT_UNITS_PER_SEC * intent.zoomOut * dt,
@@ -3965,6 +3975,16 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             38.0
           );
           s.targetPanOffset.multiplyScalar(Math.exp(-1.6 * dt));
+        }
+      }
+
+      if (handRollDeg !== 0 && intent.state !== 'CAMERA_TWO_HAND') {
+        const relax = handRollDeg * (1 - Math.exp(-HAND_ROLL_RELAX_PER_SEC * dt));
+        handRollDeg -= relax;
+        s.targetRollDeg -= relax;
+        if (Math.abs(handRollDeg) < 0.01) {
+          s.targetRollDeg -= handRollDeg;
+          handRollDeg = 0;
         }
       }
 
@@ -4673,8 +4693,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       splineJourney.dispose();
       splineJourney.setCallbacks({});
       handInteractionMachine.reset();
-      camera.remove(controls.group);
-      controls.dispose();
+      nodeInteraction.reset();
       glove.dispose();
       document.removeEventListener('visibilitychange', onVisibilityChange);
       domEl.removeEventListener('webglcontextlost', handleContextLost);
