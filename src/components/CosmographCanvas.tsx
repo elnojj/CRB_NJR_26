@@ -43,6 +43,11 @@ import { ProjectedTargetScreenCoords } from '../gui/GuiFocusOverlay';
 import { CerebroSphere, createCerebroSphere } from '../three/CerebroSphere';
 import { createParticleHorizon } from '../three/particleHorizon';
 import { WEBGL_RENDER_ORDER } from '../three/renderOrder';
+import {
+  disposeShellGeometryCache,
+  seedShellGeometry,
+} from '../three/geometryRegistry';
+import { MEDIA_TUBE_BASELINE } from '../three/sceneRegistry';
 import { LG_V7_PARTICLES } from '../design/liquidGlassV7';
 import {
   HOTSPOT26_COLLECTION_ID,
@@ -282,19 +287,19 @@ export interface ProjectMediaTubeItem {
 }
 
 export const PROJECT_MEDIA_TUBE_SPECS = {
-  radiusU: 5.4,
-  columns: 8,
-  visibleRows: 3,
-  maxMountedTiles: 24,
-  slotSizeU: [3.2, 1.8] as const,
-  rowPitchU: 2.25,
-  idleRadPerSec: 0.025,
-  spinClampRadPerSec: 2.0,
-  damping60Hz: 0.92,
-  hoverSpeedMultiplier: 0.35,
-  focusMs: 650,
-  fullviewMs: 1100,
-  returnMs: 850,
+  radiusU: MEDIA_TUBE_BASELINE.radiusU,
+  columns: MEDIA_TUBE_BASELINE.columns,
+  visibleRows: MEDIA_TUBE_BASELINE.visibleRows,
+  maxMountedTiles: MEDIA_TUBE_BASELINE.maxMountedTiles,
+  slotSizeU: MEDIA_TUBE_BASELINE.slotSizeU,
+  rowPitchU: MEDIA_TUBE_BASELINE.rowPitchU,
+  idleRadPerSec: MEDIA_TUBE_BASELINE.idleRadPerSec,
+  spinClampRadPerSec: MEDIA_TUBE_BASELINE.spinClampRadPerSec,
+  damping60Hz: MEDIA_TUBE_BASELINE.damping60Hz,
+  hoverSpeedMultiplier: MEDIA_TUBE_BASELINE.hoverSpeedMultiplier,
+  focusMs: MEDIA_TUBE_BASELINE.focusMs,
+  fullviewMs: MEDIA_TUBE_BASELINE.fullviewMs,
+  returnMs: MEDIA_TUBE_BASELINE.returnMs,
 } as const;
 
 export function buildProjectMediaTubeItems(projectId: string): ProjectMediaTubeItem[] {
@@ -1498,6 +1503,17 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       nodeB: string;
     }[] = [];
 
+    // Shared master-shell geometry (seeded into geometryRegistry) — both spheres reuse one BufferGeometry.
+    const [segW, segH] =
+      initW < 768
+        ? LG_V7_PARTICLES.sphereSegments.mobile
+        : initW < 1280
+          ? LG_V7_PARTICLES.sphereSegments.navigation
+          : LG_V7_PARTICLES.sphereSegments.hero;
+    const sharedShellGeo = new THREE.SphereGeometry(6.2, segW, segH);
+    sharedShellGeo.name = 'shell-shape:sphere';
+    seedShellGeometry('sphere', sharedShellGeo);
+
     const buildSphereAssembly = (
       center: THREE.Vector3,
       sphereTag: 'hq' | 'cde',
@@ -1507,14 +1523,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       root.position.copy(center);
 
       const shellGroup = new THREE.Group();
-      // Sphere 01 (HQ) & Sphere 02 (CDE): radius 6.2u — v5.0 navigation geometry 64×48
-      const [segW, segH] =
-        initW < 768
-          ? LG_V7_PARTICLES.sphereSegments.mobile
-          : initW < 1280
-            ? LG_V7_PARTICLES.sphereSegments.navigation
-            : LG_V7_PARTICLES.sphereSegments.hero;
-      const shellGeo = new THREE.SphereGeometry(6.2, segW, segH);
+      // Sphere 01 (HQ) & Sphere 02 (CDE): shared 6.2u shell from geometryRegistry
+      const shellGeo = sharedShellGeo;
 
       const isHq = sphereTag === 'hq';
       const matPreset = isHq ? sphereMaterials.hq : sphereMaterials.cde;
@@ -3473,6 +3483,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       if (composer) {
         composer.dispose();
       }
+      disposeShellGeometryCache();
       renderer.dispose();
     };
   }, [customDomains.length, sphereMaterials.hq, sphereMaterials.cde]);
@@ -3679,77 +3690,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             </div>
           )}
 
-          {/* v4.0 3D Cylindrical Project Media Tube Floating HUD Controls */}
-          {mediaTubeState?.active && (() => {
-            const tubeItems = buildProjectMediaTubeItems(mediaTubeState.projectId);
-            const focusedIdx = mediaTubeState.focusedTileIndex ?? 0;
-            const focusedTile = tubeItems[focusedIdx] || tubeItems[0];
-            return (
-              <div
-                data-testid="project-media-tube-hud"
-                data-ui-id="project-media-tube-hud"
-                onPointerDown={(e) => e.stopPropagation()}
-                className="fixed left-1/2 bottom-28 -translate-x-1/2 z-30 pointer-events-auto flex flex-wrap items-center gap-2 px-4 py-2.5 rounded-2xl border backdrop-blur-xl shadow-2xl max-w-[94vw]"
-                style={{
-                  backgroundColor: 'rgba(20, 38, 50, 0.86)',
-                  borderColor: 'rgba(255, 255, 255, 0.18)',
-                }}
-              >
-                <div className="pr-2 border-r border-white/15">
-                  <div className="font-mono text-[10px] text-[#F2B66D] uppercase">
-                    3D MEDIA TUBE · {mediaTubeState.projectId} (8×3 CYLINDER · 5.4u)
-                  </div>
-                  <div className="font-sans text-xs font-semibold text-[#F2F6F8]">
-                    Tile #{focusedIdx + 1}/24 · {focusedTile.title}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    data-cta-id="media-tube-prev"
-                    data-action-id="media.previous"
-                    onClick={() => {
-                      const prevIdx = (focusedIdx - 1 + tubeItems.length) % tubeItems.length;
-                      onSelectMediaTubeTile?.(prevIdx, tubeItems[prevIdx]);
-                    }}
-                    className="min-h-[38px] px-2.5 py-1 rounded-lg font-mono text-xs bg-[#101D27] border border-white/20 text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
-                  >
-                    ‹ Prev Tile
-                  </button>
-                  <button
-                    type="button"
-                    data-cta-id="media-tube-next"
-                    data-action-id="media.next"
-                    onClick={() => {
-                      const nextIdx = (focusedIdx + 1) % tubeItems.length;
-                      onSelectMediaTubeTile?.(nextIdx, tubeItems[nextIdx]);
-                    }}
-                    className="min-h-[38px] px-2.5 py-1 rounded-lg font-mono text-xs bg-[#101D27] border border-white/20 text-[#F2F6F8] hover:border-[#65ACFF] cursor-pointer"
-                  >
-                    Next Tile ›
-                  </button>
-                  <button
-                    type="button"
-                    data-cta-id="media-tube-fullview"
-                    data-action-id="media.open"
-                    onClick={() => onOpenMediaTubeFullView?.(focusedTile)}
-                    className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-xs bg-[#F2B66D] text-[#101D27] font-semibold cursor-pointer"
-                  >
-                    Open Full View
-                  </button>
-                  <button
-                    type="button"
-                    data-cta-id="media-tube-close"
-                    data-action-id="media.close"
-                    onClick={() => onCloseMediaTube?.()}
-                    className="min-h-[38px] px-3 py-1 rounded-lg font-mono text-xs bg-[#101D27] border border-[#65ACFF] text-[#B4DDFF] hover:bg-[#4C8DFF] hover:text-[#101D27] cursor-pointer"
-                  >
-                    ← Return to Project
-                  </button>
-                </div>
-              </div>
-            );
-          })()}
+          {/* Media tube: WebGL cylinder only — flat DOM HUD card removed (scene baseline). */}
         </div>
       )}
     </div>

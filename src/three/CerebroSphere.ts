@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { LG_V7_OPTICAL, LG_V7_PARTICLES } from '../design/liquidGlassV7';
+import { getShellGeometry, seedShellGeometry } from './geometryRegistry';
 import { WEBGL_RENDER_ORDER } from './renderOrder';
 
 export interface CerebroSphere {
@@ -41,7 +42,12 @@ export function createCerebroSphere(
 
   if (!omitCore) {
     const [segW, segH] = LG_V7_PARTICLES.sphereSegments.navigation;
-    const geometry = new THREE.SphereGeometry(6.2, segW, segH);
+    let geometry = getShellGeometry('sphere');
+    if (!geometry) {
+      geometry = new THREE.SphereGeometry(6.2, segW, segH);
+      geometry.name = 'shell-shape:sphere';
+      seedShellGeometry('sphere', geometry);
+    }
     material = new THREE.MeshPhysicalMaterial({
       color: 0x4c8dff,
       metalness: LG_V7_OPTICAL.metalness,
@@ -56,7 +62,8 @@ export function createCerebroSphere(
       emissive: new THREE.Color(0x1a3a6e),
       emissiveIntensity: 0.35,
     });
-    disposables.push(geometry, material);
+    // Geometry is owned by geometryRegistry — do not dispose it with this sphere instance.
+    disposables.push(material);
 
     material.onBeforeCompile = (shader) => {
       const target = '#include <opaque_fragment>';
