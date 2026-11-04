@@ -15,7 +15,8 @@ import {
   CRO_CDE_GOOGLE_AGENT_NAME,
   CRO_CDE_GOOGLE_TOOLS_SCHEMA,
   buildGoogleAiStudioAgentPayload,
-} from '../data/croCdeGoogleAgentManifest';
+} from '../services/voice/cerebroAgentManifest';
+import { buildOpenAiRealtimeSession } from '../services/openai-realtime/sessionConfig';
 
 interface ProjectDownloadModalProps {
   open: boolean;
@@ -32,6 +33,10 @@ const rawSourceModules = import.meta.glob(
     '/vite.config.ts',
     '/metadata.json',
     '/server.ts',
+    '/server/**/*.ts',
+    '/api/**/*.ts',
+    '/.env.example',
+    '/firebase-applet-config.json',
   ],
   { query: '?raw', import: 'default' }
 );
@@ -77,7 +82,8 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
         } catch {}
       }
 
-      // Add README & Google AI Studio Cerebro agent pack
+      // Include both provider packs; runtime secrets are never exported.
+      collected['Cerebro_OpenAI_Realtime_Session.json'] = JSON.stringify(buildOpenAiRealtimeSession(), null, 2);
       collected['Cro-cde-google_Google_AI_Studio_Agent_Manifest.json'] = JSON.stringify(
         buildGoogleAiStudioAgentPayload(),
         null,
@@ -107,6 +113,7 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
       for (const [relPath, content] of Object.entries(filesMap)) {
         zip.file(relPath, content);
       }
+      zip.file('Cerebro_OpenAI_Realtime_Session.json', JSON.stringify(buildOpenAiRealtimeSession(), null, 2));
       zip.file(
         'Cro-cde-google_Google_AI_Studio_Agent_Manifest.json',
         JSON.stringify(buildGoogleAiStudioAgentPayload(), null, 2)

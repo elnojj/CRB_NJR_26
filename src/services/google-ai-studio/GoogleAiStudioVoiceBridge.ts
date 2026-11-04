@@ -9,29 +9,12 @@ import {
   CRO_CDE_GOOGLE_FIRST_MESSAGE,
   CRO_CDE_GOOGLE_SYSTEM_PROMPT,
   CRO_CDE_GOOGLE_TOOLS_SCHEMA,
-} from '../data/croCdeGoogleAgentManifest';
-import { buildLocalCerebroReply } from './cerebroLocalChat';
+} from '../voice/cerebroAgentManifest';
+import type { ChatTurn } from './mediaApi';
+import type { VoiceBridgeCallbacks, VoiceBridgeState } from '../voice/types';
+export type { VoiceBridgeState } from '../voice/types';
 
-export type VoiceBridgeState =
-  | 'Ready'
-  | 'Connecting'
-  | 'Listening'
-  | 'Thinking'
-  | 'Speaking'
-  | 'Muted'
-  | 'Reconnecting'
-  | 'Disconnected'
-  | 'Error';
-
-export interface GoogleAiStudioVoiceBridgeCallbacks {
-  onStatusChange: (status: VoiceBridgeState, detail?: string) => void;
-  onTranscript: (role: 'user' | 'agent', text: string) => void;
-  onClientToolCall: (
-    toolName: string,
-    parameters: Record<string, unknown>
-  ) => Promise<string> | string;
-  onAudioLevel?: (rms: number) => void;
-}
+export type GoogleAiStudioVoiceBridgeCallbacks = VoiceBridgeCallbacks;
 
 interface SpeechRecognitionEventLike {
   results: ArrayLike<{ 0: { transcript: string }; isFinal?: boolean }>;
@@ -47,110 +30,6 @@ interface SpeechRecognitionInstance {
   start: () => void;
   stop: () => void;
   abort: () => void;
-}
-
-export type ChatTurn = {
-  role: 'user' | 'model';
-  text: string;
-  model?: string;
-  timestamp?: string;
-};
-
-export type GeminiChatModelId =
-  | 'gemini-3.8-flash'
-  | 'gemini-2.5-flash'
-  | 'gemini-2.0-flash'
-  | string;
-
-export type LyriaMusicModelId = 'lyria-3-clip-preview' | 'lyria-2' | string;
-
-export async function sendGeminiChatTurn(args: {
-  message: string;
-  model: GeminiChatModelId;
-  history: ChatTurn[];
-}): Promise<{
-  reply: string;
-  model: string;
-  toolCalls: Array<{ toolName: string; parameters: Record<string, unknown> }>;
-}> {
-  try {
-    const res = await fetch('/api/gemini/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(args),
-    });
-    if (!res.ok) {
-      // Static hosts without serverless previously returned Vercel NOT_FOUND HTML.
-      return {
-        reply: buildLocalCerebroReply(
-          args.message,
-          args.history.map((h) => ({ role: h.role, text: h.text }))
-        ),
-        model: 'cerebro-local-fallback',
-        toolCalls: [],
-      };
-    }
-    const data = (await res.json()) as {
-      reply?: string;
-      model?: string;
-      toolCalls?: Array<{ toolName: string; parameters: Record<string, unknown> }>;
-    };
-    return {
-      reply:
-        data.reply ||
-        buildLocalCerebroReply(
-          args.message,
-          args.history.map((h) => ({ role: h.role, text: h.text }))
-        ),
-      model: data.model || String(args.model),
-      toolCalls: Array.isArray(data.toolCalls) ? data.toolCalls : [],
-    };
-  } catch {
-    return {
-      reply: buildLocalCerebroReply(
-        args.message,
-        args.history.map((h) => ({ role: h.role, text: h.text }))
-      ),
-      model: 'cerebro-local-fallback',
-      toolCalls: [],
-    };
-  }
-}
-
-export async function transcribeAudioBlob(
-  blob: Blob,
-  mimeType?: string
-): Promise<{ text: string }> {
-  const form = new FormData();
-  form.append('audio', blob, `voice.${(mimeType || blob.type || 'audio/webm').split('/')[1] || 'webm'}`);
-  if (mimeType) form.append('mimeType', mimeType);
-  const res = await fetch('/api/gemini/transcribe', { method: 'POST', body: form });
-  if (!res.ok) {
-    const detail = await res.text().catch(() => '');
-    throw new Error(detail || `Transcription failed (${res.status})`);
-  }
-  const data = (await res.json()) as { text?: string };
-  return { text: data.text || '' };
-}
-
-export async function generateLyriaMusic(args: {
-  prompt: string;
-  model: LyriaMusicModelId;
-}): Promise<{ audioDataUrl: string; lyrics: string }> {
-  const res = await fetch('/api/lyria/generate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(args),
-  });
-  if (!res.ok) {
-    const detail = await res.text().catch(() => '');
-    throw new Error(detail || `Lyria generate failed (${res.status})`);
-  }
-  const data = (await res.json()) as { audioDataUrl?: string; lyrics?: string };
-  return {
-    audioDataUrl: data.audioDataUrl || '',
-    lyrics: data.lyrics || '',
-  };
 }
 
 export class GoogleAiStudioVoiceBridge {
@@ -409,6 +288,11 @@ export class GoogleAiStudioVoiceBridge {
         `Google Voice · ${CRO_CDE_GOOGLE_TOOLS_SCHEMA.length} Cerebro tools`
       );
     }
+  }
+
+  async retry(): Promise<void> {
+    this.disconnect();
+    await this.connect();
   }
 
   disconnect(intentional = true): void {

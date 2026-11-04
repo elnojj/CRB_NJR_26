@@ -122,6 +122,9 @@ export const getAccessToken = async (): Promise<string | null> => {
   return cachedAccessToken;
 };
 
+/** Shared auth instance for authenticated service adapters. */
+export const getWorkspaceAuth = () => auth;
+
 export const logout = async () => {
   await auth.signOut();
   cachedAccessToken = null;

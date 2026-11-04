@@ -112,7 +112,7 @@ import {
   CRO_CDE_GOOGLE_AGENT_NAME,
   CRO_CDE_GOOGLE_TOOLS_SCHEMA,
   DEFAULT_INTERNAL_AGENT_ID,
-} from './data/croCdeGoogleAgentManifest';
+} from './services/voice/cerebroAgentManifest';
 import { CEREBRO_17_PROJECTS, CEREBRO_18_SCREENS } from './data/cerebroData';
 import {
   CustomDomain3D,
@@ -122,7 +122,8 @@ import {
   orchestrateScreenCommandWithGemini,
 } from './utils/geminiScreenOrchestrator';
 import { soundEngine } from './utils/soundEngine';
-import { forceStopSharedWebcamStream } from './utils/deviceStreamCoordinator';
+import { forceStopSharedWebcamStream } from './services/media/deviceStreamCoordinator';
+import { CEREBRO_VOICE_LABEL } from './services/voice/settings';
 import { useViewport } from './gui/useViewport';
 import { computeGuiLayout, PhoneSheetExpansion } from './gui/layoutEngine';
 import { GUI_CAMERA_PRESETS, GuiCameraPresetId } from './gui/cameraPresets';
@@ -2425,7 +2426,7 @@ export default function App() {
     ]
   );
 
-  // Structured Client Tool Executor for GoogleAiStudioVoiceBridge (Never flattens named parameters!)
+  // Shared structured executor for both voice providers. Preserve named parameters.
   const handleExecuteToolCall = useCallback(
     (toolName: string, parameters: Record<string, unknown>): string => {
       const parsed = parseStructuredToolCall(toolName, parameters);
@@ -2463,16 +2464,12 @@ export default function App() {
 
       if (text.startsWith('__agent_reply__:')) {
         const cleanReply = text.replace('__agent_reply__:', '').trim();
-        if (!soundMuted) setVoiceState('Speaking');
         setCaptionBubble(cleanReply);
         appendTranscript('Cerebro', cleanReply, 'live_response');
-        window.setTimeout(() => setVoiceState('Ready'), 1100);
         return;
       }
 
-      // Live Google Voice transcript separation (rawTranscriptExecutesCommands: false):
-      // When the Google AI Studio voice session is live, user transcripts update conversation history ONLY
-      // while Gemini-proposed client tool calls execute actions, preventing duplicate local command execution.
+      // Live voice transcripts update history; provider function calls alone execute actions.
       if (text.startsWith('__user_voice_live__:')) {
         const liveSpeech = text.replace('__user_voice_live__:', '').trim();
         if (liveSpeech) {
@@ -4423,6 +4420,7 @@ export default function App() {
           onPrevTourStop={handlePrevTourStop}
           onStopTour={handleStopTourImmediately}
           onAudioLevel={setAudioRms}
+          onVoiceStateChange={setVoiceState}
           guiLayout={guiLayout}
           onVoiceDragDeltaChange={setVoiceDragDelta}
           onVoiceExpandedChange={setVoiceExpanded}
@@ -4755,7 +4753,7 @@ export default function App() {
                     }}
                     className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#1B2230] border border-[#D4AF37]/50 text-[#FFF4D0] cursor-pointer"
                   >
-                    Connect Google AI Studio Voice ({CRO_CDE_GOOGLE_TOOLS_SCHEMA.length} Tools)
+                    Connect {CEREBRO_VOICE_LABEL} ({CRO_CDE_GOOGLE_TOOLS_SCHEMA.length} Tools)
                   </button>
                   <button
                     type="button"
