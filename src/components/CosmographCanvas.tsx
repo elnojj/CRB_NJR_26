@@ -1721,12 +1721,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     // Deep ink void for intro AND workspace — never the old flat #101D27 navy slab.
     const voidColor = 0x03060c;
     renderer.setClearColor(voidColor, 1);
+    const coarsePointer =
+      typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+    const pixelRatioCap = coarsePointer ? 1.5 : 2;
     renderer.setPixelRatio(
-      introBridge.enabled
-        ? Math.min(window.devicePixelRatio || 1, 2)
-        : isSoftwareGl
-          ? 1
-          : Math.min(window.devicePixelRatio, 2)
+      isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, pixelRatioCap)
     );
     renderer.setSize(initW, initH);
     renderer.shadowMap.enabled = !isSoftwareGl;
@@ -3608,6 +3607,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       }
     };
     window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    window.visualViewport?.addEventListener('resize', onResize);
+    const containerResizeObserver =
+      typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => onResize()) : null;
+    if (container) containerResizeObserver?.observe(container);
     // Initial atomic frame composition
     onResize();
     introBridge.attach({
@@ -4436,6 +4440,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       domEl.removeEventListener('wheel', onWheel);
       window.removeEventListener('keydown', recordUserInput);
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+      window.visualViewport?.removeEventListener('resize', onResize);
+      containerResizeObserver?.disconnect();
       if (composer) {
         composer.dispose();
       }

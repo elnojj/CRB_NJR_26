@@ -1,6 +1,6 @@
 /**
  * Intro soundtrack — one HTMLAudioElement for the open-sequence master mix.
- * Playback must start inside a user gesture (EntryGate "Play with sound");
+ * Playback must start inside a user gesture (first tap or key press on the live scene);
  * mobile Safari/Chrome reject unmuted play() outside one.
  */
 
@@ -87,7 +87,7 @@ class IntroSoundtrack {
    * Call synchronously from a click/tap handler. play() is issued before any await
    * so the browser counts it as user-activated.
    */
-  startFromGesture(): void {
+  startFromGesture(atSec = 0): void {
     this.preload();
     const el = this.audio;
     if (!el) {
@@ -97,6 +97,13 @@ class IntroSoundtrack {
     cancelAnimationFrame(this.fadeRaf);
     el.muted = false;
     el.volume = TARGET_VOLUME;
+    if (atSec > 0.25) {
+      try {
+        el.currentTime = atSec;
+      } catch {
+        /* metadata not loaded yet; audio starts from the top */
+      }
+    }
     this.setState('loading');
     const p = el.play();
     if (p && typeof p.then === 'function') {

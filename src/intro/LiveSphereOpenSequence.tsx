@@ -178,6 +178,26 @@ export const LiveSphereOpenSequence: React.FC<LiveSphereOpenSequenceProps> = ({
 
   useEffect(() => introSoundtrack.subscribe(setSoundState), []);
 
+  // No entry gate: the journey is already running, so the first tap or key press anywhere
+  // unlocks audio and joins the master mix at the current playhead.
+  useEffect(() => {
+    const onFirstGesture = (e: Event) => {
+      const target = e.target as Element | null;
+      if (target?.closest?.('.live-open__chip')) return;
+      const state = introSoundtrack.getState();
+      if (state !== 'idle' && state !== 'blocked') return;
+      introSoundtrack.startFromGesture(playheadRef.current);
+      soundEngine.unlock();
+      soundEngine.setMuted(false);
+      soundEngine.setVoiceOrMediaActive(true);
+      detach();
+    };
+    const events = ['pointerup', 'touchend', 'keydown'] as const;
+    const detach = () => events.forEach((n) => window.removeEventListener(n, onFirstGesture, true));
+    events.forEach((n) => window.addEventListener(n, onFirstGesture, true));
+    return detach;
+  }, []);
+
   const teardownApertures = useCallback(() => {
     apertureRef.current?.aperture.dispose();
     apertureRef.current = null;
@@ -340,7 +360,7 @@ export const LiveSphereOpenSequence: React.FC<LiveSphereOpenSequenceProps> = ({
 
   const soundOn = soundState === 'playing' || soundState === 'loading';
   const soundLabel =
-    soundState === 'blocked'
+    soundState === 'blocked' || soundState === 'idle'
       ? 'Tap for sound'
       : soundState === 'error'
       ? 'Sound unavailable'
@@ -350,9 +370,10 @@ export const LiveSphereOpenSequence: React.FC<LiveSphereOpenSequenceProps> = ({
 
   const onSoundChip = () => {
     if (soundState === 'blocked' || soundState === 'idle') {
-      introSoundtrack.startFromGesture();
+      introSoundtrack.startFromGesture(playheadRef.current);
       soundEngine.unlock();
       soundEngine.setMuted(false);
+      soundEngine.setVoiceOrMediaActive(true);
       return;
     }
     const nextMuted = soundState === 'playing' || soundState === 'loading';

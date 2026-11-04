@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { BootLoader } from '../components/BootLoader';
 import { selectLatestSnapshotTimestamp } from '../data/projectPlanModel';
 import { soundEngine } from '../utils/soundEngine';
-import { EntryGate } from './EntryGate';
 import { LiveSphereOpenSequence } from './LiveSphereOpenSequence';
 import { introBridge } from './bridge';
 import { introSoundtrack } from './introSoundtrack';
@@ -24,12 +23,12 @@ export type CerebroIntroExitContext = {
   via: 'complete' | 'skip';
 };
 
-type IntroPhase = 'gate' | 'openSequence' | 'loader' | 'ready';
+type IntroPhase = 'openSequence' | 'loader' | 'ready';
 
 /**
  * Public open path on the shared ExperienceCanvas:
- * entry gate over the live wide composition → continuous WebGL camera journey → BootLoader → workspace.
- * The single entry action ("Play with sound") starts the master mix inside the user gesture.
+ * lands directly in the live scene → continuous WebGL camera journey → BootLoader → workspace.
+ * There is no gate: the journey starts on frame 0 and the master mix joins on the first tap or key press.
  */
 export const CerebroIntro: React.FC<CerebroIntroProps> = ({
   embedCanvas = false,
@@ -38,9 +37,17 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
   reducedMotion = false,
 }) => {
   const [configReady, setConfigReady] = useState(false);
-  const [phase, setPhase] = useState<IntroPhase>('gate');
+  const [phase, setPhase] = useState<IntroPhase>('openSequence');
   const [soundChosen, setSoundChosen] = useState(false);
   const exitedRef = useRef(false);
+
+  useEffect(
+    () =>
+      introSoundtrack.subscribe((state) => {
+        if (state === 'playing') setSoundChosen(true);
+      }),
+    []
+  );
   const asOf = useMemo(
     () => snapshotIso || selectLatestSnapshotTimestamp(),
     [snapshotIso]
@@ -96,28 +103,6 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
     [asOf, configReady, onEnterWorkspace, soundChosen]
   );
 
-  const startWithSound = () => {
-    // play() must run synchronously inside this click for mobile Safari / Chrome.
-    introSoundtrack.startFromGesture();
-    soundEngine.unlock();
-    soundEngine.setMuted(false);
-    soundEngine.setVoiceOrMediaActive(true);
-    setSoundChosen(true);
-    setPhase('openSequence');
-  };
-
-  const startSilently = () => {
-    soundEngine.unlock();
-    setSoundChosen(false);
-    setPhase('openSequence');
-  };
-
-  const skipIntro = () => {
-    introSoundtrack.stop();
-    introBridge.hostPoseSampler = null;
-    enterWorkspace('skip');
-  };
-
   return (
     <div
       className="pointer-events-auto absolute inset-0 z-[200]"
@@ -127,16 +112,6 @@ export const CerebroIntro: React.FC<CerebroIntroProps> = ({
       data-phase={phase}
       style={phase === 'openSequence' ? { pointerEvents: 'none' } : undefined}
     >
-      {phase === 'gate' && (
-        <div data-testid="cerebro-intro-wordmark" className="absolute inset-0">
-          <EntryGate
-            onPlayWithSound={startWithSound}
-            onWatchSilently={startSilently}
-            onSkip={skipIntro}
-          />
-        </div>
-      )}
-
       {phase === 'openSequence' && (
         <LiveSphereOpenSequence
           reducedMotion={reducedMotion}

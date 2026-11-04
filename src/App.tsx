@@ -3794,11 +3794,11 @@ export default function App() {
     <div
       dir={languageRtl === 'ar' ? 'rtl' : 'ltr'}
       data-skin="cerebro-02"
-      className="cj-viewport-container relative overflow-hidden select-none"
+      className="cj-viewport-container fixed inset-0 overflow-hidden select-none"
       style={{
-        width: '100%',
+        width: '100dvw',
         height: '100dvh',
-        maxWidth: '100%',
+        maxWidth: '100dvw',
         maxHeight: '100dvh',
         backgroundColor: COLOUR_TOKENS.canvas,
         color: COLOUR_TOKENS.textPrimary,
