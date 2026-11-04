@@ -11,3 +11,7 @@ agent-tools/
 .env
 .vercel
 .vercel/
+
+# Vendored agent skills and AI Studio scratch artifacts (not app source)
+.agents/
+.aistudio/
