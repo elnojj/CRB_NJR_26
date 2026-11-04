@@ -13,7 +13,7 @@ describe('node content: every node in every environment is described', () => {
     assert.equal(directory.hq.length, 3);
     assert.equal(directory.cde.length, 9);
     assert.equal(directory['campaign-os'].length, 4);
-    assert.equal(directory['about-us'].length, 2);
+    assert.equal(directory['about-us'].length, 3);
   });
 
   it('every node states what it holds: a media count or an honest reason', () => {

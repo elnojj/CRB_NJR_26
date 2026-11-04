@@ -14,6 +14,8 @@ export type PeerSphereNodeSpec = {
   colour: string;
   position: [number, number, number];
   nodeType: 'project' | 'station' | 'person' | 'media';
+  /** Node this one is nested under; the parent must come earlier in its list. */
+  parentId?: string;
 };
 
 /** Campaign OS — public showreels + activation-leaning register programmes. */
@@ -77,12 +79,21 @@ const aboutBios: PeerSphereNodeSpec[] = ENABLED_ABOUT_BIOS.map((bio, idx) => {
 export const ABOUT_US_NODES: PeerSphereNodeSpec[] = [
   ...aboutBios,
   {
+    id: 'about-portfolio',
+    label: 'Portfolio',
+    sublabel: 'Showreels · projects · gallery',
+    colour: '#F2B66D',
+    position: [-0.15, 1.55, 0.45],
+    nodeType: 'station',
+  },
+  {
     id: 'about-gallery',
     label: 'Gallery',
     sublabel: 'Hotspot plates · verified',
     colour: '#65ACFF',
-    position: [0.2, -1.65, 0.55],
+    position: [-1.25, 0.8, 0.85],
     nodeType: 'media',
+    parentId: 'about-portfolio',
   },
 ];
 

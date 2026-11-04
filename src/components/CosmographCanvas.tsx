@@ -1746,12 +1746,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     // Sehly / Cerebro 39 Master Lighting Rig — toned down directional key & rim
     // intensities to eliminate blown-out white specular halos on outer shells.
-    const ambientLight = new THREE.AmbientLight(0x1c2a5c, 1.05);
+    const ambientLight = new THREE.AmbientLight(0x1c2a5c, 0.85);
     scene.add(ambientLight);
     const skyFill = new THREE.HemisphereLight(0x4f9bff, 0x070a1c, 0.55);
     scene.add(skyFill);
 
-    const keyLight = new THREE.DirectionalLight(0xE8FBFF, 0.85);
+    const keyLight = new THREE.DirectionalLight(0xE8FBFF, 1.05);
     keyLight.position.set(15, 25, 20);
     scene.add(keyLight);
 
@@ -1939,6 +1939,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     injectCausticShader(sharedBackOpticalGlassMat, true);
     injectCausticShader(sharedOpticalGlassMat, false);
+
+    sharedCrystalGlassBubbleMat.onBeforeCompile = (shader) => {
+      shader.uniforms.uTime = glassUniforms.uTime;
+      shader.uniforms.uAudioRms = glassUniforms.uAudioRms;
+      shader.fragmentShader = `uniform float uTime;\nuniform float uAudioRms;\n${shader.fragmentShader}`;
+      patchFresnelRimOnOpaqueFragment(shader, rimColVec, bodyColVec, 2.4, 0.95);
+    };
+    sharedGoldRibbedMat.envMapIntensity = 1.5;
+    sharedPolishedGoldMat.envMapIntensity = 1.6;
 
     // Shared Geometries matching regenerate_starter_meshes.py proportions (scaled to R = 6.2u)
     const sharedShellGeo = new THREE.SphereGeometry(6.2, 64, 48); // glass_shell: 1.00R = 6.2u
@@ -2770,7 +2779,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           mappedType,
           peerId === 'about-us' ? 0.92 : 0.88,
           idx + (peerId === 'campaign-os' ? 80 : 100),
-          []
+          spec.parentId ? [spec.parentId] : [],
+          (() => {
+            const parentSpec = spec.parentId ? specs.find((s) => s.id === spec.parentId) : undefined;
+            return parentSpec ? { id: parentSpec.id, localPos: parentSpec.position } : undefined;
+          })()
         );
       });
 

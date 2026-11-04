@@ -189,7 +189,12 @@ const CAMPAIGN_SOURCES: Readonly<Record<string, { sources: string[]; tile?: numb
 const ABOUT_SOURCES: Readonly<Record<string, string[]>> = {
   'nojara-studios': [NOJARA_TUBE],
   'about-gallery': ['GALLERY'],
+  'about-portfolio': [NOJARA_TUBE, 'SEVEN', 'EL-BATRON', 'GALLERY'],
 };
+
+function parentTitle(specs: readonly { id: string; label: string }[], parentId: string): string {
+  return specs.find((s) => s.id === parentId)?.label ?? parentId;
+}
 
 function resolvePeer(nodeId: string, sphere: 'campaign-os' | 'about-us'): NodeContent | null {
   const specs = sphere === 'campaign-os' ? CAMPAIGN_OS_NODES : ABOUT_US_NODES;
@@ -200,8 +205,9 @@ function resolvePeer(nodeId: string, sphere: 'campaign-os' | 'about-us'): NodeCo
     sphere,
     nodeType: 'station' as const,
     title: spec.label,
-    kindLabel: SPHERE_LABEL[sphere],
+    kindLabel: spec.parentId ? `${SPHERE_LABEL[sphere]} · in ${parentTitle(specs, spec.parentId)}` : SPHERE_LABEL[sphere],
     summary: spec.sublabel,
+    parentId: spec.parentId ?? null,
   };
   if (sphere === 'campaign-os') {
     const entry = CAMPAIGN_SOURCES[nodeId];
