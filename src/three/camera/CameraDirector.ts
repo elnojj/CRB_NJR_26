@@ -320,14 +320,15 @@ export class SplineJourney {
 
     const last = this.stops.length - 1;
     const tl = gsap.timeline({
-      defaults: { ease: 'power2.inOut' },
+      defaults: { ease: 'power3.inOut' },
       onComplete: () => this.finish('complete'),
     });
     tl.addLabel('stop-0', 0);
     for (let i = 0; i < last; i += 1) {
       const from = this.stops[i];
       const to = this.stops[i + 1];
-      const duration = Math.max(0.2, (to.atSec - from.atSec) * scale);
+      const departAt = (from.departSec ?? from.atSec) * scale;
+      const duration = Math.max(0.2, to.atSec * scale - departAt);
       if (this.reduced) {
         const beat = JOURNEY_BEATS[i];
         const at = (beat ? beat.startSec : JOURNEY_BASE_DURATION_SEC) * scale;
@@ -335,8 +336,8 @@ export class SplineJourney {
         tl.call(() => this.callbacks.onCut?.(), undefined, at);
         tl.addLabel(`stop-${i + 1}`, at);
       } else {
-        tl.to(this.proxy, { u: (i + 1) / last, focal: to.focalMm, duration }, `stop-${i}`);
-        tl.addLabel(`stop-${i + 1}`, `>`);
+        tl.to(this.proxy, { u: (i + 1) / last, focal: to.focalMm, duration }, departAt);
+        tl.addLabel(`stop-${i + 1}`, departAt + duration);
       }
     }
     this.timeline = tl;

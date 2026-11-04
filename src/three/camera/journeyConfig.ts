@@ -5,10 +5,14 @@
  * instead of borrowed media.
  */
 
+import { ENVIRONMENTS } from '../../data/environmentRegistry';
 import type { ConnectedSphereId } from '../sphereNetwork';
 import { SPHERE_NETWORK, sphereNetworkCentroid } from '../sphereNetwork';
+import { PITCH_BEATS } from '../../data/pitchBeats';
+import { pitchRamp } from '../beats/pitchContent';
+import { resolvePitchPlacement } from '../beats/pitchStageLayout';
 
-export type JourneyPersonId = 'shweekar' | 'khaled' | 'tarek' | null;
+export type JourneyPersonId = 'shweekar' | 'khalid' | 'tarek' | null;
 
 export type BeatEvidence =
   | 'assets'
@@ -49,16 +53,13 @@ type BeatSeed = {
   assetIds?: readonly string[];
   evidence: BeatEvidence;
   honestNoteEn?: string;
-  durationSec?: number;
 };
 
-const DEFAULT_BEAT_SEC = 6;
-
 const SEEDS: readonly BeatSeed[] = [
-  { jId: 'J01', headlineEn: 'Fiction gave it a shape.', supportEn: 'Arrival · master sphere', narrationEn: 'Reality gave it a job.', look: 'centroid', nodeId: null, evidence: 'registry-only', durationSec: 8 },
+  { jId: 'J01', headlineEn: 'Fiction gave it a shape.', supportEn: 'Arrival · master sphere', narrationEn: 'Reality gave it a job.', look: 'centroid', nodeId: null, evidence: 'registry-only' },
   { jId: 'J17', headlineEn: 'Shweekar Ahmed in Context', supportEn: 'About Us · People', narrationEn: 'The first of three people behind the studio.', look: 'about-us', nodeId: 'about__people__shweekar', person: 'shweekar', assetIds: ['img-person-shweekar'], evidence: 'assets' },
-  { jId: 'J18', headlineEn: 'Khaled Al Shaalan Connects', supportEn: 'About Us · People', narrationEn: 'The second of three people behind the studio.', look: 'about-us', nodeId: 'about__people__khaled', person: 'khaled', evidence: 'gap', honestNoteEn: 'Portrait pending confirmation. No substitute image is shown.' },
-  { jId: 'J16', headlineEn: 'People Make Systems Work', supportEn: 'About Us · People', narrationEn: 'Human judgment, amplified by systems.', look: 'about-us', nodeId: 'about__people__tarek', person: 'tarek', evidence: 'gap', honestNoteEn: 'No approved portrait of Tarek Nojara in the media folder. No substitute image is shown.', durationSec: 8 },
+  { jId: 'J18', headlineEn: 'Khalid Alshaalan Connects', supportEn: 'About Us · People', narrationEn: 'The second of three people behind the studio.', look: 'about-us', nodeId: 'about__people__khalid', person: 'khalid', assetIds: ['img-person-khalid'], evidence: 'assets', honestNoteEn: 'Portrait reference supplied. The image is not validated for runtime display yet.' },
+  { jId: 'J16', headlineEn: 'People Make Systems Work', supportEn: 'About Us · People', narrationEn: 'Human judgment, amplified by systems.', look: 'about-us', nodeId: 'about__people__tarek', person: 'tarek', assetIds: ['img-person-shweekar', 'img-person-khalid', 'img-tn-onfire'], evidence: 'assets' },
   { jId: 'J02', headlineEn: 'Hard Projects. Useful Lessons.', supportEn: 'About Us · Tarek Nojara', narrationEn: 'Talks, lists and festival rooms from Tarek Nojara.', look: 'about-us', nodeId: 'about__tarek__story', person: 'tarek', assetIds: ['med-traverse-talks-disruption', 'med-tn-impact-list'], evidence: 'assets' },
   { jId: 'J03', headlineEn: 'Craft Meets Creative Tech.', supportEn: 'CDE · Production and Technology', narrationEn: 'Production footage from sets and Saudi-related work.', look: 'cde', nodeId: 'cde__production__tech', assetIds: ['med-but-first-production', 'img-tn-production-set', 'med-saudi-clip-a', 'med-saudi-clip-b', 'med-saudi-clip-c', 'med-saudi-clip-d'], evidence: 'assets' },
   { jId: 'J04', headlineEn: 'The Studio Connects Everything.', supportEn: 'About Us · Studio', narrationEn: 'The NOJARA showreel is a portfolio overview, not one campaign.', look: 'about-us', nodeId: 'about__studio__showreel', assetIds: ['med-nojara-showreel'], evidence: 'assets' },
@@ -83,27 +84,25 @@ const SEEDS: readonly BeatSeed[] = [
 ];
 
 function buildBeats(): JourneyBeat[] {
-  let cursor = 0;
   return SEEDS.map((s, i) => {
-    const dur = s.durationSec ?? DEFAULT_BEAT_SEC;
-    const beat: JourneyBeat = {
+    const pitch = PITCH_BEATS[i];
+    if (!pitch || pitch.jId !== s.jId) throw new Error(`Journey seed ${s.jId} is out of step with the pitch order at position ${i + 1}`);
+    return {
       id: s.jId.toLowerCase(),
       jId: s.jId,
       order: i + 1,
-      startSec: cursor,
-      endSec: cursor + dur,
-      headlineEn: s.headlineEn,
+      startSec: pitch.startSec,
+      endSec: pitch.endSec,
+      headlineEn: pitch.name,
       supportEn: s.supportEn,
-      narrationEn: s.narrationEn,
-      look: s.look,
+      narrationEn: pitch.onScreenText,
+      look: ENVIRONMENTS[pitch.envId].sphereId,
       nodeId: s.nodeId,
       person: s.person ?? null,
       assetIds: s.assetIds ?? [],
       evidence: s.evidence,
       honestNoteEn: s.honestNoteEn,
     };
-    cursor += dur;
-    return beat;
   });
 }
 
@@ -112,8 +111,10 @@ export const JOURNEY_BEATS: readonly JourneyBeat[] = buildBeats();
 export const JOURNEY_BASE_DURATION_SEC = JOURNEY_BEATS[JOURNEY_BEATS.length - 1].endSec;
 
 export type JourneyStop = {
-  /** Seconds on the editorial clock. */
+  /** Seconds on the editorial clock when the camera arrives. */
   atSec: number;
+  /** When the camera leaves again. Until then it rests on the stop. Defaults to `atSec`. */
+  departSec?: number;
   position: [number, number, number];
   target: [number, number, number];
   focalMm: number;
@@ -136,32 +137,50 @@ const FOCAL_BY_EVIDENCE: Record<BeatEvidence, number> = {
   'registry-only': 32,
 };
 
-/** One camera stop per beat. Repeat visits to the same sphere orbit it so consecutive beats differ. */
+const OPENING_FOCAL_MM = 24;
+
+/**
+ * One camera stop per beat, placed from the registry anchor of the beat's target. The camera reaches the stop
+ * after the beat's travel time and rests there for the remainder of the beat. A beat whose target has no
+ * anchor falls back to an orbit of its sphere rather than failing.
+ */
 export function buildJourneyStops(): JourneyStop[] {
-  const visits = new Map<JourneyLook, number>();
   const centroid = lookCenter('centroid');
+  const about = lookCenter('about-us');
   const stops: JourneyStop[] = [
-    { atSec: 0, position: [centroid[0] + 6, centroid[1] + 10, centroid[2] + 58], target: centroid, focalMm: 24 },
+    {
+      atSec: 0,
+      departSec: 0,
+      position: [about[0] + 9, about[1] + 7, about[2] + 24],
+      target: centroid,
+      focalMm: OPENING_FOCAL_MM,
+    },
   ];
   JOURNEY_BEATS.forEach((beat, i) => {
+    const pitch = PITCH_BEATS[i];
+    const placement = resolvePitchPlacement(pitch);
+    const arriveAt = beat.startSec + pitchRamp(pitch).travelSec;
+    if (placement) {
+      stops.push({
+        atSec: arriveAt,
+        departSec: beat.endSec,
+        position: [...placement.cameraPosition],
+        target: [...placement.anchor],
+        focalMm: pitch.camera.focalMm,
+      });
+      return;
+    }
     const center = lookCenter(beat.look);
-    const n = visits.get(beat.look) ?? 0;
-    visits.set(beat.look, n + 1);
-    const wide = beat.look === 'centroid';
-    const radius = wide ? 34 : 11.5 - (n % 3) * 1.1;
-    const az = (0.55 + n * 0.95) % (Math.PI * 2);
-    const height = wide ? 8 : 1.6 + (n % 4) * 0.7;
-    const dur = beat.endSec - beat.startSec;
-    const arrive = i === 0 ? 0.85 : 0.5;
     stops.push({
-      atSec: beat.startSec + dur * arrive,
-      position: [center[0] + Math.sin(az) * radius, center[1] + height, center[2] + Math.cos(az) * radius],
-      target: [center[0], center[1] + (wide ? 0 : 0.3), center[2]],
+      atSec: arriveAt,
+      departSec: beat.endSec,
+      position: [center[0] + 8, center[1] + 2, center[2] + 8],
+      target: center,
       focalMm: FOCAL_BY_EVIDENCE[beat.evidence],
     });
   });
   const last = stops[stops.length - 1];
-  stops.push({ ...last, atSec: JOURNEY_BASE_DURATION_SEC });
+  stops.push({ ...last, atSec: JOURNEY_BASE_DURATION_SEC, departSec: JOURNEY_BASE_DURATION_SEC });
   return stops;
 }
 

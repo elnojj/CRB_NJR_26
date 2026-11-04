@@ -1,11 +1,19 @@
-import { ENVIRONMENTS, getNode, type EnvironmentId } from '../../data/environmentRegistry';
+import { getNode } from '../../data/environmentRegistry';
 import { getMediaRecord, JOURNEY_MEDIA_MANIFEST } from '../../data/journeyMediaManifest';
 import { PITCH_BEATS, PITCH_PACING, PITCH_SOURCES, type PitchBeat } from '../../data/pitchBeats';
 import { textRevealSec } from './beatLayout';
 import { ENTER_AT } from './beatJourney';
 import { pitchRamp, pitchWords } from './pitchContent';
+import { pitchTargetToAssociation, resolvePitchPlacement } from './pitchStageLayout';
 
-export type BeatVerificationStatus = 'blocked' | 'ready';
+export { pitchTargetToAssociation };
+
+/**
+ * blocked        the beat cannot resolve its target, anchor, source or timing.
+ * pending-media  structure resolves, but media runtime, excerpts or rights are still unreviewed.
+ * ready          everything resolves and nothing is pending.
+ */
+export type BeatVerificationStatus = 'blocked' | 'pending-media' | 'ready';
 
 export interface BeatVerification {
   jId: string;
@@ -13,14 +21,8 @@ export interface BeatVerification {
   name: string;
   status: BeatVerificationStatus;
   blockers: string[];
+  pending: string[];
   notes: string[];
-}
-
-/** `env_about__people__shweekar` -> registry association id `about__people__shweekar`. */
-export function pitchTargetToAssociation(envId: EnvironmentId, targetId: string): string {
-  const prefix = `${envId}__`;
-  const rest = targetId.startsWith(prefix) ? targetId.slice(prefix.length) : targetId;
-  return `${ENVIRONMENTS[envId].key}__${rest}`;
 }
 
 const normalize = (name: string): string => name.toLowerCase().replace(/[^a-z]/g, '');
@@ -32,12 +34,15 @@ function personNameFromText(beat: PitchBeat): string | null {
 
 export function verifyPitchBeat(beat: PitchBeat): BeatVerification {
   const blockers: string[] = [];
+  const pending: string[] = [];
   const notes: string[] = [];
 
   const association = pitchTargetToAssociation(beat.envId, beat.targetId);
   const node = getNode(association);
   if (!node) blockers.push(`Target ${beat.targetId} has no registry entry (looked up ${association}).`);
   else {
+    if (!node.anchor) blockers.push(`Target ${beat.targetId} has no 3D anchor transform.`);
+    if (!resolvePitchPlacement(beat) && node.anchor) blockers.push(`Target ${beat.targetId} anchor does not resolve to world space.`);
     if (node.envId !== beat.envId) blockers.push(`Target resolves to ${node.envId}, not ${beat.envId}.`);
     if (node.status !== 'verified') notes.push(`Registry status is ${node.status}${node.honestStateEn ? `: ${node.honestStateEn}` : ''}`);
     const spoken = personNameFromText(beat);
@@ -52,11 +57,11 @@ export function verifyPitchBeat(beat: PitchBeat): BeatVerification {
     if (!record) blockers.push(`Source "${source.title}" (${source.driveFileId}) is not in the media manifest.`);
     else {
       if (!getMediaRecord(record.assetId)) blockers.push(`Manifest record ${record.assetId} is not retrievable.`);
-      if (!record.runtimeUrl) blockers.push(`"${source.title}": runtime URL unresolved; Drive link is provenance only.`);
-      if (record.timecodes.length === 0 && record.kind === 'video') blockers.push(`"${source.title}": no reviewed in/out excerpt.`);
+      if (!record.runtimeUrl) pending.push(`"${source.title}": runtime URL unresolved; Drive link is provenance only.`);
+      if (record.timecodes.length === 0 && record.kind === 'video') pending.push(`"${source.title}": no reviewed in/out excerpt.`);
     }
   }
-  if (beat.sourceIds.length > 0) notes.push('Rights and usage review pending for every source on this beat.');
+  if (beat.sourceIds.length > 0) pending.push('Rights and usage review pending for every source on this beat.');
   if (beat.mediaKind === 'prototype') notes.push('Prototype or concept beat: must carry a visible Concept label.');
 
   const ramp = pitchRamp(beat);
@@ -66,7 +71,8 @@ export function verifyPitchBeat(beat: PitchBeat): BeatVerification {
 
   if (beat.metric.evidence === 'pending') notes.push(`Metric "${beat.metric.display}" is pending; the overlay is omitted from the investor view.`);
 
-  return { jId: beat.jId, index: beat.index, name: beat.name, status: blockers.length > 0 ? 'blocked' : 'ready', blockers, notes };
+  const status: BeatVerificationStatus = blockers.length > 0 ? 'blocked' : pending.length > 0 ? 'pending-media' : 'ready';
+  return { jId: beat.jId, index: beat.index, name: beat.name, status, blockers, pending, notes };
 }
 
 export const verifyPitchBeats = (): BeatVerification[] => PITCH_BEATS.map(verifyPitchBeat);

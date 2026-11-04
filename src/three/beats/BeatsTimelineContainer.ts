@@ -51,6 +51,8 @@ export interface BeatsTimelineOptions {
   layout?: Partial<BeatLayoutOptions>;
   content?: BeatContentProvider;
   factories?: Partial<BeatSlotFactories>;
+  /** Explicit stage positions. Replaces the spiral layout, for hosts that place beats in a larger scene. */
+  placements?: readonly BeatPlacement[];
 }
 
 export class BeatsTimelineContainer {
@@ -66,7 +68,7 @@ export class BeatsTimelineContainer {
     this.group.name = 'BeatsTimelineContainer';
     this.provider = options.content;
     const factories: BeatSlotFactories = { ...DEFAULT_SLOT_FACTORIES, ...options.factories };
-    const placements = computeBeatPlacements({ count: BEAT_COUNT, ...options.layout });
+    const placements = options.placements ?? computeBeatPlacements({ count: BEAT_COUNT, ...options.layout });
     this.nodes = placements.map((placement) => this.buildNode(placement, placements.length, factories, options.playback));
     this.refreshContent();
   }
@@ -107,12 +109,12 @@ export class BeatsTimelineContainer {
   }
 
   /** Show one beat's content and hide the rest. Pass null to hide everything. */
-  setActiveBeat(index: number | null, reducedMotion = false): void {
+  setActiveBeat(index: number | null, reducedMotion = false, enterDelaySec = 0): void {
     if (index === this.activeIndex) return;
     const previous = this.activeIndex;
     this.activeIndex = index;
-    if (previous !== null) this.tweenReveal(previous, 0, reducedMotion);
-    if (index !== null) this.tweenReveal(index, 1, reducedMotion);
+    if (previous !== null) this.tweenReveal(previous, 0, reducedMotion, 0);
+    if (index !== null) this.tweenReveal(index, 1, reducedMotion, enterDelaySec);
   }
 
   update(dtSec: number, timeSec: number): void {
@@ -169,7 +171,7 @@ export class BeatsTimelineContainer {
     node.marker.setActivity(r);
   }
 
-  private tweenReveal(index: number, target: 0 | 1, reducedMotion: boolean): void {
+  private tweenReveal(index: number, target: 0 | 1, reducedMotion: boolean, delaySec: number): void {
     const node = this.nodes[index];
     if (!node) return;
     gsap.killTweensOf(node.state);
@@ -190,6 +192,7 @@ export class BeatsTimelineContainer {
       gsap.to(node.state, {
         reveal: target,
         duration: target === 1 ? showSec : HIDE_SEC,
+        delay: target === 1 ? delaySec : 0,
         ease: target === 1 ? 'none' : 'power2.in',
         onUpdate: () => this.applyReveal(node),
       });

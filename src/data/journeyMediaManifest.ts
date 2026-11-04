@@ -69,6 +69,7 @@ const SEEDS: Seed[] = [
   { assetId: 'med-saudi-clip-b', owningNodeId: 'cde__production__saudi', title: 'Saudi Clip B', driveFileId: '19evlyB3HQTRsnu3MZjFqlGKYFsqfrEeO', originalFilename: 'File - 2026-10-03T22:00:31.340Z', mimeType: 'video/mp4', sizeBytes: 7029798, attribution: 'Saudi-related work; project not identified in the source list' },
   { assetId: 'med-saudi-clip-c', owningNodeId: 'cde__production__saudi', title: 'Saudi Clip C', driveFileId: '1gl17FrjVh2FUiz7YDbFNecf4XkYYLyPy', originalFilename: 'File - 2026-10-03T22:00:31.340Z', mimeType: 'video/mp4', sizeBytes: 3749746, attribution: 'Saudi-related work; project not identified in the source list' },
   { assetId: 'med-saudi-clip-d', owningNodeId: 'cde__production__saudi', title: 'Saudi Clip D', driveFileId: '1HBSstsLOYaPJwzhZidZcthrgUeoJaRS8', originalFilename: 'File - 2026-10-03T22:00:31.340Z', mimeType: 'video/mp4', sizeBytes: 3244015, attribution: 'Saudi-related work; project not identified in the source list' },
+  { assetId: 'img-person-khalid', owningNodeId: 'about__people__khalid', title: 'Khalid Alshaalan portrait', driveFileId: '1Hod7c-5Zi53w8VSwwmvtcp2Dife_cGbf', originalFilename: 'unknown (reference link only)', mimeType: 'image/jpeg', sizeBytes: 0, attribution: 'Khalid Alshaalan (user-confirmed portrait reference)', note: 'Reference supplied for the opening sequence. Runtime image not yet ingested or validated.' },
   { assetId: 'img-person-shweekar', owningNodeId: 'about__people__shweekar', title: 'Shweekar Ahmed — approved photo', driveFileId: '15gAJwJvL1Yma0MCGQOJmej6zZRlViu9-', originalFilename: 'Shweekar Ahmed.jpg', mimeType: 'image/jpeg', sizeBytes: 285550, attribution: 'Shweekar Ahmed (user-supplied approved photo)' },
   { assetId: 'med-but-first-production', owningNodeId: 'cde__production__tech', title: 'But First, Production with Tarek Nojara', driveFileId: '1FNtBCltin3KBB5lPSSqXcLMkdXJTsUAX', originalFilename: 'But first, Production with Tarek Nojara - Episode copy 2.mp4', mimeType: 'video/mp4', sizeBytes: 8726702, attribution: 'But First, Production — episode with Tarek Nojara' },
   { assetId: 'img-tn-onfire', owningNodeId: 'about__tarek__story', title: 'TN_ONFIRE', driveFileId: '170WxTGtMYvmHVFAUhY-wXLEB6iKTUgbx', originalFilename: 'TN_ONFIRE.png', mimeType: 'image/png', sizeBytes: 3637814, attribution: 'Tarek Nojara (filename)' },
@@ -120,7 +121,6 @@ export function mediaForNode(owningNodeId: string): JourneyMediaRecord[] {
 
 /** Explicit gaps: assets the brief names that no verified source file backs yet. */
 export const MEDIA_GAPS: readonly { id: string; nodeId: string; reasonEn: string }[] = [
-  { id: 'gap-khaled-portrait', nodeId: 'about__people__khaled', reasonEn: 'No confirmed portrait for Khaled Al Shaalan. No substitute face is used.' },
   { id: 'gap-yah-media', nodeId: 'hq__proj__yah', reasonEn: 'No verified YAH! (Young & Human) media in the approved folder.' },
   { id: 'gap-moa-media', nodeId: 'hq__proj__moa', reasonEn: 'No verified Mission Lotus / MOA media in the approved folder.' },
   { id: 'gap-bsocial-media', nodeId: 'hq__proj__bsocial', reasonEn: 'No verified BSOCIAL media in the approved folder.' },

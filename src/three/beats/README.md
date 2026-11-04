@@ -1,7 +1,19 @@
 # Sphere 1: the 25 Beats environment
 
-`ExperienceCanvas` mounts `Sphere1Canvas` by default. `?env=network` brings back the old four-sphere
-`CosmographCanvas` for comparison; nothing else selects it.
+## Where the pitch runs
+
+The connected network (`CosmographCanvas`) is the space authority: `env_about`, `env_cde`, `env_hq`,
+`env_campaign_os` and the curved media tube share one renderer, scene and camera. The 25 beats play there.
+
+- `PitchStage` stands each beat's kinetic copy, honest media card and structural metric label at the beat's
+  registry anchor (`NodeDef.anchor`, environment-local), inside the beat's own sphere.
+- `buildJourneyStops` (camera/journeyConfig.ts) places one camera stop per beat from the same anchors, with the
+  lens cue and the authored beat timing. The camera rests on each stop until the next beat starts.
+- J01 opens on the About Us sphere, which is the opening focal container.
+- While the journey plays (`isCinematicMode` in `App.tsx`), app chrome is not displayed, the in-scene HUD and
+  node labels are hidden, and only a small Esc / Stop control remains. Escape stops the journey first.
+- `?env=sphere1` mounts the isolated Sphere 1 clean slate below, for working on beat content on its own.
+- `node --import tsx scripts/pitch-status.ts` prints per-beat status: blocked, pending-media or ready.
 
 ## Scene graph
 

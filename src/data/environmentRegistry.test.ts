@@ -26,7 +26,7 @@ describe('environment registry', () => {
     const ids = NODES.map((n) => n.associationId);
     assert.equal(new Set(ids).size, ids.length);
     for (const n of NODES) {
-      assert.match(n.associationId, /^[a-z]+__[a-z]+__[a-z0-9]+$/);
+      assert.match(n.associationId, /^[a-z]+__[a-z]+__[a-z0-9]+(_[a-z0-9]+)*$/);
       assert.equal(n.associationId, `${ENVIRONMENTS[n.envId].key}__${n.stationId}__${n.nodeId}`);
       assert.ok(ENVIRONMENTS[n.envId].stations.includes(n.stationId), `${n.associationId} station is declared`);
     }
@@ -51,16 +51,16 @@ describe('environment registry', () => {
 
   it('stores each person once and references them from the environments', () => {
     assert.equal(PEOPLE.shweekar.displayName, 'Shweekar Ahmed');
-    assert.equal(PEOPLE.khaled.displayName, 'Khaled Al Shaalan');
+    assert.equal(PEOPLE.khalid.displayName, 'Khalid Alshaalan');
     assert.equal(PEOPLE.tarek.displayName, 'Tarek Nojara');
     assert.equal(PEOPLE.tarek.roleEn, 'Founder / Creative Producer / Strategist and Culture and Design Engineer');
     assert.ok(!/\bCEO\b/i.test(PEOPLE.tarek.roleEn ?? ''));
-    for (const key of ['shweekar', 'khaled', 'tarek'] as const) {
+    for (const key of ['shweekar', 'khalid', 'tarek'] as const) {
       const refs = NODES.filter((n) => n.personId === key && n.kind === 'person');
       assert.ok(refs.length >= 2, `${key} is referenced from About Us and the HQ people view`);
     }
-    assert.equal(PEOPLE.khaled.portraitGap, true);
-    assert.equal(PEOPLE.khaled.portraitAssetId, null);
+    assert.equal(PEOPLE.khalid.portraitGap, false);
+    assert.equal(PEOPLE.khalid.portraitAssetId, 'img-person-khalid');
     assert.equal(PEOPLE.shweekar.portraitAssetId, 'img-person-shweekar');
   });
 
@@ -176,9 +176,9 @@ describe('environment registry', () => {
 
 describe('journey media manifest', () => {
   it('has one record per approved source with the full contract', () => {
-    assert.equal(JOURNEY_MEDIA_MANIFEST.length, 28);
-    assert.equal(new Set(JOURNEY_MEDIA_MANIFEST.map((r) => r.assetId)).size, 28);
-    assert.equal(new Set(JOURNEY_MEDIA_MANIFEST.map((r) => r.driveFileId)).size, 28);
+    assert.equal(JOURNEY_MEDIA_MANIFEST.length, 29);
+    assert.equal(new Set(JOURNEY_MEDIA_MANIFEST.map((r) => r.assetId)).size, 29);
+    assert.equal(new Set(JOURNEY_MEDIA_MANIFEST.map((r) => r.driveFileId)).size, 29);
     for (const r of JOURNEY_MEDIA_MANIFEST) {
       for (const key of ['assetId', 'owningNodeId', 'title', 'sourceUrl', 'runtimeUrl', 'mimeType', 'posterUrl', 'accessTier', 'rightsStatus', 'timecodes'] as const) {
         assert.ok(key in r, `${r.assetId} has ${key}`);
@@ -209,9 +209,13 @@ describe('journey media manifest', () => {
     }
   });
 
-  it('records the explicit gaps and does not attach an image to Khaled', () => {
+  it('records the explicit gaps and attaches the supplied Khalid portrait reference', () => {
     const gapNodes = MEDIA_GAPS.map((g) => g.nodeId);
-    for (const id of ['about__people__khaled', 'hq__proj__yah', 'hq__proj__moa', 'hq__proj__bsocial', 'hq__proj__mhe', 'hq__proj__ahr']) {
+    assert.equal(mediaForNode('about__people__khalid')[0]?.assetId, 'img-person-khalid');
+    assert.equal(mediaForNode('about__people__khalid')[0]?.runtimeUrl, null);
+    assert.ok(!gapNodes.includes('about__people__khalid'));
+    assert.equal(getNode('about__people__khaled')?.associationId, 'about__people__khalid', 'old links still resolve');
+    for (const id of ['hq__proj__yah', 'hq__proj__moa', 'hq__proj__bsocial', 'hq__proj__mhe', 'hq__proj__ahr']) {
       assert.ok(gapNodes.includes(id), `${id} is listed as a gap`);
       assert.equal(mediaForNode(id).length, 0, `${id} has no borrowed media`);
       assert.ok(getNode(id));
@@ -254,15 +258,16 @@ describe('25-beat journey', () => {
     }
   });
 
-  it('keeps About Us beats inside About Us and shows no media for the Khaled gap', () => {
+  it('keeps About Us beats inside About Us and shows the Khalid portrait reference', () => {
     for (const id of ['J17', 'J18', 'J16', 'J02', 'J04']) {
       const b = JOURNEY_BEATS.find((x) => x.jId === id);
       assert.ok(b?.nodeId?.startsWith('about__'), `${id} stays in About Us`);
       assert.equal(b?.look, 'about-us');
     }
-    const khaled = JOURNEY_BEATS.find((b) => b.jId === 'J18');
-    assert.equal(khaled?.assetIds.length, 0);
-    assert.equal(khaled?.evidence, 'gap');
+    const khalid = JOURNEY_BEATS.find((b) => b.jId === 'J18');
+    assert.deepEqual(khalid?.assetIds, ['img-person-khalid']);
+    assert.equal(khalid?.nodeId, 'about__people__khalid');
+    assert.equal(khalid?.person, 'khalid');
   });
 
   it('never assigns YAH!-only gap beats a borrowed asset', () => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { JOURNEY_BEATS, type BeatEvidence, type JourneyBeat } from '../three/camera/journeyConfig';
 
 interface JourneyCaptionProps {
@@ -16,34 +16,12 @@ const EVIDENCE_LABEL: Record<BeatEvidence, string | null> = {
   'registry-only': null,
 };
 
-const DOCK_SELECTOR = '[data-testid="voice-card"]';
-const CAPTION_DOCK_GAP_PX = 12;
-
-/** Distance from the viewport bottom that keeps the caption clear of the Call / Hands / Chat dock. */
-function useDockClearance(active: boolean): number {
-  const [bottom, setBottom] = useState(148);
-  useEffect(() => {
-    if (!active) return;
-    const measure = () => {
-      const dock = document.querySelector(DOCK_SELECTOR);
-      if (!dock) return;
-      const rect = dock.getBoundingClientRect();
-      const next = Math.round(window.innerHeight - rect.top + CAPTION_DOCK_GAP_PX);
-      setBottom((prev) => (prev === next ? prev : next));
-    };
-    measure();
-    const id = window.setInterval(measure, 200);
-    window.addEventListener('resize', measure);
-    return () => {
-      window.clearInterval(id);
-      window.removeEventListener('resize', measure);
-    };
-  }, [active]);
-  return bottom;
-}
-
+/**
+ * While the 25 Beats explainer plays the screen belongs to the scene and its in-world typography. This
+ * component adds no visible caption card. It gives assistive technology each beat's full sentence once
+ * (the word-by-word reveal is a visual treatment only) and keeps one small Stop control.
+ */
 export function JourneyCaption({ beat, onSkip, reducedMotion = false }: JourneyCaptionProps) {
-  const bottom = useDockClearance(beat !== null);
   if (!beat) return null;
   const tag = EVIDENCE_LABEL[beat.evidence];
   return (
@@ -60,37 +38,20 @@ export function JourneyCaption({ beat, onSkip, reducedMotion = false }: JourneyC
           />
         </>
       ) : null}
-      <div
-        data-testid="journey-caption"
-        className="pointer-events-none fixed left-1/2 z-[60] w-[min(640px,calc(100vw-24px))] -translate-x-1/2 flex flex-col items-center gap-2 text-center"
-        aria-live="polite"
-        style={{ bottom }}
-      >
-        <div className="rounded-xl border border-[#1E5EFF] bg-[#0A0D14]/90 px-5 py-3">
-          <div className="font-mono text-[10px] tracking-[0.2em] text-[#7F93B2]">
-            {beat.jId} · {String(beat.order).padStart(2, '0')} / {JOURNEY_BEATS.length}
-          </div>
-          <div className="mt-1 font-mono text-[13px] font-semibold uppercase tracking-[0.14em] text-[#E8EEF8]">
-            {beat.headlineEn}
-          </div>
-          <div className="mt-1 font-mono text-[11px] tracking-wider text-[#9FB2CC]">{beat.supportEn}</div>
-          <div className="mt-2 text-[13px] leading-snug text-[#C9D4E6]">{beat.narrationEn}</div>
-          {tag || beat.honestNoteEn ? (
-            <div data-testid="journey-honest-note" className="mt-2 font-mono text-[11px] leading-snug text-[#F2B66D]">
-              {tag ? `${tag}. ` : ''}
-              {beat.honestNoteEn ?? ''}
-            </div>
-          ) : null}
-        </div>
-        <button
-          type="button"
-          data-testid="journey-skip"
-          onClick={onSkip}
-          className="pointer-events-auto min-h-[44px] rounded-full border border-[#1E5EFF] bg-[#0A0D14] px-4 font-mono text-[11px] uppercase tracking-wider text-[#E8EEF8]"
-        >
-          Skip journey
-        </button>
+      <div data-testid="journey-caption" className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {`${beat.jId}, ${beat.order} of ${JOURNEY_BEATS.length}. ${beat.headlineEn}. ${beat.narrationEn} ${beat.supportEn}.`}
+        {tag || beat.honestNoteEn ? ` ${tag ? `${tag}. ` : ''}${beat.honestNoteEn ?? ''}` : ''}
       </div>
+      <button
+        type="button"
+        data-testid="journey-skip"
+        aria-label="Stop the 25 Beats explainer (Escape)"
+        onClick={onSkip}
+        className="fixed left-3 top-3 z-[60] min-h-[44px] rounded-full border border-white/15 bg-black/30 px-4 font-mono text-[10px] uppercase tracking-[0.2em] text-white/55 transition-colors hover:border-white/40 hover:text-white/90 focus-visible:text-white"
+        style={{ top: 'max(12px, env(safe-area-inset-top))' }}
+      >
+        Esc · Stop
+      </button>
     </>
   );
 }

@@ -227,9 +227,10 @@ describe('beats container', () => {
 
 describe('environment mode and caption bridge', () => {
   it('mounts Sphere 1 unless the network is asked for by name', () => {
-    assert.equal(resolveEnvironmentMode(''), 'sphere1-beats');
-    assert.equal(resolveEnvironmentMode('?env=other'), 'sphere1-beats');
+    assert.equal(resolveEnvironmentMode(''), 'network');
+    assert.equal(resolveEnvironmentMode('?env=other'), 'network');
     assert.equal(resolveEnvironmentMode('?env=network'), 'network');
+    assert.equal(resolveEnvironmentMode('?env=sphere1'), 'sphere1-beats');
   });
 
   it('says plainly when a beat has no content yet', () => {

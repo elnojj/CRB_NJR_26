@@ -2,10 +2,13 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { ENVIRONMENTS } from '../../data/environmentRegistry';
 import { PITCH_BANNED_CLAIMS, PITCH_BEATS, PITCH_FILM_GAUGE_MM, PITCH_SOURCES, PITCH_TOTAL_SEC } from '../../data/pitchBeats';
-import { JOURNEY_BEATS } from '../camera/journeyConfig';
+import { JOURNEY_BASE_DURATION_SEC, JOURNEY_BEATS, buildJourneyStops } from '../camera/journeyConfig';
+import { SPHERE_NETWORK } from '../sphereNetwork';
 import { beatToJourneyBeat } from './journeyBridge';
 import { pitchBeatContent, pitchContentProvider, pitchRamp, pitchWords } from './pitchContent';
-import { pitchTargetToAssociation, verifyPitchBeats } from './pitchVerification';
+import { equivalentLegacyFocalMm, pitchStandoff, pitchVerticalFovDeg, resolvePitchPlacement } from './pitchStageLayout';
+import { verifyPitchBeats } from './pitchVerification';
+import { pitchTargetToAssociation } from './pitchStageLayout';
 
 describe('pitch spec contract', () => {
   it('has exactly 25 unique J ids in the required playback order', () => {
@@ -119,15 +122,70 @@ describe('pitch content provider', () => {
 describe('per-beat verification report', () => {
   const report = verifyPitchBeats();
 
-  it('reports every beat and never marks a beat ready with unresolved media', () => {
+  it('reports every beat and never marks a beat ready with unreviewed media', () => {
     assert.equal(report.length, 25);
     for (const row of report) {
       const beat = PITCH_BEATS[row.index];
-      if (beat.sourceIds.length > 0) assert.equal(row.status, 'blocked', row.jId);
+      if (beat.sourceIds.length > 0) assert.notEqual(row.status, 'ready', row.jId);
     }
+  });
+
+  it('resolves every target, anchor and source, including the Khalid portrait', () => {
+    for (const row of report) assert.deepEqual(row.blockers, [], `${row.jId}: ${row.blockers.join(' | ')}`);
+    assert.equal(report.find((r) => r.jId === 'J18')?.status, 'pending-media');
   });
 
   it('fits copy plus the 1.4 s hold inside every beat', () => {
     for (const row of report) assert.ok(!row.blockers.some((b) => b.startsWith('Copy needs')), `${row.jId}: ${row.blockers.join(' | ')}`);
+  });
+});
+
+describe('pitch stage layout in the connected network', () => {
+  it('places every beat inside its own environment sphere through a registry anchor', () => {
+    for (const beat of PITCH_BEATS) {
+      const placement = resolvePitchPlacement(beat);
+      assert.ok(placement, `${beat.jId} resolves to world space`);
+      const sphere = SPHERE_NETWORK.find((s) => s.id === ENVIRONMENTS[beat.envId].sphereId);
+      assert.ok(sphere);
+      const [ax, ay, az] = placement.anchor;
+      const distance = Math.hypot(ax - sphere.center[0], ay - sphere.center[1], az - sphere.center[2]);
+      assert.ok(distance <= sphere.radius * 0.85, `${beat.jId} anchor stays inside ${sphere.id} (${distance.toFixed(2)} of ${sphere.radius})`);
+      const [cx, cy, cz] = placement.cameraPosition;
+      assert.ok(Math.hypot(cx - ax, cy - ay, cz - az) >= placement.standoff * 0.99);
+    }
+  });
+
+  it('opens J01 on the About Us sphere and keeps the order About Us, CDE, HQ, Campaign OS, HQ', () => {
+    const envs = PITCH_BEATS.map((b) => b.envId);
+    assert.deepEqual(new Set(envs), new Set(['env_about', 'env_cde', 'env_hq', 'env_campaign_os']));
+    assert.equal(envs[0], 'env_about');
+    assert.equal(envs[23], 'env_campaign_os');
+    assert.equal(envs[24], 'env_hq');
+  });
+
+  it('moves the camera farther for longer lenses so framing holds', () => {
+    assert.ok(pitchStandoff(65) > pitchStandoff(50));
+    assert.ok(pitchStandoff(50) > pitchStandoff(28));
+  });
+
+  it('derives vertical FOV from the 36 mm gauge and converts losslessly to the 24 mm model', () => {
+    const fov = pitchVerticalFovDeg(50, 16 / 9);
+    assert.ok(Math.abs(fov - 22.9) < 0.3, `got ${fov}`);
+    const legacy = equivalentLegacyFocalMm(50, 16 / 9);
+    const legacyFov = (2 * Math.atan(12 / legacy) * 180) / Math.PI;
+    assert.ok(Math.abs(legacyFov - fov) < 1e-6);
+    assert.ok(pitchVerticalFovDeg(50, 0.5) > pitchVerticalFovDeg(50, 1.78), 'portrait gets a taller field of view');
+  });
+
+  it('builds one stop per beat that rests until the next beat begins', () => {
+    const stops = buildJourneyStops();
+    assert.equal(stops.length, 27);
+    assert.equal(JOURNEY_BASE_DURATION_SEC, PITCH_TOTAL_SEC);
+    JOURNEY_BEATS.forEach((beat, i) => {
+      const stop = stops[i + 1];
+      assert.ok(stop.atSec > beat.startSec && stop.atSec < beat.endSec, `${beat.jId} arrives inside its own beat`);
+      assert.equal(stop.departSec, beat.endSec, `${beat.jId} rests until the next beat`);
+      assert.equal(stop.focalMm, PITCH_BEATS[i].camera.focalMm);
+    });
   });
 });

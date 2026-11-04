@@ -210,6 +210,8 @@ interface NavigationSnapshot {
 
 const BUILD_VERSION = '1.28.0';
 
+const EMPTY_PANELS: SpatialPanelSpec[] = [];
+
 export default function App() {
 
   // 1. Boot, Keypad, Reduced Motion, Sound, Language/RTL & WebGL Fallback State
@@ -499,6 +501,8 @@ export default function App() {
   }, []);
   const [journeyBeat, setJourneyBeat] = useState<JourneyBeat | null>(null);
   const journeyActive = journeyBeat !== null;
+  /** The 25 Beats explainer is playing: only the scene, the pitch content and a Stop control stay on screen. */
+  const isCinematicMode = journeyActive;
 
   // 5. Hands Overlay State
   const [handsActive, setHandsActive] = useState<boolean>(false);
@@ -3418,6 +3422,18 @@ export default function App() {
     dispatchCamera(journeyActive ? 'journey_stop' : 'journey_start');
   }, [dispatchCamera, journeyActive]);
 
+  useEffect(() => {
+    if (!isCinematicMode) return;
+    const stopOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      dispatchCamera('journey_stop');
+    };
+    window.addEventListener('keydown', stopOnEscape, true);
+    return () => window.removeEventListener('keydown', stopOnEscape, true);
+  }, [dispatchCamera, isCinematicMode]);
+
   const handleBootTakeOff = useCallback(() => {
     soundEngine.unlock();
     soundEngine.setMuted(false);
@@ -4070,7 +4086,7 @@ export default function App() {
         onUserTouchPauseTour={handleUserTouchPauseTour}
         onTelemetryChange={handleTelemetryChange}
         onCameraSettled={handleCameraSettled}
-        unobstructedRect={guiLayout.sceneSafeRect}
+        unobstructedRect={isCinematicMode ? undefined : guiLayout.sceneSafeRect}
         guiCameraPreset={guiCameraPreset}
         onProjectedTargetChange={setProjectedTarget}
         onHoverNodeChange={setHoveredNodeId}
@@ -4113,10 +4129,13 @@ export default function App() {
         handsActive={handsActive}
         handMode={handMode}
         onJourneyBeat={handleJourneyBeat}
-        spatialPanels={spatialPanels}
+        spatialPanels={isCinematicMode ? EMPTY_PANELS : spatialPanels}
+        cinematic={isCinematicMode}
       />
 
       <JourneyCaption beat={journeyBeat} onSkip={toggleJourney} reducedMotion={reducedMotion} />
+      {/* Everything below is app chrome. It stays mounted while the explainer plays so state survives, but is not displayed. */}
+      <div data-testid="app-chrome" data-cinematic={isCinematicMode ? 'true' : 'false'} style={{ display: isCinematicMode ? 'none' : 'contents' }}>
       <LiveSubtitles line={subtitleLine} />
       {nasaRoster && activeSphere === 'hq' ? (
         <NasaAgentCards highlightNodeId={nasaRoster.highlightNodeId} onClose={() => setNasaRoster(null)} />
@@ -4808,6 +4827,7 @@ export default function App() {
         unreadCount={3}
         initialChannel={activeTeamChannel || 'General'}
       />
+      </div>
 
       {/* 8. Full Project .ZIP Download Modal */}
       <ProjectDownloadModal

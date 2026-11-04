@@ -146,11 +146,21 @@ describe('visual guards: chat on iOS', () => {
 });
 
 describe('visual guards: journey caption', () => {
-  it('sits above the measured dock instead of a fixed offset', () => {
+  it('draws no visible caption card, keeps the sentence for assistive tech and one Stop control', () => {
     const src = read('./JourneyCaption.tsx');
-    assert.ok(src.includes('useDockClearance'));
-    assert.ok(src.includes('style={{ bottom }}'));
-    assert.ok(!src.includes('bottom-[148px]'));
+    assert.ok(src.includes('className="sr-only"'));
+    assert.ok(src.includes('aria-live="polite"'));
+    assert.ok(src.includes('data-testid="journey-skip"'));
+    assert.ok(!src.includes('useDockClearance'));
+    assert.ok(!src.includes('journey-honest-note'));
+  });
+
+  it('hides app chrome while the explainer plays and Escape stops it before other handlers', () => {
+    const app = read('../App.tsx');
+    assert.ok(app.includes('const isCinematicMode = journeyActive'));
+    assert.ok(app.includes("display: isCinematicMode ? 'none' : 'contents'"));
+    assert.ok(app.includes("window.addEventListener('keydown', stopOnEscape, true)"));
+    assert.ok(app.includes('cinematic={isCinematicMode}'));
   });
 });
 

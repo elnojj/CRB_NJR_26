@@ -111,6 +111,8 @@ import { createIstanbaMouldProof, type IstanbaProofHandle } from '../three/istan
 import { SpatialLabelBillboardLayer } from '../three/spatialLabelBillboards';
 import { SpatialPanelLayer, type SpatialPanelSpec } from '../three/spatialPanels';
 import { SpatialHudLayer } from '../three/spatialHud';
+import { PitchStage } from '../three/beats/PitchStage';
+import { equivalentLegacyFocalMm, pitchVerticalFovDeg } from '../three/beats/pitchStageLayout';
 import { hudBridge } from '../three/hudBridge';
 
 // ---------------------------------------------------------------------------
@@ -501,6 +503,8 @@ export interface CosmographCanvasProps {
   onJourneyBeat?: (beat: JourneyBeat | null) => void;
   /** Dashboard cards floating in the scene beside their nodes (CSS3D). */
   spatialPanels?: SpatialPanelSpec[];
+  /** The 25 Beats explainer is playing: hide the in-scene HUD and show only the scene and the pitch content. */
+  cinematic?: boolean;
 }
 
 export const HQ_CENTER = sphereCenterVec('hq');
@@ -711,7 +715,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   handMode = 'two-hands',
   onJourneyBeat,
   spatialPanels = EMPTY_SPATIAL_PANELS,
+  cinematic = false,
 }) => {
+  const cinematicRef = useRef(cinematic);
+  cinematicRef.current = cinematic;
   const mountRef = useRef<HTMLDivElement | null>(null);
   const spatialPanelsRef = useRef<SpatialPanelSpec[]>(spatialPanels);
   spatialPanelsRef.current = spatialPanels;
@@ -1542,6 +1549,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       maxVideos: deviceProfile.maxVideoTextures,
       reducedMotion: () => stateRef.current.reducedMotion,
     });
+    let pitchStage: PitchStage | null = null;
     const resolutionGovernor = new AdaptiveResolution({
       cap: deviceProfile.pixelRatioCap,
       floor: deviceProfile.pixelRatioFloor,
@@ -1776,10 +1784,17 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     });
 
     splineJourney.setCallbacks({
-      onBeat: (beat) => callbacksRef.current.onJourneyBeat?.(beat),
+      onBeat: (beat, index) => {
+        callbacksRef.current.onJourneyBeat?.(beat);
+        pitchStage?.showBeat(index, stateRef.current.reducedMotion);
+      },
       onEnd: (reason) => {
         const last = splineJourney.lastPose();
-        if (last) adoptJourneyPose(stateRef.current, last.position, last.target, last.focalMm);
+        if (last) {
+          const legacyFocal = equivalentLegacyFocalMm(last.focalMm, camera.aspect);
+          adoptJourneyPose(stateRef.current, last.position, last.target, legacyFocal);
+        }
+        pitchStage?.showBeat(null, stateRef.current.reducedMotion);
         callbacksRef.current.onJourneyBeat?.(null);
         if (reason === 'complete') {
           const st = stateRef.current;
@@ -3177,6 +3192,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const mediaTubeLayer = new MediaTubeLayer({ playback: mediaPlayback, anisotropy: deviceProfile.anisotropy });
     const mediaTubeGroup = mediaTubeLayer.group;
     scene.add(mediaTubeGroup);
+    pitchStage = new PitchStage({ playback: mediaPlayback });
+    scene.add(pitchStage.group);
     const mediaTubeTileMeshes = mediaTubeLayer.tileMeshes;
 
     isolateDecorativeGeometry(scene, cosmeticFade, camera);
@@ -3851,7 +3868,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       if (journeyPose) {
         s.focalLengthMm = journeyPose.focalMm;
         camera.up.set(0, 1, 0);
-        camera.fov = focalLengthToVFov(s.focalLengthMm);
+        camera.fov = pitchVerticalFovDeg(journeyPose.focalMm, camera.aspect);
         camera.updateProjectionMatrix();
         camera.position.copy(journeyPose.position);
         camera.lookAt(journeyPose.target);
@@ -3990,6 +4007,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         playbackClock = 0;
         mediaPlayback.reconcile();
       }
+      pitchStage?.update(dt, performance.now() / 1000);
       nodeVideos.update({ camera, focusedNodeId: s.focusedNodeId ?? null, suspended: tubeActive });
       mediaTubeLayer.update(dt, {
         camera,
@@ -4161,6 +4179,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         camera.updateMatrixWorld();
       }
 
+      hud.group.visible = !cinematicRef.current;
       hud.update(dt, curW, curH);
 
       if (isSoftwareGl || !composer) {
@@ -4380,7 +4399,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               entry.canonicalId === s.focusedNodeId || entry.canonicalId === s.HoveredNodeId,
           });
         }
-        spatialBillboards.group.visible = !mediaTubeStateRef.current?.active;
+        spatialBillboards.group.visible = !mediaTubeStateRef.current?.active && !cinematicRef.current;
         spatialBillboards.sync(billboardSpecs, camera);
 
         setLabels2D(projected);
@@ -4426,6 +4445,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       clearTimeout(frameId);
       splineJourney.dispose();
       splineJourney.setCallbacks({});
+      pitchStage?.dispose();
+      pitchStage = null;
       handInteractionMachine.reset();
       nodeInteraction.reset();
       glove.dispose();
@@ -4701,7 +4722,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       )}
 
       {/* Motion-graph infographic labels — continuous tether + land-in copy, camera-driven */}
-      {!showReducedGraphicsFallback && (
+      {!showReducedGraphicsFallback && !cinematic && (
         <div className="cerebro-infograph-layer fixed inset-0 pointer-events-none z-10">
           <svg className="fixed inset-0 w-full h-full pointer-events-none" aria-hidden="true">
             {labels2D.map((item, idx) => {

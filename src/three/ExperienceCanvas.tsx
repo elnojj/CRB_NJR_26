@@ -171,7 +171,9 @@ interface ExperienceCanvasProps {
   handMode?: HandDetectionMode;
   onJourneyBeat?: (beat: JourneyBeat | null) => void;
   spatialPanels?: SpatialPanelSpec[];
-  /** Defaults to the Sphere 1 clean slate; `?env=network` selects the legacy four-sphere network. */
+  /** The 25 Beats explainer is playing: scene and pitch content only. */
+  cinematic?: boolean;
+  /** Defaults to the connected network; `?env=sphere1` selects the isolated Sphere 1 clean slate. */
   environment?: EnvironmentMode;
   /** Sphere 1 only: per-beat copy, media, metrics and camera overrides. */
   beatContent?: BeatContentProvider;
@@ -213,6 +215,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
   handMode,
   onJourneyBeat,
   spatialPanels,
+  cinematic = false,
   environment,
   beatContent,
   beatSlotFactories,
@@ -289,6 +292,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
         handMode={handMode}
         onJourneyBeat={onJourneyBeat}
         spatialPanels={spatialPanels}
+        cinematic={cinematic}
       />
       )}
 
