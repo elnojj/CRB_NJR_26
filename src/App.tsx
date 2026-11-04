@@ -84,15 +84,13 @@ import {
   HandDetectionMode,
   type HandFlipDirection,
 } from './components/HandsOverlay';
-import { SpatialHealthLayout } from './components/spatial/SpatialHealthLayout';
-import {
-  PanelsOverlay,
+import type {
   AudienceLevel,
   CustomTaskItem,
   ProjectWorkspaceTab,
   MinimisedChip,
   MediaPlaybackState,
-} from './components/PanelsOverlay';
+} from './state/panelTypes';
 import {
   VoiceCard,
   VoiceState,
@@ -3741,64 +3739,6 @@ export default function App() {
         }
       />
 
-      {/* 2B. Desk AR health + angled wall calendar + project plan.
-          Hidden during guided tour, and dashboard overlays yield when a panel owns focus. */}
-      {bootDone &&
-        spatialHealthOpen &&
-        !dashboardCollapsed &&
-        !tourState.active &&
-        (spatialHealthMode === 'project' || openPanels.length === 0) && (
-        <SpatialHealthLayout
-          mode={spatialHealthMode}
-          selectedProjectId={selectedProjectId}
-          onSelectProject={(pid) => {
-            setOpenPanels((prev) => prev.filter((p) => p !== 'project-detail'));
-            setSpatialHealthOpen(true);
-            setSpatialHealthMode('project');
-            executeTypedAction({ type: 'focus_project', projectId: pid }, 'spatial');
-          }}
-          onCloseProject={() => {
-            setSpatialHealthMode('dashboard');
-            setOpenPanels((prev) => prev.filter((p) => p !== 'project-detail'));
-            setFocusedNodeId(null);
-            setCaptionBubble(null);
-          }}
-          onCloseCalendar={() => setSpatialHealthOpen(false)}
-          onOpenFilteredProjects={(filter, projectId) => {
-            if (projectId) {
-              setOpenPanels((prev) => prev.filter((p) => p !== 'project-detail'));
-              setSpatialHealthOpen(true);
-              setSpatialHealthMode('project');
-              executeTypedAction({ type: 'focus_project', projectId }, 'spatial');
-              return;
-            }
-            setSpatialHealthMode('dashboard');
-            setOpenPanels(['projects']);
-            setCaptionBubble(
-              filter === 'onTrack'
-                ? 'Portfolio health · on-track programmes'
-                : filter === 'attention'
-                  ? 'Blocked / at risk · Owner 39 attention'
-                  : `Open register work · ${VISIBLE_PROJECTS_DATA.reduce((n, p) => n + p.openTaskCount, 0)} (sum of openTaskCount; distinct from 52-record CSV index)`
-            );
-          }}
-          onOpenPerson={(personId) => {
-            setOpenPanels(['people']);
-            setCaptionBubble(`People · ${personId}`);
-          }}
-          onOpenRegisterRecord={(recordId) => {
-            setProjectTabsById((prev) => ({
-              ...prev,
-              [selectedProjectId]: 'tasks',
-            }));
-            executeTypedAction(
-              { type: 'focus_project', projectId: selectedProjectId, tab: 'tasks' },
-              'plan'
-            );
-            setCaptionBubble(`Register record · ${recordId}`);
-          }}
-        />
-      )}
 
       {/* 3. Main 3D WebGL ExperienceCanvas — four live spheres (HQ, CDE, Campaign OS, About Us) */}
       <ExperienceCanvas
@@ -4335,92 +4275,6 @@ export default function App() {
         />
       </div>
 
-      {/* 6. Translucent Glass Panels Overlay (Event-Isolated from 3D Canvas) */}
-      <div className="transition-opacity duration-300">
-        <PanelsOverlay
-          openPanels={openPanels}
-          minimisedChips={minimisedChips}
-          dashboardCollapsed={dashboardCollapsed}
-          activeShowreelIndex={activeShowreelIndex}
-          selectedProjectId={selectedProjectId}
-          activeProjectTab={projectTabsById[selectedProjectId] || 'tasks'}
-          peopleSubTab={peopleSubTab}
-          selectedPersonId={selectedPersonId}
-          raciFilterProject={raciFilterProject}
-          selectedDimensionId={selectedDimensionId}
-          selectedSubdomainId={selectedSubdomainId}
-          activeChapterIndex={activeChapterIndex}
-          fileSearchQuery={fileSearchQuery}
-          fullscreenMedia={fullscreenMedia}
-          mediaPlayback={mediaPlayback}
-          audienceLevel={audienceLevel}
-          customTasks={customTasks}
-          pageStateSnapshot={pageStateSnapshot}
-          reducedMotion={reducedMotion}
-          soundMuted={soundMuted}
-          languageRtl={languageRtl}
-          urgentFilterOnly={urgentFilterOnly}
-          panelScrollById={panelScrollById}
-          panelDraftsById={panelDraftsById}
-          activeTeamChannel={activeTeamChannel}
-          onClosePanel={(id) => {
-            soundEngine.playPanelToggle(false);
-            setOpenPanels((prev) => prev.filter((p) => p !== id));
-          }}
-          onMinimisePanel={handleMinimisePanel}
-          onRestoreChip={handleRestoreChip}
-          onOpenPanel={(id) => ensurePanelOpen(id, true)}
-          onToggleUrgentFilter={(urgent) => setUrgentFilterOnly(urgent)}
-          onPanelScrollChange={(pid, st) =>
-            setPanelScrollById((prev) => ({ ...prev, [pid]: st }))
-          }
-          onPanelDraftChange={(pid, draft) =>
-            setPanelDraftsById((prev) => ({ ...prev, [pid]: draft }))
-          }
-          onChangeTeamChannel={(ch) => setActiveTeamChannel(ch)}
-          onExpandStationFromDashboard={(stationId) => {
-            executeTypedAction(
-              { type: 'open_station', station: stationId as StationId },
-              'overview'
-            );
-          }}
-          onChangeShowreelIndex={handleChangeShowreelIndex}
-          onMediaControl={handleMediaControl}
-          onVideoRefReady={handleVideoRefReady}
-          onVideoTimeUpdate={handleVideoTimeUpdate}
-          onVideoPlayChange={handleVideoPlayChange}
-          onVideoMuteChange={handleVideoMuteChange}
-          onSelectProject={(pid) => {
-            executeTypedAction({ type: 'focus_project', projectId: pid }, 'panel');
-          }}
-          onChangeProjectTab={(pid, tab) =>
-            setProjectTabsById((prev) => ({ ...prev, [pid]: tab }))
-          }
-          onChangePeopleSubTab={(tab) => setPeopleSubTab(tab)}
-          onSelectPerson={(personId) => setSelectedPersonId(personId)}
-          onSelectDimension={(dimId) => {
-            executeTypedAction({ type: 'open_dimension', dimension: dimId }, 'panel');
-          }}
-          onSelectSubdomain={(subId) => {
-            executeTypedAction({ type: 'open_subdomain', subdomainId: subId }, 'panel');
-          }}
-          onSelectChapter={(idx) => setActiveChapterIndex(idx)}
-          onFileSearchChange={(q) => setFileSearchQuery(q)}
-          onOpenFullscreenMedia={(item) => setFullscreenMedia(item)}
-          onChangeAudience={setAudienceLevel}
-          onToggleReducedMotion={() => setReducedMotion((v) => !v)}
-          onToggleSoundMuted={() => setSoundMuted((v) => !v)}
-          onToggleLanguageRtl={(lang) => setLanguageRtl(lang)}
-          onSimulateCommand={handleSimulateCommand}
-          handsActive={handsActive}
-          screenAmendments={screenAmendments}
-          onToggleHands={handleToggleHands}
-          guiLayout={guiLayout}
-          phoneSheetState={phoneSheetState}
-          onChangePhoneSheetState={setPhoneSheetState}
-          isCameraInFlight={telemetry.isMoving}
-        />
-      </div>
 
 
 

@@ -3,7 +3,7 @@
  * Call = voice · Hands = camera · Chat = liquid-motion text chat.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AudienceLevel } from './PanelsOverlay';
+import type { AudienceLevel } from '../state/panelTypes';
 import {
   GoogleAiStudioVoiceBridge,
   sendGeminiChatTurn,

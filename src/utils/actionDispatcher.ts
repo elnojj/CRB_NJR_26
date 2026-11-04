@@ -9,7 +9,7 @@ import {
   TEAM_CHECKPOINTS,
 } from '../data/sourceData';
 import { CRO_CDE_GOOGLE_TOOLS_SCHEMA } from '../data/croCdeGoogleAgentManifest';
-import { ProjectWorkspaceTab } from '../components/PanelsOverlay';
+import type { ProjectWorkspaceTab } from '../state/panelTypes';
 import {
   CinemaLensId,
   CameraAnglePresetId,
