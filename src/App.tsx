@@ -176,10 +176,7 @@ import { CosmographPilotGame } from './components/game/CosmographPilotGame';
 import { BioScienceExplorer } from './components/spatial/BioScienceExplorer';
 import { ImageStudioModal } from './components/spatial/ImageStudioModal';
 import { TeamChatDrawer } from './components/TeamChatDrawer';
-import { CerebroIntro } from './intro/main';
-import { Explainer60Player } from './intro/Explainer60Player';
 import { introBridge } from './intro/bridge';
-import { resolveEditionFromSearch } from './intro/explainer60';
 import { selectLatestSnapshotTimestamp } from './data/projectPlanModel';
 
 export interface SelfTestCheckResult {
@@ -202,60 +199,7 @@ interface NavigationSnapshot {
 
 const BUILD_VERSION = '1.28.0';
 
-export type BootMode = 'intro' | 'explainer-60' | 'workspace';
-
-/** Public cold start: CerebroIntro wordmark → open sequence → loader → workspace. */
-function shouldStartInIntro(): boolean {
-  if (typeof window === 'undefined') return false;
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('intro') === '0' || params.get('movie') === '0') return false;
-  if (params.get('skipExplainer') === '1' || params.get('skipGate') === '1') return false;
-  const view = params.get('view');
-  if (view === 'hq' || view === 'cde' || view === 'keypad') return false;
-  if (view && view !== 'intro' && view !== 'movie' && view !== 'boot' && view !== 'loader') {
-    return false;
-  }
-  return true;
-}
-
-function resolveBootMode(): BootMode {
-  if (typeof window === 'undefined') return 'workspace';
-  const edition = resolveEditionFromSearch(window.location.search);
-  if (edition === 'explainer-60') return 'explainer-60';
-  if (edition === 'intro-180') return 'intro';
-  if (edition === 'none') return 'workspace';
-  return shouldStartInIntro() ? 'intro' : 'workspace';
-}
-
 export default function App() {
-  // 0. Intro Sequence Mode (Unified Single-Canvas Shell)
-  const [introMode, setIntroMode] = useState<BootMode>(() => {
-    const boot = resolveBootMode();
-    introBridge.enabled = boot === 'intro' || boot === 'explainer-60';
-    return boot;
-  });
-
-  const handleExitIntro = useCallback((context?: { soundOn?: boolean }) => {
-    introBridge.enabled = false;
-    introBridge.hostPoseSampler = null;
-    introBridge.inspectPose = null;
-    sessionStorage.removeItem('cerebro-entered');
-    const url = new URL(window.location.href);
-    url.searchParams.delete('intro');
-    url.searchParams.delete('movie');
-    url.searchParams.delete('explainer');
-    url.searchParams.delete('edition');
-    if (!url.searchParams.get('view')) url.searchParams.set('view', 'hq');
-    window.history.replaceState({}, '', url);
-    soundEngine.unlock();
-    if (context?.soundOn) {
-      // Carry the visitor's "Play with sound" choice into workspace interaction sound.
-      setSoundMuted(false);
-      setAmbienceMuted(false);
-    }
-    setBootDone(true);
-    setIntroMode('workspace');
-  }, []);
 
   // 1. Boot, Keypad, Reduced Motion, Sound, Language/RTL & WebGL Fallback State
   const [bootInitialMode, setBootInitialMode] = useState<'keypad' | 'loader'>(() => {
@@ -272,11 +216,8 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const v = params.get('view')?.toLowerCase();
     if (params.get('skipExplainer') === '1' || params.get('skipGate') === '1') return true;
-    if (v === 'keypad') return false;
-    // Public cold start: CerebroIntro owns the open sequence; canvas mounts underneath.
-    if (shouldStartInIntro()) return true;
-    if (v && v !== 'boot' && v !== 'loader' && v !== 'keypad' && v !== 'film') return true;
-    return false;
+    if (v === 'keypad' || v === 'film') return false;
+    return true;
   });
   const [customDomains, setCustomDomains] = useState<CustomDomain3D[]>([]);
   const [sphereMaterials, setSphereMaterials] = useState<{
@@ -2144,8 +2085,8 @@ export default function App() {
             mediaControls: true,
             presentation: audienceLevel === 'Public',
             sessionCapture: false,
-            explainer60: true,
-            intro180: true,
+            explainer60: false,
+            intro180: false,
             projectWorldIstanba: true,
             tarekPortraitAperture: false,
             fifthSphereIndustryMaking: false,
@@ -3211,7 +3152,6 @@ export default function App() {
     setAmbienceMuted(false);
     setBootDone(true);
     introBridge.enabled = false;
-    setIntroMode('workspace');
     setOpenPanels([]);
     setFocusedNodeId(null);
     setDashboardCollapsed(false);
@@ -3805,7 +3745,7 @@ export default function App() {
       }}
     >
       {/* Optional Owner Gate via ?view=keypad only — public path is CerebroIntro. */}
-      {!bootDone && bootInitialMode === 'keypad' && introMode === 'workspace' && (
+      {!bootDone && bootInitialMode === 'keypad' && (
         <BootLoader
           reducedMotion={reducedMotion}
           initialPhase="keypad"
@@ -3837,18 +3777,6 @@ export default function App() {
             : 168
         }
       />
-
-      {/* 2C. Unified Intro Overlay (Single shared 3D sphere canvas continuously mounted underneath) */}
-      {introMode === 'intro' && (
-        <CerebroIntro
-          onEnterWorkspace={handleExitIntro}
-          embedCanvas={false}
-          reducedMotion={reducedMotion}
-        />
-      )}
-      {introMode === 'explainer-60' && (
-        <Explainer60Player onEnterWorkspace={handleExitIntro} embedCanvas={false} />
-      )}
 
       {/* 2B. Desk AR health + angled wall calendar + project plan.
           Hidden during guided tour, and dashboard overlays yield when a panel owns focus. */}
@@ -4187,7 +4115,7 @@ export default function App() {
       <header
         data-testid="workspace-header"
         className={`fixed top-0 left-0 right-0 z-30 pointer-events-none flex items-start justify-center px-4 pt-4 pb-2 safe-area-top ${
-          !bootDone || introMode !== 'workspace' ? 'opacity-0' : 'opacity-100'
+          !bootDone ? 'opacity-0' : 'opacity-100'
         } transition-opacity duration-300`}
       >
         <div className="pointer-events-auto">
@@ -4205,7 +4133,7 @@ export default function App() {
       <div
         data-testid="header-controls-region"
         className={`fixed top-0 right-0 z-40 pointer-events-none px-4 pt-4 safe-area-top ${
-          !bootDone || introMode !== 'workspace' ? 'opacity-0' : 'opacity-100'
+          !bootDone ? 'opacity-0' : 'opacity-100'
         } transition-opacity duration-300`}
       >
         <FloatingIconToggles
@@ -4445,13 +4373,7 @@ export default function App() {
       </div>
 
       {/* 6. Translucent Glass Panels Overlay (Event-Isolated from 3D Canvas) */}
-      <div
-        className={
-          introMode !== 'workspace'
-            ? 'opacity-0 pointer-events-none transition-opacity duration-300'
-            : 'transition-opacity duration-300'
-        }
-      >
+      <div className="transition-opacity duration-300">
         <PanelsOverlay
           openPanels={openPanels}
           minimisedChips={minimisedChips}
@@ -4539,14 +4461,8 @@ export default function App() {
 
 
 
-      {/* 7. C06 Voice capsule + C07 listening rings (Mounted once at application shell; state-driven visibility during intro) */}
-      <div
-        className={
-          introMode !== 'workspace'
-            ? 'opacity-0 pointer-events-none transition-opacity duration-300'
-            : 'transition-opacity duration-300'
-        }
-      >
+      {/* 7. C06 Voice capsule + C07 listening rings (Mounted once at application shell) */}
+      <div className="transition-opacity duration-300">
         <SystemStatusLayer
           webglUnavailable={false}
           voiceAuthFailed={voiceAuthFailed}
@@ -4602,7 +4518,7 @@ export default function App() {
             : `Hydrating workspace phase ${hydrationPhase} · snapshot ${latestSnapshotIso}`}
         </div>
         {/* Film / Owner Gate must not share chrome with the workspace dock. */}
-        {bootDone && introMode === 'workspace' && (
+        {bootDone && (
         <VoiceCard
           voiceState={voiceState}
           activePocket={activePocket}
