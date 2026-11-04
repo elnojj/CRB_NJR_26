@@ -89,7 +89,7 @@ export const Cerebro39SystemModal: React.FC<Cerebro39SystemModalProps> = ({
       data-testid="cerebro39-system-modal"
       onPointerDown={(e) => e.stopPropagation()}
       onWheel={(e) => e.stopPropagation()}
-      className="fixed inset-0 z-[85] bg-[#05090E]/80 backdrop-blur-md flex items-center justify-center p-4 pointer-events-auto"
+      className="fixed inset-0 z-[85] bg-[#05090E]/92 flex items-center justify-center p-4 pointer-events-auto"
     >
       <div className="w-full max-w-4xl max-h-[88dvh] rounded-[20px] border border-[#B4DDFF]/35 bg-[#101D27]/95 text-[#F2F6F8] shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}

@@ -309,7 +309,7 @@ export const BioScienceExplorer: React.FC<BioScienceExplorerProps> = ({ open = t
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#05090e]/80 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#05090e]/92">
       <div className="w-full max-w-5xl h-[90vh] max-h-[820px] rounded-2xl bg-[#101622] border border-[#1a2638] flex flex-col overflow-hidden shadow-2xl">
         {/* Header Bar */}
         <div className="px-6 py-4 border-b border-[#1a2638] flex items-center justify-between bg-[#05090e]/60">

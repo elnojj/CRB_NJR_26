@@ -29,8 +29,8 @@
   --lg-media-bg: rgba(11, 20, 28, 0.9);
   --lg-fallback-bg: rgba(20, 38, 50, 0.96);
   --lg-base-blur: 14px;
-  --lg-raised-blur: 16px;
-  --lg-media-blur: 6px;
+  --lg-raised-blur: 8px;
+  --lg-media-blur: 0px;
   --lg-saturate: 1.18;
   --lg-border: 1px solid rgba(180, 221, 255, 0.2);
   --lg-border-raised: 1px solid rgba(180, 221, 255, 0.22);
@@ -165,8 +165,8 @@
 
 .lg-media-shell {
   background: var(--lg-media-bg);
-  backdrop-filter: blur(var(--lg-media-blur)) saturate(1.05);
-  -webkit-backdrop-filter: blur(var(--lg-media-blur)) saturate(1.05);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border: 1px solid rgba(180, 221, 255, 0.16);
   border-radius: var(--lg-panel-radius);
   /* Media content must stay crisp — no grain/bloom overlays here */
@@ -362,8 +362,8 @@
 
 .cerebro-glass-media {
   background: var(--lg-media-bg) !important;
-  backdrop-filter: blur(var(--lg-media-blur)) saturate(1.05) !important;
-  -webkit-backdrop-filter: blur(var(--lg-media-blur)) saturate(1.05) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   border-radius: var(--lg-panel-radius) !important;
 }
 
@@ -378,8 +378,8 @@
 /* Persistent navigation / HUD — low-profile frosted island */
 .lg-role-nav {
   background: var(--lg-accent-nav) !important;
-  backdrop-filter: blur(12px) saturate(1.1) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(1.1) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
 }

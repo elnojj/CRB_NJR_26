@@ -267,7 +267,7 @@ export const CosmographPilotGame: React.FC<CosmographPilotGameProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[190] flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm"
+      className="fixed inset-0 z-[190] flex items-center justify-center bg-black/90 p-3"
       data-testid="cosmograph-pilot-game"
       role="dialog"
       aria-modal="true"

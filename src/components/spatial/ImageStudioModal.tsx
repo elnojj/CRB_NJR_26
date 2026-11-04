@@ -131,7 +131,7 @@ export const ImageStudioModal: React.FC<ImageStudioModalProps> = ({ open, onClos
     <div
       onPointerDown={(e) => e.stopPropagation()}
       onWheel={(e) => e.stopPropagation()}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-[#0A0E17]/85 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-[#0A0E17]/95 animate-fade-in"
     >
       <div
         data-testid="image-studio-modal"
@@ -361,7 +361,7 @@ export const ImageStudioModal: React.FC<ImageStudioModalProps> = ({ open, onClos
                     alt={activeImage.prompt}
                     className="max-h-full max-w-full object-contain rounded shadow-2xl"
                   />
-                  <div className="absolute bottom-3 left-3 right-3 p-2.5 rounded-lg bg-[#0A0E17]/85 backdrop-blur-md border border-[color:var(--token-divider)] opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute bottom-3 left-3 right-3 p-2.5 rounded-lg bg-[#0A0E17]/95 border border-[color:var(--token-divider)] opacity-0 group-hover:opacity-100 transition-opacity">
                     <p className="font-mono text-[11px] text-[#C5CCD6] line-clamp-2">
                       {activeImage.prompt}
                     </p>

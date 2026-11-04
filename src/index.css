@@ -153,8 +153,8 @@ canvas {
 .optical-hud-panel,
 .hud-sheet {
   background: var(--token-glass-fill);
-  backdrop-filter: blur(var(--blur-glass)) saturate(1.08);
-  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(1.08);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
   border: 1px solid var(--token-divider);
   border-radius: var(--panel-radius);
   box-shadow: var(--shadow-hud);
@@ -450,8 +450,8 @@ button.cerebro-infograph-label[data-spatial-billboard='true'][data-chrome-state=
   border-radius: var(--pill-radius, 999px);
   background: var(--token-glass-fill, rgba(27, 34, 48, 0.88));
   border: 1px solid var(--token-glass-border, rgba(197, 204, 214, 0.22));
-  backdrop-filter: blur(var(--blur-glass, 12px));
-  -webkit-backdrop-filter: blur(var(--blur-glass, 12px));
+  backdrop-filter: blur(var(--blur-glass, 8px));
+  -webkit-backdrop-filter: blur(var(--blur-glass, 8px));
   color: var(--token-text-primary, #F2F6F8);
   pointer-events: auto;
 }
@@ -588,8 +588,8 @@ button.cerebro-infograph-label[data-spatial-billboard='true'][data-chrome-state=
   border-radius: 20px;
   background: var(--token-glass-fill, rgba(27, 34, 48, 0.94));
   border: 1px solid var(--token-glass-border, rgba(197, 204, 214, 0.22));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: var(--token-text-primary, #F2F6F8);
   display: flex;
   flex-direction: column;

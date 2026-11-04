@@ -106,8 +106,8 @@
   --glass-primary: rgba(20, 38, 50, 0.62);
   --glass-focused: rgba(20, 38, 50, 0.78);
   --glass-media: rgba(11, 20, 28, 0.9);
-  --glass-blur-desktop: 16px;
-  --glass-blur-mobile: 14px;
+  --glass-blur-desktop: 8px;
+  --glass-blur-mobile: 6px;
   --glass-inner-highlight: rgba(242, 246, 248, 0.18);
 }
 
@@ -147,8 +147,8 @@
 .cerebro-hud-panel,
 .optical-hud-panel {
   background: var(--token-hud-outer-bg);
-  backdrop-filter: blur(12px) saturate(1.2);
-  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--token-hud-outer-border);
   border-radius: 12px;
   box-shadow: var(--token-hud-outer-shadow);
@@ -175,7 +175,7 @@
   --token-glass-fill: var(--token-glass);
   --token-glass-fallback: var(--token-glass-solid);
   --token-glass-border: var(--token-divider);
-  --blur-glass: 12px;
+  --blur-glass: 8px;
   --panel-radius: var(--radius-panel);
   --control-radius: var(--radius-button);
   --shadow-hud: var(--token-hud-outer-shadow);
@@ -219,8 +219,8 @@
 .cerebro-utility-chip,
 [data-chrome='glass'] {
   background: var(--token-glass-fill);
-  backdrop-filter: blur(var(--blur-glass)) saturate(1.12);
-  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(1.12);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
   border: 1px solid var(--token-divider);
   border-radius: var(--radius-panel);
   box-shadow: var(--shadow-hud);

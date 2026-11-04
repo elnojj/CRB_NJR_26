@@ -4013,7 +4013,7 @@ export default function App() {
               )}
 
               {visualFeedbackOpen && (
-                <div className="fixed inset-0 z-50 bg-[#101D27]/80 backdrop-blur-sm flex items-center justify-center p-4 pointer-events-auto">
+                <div className="fixed inset-0 z-50 bg-[#101D27]/92 flex items-center justify-center p-4 pointer-events-auto">
                   <div className="w-full max-w-3xl">
                     <VisualFeedbackMap
                       projectId={selectedProjectId}
@@ -4673,7 +4673,7 @@ export default function App() {
         <div
           onPointerDown={(e) => e.stopPropagation()}
           onWheel={(e) => e.stopPropagation()}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#101622]/85 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#101622]/95"
         >
           <div
             data-testid="developer-view-modal"
