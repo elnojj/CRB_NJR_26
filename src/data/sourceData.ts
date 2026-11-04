@@ -1,4 +1,5 @@
 import { COLOUR_TOKENS, StationId, CdeDimensionId } from '../tokens/colours';
+import { PUBLIC_BRAND_MEDIA } from './publicBrandMedia';
 
 export interface SourceMapEntry {
   code: string;
@@ -54,7 +55,7 @@ export const SOURCE_MAP: SourceMapEntry[] = [
     code: '05b',
     fileName: '05_SEVEN_01_Verified_Facts_and_Evidence',
     status: 'ATTACHED',
-    usageInApp: 'Verified text for NOJARA Studios (founded 2016, Cairo and Riyadh, creative strategy, production, talent, media technology, NJR+ execution intelligence; Young & Human, Drafteers, Museum of Almost, El Batron, Gondwana), Tarek Nojara, Mohammed Alhamdan, and "SEVEN × NOJARA — A reason to return".',
+    usageInApp: 'Verified text for NOJARA Studios (founded 2016, Cairo and Riyadh, creative strategy, production, talent, media technology, NJR+ execution intelligence; Young & Human, Drafteers, Museum of Almost, El Batron), Tarek Mojara, Mohammed Alhamdan, and "SEVEN × NOJARA — A reason to return".',
   },
   {
     code: '05c',
@@ -118,9 +119,9 @@ export const SOURCE_MAP: SourceMapEntry[] = [
   },
   {
     code: '10',
-    fileName: '10 NOJARA company profile + Tarek Nojara bio PDFs',
+    fileName: '10 NOJARA company profile + Tarek Mojara bio PDFs',
     status: 'MISSING',
-    usageInApp: 'Listed as "To be added to the same folder" (NOJARA_Full_Company_Profile_v04.pdf, Tarek_Nojara_Full_Visual_Bio_v04.pdf). CDE Story Journey uses ONLY verified text from 01 KB Handoff & 05 SEVEN 01, with unattached sections labelled SAMPLE.',
+    usageInApp: 'Listed as "To be added to the same folder" (NOJARA_Full_Company_Profile_v04.pdf, Tarek_Mojara_Full_Visual_Bio_v04.pdf). CDE Story Journey uses ONLY verified text from 01 KB Handoff & 05 SEVEN 01, with unattached sections labelled SAMPLE.',
   },
 ];
 
@@ -140,14 +141,15 @@ export const MISSING_ITEMS: MissingItem[] = [
   },
   {
     id: 'M02',
-    item: '09 Media (Hotspot_26_media 1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh video showreels & audio)',
-    referencedIn: 'Master Instruction v2 ("09 Media: the only media allowed") & 01 KB Handoff §3',
-    currentFallbackInPhase0: 'Used the 2 attachedrenders (06_SEVEN_Tabuk_concept_render_desktop & mobile) and labelled unattached video showreels as SAMPLE.',
+    item: '09 Media — remaining Hotspot masters without distinct local/public playback URLs (project-attributed showreels still partial)',
+    referencedIn: 'Master Instruction v2 ("09 Media: the only media allowed") & 01 KB Handoff §3 & driveMediaCatalog',
+    currentFallbackInPhase0:
+      'Filled every sphere / station / project / dimension / subdomain sieve with distinct ~5.5s local edited cutdowns from public Wix masters (showreel2023, LaLiga, El Batron) under /media/shots — see shotMediaCatalog.ts. Provenance is public-brand cutdown, not unique project camera masters. Soft posters under /media/shot-posters.',
   },
   {
     id: 'M03',
-    item: '10 NOJARA company profile + Tarek Nojara bio full PDFs (NOJARA_Full_Company_Profile_v04.pdf, Tarek_Nojara_Full_Consultant_Profile_v04.pdf, Tarek_Nojara_Full_Visual_Bio_v04.pdf)',
-    referencedIn: 'Master Instruction v2 ("10 NOJARA company profile + Tarek Nojara bio") & 05 SEVEN 00/03',
+    item: '10 NOJARA company profile + Tarek Mojara bio full PDFs (NOJARA_Full_Company_Profile_v04.pdf, Tarek_Mojara_Full_Consultant_Profile_v04.pdf, Tarek_Mojara_Full_Visual_Bio_v04.pdf)',
+    referencedIn: 'Master Instruction v2 ("10 NOJARA company profile + Tarek Mojara bio") & 05 SEVEN 00/03',
     currentFallbackInPhase0: 'Used strictly verified excerpts from 05_SEVEN_01_Verified_Facts_and_Evidence & 01_CEREBRO_KB_HANDOFF; marked full multi-page PDF body text as SAMPLE.',
   },
   {
@@ -166,13 +168,20 @@ export const MISSING_ITEMS: MissingItem[] = [
     id: 'M06',
     item: 'Confirmed 17 project codes, quantitative progress percentages, and per-project RACI sign-offs',
     referencedIn: '01 KB Handoff §9 ("Confirm the 17 project codes and supply real clients, contacts, owners, dates") & 07 Project Register',
-    currentFallbackInPhase0: 'Used all 4 active project codes in 07 Project Register (SEVEN, YAH, MHE, BSOCIAL) plus portfolio programmes (AL-AHRAM, MUSEUM-OF-ALMOST, EL-BATRON, GONDWANA) with exact record counts; labelled unverified progress % and RACI cells as SAMPLE.',
+    currentFallbackInPhase0: 'Used all 4 active project codes in 07 Project Register (SEVEN, YAH, MHE, BSOCIAL) plus portfolio programmes (AL-AHRAM, MUSEUM-OF-ALMOST, EL-BATRON) with exact record counts; labelled unverified progress % and RACI cells as SAMPLE.',
   },
   {
     id: 'M07',
     item: 'External Gmail OAuth / SMTP credentials & Cursor Cloud Webhook endpoint',
     referencedIn: 'Workspace Integration & Development Tracker',
     currentFallbackInPhase0: 'Meeting notes save locally to disk (.cerebro-data/store.json) with honest status "Draft ready — email not connected". Tasks, notes, and messages persist locally without fabricating external Gmail or Cursor receipts.',
+  },
+  {
+    id: 'M08',
+    item: 'Confirmed portraits for Shweekar Ahmed and Khaled El Shaalan',
+    referencedIn: 'docs/intro/README.md & People Station / About Us aperture slots',
+    currentFallbackInPhase0:
+      'Image fields remain null. Tarek founder plate is owner-supplied (/media/about-tarek-afrima.jpg). No invented faces substituted.',
   },
 ];
 
@@ -194,9 +203,9 @@ export const CEREBRO_STATIONS: StationNode[] = [
     label: 'Projects',
     labelAr: 'المشاريع',
     colour: COLOUR_TOKENS.stationProjects,
-    position: [-5.2, 3.4, 2.8],
-    summary: '4 Register Projects (SEVEN, YAH, MHE, BSOCIAL) + 4 Portfolio Programmes [SAMPLE]',
-    badgeCount: '6 Suns · 4 Real',
+    position: [-1.65, 1.55, 1.15],
+    summary: 'Register + portfolio programmes from source data (count derived at runtime).',
+    badgeCount: 'programmes · source',
   },
   {
     id: 'tasks',
@@ -204,7 +213,7 @@ export const CEREBRO_STATIONS: StationNode[] = [
     label: 'Tasks',
     labelAr: 'المهام',
     colour: COLOUR_TOKENS.stationTasks,
-    position: [3.4, -4.6, 2.6],
+    position: [-0.95, -2.05, 1.25],
     summary: '52 Parsed Register Records (13 Actions, 1 Decision, 5 Questions, 33 Updates)',
     badgeCount: '4 Open · 52 Total',
   },
@@ -214,7 +223,7 @@ export const CEREBRO_STATIONS: StationNode[] = [
     label: 'People',
     labelAr: 'الفريق والمسؤوليات',
     colour: COLOUR_TOKENS.stationPeople,
-    position: [-4.2, -4.2, 2.5],
+    position: [1.45, -1.85, 1.15],
     summary: 'HQ (39, Shweekar) · Team & Contracts (12 Crew + Collaborators) · RACI Matrix',
     badgeCount: '12 Crew · RACI',
   },
@@ -224,7 +233,7 @@ export const CEREBRO_STATIONS: StationNode[] = [
     label: 'Files',
     labelAr: 'الملفات',
     colour: COLOUR_TOKENS.stationFiles,
-    position: [3.6, 4.8, 1.9],
+    position: [-2.35, -0.35, 1.05],
     summary: '5 Published Portal PDFs + 4 Allowlisted Drive Folders + Register Evidence',
     badgeCount: '8 HQ Refs',
   },
@@ -234,7 +243,7 @@ export const CEREBRO_STATIONS: StationNode[] = [
     label: 'Media',
     labelAr: 'الوسائط والعروض',
     colour: COLOUR_TOKENS.stationMedia,
-    position: [6.4, -0.2, 2.2],
+    position: [1.65, 1.55, 1.15],
     summary: '5 NOJARA Showreels + 2 Attached SEVEN Tabuk Renders + 30 Sculptural Assets',
     badgeCount: '5 Showreels',
   },
@@ -464,7 +473,7 @@ export const REGISTER_RECORDS: RegisterRecord[] = [
     recordType: 'Action',
     summary: 'Confirmed statement: Tarek accepts broad responsibility',
     detail: 'At 00:30:01 Tarek says, "I\'ll take care of whatever is needed." Broad commitment is explicit, but deliverables and limits are not defined.',
-    owner: 'me@nojara.com (39 / Tarek Nojara)',
+    owner: 'me@nojara.com (39 / Tarek Mojara)',
     dueText: 'Unknown',
     reviewStatus: 'Needs review',
     workStatus: 'Open',
@@ -608,7 +617,7 @@ export const PROJECTS_DATA: ProjectSummary[] = [
     health: 'At risk',
     healthNote: 'Email 550 5.1.1 bounce on pitch package + portal validation/rights gaps open (Register 14 Oct)',
     progress: 68,
-    progressLabel: '68% [SAMPLE — 17 Register Records]',
+    progressLabel: '68% · 17 register records from register',
     owner: 'Unassigned (Needs 39 sign-off)',
     nextDeadline: 'TBD (Pilot & Rights Review)',
     openTaskCount: 17,
@@ -618,8 +627,8 @@ export const PROJECTS_DATA: ProjectSummary[] = [
     dimensionId: 'strategy',
     subdomain: 'Destination Storytelling',
     description: 'Connected programme of family experiences, local creativity and destination storytelling across experience design, production leadership, content/audience, and NJR+ execution intelligence.',
-    sunPositionHq: [-3.2, 1.9, 4.5],
-    sunPositionCde: [-6.4, 4.4, 3.1],
+    sunPositionHq: [0.0, 3.85, 0.95],
+    sunPositionCde: [0.0, 4.05, -0.95],
   },
   {
     id: 'YAH',
@@ -630,7 +639,7 @@ export const PROJECTS_DATA: ProjectSummary[] = [
     health: 'On track',
     healthNote: '62 PNG assets reported in handoff; EEA 2026 eligibility & motion ZIP open (Register 18 Oct)',
     progress: 74,
-    progressLabel: '74% [SAMPLE — 14 Register Records]',
+    progressLabel: '74% · 14 register records from register',
     owner: 'Unassigned (PMO Intake)',
     nextDeadline: '19 Oct 2026 (EEA Reported Deadline)',
     openTaskCount: 14,
@@ -639,8 +648,8 @@ export const PROJECTS_DATA: ProjectSummary[] = [
     dimensionId: 'talent',
     subdomain: 'Talent Accelerator',
     description: 'Video-led opening journey connecting Museum of Almost, Talent Accelerator, and role-specific creator/music-producer/visual-artist pathways.',
-    sunPositionHq: [2.4, 2.6, 4.6],
-    sunPositionCde: [-6.2, -2.8, 3.8],
+    sunPositionHq: [3.15, 2.45, -0.55],
+    sunPositionCde: [-4.05, 0.0, -0.95],
   },
   {
     id: 'MHE',
@@ -651,8 +660,8 @@ export const PROJECTS_DATA: ProjectSummary[] = [
     health: 'On track',
     healthNote: '39 accepted broad lead at 00:30:01; Nov 1 release reference & name spelling open (Register 15 Oct)',
     progress: 62,
-    progressLabel: '62% [SAMPLE — 18 Register Records]',
-    owner: 'me@nojara.com (39 / Tarek Nojara)',
+    progressLabel: '62% · 18 register records from register',
+    owner: 'me@nojara.com (39 / Tarek Mojara)',
     nextDeadline: 'Nov 1 (Unverified Release Ref)',
     openTaskCount: 18,
     totalRecordCount: 18,
@@ -660,8 +669,8 @@ export const PROJECTS_DATA: ProjectSummary[] = [
     dimensionId: 'talent',
     subdomain: 'Multidisciplinary Practitioners',
     description: 'Saudi multidisciplinary practice across music, contemporary art, design, creative direction, Floward campaign proposal, and SEVEN destination involvement.',
-    sunPositionHq: [-2.6, -2.1, 4.8],
-    sunPositionCde: [-6.8, -4.4, 3.2],
+    sunPositionHq: [-2.95, -2.65, -0.55],
+    sunPositionCde: [-2.85, -2.85, -0.95],
   },
   {
     id: 'BSOCIAL',
@@ -672,7 +681,7 @@ export const PROJECTS_DATA: ProjectSummary[] = [
     health: 'Blocked',
     healthNote: 'Awaiting 39 clarification on third-party request for Ehab project access (Register 6 Oct)',
     progress: 40,
-    progressLabel: '40% [SAMPLE — 3 Register Records]',
+    progressLabel: '40% · 3 register records from register',
     owner: 'Awaiting 39 Decision',
     nextDeadline: 'Pending Access Clarification',
     openTaskCount: 3,
@@ -681,94 +690,105 @@ export const PROJECTS_DATA: ProjectSummary[] = [
     dimensionId: 'production',
     subdomain: 'Destination Activations',
     description: 'Collaboration follow-up after Khalid dispatched NOJARA_BSocial_Young_and_Human_Pitch.pdf to Ahmed Shams.',
-    sunPositionHq: [2.9, -2.2, 4.5],
-    sunPositionCde: [6.8, 4.2, 3.1],
+    sunPositionHq: [0.25, -3.85, -0.65],
+    sunPositionCde: [2.85, 2.85, -0.95],
   },
   {
     id: 'AL-AHRAM',
     code: 'AHR',
-    name: 'Al-Ahram [SAMPLE]',
+    name: 'Al-Ahram',
     subtitle: 'Named in 02 Blueprint Frame 01/05/06 — Illustrative Plan',
     isSample: true,
     health: 'On track',
     healthNote: 'Named in 02 Blueprint p.3/4; no rows in 07 Register Snapshot [SAMPLE]',
     progress: 50,
-    progressLabel: '50% [SAMPLE]',
+    progressLabel: '50% · illustrative',
     owner: 'SAMPLE — Unassigned',
-    nextDeadline: 'TBD [SAMPLE]',
+    nextDeadline: 'TBD · illustrative',
     openTaskCount: 4,
     totalRecordCount: 4,
-    lastActivity: '18 Oct 2026 [SAMPLE]',
+    lastActivity: '18 Oct 2026',
     dimensionId: 'strategy',
     subdomain: 'Brand & Cultural Systems',
     description: 'Referenced in 02_CEREBRO_BLUEPRINT_RASMA v0.2 Projects list alongside Young & Human and SEVEN. Marked SAMPLE pending full register linkage.',
-    sunPositionHq: [-4.6, 0.4, 3.8],
-    sunPositionCde: [-6.4, 1.5, 4.0],
+    sunPositionHq: [-3.25, 2.35, -0.55],
+    sunPositionCde: [-2.85, 2.85, -0.95],
   },
   {
     id: 'MUSEUM-OF-ALMOST',
     code: 'MOA',
-    name: 'Museum of Almost [SAMPLE]',
+    name: 'Museum of Almost',
     subtitle: 'NOJARA Programme Identity (05 SEVEN 01 & YAH Register)',
     isSample: true,
     health: 'On track',
     healthNote: 'Confirmed NOJARA identity in 05 SEVEN 01; parallax/depth layers in YAH Register [SAMPLE]',
     progress: 55,
-    progressLabel: '55% [SAMPLE]',
+    progressLabel: '55% · illustrative',
     owner: 'SAMPLE — NOJARA Studios',
-    nextDeadline: 'TBD [SAMPLE]',
+    nextDeadline: 'TBD · illustrative',
     openTaskCount: 2,
     totalRecordCount: 2,
-    lastActivity: '06 Oct 2026 [SAMPLE]',
+    lastActivity: '06 Oct 2026',
     dimensionId: 'mediatech',
     subdomain: 'Interactive Museums',
     description: 'Distinct NOJARA programme and experiential world within the YAH journey with masked foreground objects and parallax depth layers.',
-    sunPositionHq: [0.2, 4.4, 3.9],
-    sunPositionCde: [6.6, -4.2, 3.3],
+    sunPositionHq: [3.15, -2.35, -0.55],
+    sunPositionCde: [0.0, -4.05, -0.95],
   },
   {
     id: 'EL-BATRON',
     code: 'BAT',
-    name: 'El Batron [SAMPLE]',
+    name: 'El Batron',
     subtitle: 'NOJARA Programme Identity (05 SEVEN 01 & 02)',
     isSample: true,
     health: 'On track',
     healthNote: 'Confirmed NOJARA identity in 05 SEVEN 01/02; detailed rows marked SAMPLE',
     progress: 80,
-    progressLabel: '80% [SAMPLE]',
+    progressLabel: '80% · illustrative',
     owner: 'SAMPLE — NOJARA Studios',
-    nextDeadline: 'TBD [SAMPLE]',
+    nextDeadline: 'TBD · illustrative',
     openTaskCount: 1,
     totalRecordCount: 1,
-    lastActivity: '13 Oct 2026 [SAMPLE]',
+    lastActivity: '13 Oct 2026',
     dimensionId: 'production',
     subdomain: 'Live Spatial Directing',
     description: 'Distinct identity and production programme within the NOJARA Studios portfolio.',
-    sunPositionHq: [4.6, 1.2, 3.7],
-    sunPositionCde: [6.8, 1.4, 3.9],
+    sunPositionHq: [3.95, 0.15, -0.45],
+    sunPositionCde: [4.05, 0.0, -0.95],
   },
-  {
-    id: 'GONDWANA',
-    code: 'GND',
-    name: 'Gondwana [SAMPLE]',
-    subtitle: 'NOJARA Programme Identity (05 SEVEN 01)',
-    isSample: true,
-    health: 'At risk',
-    healthNote: 'Confirmed NOJARA identity in 05 SEVEN 01; schedule marked SAMPLE',
-    progress: 45,
-    progressLabel: '45% [SAMPLE]',
-    owner: 'SAMPLE — NOJARA Studios',
-    nextDeadline: 'TBD [SAMPLE]',
-    openTaskCount: 2,
-    totalRecordCount: 2,
-    lastActivity: '13 Oct 2026 [SAMPLE]',
-    dimensionId: 'production',
-    subdomain: 'Film & Showreel Production',
-    description: 'Experiential and production programme presented in the NOJARA Studios company profile.',
-    sunPositionHq: [0.4, -4.3, 3.8],
-    sunPositionCde: [6.4, -1.6, 3.9],
-  },
+  // Gondwana / GND removed from active register per owner correction (2026-11).
 ];
+
+/** Projects hidden from spatial graph, drawers, and portfolio counts. */
+export const EXCLUDED_PROJECT_IDS = new Set<string>(['GONDWANA']);
+
+export function isProjectVisibleInWorkspace(projectId: string): boolean {
+  return !EXCLUDED_PROJECT_IDS.has(projectId);
+}
+
+export const VISIBLE_PROJECTS_DATA = PROJECTS_DATA.filter((p) =>
+  isProjectVisibleInWorkspace(p.id)
+);
+
+/** Contract: never use legacy "6 Suns · 4 Real" — derive count from source. */
+export const PROJECT_PROVENANCE_COUNTS = (() => {
+  const visible = VISIBLE_PROJECTS_DATA;
+  const registerCount = visible.filter((p) => !p.isSample).length;
+  const sampleCount = visible.filter((p) => p.isSample).length;
+  const totalCount = visible.length;
+  const badgeLabel = `${registerCount} Register · ${sampleCount} Sample`;
+  const projectsStation = CEREBRO_STATIONS.find((s) => s.id === 'projects');
+  if (projectsStation) {
+    projectsStation.badgeCount = badgeLabel;
+    projectsStation.summary = `${totalCount} programmes from source register (${registerCount} verified, ${sampleCount} sample).`;
+  }
+  return {
+    registerCount,
+    sampleCount,
+    totalCount,
+    badgeLabel,
+  } as const;
+})();
 
 export interface PersonRecord {
   id: string;
@@ -784,7 +804,7 @@ export interface PersonRecord {
 export const PEOPLE_DATA: PersonRecord[] = [
   {
     id: 'p-39',
-    name: '39 (Tarek Nojara)',
+    name: '39 (Tarek Mojara)',
     title: 'Founder and Culture and Design Engineer',
     group: 'HQ',
     subGroup: 'Leadership & PMO',
@@ -921,7 +941,7 @@ export const RACI_MATRIX: RaciRow[] = [
     projectName: 'SEVEN × NOJARA',
     deliverable: 'Creative Proposal, Pilot Framework & Portal Governance',
     responsible: 'NOJARA Studios Team · KR (KB & Portal Audit) [SAMPLE]',
-    accountable: '39 (Tarek Nojara) — Owner confirmation required before delivery (05 SEVEN 01)',
+    accountable: '39 (Tarek Mojara) — Owner confirmation required before delivery (05 SEVEN 01)',
     consulted: 'Shweekar (PMO) · Mohammed Alhamdan (Subject to agreement)',
     informed: 'SEVEN Stakeholders (Pitch package resend pending 550 5.1.1 fix)',
     sourceStatus: '05 SEVEN 01 + 07 Register (RACI mapping marked SAMPLE)',
@@ -931,7 +951,7 @@ export const RACI_MATRIX: RaciRow[] = [
     projectName: 'Young & Human (YAH)',
     deliverable: 'Three-World Website, 62 Visual Assets & EEA 2026 Brief',
     responsible: 'YAH Web & Visual Team · Katib / Rasma [SAMPLE]',
-    accountable: '39 (Tarek Nojara) — Founder and Culture and Design Engineer',
+    accountable: '39 (Tarek Mojara) — Founder and Culture and Design Engineer',
     consulted: 'Shweekar (PMO Intake) · Baghira (Planning)',
     informed: 'NOJARA HQ Crew',
     sourceStatus: '07 Register (14 rows) + SAMPLE RACI assignment',
@@ -940,8 +960,8 @@ export const RACI_MATRIX: RaciRow[] = [
     projectId: 'MHE',
     projectName: 'Abu Hamdan (MHE)',
     deliverable: 'Wahag Opportunity, Floward V4 & Barry Music Rollout',
-    responsible: '39 (Tarek Nojara — accepted broad responsibility at 00:30:01 in Register)',
-    accountable: '39 (Tarek Nojara)',
+    responsible: '39 (Tarek Mojara — accepted broad responsibility at 00:30:01 in Register)',
+    accountable: '39 (Tarek Mojara)',
     consulted: 'Mohammed Alhamdan · Barry · Mohammed Wahq',
     informed: 'Shweekar (PMO)',
     sourceStatus: 'CONFIRMED Lead in 07 Register (rec:t003001-lead) + SAMPLE RACI columns',
@@ -951,7 +971,7 @@ export const RACI_MATRIX: RaciRow[] = [
     projectName: 'BSocial × YAH',
     deliverable: 'Collaboration Pitch & Ehab Access Request Clarification',
     responsible: 'Khalid Al-Shaalan (Pitch dispatch 6 Oct)',
-    accountable: '39 (Tarek Nojara — Personal access approval gate)',
+    accountable: '39 (Tarek Mojara — Personal access approval gate)',
     consulted: 'Ahmed Shams (BSocial)',
     informed: 'Ehab (Pending 39 decision; no access granted)',
     sourceStatus: 'CONFIRMED in 07 Register (gmail:1a111d09f970ea0b)',
@@ -1034,7 +1054,7 @@ export const FILES_DATA: FileEntry[] = [
   },
   {
     id: 'f-tarek-cons',
-    name: 'Tarek_Nojara_Full_Consultant_Profile_v04.pdf',
+    name: 'Tarek_Mojara_Full_Consultant_Profile_v04.pdf',
     folder: '10 Profile & Bio (Referenced in 05_SEVEN_00)',
     driveId: '1gnOXhnLyRqRjGXEsB8MyRHwmDA9J3lN0',
     lastSaved: '13 Oct 2026',
@@ -1044,8 +1064,9 @@ export const FILES_DATA: FileEntry[] = [
   },
   {
     id: 'f-tarek-bio',
-    name: 'Tarek_Nojara_Full_Visual_Bio_v04.pdf',
+    name: 'Tarek_Mojara_Full_Visual_Bio_v04.pdf',
     folder: '10 Profile & Bio (Referenced in 05_SEVEN_00)',
+    // EXTERNAL: Drive filename still Tarek_Nojara_* — do not retarget without renaming the Drive object.
     driveId: 'drive:Tarek_Nojara_Full_Visual_Bio_v04',
     lastSaved: '13 Oct 2026',
     type: 'PDF',
@@ -1086,13 +1107,13 @@ export const FILES_DATA: FileEntry[] = [
   },
   {
     id: 'f-hotspot-media',
-    name: 'Hotspot_26_media (09 Media Single Source)',
+    name: 'HOTSPOT_26_MEDIA (09 Media Single Source)',
     folder: 'Allowlisted Drive Root (01 KB Handoff §3)',
-    driveId: '1qmYmTQ-VA6WR9OBmmu8r2hdX-YmImMKh',
-    lastSaved: '21 Oct 2026',
+    driveId: '1mNIsnqFkqoD_kNC6VBLEwgvXVZvOT2iq',
+    lastSaved: '14 Oct 2026',
     type: 'Folder',
-    status: 'Missing from attachment',
-    pagesOrSize: 'Locked single media source',
+    status: 'Verified',
+    pagesOrSize: 'Canonical Hotspot media folder',
   },
 ];
 
@@ -1100,9 +1121,12 @@ export interface MediaAssetItem {
   id: string;
   title: string;
   subtitle: string;
-  type: 'Render JPG' | '3D Sculptural Spec' | 'Showreel Video [SAMPLE]';
+  type: 'Render JPG' | '3D Sculptural Spec' | 'Showreel Video [SAMPLE]' | 'Direct Public MP4 Video';
+  kind?: 'video' | 'image' | 'pdf' | 'spec';
   url?: string;
-  aspect: '16:9' | '9:16' | '1:1';
+  posterUrl?: string;
+  videoUrl?: string;
+  aspect: '16:9' | '9:16' | '1:1' | '4:3' | 'A4';
   material?: string;
   companionSticker?: string;
   motionSpec?: string;
@@ -1218,64 +1242,117 @@ export interface ShowreelSpec {
   projectCode: string;
   timecodePreview: string;
   drivePath: string;
-  sourceKind: 'Attached 4K Render' | 'Hotspot_26_media [SAMPLE]' | 'Vimeo / Custom Embed';
+  sourceKind:
+    | 'Direct Public MP4 Video'
+    | 'Attached 4K Render'
+    | 'Hotspot_26_media [SAMPLE]'
+    | 'Vimeo / Custom Embed';
   posterUrl?: string;
+  videoUrl?: string;
+  desktop1080Url?: string;
   embedUrl?: string;
   companionSticker: string;
+  isRealVideo?: boolean;
+  expectedDurationSec?: number;
+  durationSec?: number;
+  type?: string;
 }
 
+/**
+ * Genuine NOJARA Public Showreels (ordered: NOJARA 2023, NOJARA × LaLiga, El Batron)
+ * Consumed directly by HTML5 <video> elements with browser metadata duration authority.
+ */
 export const SHOWREEL_ITEMS: ShowreelSpec[] = [
   {
+    id: PUBLIC_BRAND_MEDIA.showreel2023.id,
+    title: PUBLIC_BRAND_MEDIA.showreel2023.title,
+    subtitle: 'Official Studio Showreel · 720p Master Video',
+    projectCode: 'NOJARA',
+    timecodePreview: '00:00 — 02:21 · 720p MP4',
+    drivePath: 'wix:227dff_5eb47ff9d6fc4753802d517fa87f3a43',
+    sourceKind: 'Direct Public MP4 Video',
+    type: 'Direct Public MP4 Video',
+    posterUrl: PUBLIC_BRAND_MEDIA.showreel2023.posterUrl,
+    videoUrl: PUBLIC_BRAND_MEDIA.showreel2023.url,
+    companionSticker: 'Scale without sameness',
+    isRealVideo: true,
+    expectedDurationSec: PUBLIC_BRAND_MEDIA.showreel2023.expectedDurationSec,
+    durationSec: PUBLIC_BRAND_MEDIA.showreel2023.expectedDurationSec,
+  },
+  {
+    id: PUBLIC_BRAND_MEDIA.laligaFilm.id,
+    title: PUBLIC_BRAND_MEDIA.laligaFilm.title,
+    subtitle: 'Cairo–Riyadh Sports Culture & Multidisciplinary Activation',
+    projectCode: 'NOJARA',
+    timecodePreview: '00:00 — 03:25 · 720p / 1080p MP4',
+    drivePath: 'wix:227dff_8649ac6a450c471683cc3e72a2655a02',
+    sourceKind: 'Direct Public MP4 Video',
+    type: 'Direct Public MP4 Video',
+    posterUrl: PUBLIC_BRAND_MEDIA.laligaFilm.posterUrl,
+    videoUrl: PUBLIC_BRAND_MEDIA.laligaFilm.url,
+    desktop1080Url: PUBLIC_BRAND_MEDIA.laligaFilm.desktop1080Url,
+    companionSticker: 'Let disciplines collide',
+    isRealVideo: true,
+    expectedDurationSec: PUBLIC_BRAND_MEDIA.laligaFilm.expectedDurationSec,
+    durationSec: PUBLIC_BRAND_MEDIA.laligaFilm.expectedDurationSec,
+  },
+  {
+    id: PUBLIC_BRAND_MEDIA.elBatron.id,
+    title: PUBLIC_BRAND_MEDIA.elBatron.title,
+    subtitle: 'NOJARA Programme Identity · Live Spatial Experience',
+    projectCode: 'EL-BATRON',
+    timecodePreview: '00:00 — 02:18 · 720p MP4',
+    drivePath: 'wix:227dff_620a67c30ded4fcfbd798648a3dacc6a',
+    sourceKind: 'Direct Public MP4 Video',
+    type: 'Direct Public MP4 Video',
+    posterUrl: PUBLIC_BRAND_MEDIA.elBatron.posterUrl,
+    videoUrl: PUBLIC_BRAND_MEDIA.elBatron.url,
+    companionSticker: 'Film meets experience',
+    isRealVideo: true,
+    expectedDurationSec: PUBLIC_BRAND_MEDIA.elBatron.expectedDurationSec,
+    durationSec: PUBLIC_BRAND_MEDIA.elBatron.expectedDurationSec,
+  },
+];
+
+/**
+ * CDE Studies and Source Documents (Blueprint treatments, 4K stills and concept decks)
+ */
+export const CDE_STUDY_DOCUMENTS: ShowreelSpec[] = [
+  {
     id: 'med-mission-lotus',
-    title: '01 · Mission Lotus — Spatial & Experiential Reel',
+    title: 'Mission Lotus — Spatial & Experiential Study',
     subtitle: 'NOJARA Studios · Experiential Direction & Production Leadership',
     projectCode: 'MISSION-LOTUS',
-    timecodePreview: '00:00 — 02:14 · 4K 24fps',
+    timecodePreview: '00:00 — 02:14 · 4K 24fps Spec',
     drivePath: 'drive:Hotspot_26_media/Mission_Lotus_Master_Reel_2026.mp4',
     sourceKind: 'Hotspot_26_media [SAMPLE]',
     companionSticker: 'Scale without sameness',
+    isRealVideo: false,
   },
   {
     id: 'med-seven-reel',
-    title: '02 · SEVEN × NOJARA — A Reason to Return (Tabuk)',
+    title: 'SEVEN × NOJARA — A Reason to Return (Tabuk)',
     subtitle: 'Destination Participation, Creator Collisions & Architectural Walkthrough',
     projectCode: 'SEVEN',
-    timecodePreview: '00:00 — 02:59 · 3840×2160',
+    timecodePreview: '00:00 — 02:59 · 3840×2160 Still',
     drivePath: 'local:/assets/aistudio/06_SEVEN_Tabuk_concept_render_desktop_3840x2160_a125f8eb.jpg',
     sourceKind: 'Attached 4K Render',
     posterUrl: '/assets/aistudio/06_SEVEN_Tabuk_concept_render_desktop_3840x2160_a125f8eb.jpg',
     companionSticker: 'Every destination has a story',
-  },
-  {
-    id: 'med-laliga',
-    title: '03 · NOJARA × LaLiga — Cultural Collision & Live Broadcast',
-    subtitle: 'Cairo–Riyadh Sports Culture & Multidisciplinary Activation',
-    projectCode: 'LALIGA',
-    timecodePreview: '00:00 — 01:48 · 1080p',
-    drivePath: 'drive:Hotspot_26_media/NOJARA_LaLiga_Activation_Reel.mp4',
-    sourceKind: 'Hotspot_26_media [SAMPLE]',
-    companionSticker: 'Let disciplines collide',
-  },
-  {
-    id: 'med-el-batron',
-    title: '04 · El Batron — Immersive World & Sonic Identity',
-    subtitle: 'NOJARA Programme Identity · Live Spatial Experience',
-    projectCode: 'EL-BATRON',
-    timecodePreview: '00:00 — 02:05 · 4K',
-    drivePath: 'drive:Hotspot_26_media/El_Batron_Spatial_Showreel.mp4',
-    sourceKind: 'Hotspot_26_media [SAMPLE]',
-    companionSticker: 'Film meets experience',
+    isRealVideo: false,
   },
   {
     id: 'med-yah-highlight',
-    title: '05 · Young & Human (YAH) — Three-World Opening & Museum of Almost',
+    title: 'Young & Human (YAH) — Three-World Opening Study',
     subtitle: 'Talent Accelerator, Creator Quiz Paths & Interactive Exhibition',
     projectCode: 'YAH',
-    timecodePreview: '00:00 — 01:56 · 4K',
+    timecodePreview: '00:00 — 01:56 · 4K Concept',
     drivePath: 'drive:1P-cbrL4pRtu5ywBj-uA4A61HrJexKWMR/YAH_Opening_Reel',
     sourceKind: 'Hotspot_26_media [SAMPLE]',
-    posterUrl: '/assets/aistudio/06_SEVEN_Tabuk_concept_render_mobile_1080x1920_8efe6dff.jpg',
+    // Do not reuse SEVEN Tabuk still as a YAH poster — no verified YAH plate in catalog.
+    posterUrl: undefined,
     companionSticker: 'Design the next moment',
+    isRealVideo: false,
   },
 ];
 
@@ -1300,11 +1377,11 @@ export const CDE_DIMENSIONS: CdeDimensionNode[] = [
     label: 'Creative Strategy',
     labelAr: 'الاستراتيجية الإبداعية',
     colour: COLOUR_TOKENS.cdeStrategy,
-    position: [-5.5, 3.8, 2.4],
+    position: [-1.65, 1.35, 1.15],
     description: 'Experience design, destination storytelling, and cultural positioning across Cairo and Riyadh (05_SEVEN_01).',
     subdomains: [
-      { id: 'sub-dest', name: 'Destination Storytelling', position: [-7.8, 5.2, 3.6], projectIds: ['SEVEN'] },
-      { id: 'sub-brand', name: 'Brand & Cultural Systems [SAMPLE]', position: [-7.2, 2.1, 4.2], projectIds: ['AL-AHRAM'] },
+      { id: 'sub-dest', name: 'Destination Storytelling', position: [-1.15, 3.15, 0.75], projectIds: ['SEVEN'] },
+      { id: 'sub-brand', name: 'Brand & Cultural Systems', position: [-3.25, 1.15, 0.75], projectIds: ['AL-AHRAM'] },
     ],
   },
   {
@@ -1312,11 +1389,11 @@ export const CDE_DIMENSIONS: CdeDimensionNode[] = [
     label: 'Production Leadership',
     labelAr: 'قيادة الإنتاج',
     colour: COLOUR_TOKENS.cdeProduction,
-    position: [5.6, 3.6, 2.2],
+    position: [1.65, 1.35, 1.15],
     description: 'Joined-up destination activations, spatial directing, and film/experiential production (05_SEVEN_01).',
     subdomains: [
-      { id: 'sub-act', name: 'Destination Activations', position: [8.0, 5.0, 3.4], projectIds: ['BSOCIAL', 'SEVEN'] },
-      { id: 'sub-spatial', name: 'Live Spatial & Film [SAMPLE]', position: [7.6, 1.8, 4.0], projectIds: ['EL-BATRON', 'GONDWANA'] },
+      { id: 'sub-act', name: 'Destination Activations', position: [1.15, 3.15, 0.75], projectIds: ['BSOCIAL', 'SEVEN'] },
+      { id: 'sub-spatial', name: 'Live Spatial & Film', position: [3.25, 1.15, 0.75], projectIds: ['EL-BATRON'] },
     ],
   },
   {
@@ -1324,11 +1401,11 @@ export const CDE_DIMENSIONS: CdeDimensionNode[] = [
     label: 'Talent & Culture',
     labelAr: 'المواهب والثقافة',
     colour: COLOUR_TOKENS.cdeTalent,
-    position: [-5.4, -3.8, 2.5],
+    position: [-1.65, -1.35, 1.15],
     description: 'Multidisciplinary practitioners, creator exchange, and talent accelerators (Young & Human, Abu Hamdan, Drafteers).',
     subdomains: [
-      { id: 'sub-pract', name: 'Multidisciplinary Practitioners', position: [-7.8, -5.0, 3.5], projectIds: ['MHE'] },
-      { id: 'sub-accel', name: 'Talent Accelerator', position: [-7.0, -2.0, 4.1], projectIds: ['YAH'] },
+      { id: 'sub-pract', name: 'Multidisciplinary Practitioners', position: [-3.25, -1.15, 0.75], projectIds: ['MHE'] },
+      { id: 'sub-accel', name: 'Talent Accelerator', position: [-1.15, -3.15, 0.75], projectIds: ['YAH'] },
     ],
   },
   {
@@ -1336,11 +1413,11 @@ export const CDE_DIMENSIONS: CdeDimensionNode[] = [
     label: 'Media Technology (NJR+)',
     labelAr: 'تكنولوجيا الإعلام',
     colour: COLOUR_TOKENS.cdeMediaTech,
-    position: [5.4, -3.8, 2.5],
+    position: [1.65, -1.35, 1.15],
     description: 'NJR+ execution intelligence for decisions, versions, approvals, costs, delivery, results and learning, plus conversational 3D systems.',
     subdomains: [
-      { id: 'sub-museums', name: 'Interactive Worlds & Museums', position: [7.8, -5.0, 3.5], projectIds: ['MUSEUM-OF-ALMOST', 'YAH'] },
-      { id: 'sub-3d', name: '3D Cosmographic & Sculptural Assets', position: [7.2, -2.0, 4.1], projectIds: ['SEVEN'] },
+      { id: 'sub-museums', name: 'Interactive Worlds & Museums', position: [1.15, -3.15, 0.75], projectIds: ['MUSEUM-OF-ALMOST', 'YAH'] },
+      { id: 'sub-3d', name: '3D Cosmographic & Sculptural Assets', position: [3.25, -1.15, 0.75], projectIds: ['SEVEN'] },
     ],
   },
 ];
@@ -1383,28 +1460,28 @@ export const STORY_CHAPTERS: StoryChapter[] = [
     index: 2,
     id: 'ch-02-founder',
     routeAlias: '#tarek',
-    title: '02 · 39 — Tarek Nojara',
+    title: '02 · 39 — Tarek Mojara',
     kicker: 'FOUNDER AND CULTURE AND DESIGN ENGINEER',
     colour: COLOUR_TOKENS.textPrimary,
     cameraTarget: [0, 2.5, 4.0],
     sculpturalAssetId: 'A04_identity_relief',
     sculpturalAssetName: 'A04 · Identity Relief (Oxblood Ceramic #B4403F)',
     companionSticker: 'Start with its identity',
-    verifiedBody: 'Tarek Nojara (39) is Founder and Culture and Design Engineer of NOJARA Studios — never titled CEO. Presented across the verified portal records as founder, creative producer, and strategist orchestrating multidisciplinary teams and AI crew systems.',
-    sampleNote: 'Full 10-page text from Tarek_Nojara_Full_Visual_Bio_v04.pdf & Consultant_Profile_v04.pdf is marked SAMPLE (File 10 in MISSING).',
+    verifiedBody: 'Tarek Mojara (39) is Founder and Culture and Design Engineer of NOJARA Studios — never titled CEO. Presented across the verified portal records as founder, creative producer, and strategist orchestrating multidisciplinary teams and AI crew systems.',
+    sampleNote: 'Full 10-page text from Tarek_Mojara_Full_Visual_Bio_v04.pdf & Consultant_Profile_v04.pdf is marked SAMPLE (File 10 in MISSING).',
   },
   {
     index: 3,
     id: 'ch-03-identities',
     routeAlias: '#studio',
     title: '03 · Programmes & Identities',
-    kicker: 'YOUNG & HUMAN · DRAFTEERS · MUSEUM OF ALMOST · EL BATRON · GONDWANA',
+    kicker: 'YOUNG & HUMAN · DRAFTEERS · MUSEUM OF ALMOST · EL BATRON',
     colour: COLOUR_TOKENS.cdeTalent,
     cameraTarget: [-5.4, -3.8, 2.5],
     sculpturalAssetId: 'A05_different_together',
     sculpturalAssetName: 'A05 · Different Together (Navy Enamel #223C73)',
     companionSticker: 'Scale without sameness',
-    verifiedBody: 'NOJARA Studios presents Young & Human (YAH), Drafteers, Museum of Almost, El Batron, and Gondwana as distinct identities and programmes with project-defined roles across culture, talent acceleration, and experiential production.',
+    verifiedBody: 'NOJARA Studios presents Young & Human (YAH), Drafteers, Museum of Almost, and El Batron as distinct identities and programmes with project-defined roles across culture, talent acceleration, and experiential production.',
   },
   {
     index: 4,
@@ -1548,7 +1625,7 @@ export const GUIDED_TOUR_STOPS: TourStop[] = [
     targetId: 'mediatech',
     panelToOpen: 'story-journey',
     durationSec: 30,
-    narrationEn: 'Completing the tour at the eight-chapter NOJARA Studios and Tarek Nojara interactive journey, modelled on the SEVEN experience.',
+    narrationEn: 'Completing the tour at the eight-chapter NOJARA Studios and Tarek Mojara interactive journey, modelled on the SEVEN experience.',
     narrationAr: 'المحطة السادسة: رحلة قصة NOJARA وطارق نوجارا في ٨ فصول.',
     captionBubbleText: '8-Chapter Journey: Cairo–Riyadh (Est. 2016) to NJR+ Execution Intelligence',
   },
@@ -1805,7 +1882,7 @@ export const BUILD_TRACKER_TIERS: BuildTrackerTier[] = [
     title: 'Persistent Conversation, Voice Bridge, Media Player & Grounded Tour',
     status: 'VERIFIED',
     items: [
-      { code: 'B07', name: 'Persistent ElevenLabs Voice Session Across Navigation & Panel Changes', status: 'VERIFIED', evidence: 'elevenLabsBridge.ts + VoiceCard.tsx' },
+      { code: 'B07', name: 'Persistent Google AI Studio Voice Session Across Navigation & Panel Changes', status: 'VERIFIED', evidence: 'googleAiStudioVoiceBridge.ts + croCdeGoogleAgentManifest.ts + VoiceCard.tsx (elevenLabsBridge.ts legacy)' },
       { code: 'B08', name: 'Durable Disk Persistence (.cerebro-data/store.json) + Binary File Uploads', status: 'VERIFIED', evidence: 'server.ts' },
       { code: 'B09', name: 'Grounded 6-Stop Tour Waiting for Camera Settle & Visible DOM Bounds', status: 'VERIFIED', evidence: 'App.tsx' },
     ],

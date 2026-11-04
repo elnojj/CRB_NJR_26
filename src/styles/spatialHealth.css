@@ -1,0 +1,914 @@
+/* Spatial Health shell — desk AR + recessed wall calendar + node-chip chart.
+   Brand: ink void, ice glass, cobalt focus. Gold stays film/3D rails only. */
+
+.spatial-health-shell {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-health, 30);
+  pointer-events: none;
+  overflow: hidden;
+  --sh-ice: var(--token-accent-ice, #b4ddff);
+  --sh-gold: var(--token-focus, #65ACFF);
+  --sh-sheen: var(--token-focus-glow, #b4ddff);
+  --sh-ink: var(--token-bg-void, #03060c);
+  --sh-glass: var(--token-glass-fill, rgba(16, 24, 36, 0.55));
+  --sh-glass-strong: rgba(12, 18, 28, 0.78);
+  --sh-border: var(--token-glass-border, rgba(180, 221, 255, 0.28));
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+  color: var(--token-text-primary, #f2f6f8);
+}
+
+.spatial-health-shell * {
+  box-sizing: border-box;
+}
+
+/* Project plan must sit above the workspace header hit-layer (z-30) so Close/Back receive clicks. */
+.spatial-health-shell[data-mode='project'] {
+  z-index: 36;
+}
+
+.spatial-health-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(55% 45% at 48% 42%, rgba(180, 221, 255, 0.08), transparent 70%),
+    linear-gradient(180deg, rgba(3, 6, 12, 0.12), transparent 38%, rgba(3, 6, 12, 0.35));
+  opacity: 0;
+  transition: opacity 0.32s ease;
+}
+
+.spatial-health-shell.is-out .spatial-health-veil {
+  opacity: 1;
+}
+
+.spatial-health-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: sh-layer-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.spatial-health-shell.is-out .spatial-health-layer {
+  animation: sh-layer-out 280ms ease both;
+}
+
+@keyframes sh-layer-in {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(12px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+
+@keyframes sh-layer-out {
+  from {
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(-8px) scale(1.01);
+  }
+}
+
+.spatial-plan-launch {
+  pointer-events: auto;
+  position: absolute;
+  left: 50%;
+  bottom: max(7.5rem, calc(env(safe-area-inset-bottom, 0px) + 6.75rem));
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  min-height: 44px;
+  padding: 0.65rem 1.1rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--sh-border);
+  background: var(--sh-glass-strong);
+  color: inherit;
+  backdrop-filter: blur(var(--blur-glass)) saturate(1.1);
+  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(1.1);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  animation: sh-infograph-land 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 180ms;
+}
+
+.spatial-plan-launch:hover,
+.spatial-plan-launch:focus-visible {
+  border-color: rgba(212, 175, 55, 0.55);
+  outline: none;
+}
+
+.spatial-plan-launch-kicker {
+  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #bdcbd3;
+}
+
+.spatial-plan-launch-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--sh-sheen);
+}
+
+/* —— Desk AR health field —— */
+.disk-ar-stage {
+  position: absolute;
+  inset: 4.5rem 22% 6.5rem 3%;
+  perspective: 1400px;
+  perspective-origin: 42% 48%;
+  pointer-events: none;
+}
+
+.disk-ar-plane {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform: rotateX(14deg) rotateY(-8deg) rotateZ(0.4deg);
+}
+
+.disk-ar-vector-dock {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.disk-ar-panel-slot {
+  position: absolute;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  transform: var(--disk-tilt, none);
+  transform-style: preserve-3d;
+  animation: sh-infograph-land 780ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.disk-ar-panel-slot .vector-expand-shape,
+.disk-ar-panel-slot .disk-ar-card {
+  pointer-events: auto;
+  position: relative;
+  top: auto;
+  left: auto;
+  width: 100%;
+  transform: none;
+  animation: none;
+}
+
+.disk-ar-panel-slot.is-collapsed {
+  width: auto !important;
+}
+
+.spatial-plan-launch-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: max(7.25rem, calc(env(safe-area-inset-bottom, 0px) + 6.5rem));
+  transform: translateX(-50%);
+  pointer-events: auto;
+  z-index: 5;
+}
+
+.wall-cal-stage.is-collapsed {
+  width: auto;
+  height: auto;
+  max-height: none;
+}
+
+.wall-cal-vector {
+  margin-bottom: 0.35rem;
+}
+
+.disk-ar-card {
+  position: absolute;
+  pointer-events: auto;
+  border-radius: 1.1rem;
+  background: var(--sh-glass);
+  border: 1px solid var(--sh-border);
+  backdrop-filter: blur(var(--blur-glass)) saturate(1.15);
+  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(1.15);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(180, 221, 255, 0.14);
+  padding: 0.85rem 1rem;
+  transform-style: preserve-3d;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease;
+  cursor: pointer;
+  /* Opacity/filter only — transform stays on the desk-tilt inline style */
+  animation: sh-infograph-land 780ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes sh-infograph-land {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.disk-ar-card:hover,
+.disk-ar-card:focus-visible {
+  border-color: rgba(212, 175, 55, 0.55);
+  transform: translateZ(28px) scale(1.02);
+  outline: none;
+}
+
+.disk-ar-card.is-urgent {
+  border-color: rgba(255, 86, 102, 0.45);
+}
+
+.disk-ar-card.is-gold {
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+.disk-ar-kicker {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #bdcbd3;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.disk-ar-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.disk-ar-title {
+  margin-top: 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.disk-ar-metric {
+  margin-top: 0.55rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 1.55rem;
+  font-weight: 500;
+  color: var(--sh-sheen);
+  line-height: 1;
+}
+
+.disk-ar-sub {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  color: #d0dce3;
+  line-height: 1.35;
+  max-width: 16rem;
+}
+
+.disk-ar-orb {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 244, 208, 0.55), rgba(212, 175, 55, 0.15) 45%, transparent 70%);
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.25);
+  animation: disk-ar-breathe 4.8s ease-in-out infinite;
+}
+
+.disk-ar-orb.ice {
+  background: radial-gradient(circle at 35% 30%, rgba(180, 221, 255, 0.5), rgba(101, 172, 255, 0.12) 45%, transparent 70%);
+  box-shadow: 0 0 22px rgba(101, 172, 255, 0.22);
+  animation-delay: -1.6s;
+}
+
+@keyframes disk-ar-breathe {
+  0%,
+  100% {
+    transform: translateZ(0) scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translateZ(12px) scale(1.08);
+    opacity: 1;
+  }
+}
+
+.disk-ar-dust {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(242, 246, 248, 0.55) 0.6px, transparent 0.7px);
+  background-size: 48px 52px;
+  opacity: 0.18;
+  mix-blend-mode: screen;
+  animation: disk-ar-drift 28s linear infinite;
+}
+
+@keyframes disk-ar-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-24px, -18px, 0);
+  }
+}
+
+/* —— Angled wall calendar (right) —— */
+.wall-cal-stage {
+  position: absolute;
+  top: 5.25rem;
+  right: 1.25rem;
+  bottom: 7rem;
+  width: min(340px, 34vw);
+  perspective: 1200px;
+  perspective-origin: 80% 40%;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.wall-cal-recess {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 300px;
+  transform: rotateY(-28deg) rotateX(6deg) translateZ(0);
+  transform-style: preserve-3d;
+  border-radius: 1.25rem;
+  padding: 0.55rem;
+  background: linear-gradient(145deg, rgba(36, 56, 72, 0.55), rgba(8, 14, 22, 0.92));
+  border: 1px solid rgba(180, 221, 255, 0.3);
+  box-shadow:
+    18px 22px 48px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(180, 221, 255, 0.08),
+    inset 8px 0 24px rgba(0, 0, 0, 0.35);
+}
+
+.wall-cal-face {
+  border-radius: 0.9rem;
+  background: linear-gradient(180deg, #1a2a3c 0%, #0c1520 100%);
+  border: 1px solid rgba(180, 221, 255, 0.18);
+  padding: 0.9rem 0.95rem 1rem;
+  min-height: 280px;
+}
+
+.wall-cal-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.wall-cal-month {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wall-cal-year {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  color: #bdcbd3;
+}
+
+.wall-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.28rem;
+}
+
+.wall-cal-dow {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.55rem;
+  text-align: center;
+  color: #8fa0ad;
+  letter-spacing: 0.04em;
+}
+
+.wall-cal-day {
+  aspect-ratio: 1;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  color: #d0dce3;
+  background: transparent;
+  border: 0;
+  cursor: default;
+}
+
+.wall-cal-day.is-today {
+  background: #f2f6f8;
+  color: #101d27;
+  font-weight: 700;
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.5), 0 0 16px rgba(180, 221, 255, 0.25);
+}
+
+.wall-cal-day.has-event {
+  color: var(--sh-gold);
+}
+
+.wall-cal-day.is-selected {
+  outline: 1px solid var(--sh-gold);
+}
+
+.wall-cal-day {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.wall-cal-mode {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.wall-cal-mode-btn {
+  min-height: 36px;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(180, 221, 255, 0.28);
+  background: rgba(12, 18, 28, 0.55);
+  color: #f2f6f8;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.62rem;
+  cursor: pointer;
+}
+
+.wall-cal-mode-btn.is-active {
+  background: var(--sh-gold);
+  color: #101d27;
+  border-color: #fff4d0;
+}
+
+.wall-cal-agenda {
+  margin-top: 0.65rem;
+  max-height: 42%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.wall-cal-agenda-head {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  color: #bdcbd3;
+}
+
+.wall-cal-empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #d0dce3;
+  line-height: 1.45;
+}
+
+.wall-cal-event {
+  text-align: left;
+  border-radius: 12px;
+  border: 1px solid rgba(180, 221, 255, 0.24);
+  background: rgba(12, 18, 28, 0.62);
+  color: #f2f6f8;
+  padding: 0.55rem 0.65rem;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.wall-cal-event:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.wall-cal-event-title {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+.wall-cal-event-meta,
+.wall-cal-event-source {
+  margin-top: 0.2rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.62rem;
+  color: #bdcbd3;
+}
+
+.wall-cal-footnote {
+  margin-top: 0.85rem;
+  font-size: 0.68rem;
+  color: #bdcbd3;
+  line-height: 1.4;
+}
+
+.wall-cal-done {
+  position: absolute;
+  top: -0.35rem;
+  left: 12%;
+  transform: translateZ(40px) rotateY(-28deg);
+  pointer-events: auto;
+  border: 1px solid rgba(180, 221, 255, 0.35);
+  background: rgba(16, 24, 36, 0.82);
+  color: #f2f6f8;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.65rem;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+/* —— Project node-chips chart —— */
+.node-chips-stage {
+  position: absolute;
+  inset: 4.75rem 2.5% 6.75rem;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+
+.node-chips-frame {
+  position: relative;
+  width: min(920px, 96%);
+  height: min(520px, 72vh);
+  pointer-events: auto;
+  border-radius: 1.35rem;
+  background: rgba(8, 12, 18, 0.42);
+  border: 1px solid rgba(180, 221, 255, 0.22);
+  backdrop-filter: blur(var(--blur-glass)) saturate(1.1);
+  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(1.1);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(180, 221, 255, 0.1);
+  overflow: hidden;
+}
+
+.node-chips-header {
+  position: absolute;
+  top: 0.85rem;
+  left: 1rem;
+  right: 1rem;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.node-chips-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.node-chips-meta {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.62rem;
+  color: #bdcbd3;
+}
+
+.node-chips-close {
+  border: 1px solid rgba(180, 221, 255, 0.28);
+  background: rgba(16, 24, 36, 0.75);
+  color: #f2f6f8;
+  border-radius: 0.65rem;
+  min-height: 36px;
+  padding: 0 0.75rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.65rem;
+  cursor: pointer;
+}
+
+.node-chips-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.node-chip {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.node-chip circle.chip-ring {
+  fill: rgba(12, 18, 28, 0.88);
+  stroke: rgba(180, 221, 255, 0.35);
+  stroke-width: 1.5;
+}
+
+.node-chip.is-core circle.chip-ring {
+  stroke: var(--sh-gold);
+  stroke-width: 2;
+}
+
+.node-chip.is-active circle.chip-fill {
+  fill: rgba(212, 175, 55, 0.35);
+}
+
+.node-chip text {
+  fill: #f2f6f8;
+  font-size: 10px;
+  font-family: Sora, sans-serif;
+  pointer-events: none;
+}
+
+.node-chips-legend {
+  position: absolute;
+  left: 1rem;
+  bottom: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.85rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.58rem;
+  color: #bdcbd3;
+  z-index: 3;
+}
+
+.node-chips-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.node-chips-legend i {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+/* Tablet — keep sphere center clear; tuck docks top-left; calendar as slim agenda */
+@media (max-width: 1100px) {
+  .disk-ar-stage {
+    inset: 4.25rem 38% auto 2%;
+    height: auto;
+    max-height: 34vh;
+    perspective: 900px;
+  }
+
+  .disk-ar-plane {
+    transform: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+    align-content: start;
+  }
+
+  .disk-ar-desk,
+  .disk-ar-dust,
+  .disk-ar-orb {
+    display: none;
+  }
+
+  .disk-ar-vector-dock {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+    align-content: start;
+  }
+
+  .disk-ar-panel-slot {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    transform: none !important;
+  }
+
+  .disk-ar-card {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    transform: none !important;
+    padding: 0.55rem 0.65rem;
+  }
+
+  .disk-ar-card.is-secondary,
+  .disk-ar-panel-slot.is-secondary {
+    display: none;
+  }
+
+  .wall-cal-stage {
+    top: auto;
+    bottom: max(6.75rem, calc(env(safe-area-inset-bottom, 0px) + 6rem));
+    right: 0.75rem;
+    left: auto;
+    width: min(280px, 36vw);
+    height: auto;
+    max-height: 42vh;
+    perspective: 800px;
+  }
+
+  .wall-cal-recess {
+    max-width: none;
+    width: 100%;
+    transform: rotateY(-10deg) rotateX(3deg);
+  }
+
+  .wall-cal-grid {
+    display: none;
+  }
+
+  .node-chips-stage {
+    inset: 4.5rem 2% 6.5rem;
+  }
+}
+
+/* Phone ~390px — more negative space; sphere-first; tools appear on demand */
+@media (max-width: 767px) {
+  .spatial-health-shell {
+    --sh-dock-clear: max(7.25rem, calc(env(safe-area-inset-bottom, 0px) + 6.5rem));
+  }
+
+  .disk-ar-stage {
+    /* Leave room under centered brand + right floating icon rail */
+    inset: max(4.85rem, env(safe-area-inset-top, 0px) + 3.75rem) 3.75rem auto 0.75rem;
+    height: auto;
+    max-height: none;
+    perspective: none;
+    z-index: 2;
+  }
+
+  .disk-ar-plane {
+    transform: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem;
+    align-content: start;
+    padding: 0;
+  }
+
+  .disk-ar-desk,
+  .disk-ar-dust,
+  .disk-ar-orb {
+    display: none;
+  }
+
+  .disk-ar-card {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    transform: none !important;
+    padding: 0.7rem 0.75rem;
+    border-radius: 0.95rem;
+    min-height: 5.25rem;
+  }
+
+  /* Keep only priority health docks on phone — leave sphere readable */
+  .disk-ar-card.is-secondary,
+  .disk-ar-panel-slot.is-secondary {
+    display: none;
+  }
+
+  .disk-ar-panel-slot {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    transform: none !important;
+  }
+
+  .disk-ar-vector-dock {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem;
+    align-content: start;
+  }
+
+  .spatial-plan-launch-wrap {
+    left: 0.85rem;
+    right: auto;
+    transform: none;
+    bottom: var(--sh-dock-clear);
+  }
+
+  .disk-ar-metric {
+    font-size: 1.35rem;
+    margin-top: 0.4rem;
+  }
+
+  .disk-ar-sub {
+    display: none;
+  }
+
+  .disk-ar-title {
+    font-size: 0.78rem;
+    margin-top: 0.2rem;
+  }
+
+  .disk-ar-kicker {
+    font-size: 0.55rem;
+  }
+
+  /* Compact agenda chip — not a second dashboard slab */
+  .wall-cal-stage {
+    display: block;
+    top: auto;
+    left: auto;
+    right: 0.85rem;
+    bottom: var(--sh-dock-clear);
+    width: min(46vw, 11.5rem);
+    height: auto;
+    max-height: 22vh;
+    perspective: none;
+    z-index: 3;
+  }
+
+  .wall-cal-recess {
+    transform: none;
+    max-height: 100%;
+    overflow: hidden;
+    padding: 0.35rem;
+  }
+
+  .wall-cal-face {
+    min-height: 0;
+    padding: 0.55rem 0.6rem;
+  }
+
+  .wall-cal-grid,
+  .wall-cal-mode,
+  .wall-cal-footnote,
+  .wall-cal-event-source {
+    display: none;
+  }
+
+  .wall-cal-agenda {
+    max-height: none;
+    gap: 0.3rem;
+  }
+
+  .wall-cal-event {
+    padding: 0.4rem 0.5rem;
+    min-height: 40px;
+  }
+
+  .wall-cal-event-title {
+    font-size: 0.72rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .wall-cal-done {
+    left: auto;
+    right: 0.15rem;
+    top: -0.55rem;
+    transform: none;
+  }
+
+  .spatial-plan-launch {
+    left: 0.85rem;
+    right: auto;
+    transform: none;
+    bottom: var(--sh-dock-clear);
+    padding: 0.55rem 0.85rem;
+  }
+
+  .node-chips-stage {
+    inset: max(3.75rem, env(safe-area-inset-top, 0px) + 2.75rem) 1.5% var(--sh-dock-clear);
+  }
+
+  .node-chips-frame {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border-radius: 1rem;
+  }
+
+  .node-chips-legend {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disk-ar-card,
+  .spatial-health-layer,
+  .spatial-plan-launch {
+    animation: none !important;
+  }
+
+  .spatial-health-veil {
+    transition: none !important;
+  }
+}

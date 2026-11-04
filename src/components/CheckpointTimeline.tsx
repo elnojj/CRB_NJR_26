@@ -14,7 +14,7 @@ export interface DecisionResolvedEventEnvelope {
   eventType: 'decision.resolved';
   decisionId: string;
   resolution: 'APPROVED' | 'HELD' | 'REVISION_REQUESTED';
-  resolvedBy: '39 (Tarek Nojara)';
+  resolvedBy: '39 (Tarek Mojara)' | '39 (Tarek Nojara)';
   checkpointId: string;
   timestampIso: string;
 }
@@ -85,7 +85,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
           data-testid="historical-checkpoint-banner"
           className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-[#F2B66D]/15 border border-[#F2B66D] text-xs"
         >
-          <div className="font-mono tabular-nums text-[11px] text-[#F2B66D]">
+          <div className="font-mono tabular-nums text-[13px] text-[#F2B66D]">
             <strong>HISTORICAL CHECKPOINT MODE:</strong> Viewing snapshot{' '}
             {activeCp.id} ({activeCp.gitHash}) recorded {activeCp.recordedAtIso} —
             Historical alerts muted.
@@ -94,7 +94,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('diff')}
-              className="px-2.5 py-1 rounded-lg bg-[#142632] border border-[#F2B66D] font-mono text-[10px] text-[#F2F6F8] cursor-pointer"
+              className="px-2.5 py-1 rounded-lg bg-[#142632] border border-[#F2B66D] font-mono text-[12px] text-[#F2F6F8] cursor-pointer"
             >
               View Diff vs Live
             </button>
@@ -105,7 +105,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
                 onReturnToLive();
                 setActiveTab('diff');
               }}
-              className="px-2.5 py-1 rounded-lg bg-[#F2B66D] text-[#101D27] font-mono text-[10px] font-semibold cursor-pointer"
+              className="px-2.5 py-1 rounded-lg bg-[#F2B66D] text-[#101D27] font-mono text-[12px] font-semibold cursor-pointer"
             >
               Return to Live (View Diff)
             </button>
@@ -119,7 +119,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('checkpoints')}
-            className={`px-2.5 py-1 rounded-lg font-mono text-[10px] cursor-pointer transition-colors ${
+            className={`px-2.5 py-1 rounded-lg font-mono text-[12px] cursor-pointer transition-colors ${
               activeTab === 'checkpoints'
                 ? 'bg-[#4C8DFF] text-[#101D27] font-semibold'
                 : 'bg-[#142632] text-[#BDCBD3] hover:text-[#F2F6F8]'
@@ -131,7 +131,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
             type="button"
             data-testid="decision-queue-tab-btn"
             onClick={() => setActiveTab('decisions')}
-            className={`px-2.5 py-1 rounded-lg font-mono text-[10px] cursor-pointer transition-colors ${
+            className={`px-2.5 py-1 rounded-lg font-mono text-[12px] cursor-pointer transition-colors ${
               activeTab === 'decisions'
                 ? 'bg-[#F2B66D] text-[#101D27] font-semibold'
                 : 'bg-[#142632] text-[#BDCBD3] hover:text-[#F2F6F8]'
@@ -143,7 +143,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
             type="button"
             data-testid="crew-roster-tab-btn"
             onClick={() => setActiveTab('crew')}
-            className={`px-2.5 py-1 rounded-lg font-mono text-[10px] cursor-pointer transition-colors ${
+            className={`px-2.5 py-1 rounded-lg font-mono text-[12px] cursor-pointer transition-colors ${
               activeTab === 'crew'
                 ? 'bg-[#7CE0B8] text-[#101D27] font-semibold'
                 : 'bg-[#142632] text-[#BDCBD3] hover:text-[#F2F6F8]'
@@ -154,7 +154,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('diff')}
-            className={`px-2.5 py-1 rounded-lg font-mono text-[10px] cursor-pointer transition-colors ${
+            className={`px-2.5 py-1 rounded-lg font-mono text-[12px] cursor-pointer transition-colors ${
               activeTab === 'diff'
                 ? 'bg-[#36E88D] text-[#101D27] font-semibold'
                 : 'bg-[#142632] text-[#BDCBD3] hover:text-[#F2F6F8]'
@@ -168,7 +168,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
           type="button"
           data-testid="open-visual-feedback-btn"
           onClick={onOpenVisualFeedback}
-          className="px-3 py-1 rounded-lg bg-[#142632] border border-[rgba(180,221,255,0.16)] hover:border-[#65ACFF] font-mono text-[10px] text-[#65ACFF] cursor-pointer"
+          className="px-3 py-1 rounded-lg bg-[#142632] border border-[rgba(180,221,255,0.16)] hover:border-[#65ACFF] font-mono text-[12px] text-[#65ACFF] cursor-pointer"
         >
           Visual Feedback Mind Map ({annotationCount})
         </button>
@@ -192,7 +192,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
                     : 'bg-[rgba(20,38,50,0.72)] border-[rgba(180,221,255,0.16)] hover:border-[#65ACFF]'
                 }`}
               >
-                <div className="flex items-center justify-between gap-1 font-mono tabular-nums text-[10px]">
+                <div className="flex items-center justify-between gap-1 font-mono tabular-nums text-[12px]">
                   <span className="text-[#4C8DFF] font-semibold">{cp.id}</span>
                   <span
                     className={
@@ -205,7 +205,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
                 <div className="font-display text-xs font-semibold text-[#F2F6F8] line-clamp-1 mt-1">
                   {cp.label}
                 </div>
-                <div className="font-mono tabular-nums text-[9px] text-[#BDCBD3] mt-1">
+                <div className="font-mono tabular-nums text-[12px] text-[#BDCBD3] mt-1">
                   {cp.authorAgent} · {cp.verifiedCriteriaCount}/{cp.totalCriteriaCount} Verified
                 </div>
               </button>
@@ -224,7 +224,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
               className="p-2.5 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] flex flex-wrap items-center justify-between gap-3"
             >
               <div className="space-y-0.5 max-w-2xl">
-                <div className="flex items-center gap-2 font-mono tabular-nums text-[10px]">
+                <div className="flex items-center gap-2 font-mono tabular-nums text-[12px]">
                   <span className="text-[#F2B66D] font-semibold">{dec.code}</span>
                   <span className="text-[#BDCBD3]">Asked by {dec.askedByAgentId}</span>
                   <span className="text-[#5CC8D7]">Hold: {dec.holdBranch}</span>
@@ -233,7 +233,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
                 <div className="font-display text-xs font-semibold text-[#F2F6F8]">
                   {dec.title}
                 </div>
-                <p className="text-[11px] text-[#BDCBD3]">{dec.summary}</p>
+                <p className="text-[13px] text-[#BDCBD3]">{dec.summary}</p>
               </div>
 
               <div className="flex items-center gap-1.5 shrink-0">
@@ -241,21 +241,21 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
                   type="button"
                   data-testid={`approve-decision-${dec.id}`}
                   onClick={() => onResolveDecision(dec.id, 'APPROVED')}
-                  className="px-2.5 py-1 rounded-lg bg-[#36E88D] text-[#101D27] font-mono text-[10px] font-semibold cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg bg-[#36E88D] text-[#101D27] font-mono text-[12px] font-semibold cursor-pointer"
                 >
                   Approve (39)
                 </button>
                 <button
                   type="button"
                   onClick={() => onResolveDecision(dec.id, 'REVISION_REQUESTED')}
-                  className="px-2.5 py-1 rounded-lg bg-[#F2B66D]/20 border border-[#F2B66D] text-[#F2B66D] font-mono text-[10px] cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg bg-[#F2B66D]/20 border border-[#F2B66D] text-[#F2B66D] font-mono text-[12px] cursor-pointer"
                 >
                   Request Revision
                 </button>
                 <button
                   type="button"
                   onClick={() => onResolveDecision(dec.id, 'HELD')}
-                  className="px-2.5 py-1 rounded-lg bg-[#5CC8D7]/20 border border-[#5CC8D7] text-[#5CC8D7] font-mono text-[10px] cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg bg-[#5CC8D7]/20 border border-[#5CC8D7] text-[#5CC8D7] font-mono text-[12px] cursor-pointer"
                 >
                   Keep Hold
                 </button>
@@ -264,7 +264,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
           ))}
 
           {decisionEvents.length > 0 && (
-            <div className="pt-1 border-t border-[rgba(255,255,255,0.14)] font-mono tabular-nums text-[10px] text-[#36E88D]">
+            <div className="pt-1 border-t border-[rgba(255,255,255,0.14)] font-mono tabular-nums text-[12px] text-[#36E88D]">
               Last Envelope: {decisionEvents[decisionEvents.length - 1].eventType} ·{' '}
               {decisionEvents[decisionEvents.length - 1].decisionId} →{' '}
               {decisionEvents[decisionEvents.length - 1].resolution} (
@@ -311,10 +311,10 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
                     className="w-8 h-8 rounded-md object-cover shrink-0 border border-[rgba(180,221,255,0.16)]"
                   />
                   <div className="min-w-0">
-                    <div className="font-mono tabular-nums text-[10px] font-semibold text-[#F2F6F8] truncate">
+                    <div className="font-mono tabular-nums text-[12px] font-semibold text-[#F2F6F8] truncate">
                       #{seat.seatNumber} {seat.callsign}
                     </div>
-                    <div className="font-mono text-[9px] text-[#BDCBD3] truncate">
+                    <div className="font-mono text-[12px] text-[#BDCBD3] truncate">
                       {seat.roleTitle}
                     </div>
                   </div>
@@ -323,7 +323,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
             })}
           </div>
 
-          <div className="p-2 rounded-lg bg-[#101D27] border border-[rgba(180,221,255,0.16)] font-mono tabular-nums text-[10px] text-[#BDCBD3] flex flex-wrap items-center justify-between gap-2">
+          <div className="p-2 rounded-lg bg-[#101D27] border border-[rgba(180,221,255,0.16)] font-mono tabular-nums text-[12px] text-[#BDCBD3] flex flex-wrap items-center justify-between gap-2">
             <span>
               MUSA_CEREBRO_DS_v1_1_PROVENANCE_REGISTER:{' '}
               {MUSA_CEREBRO_DS_v1_1_PROVENANCE_REGISTER.length} verified asset groups
@@ -337,7 +337,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
 
       {/* Tab 4: Checkpoint Diff View */}
       {activeTab === 'diff' && (
-        <div className="p-2.5 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] space-y-1.5 font-mono tabular-nums text-[11px]">
+        <div className="p-2.5 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] space-y-1.5 font-mono tabular-nums text-[13px]">
           <div className="flex items-center justify-between text-[#65ACFF]">
             <span>
               Comparing {activeCp.id} ({activeCp.gitHash}) ↔ Live {liveCp.id} (

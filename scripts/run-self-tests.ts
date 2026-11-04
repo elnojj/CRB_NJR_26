@@ -1,6 +1,32 @@
 import { runGuiLayoutSelfTests } from '../src/gui/gui-layout.test.ts';
 import { runDeviceStreamCoordinatorSelfTests } from '../src/utils/deviceStreamCoordinator.test.ts';
 import { assertIntroBridgeClean } from '../src/intro/bridge.ts';
+import { spawn } from 'node:child_process';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+
+function runNodeTestFile(relPath: string): Promise<{ ok: boolean; output: string }> {
+  return new Promise((resolve) => {
+    const file = path.resolve(here, '..', relPath);
+    const child = spawn(
+      process.execPath,
+      ['--import', 'tsx', '--test', file],
+      { cwd: path.resolve(here, '..'), env: process.env }
+    );
+    let output = '';
+    child.stdout.on('data', (d) => {
+      output += String(d);
+    });
+    child.stderr.on('data', (d) => {
+      output += String(d);
+    });
+    child.on('close', (code) => {
+      resolve({ ok: code === 0, output });
+    });
+  });
+}
 
 async function main(): Promise<void> {
   assertIntroBridgeClean();
@@ -18,7 +44,57 @@ async function main(): Promise<void> {
     console.log(`  ${line}`);
   }
 
-  if (gui.failed > 0 || streams.failed > 0) {
+  const plan = await runNodeTestFile('src/data/projectPlanModel.test.ts');
+  const planPass = (plan.output.match(/# pass (\d+)/)?.[1] || plan.output.match(/✔/g)?.length || 0) as
+    | string
+    | number;
+  const planFail = plan.output.match(/# fail (\d+)/)?.[1] || '0';
+  console.log(
+    `projectPlanModel: ${plan.ok ? 'passed' : 'FAILED'} (node:test pass≈${planPass} fail=${planFail})`
+  );
+  if (!plan.ok) {
+    console.log(plan.output);
+  }
+
+  // Lightweight camera / spatial math checks (Three.js-free)
+  const { masterPose, flightMs, buildClosedOrbitalLoopPoints } = await import(
+    '../src/three/spatialNavigation.tsx'
+  );
+  const pose = masterPose(16 / 9);
+  const loop = buildClosedOrbitalLoopPoints(12, 12, 48);
+  const ms = flightMs(10);
+  const mathOk =
+    pose.fov === 46 &&
+    loop.points.length >= 48 &&
+    loop.curve.closed === true &&
+    ms >= 400 &&
+    ms <= 3000;
+  console.log(
+    `spatialNavigation-math: ${mathOk ? '1/1 passed' : '0/1 FAILED'} (points=${loop.points.length}, fov=${pose.fov}, ms=${ms})`
+  );
+
+  const reg = await import('../src/three/geometryRegistry.ts');
+  const THREE = await import('three');
+  const regFails: string[] = [];
+  for (const key of reg.PRIMITIVE_SHAPE_KEYS) {
+    const g = reg.getShellGeometry(key);
+    const r = g?.boundingSphere?.radius ?? (g?.computeBoundingSphere(), g?.boundingSphere?.radius);
+    if (!g || !r || Math.abs(r - reg.BASE_SHELL_RADIUS) > 0.05) regFails.push(`${key} radius=${r}`);
+    if (reg.getShellGeometry(key) !== g) regFails.push(`${key} not cached`);
+  }
+  if (reg.getShellGeometry('teddyBear') !== null) regFails.push('unloaded custom key should be null');
+  const seeded = new THREE.SphereGeometry(6.2, 8, 6);
+  reg.disposeShellGeometryCache();
+  reg.seedShellGeometry('sphere', seeded);
+  if (reg.getShellGeometry('sphere') !== seeded) regFails.push('seed not honoured');
+  reg.disposeShellGeometryCache([seeded]);
+  const regOk = regFails.length === 0;
+  console.log(
+    `geometryRegistry: ${regOk ? `${reg.PRIMITIVE_SHAPE_KEYS.length + 2} checks passed` : 'FAILED'}`
+  );
+  for (const f of regFails) console.log(`  FAIL ${f}`);
+
+  if (gui.failed > 0 || streams.failed > 0 || !plan.ok || !mathOk || !regOk) {
     process.exit(1);
   }
   console.log('All self-tests passed.');

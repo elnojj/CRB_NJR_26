@@ -1,0 +1,38 @@
+.floating-icon-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  pointer-events: auto;
+}
+
+.floating-icon-toggles__btn {
+  min-height: 40px;
+  min-width: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.4);
+  color: #c5ccd6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.floating-icon-toggles__btn[data-active='1'] {
+  border-color: rgba(212, 175, 55, 0.6);
+  background: rgba(212, 175, 55, 0.2);
+  color: #fff4d0;
+}
+
+.floating-icon-toggles__more {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(12px);
+}

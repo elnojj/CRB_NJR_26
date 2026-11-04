@@ -1,92 +1,68 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { PUBLIC_BRAND_MEDIA } from '../data/publicBrandMedia';
 
-interface BrandLockupProps {
+type Props = {
   mode: 'loader' | 'header';
-  activeSphere?: 'hq' | 'cde';
-  onSwitchSphere?: (sphere: 'hq' | 'cde') => void;
-}
+  activeSphere?: 'hq' | 'cde' | 'campaign-os' | 'about-us';
+  onSwitchSphere?: (sphere: 'hq' | 'cde' | 'campaign-os' | 'about-us') => void;
+};
+
+const LOGO_CANDIDATES = [
+  PUBLIC_BRAND_MEDIA.logoWhite.url,
+  PUBLIC_BRAND_MEDIA.logoWhite.sourceUrl,
+  '/assets/brand/nojara-logo-mark.svg',
+] as const;
 
 /**
- * Approved Brand Lockup:
- * White Arabic Bismillah vector asset positioned above the white CEREBRO logo asset.
- * Appears during entry, moves into its reserved header slot, and preserves aspect ratio & spacing.
+ * Centered NOJARA mark + CEREBRO wordmark for workspace chrome / boot.
+ * Prefer the official white PNG; fall through to remote then vector mark.
  */
-export const BrandLockup: React.FC<BrandLockupProps> = ({
-  mode,
-  activeSphere = 'hq',
-  onSwitchSphere,
-}) => {
+export const BrandLockup: React.FC<Props> = ({ mode }) => {
   const isLoader = mode === 'loader';
+  const [logoIndex, setLogoIndex] = useState(0);
+  const logoSrc = LOGO_CANDIDATES[Math.min(logoIndex, LOGO_CANDIDATES.length - 1)];
+  const logoFailed = logoIndex >= LOGO_CANDIDATES.length;
 
   return (
     <div
-      className={`select-none pointer-events-auto flex ${
-        isLoader ? 'flex-col items-center gap-3' : 'items-center gap-3'
-      }`}
-      aria-label="Cerebro Brand Lockup"
+      data-testid={isLoader ? 'brand-lockup-loader' : 'brand-lockup-region'}
+      data-layout-id="cerebro-brand-lockup"
+      className={
+        'nojara-brand-container ' +
+        (isLoader ? 'nojara-brand-loader' : 'nojara-brand-header is-centered-stack')
+      }
+      aria-label="NOJARA Studios"
     >
-      <div
-        className={`flex flex-col ${
-          isLoader ? 'items-center gap-2.5' : 'items-start gap-1'
-        } lockup-shimmer shrink-0`}
-        style={{
-          minWidth: isLoader ? '220px' : '148px',
-        }}
-      >
-        <span
-          dir="rtl"
-          lang="ar"
-          aria-label="بسم الله الرحمن الرحيم"
-          className={`font-arabic text-[#F2F6F8] font-medium tracking-normal leading-none shrink-0 ${
-            isLoader ? 'text-lg' : 'text-xs'
-          }`}
-        >
-          بسم الله الرحمن الرحيم
-        </span>
+      {!logoFailed ? (
         <img
-          src={`${import.meta.env.BASE_URL}assets/cerebro-wordmark.svg`}
-          alt="CEREBRO"
-          width={isLoader ? 164 : 112}
-          height={isLoader ? 22 : 15}
-          className={`${isLoader ? 'w-[164px] h-[22px]' : 'w-[112px] h-[15px]'} object-contain shrink-0`}
-          onError={(event) => {
-            // Keep alt text visible; avoid infinite broken-image retries.
-            event.currentTarget.style.visibility = 'hidden';
-          }}
+          data-testid="nojara-public-logo"
+          className="nojara-logo-image"
+          src={logoSrc}
+          width={PUBLIC_BRAND_MEDIA.logoWhite.width}
+          height={PUBLIC_BRAND_MEDIA.logoWhite.height}
+          alt="NOJARA Studios"
+          decoding="async"
+          fetchPriority={isLoader ? 'high' : 'auto'}
+          onError={() => setLogoIndex((i) => i + 1)}
         />
-      </div>
-
-      {!isLoader && onSwitchSphere && (
-        <div
-          role="group"
-          aria-label="Sphere Switch"
-          className="inline-flex items-center p-0.5 rounded-xl bg-[#05090E]/85 border border-white/30 shrink-0"
-        >
-          <button
-            type="button"
-            data-testid="switch-sphere-hq"
-            onClick={() => onSwitchSphere('hq')}
-            className={`min-h-[38px] min-w-[44px] px-2.5 py-1 rounded-lg font-sans text-xs font-medium transition-colors cursor-pointer ${
-              activeSphere === 'hq'
-                ? 'bg-[#4C8DFF] text-[#101D27] font-semibold'
-                : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
-            }`}
-          >
-            HQ
-          </button>
-          <button
-            type="button"
-            data-testid="switch-sphere-cde"
-            onClick={() => onSwitchSphere('cde')}
-            className={`min-h-[38px] min-w-[44px] px-2.5 py-1 rounded-lg font-sans text-xs font-medium transition-colors cursor-pointer ${
-              activeSphere === 'cde'
-                ? 'bg-[#F2B66D] text-[#101D27] font-semibold'
-                : 'text-[#BDCBD3] hover:text-[#F2F6F8]'
-            }`}
-          >
-            CDE
-          </button>
-        </div>
+      ) : (
+        <img
+          data-testid="nojara-logo-fallback-svg"
+          className="nojara-logo-image"
+          src="/assets/brand/nojara-logo-mark.svg"
+          width={320}
+          height={80}
+          alt="NOJARA Studios"
+        />
+      )}
+      {!isLoader && (
+        <img
+          className="cerebro-wordmark-image"
+          src="/assets/cerebro-wordmark.svg"
+          width="84"
+          height="16"
+          alt="Cerebro"
+        />
       )}
     </div>
   );

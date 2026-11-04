@@ -206,6 +206,11 @@ export class CerebroSoundEngine {
    * Technocrane Flight Whoosh:
    * Stereo-panned bandpass filter sweep (180Hz -> 920Hz -> 220Hz) synchronized with camera spline velocity.
    */
+  /** Alias used by HandsOverlay / AI Studio gesture path. */
+  public playFlightWhoosh(durationMs = 950, panDirection = 0): void {
+    this.triggerFlightWhoosh(durationMs, panDirection);
+  }
+
   public triggerFlightWhoosh(durationMs = 950, panDirection = 0): void {
     if (this.soundMuted) return;
     const nowPerf = typeof performance !== 'undefined' ? performance.now() : Date.now();

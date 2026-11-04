@@ -427,14 +427,14 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
       const files = await loadDrive(fileSearchQuery);
       setLiveDriveFiles(files);
       setDriveLiveUnlocked(true);
-      setWsStatusMsg(`loadDrive() succeeded: ${files.length} live files`);
+      setWsStatusMsg(`Refresh files succeeded: ${files.length} live files`);
     } catch (err) {
-      // Even in preview fallback when clicked, report status clearly; only unlock LIVE if loadDrive was explicitly invoked
+      // Preview fallback still unlocks LIVE after an explicit Refresh files click.
       setDriveLiveUnlocked(true);
       setWsStatusMsg(
         err instanceof Error
-          ? `loadDrive() invoked (${err.message})`
-          : 'loadDrive() completed'
+          ? `Refresh files invoked (${err.message})`
+          : 'Refresh files completed'
       );
     }
   };
@@ -580,7 +580,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 data-testid={`portfolio-filter-${chipSlug}`}
                 data-cta-id={`portfolio-filter-${chipSlug}`}
                 onClick={() => setPortfolioFilter(chip)}
-                className={`min-h-[36px] px-3 py-1 rounded-xl font-mono text-[11px] border transition-colors cursor-pointer ${
+                className={`min-h-[36px] px-3 py-1 rounded-xl font-mono text-[13px] border transition-colors cursor-pointer ${
                   active
                     ? isBlockedChip
                       ? 'bg-[#FF5666] text-[#101D27] border-[#FF5666] font-semibold'
@@ -625,11 +625,11 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 }}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-[10px] text-[#4C8DFF] font-semibold">
+                  <span className="font-mono text-[12px] text-[#4C8DFF] font-semibold">
                     {proj.code} · {proj.location} · Lead: {proj.ownerCode}
                   </span>
                   <span
-                    className="font-mono text-[10px] px-2 py-0.5 rounded border font-semibold"
+                    className="font-mono text-[12px] px-2 py-0.5 rounded border font-semibold"
                     style={{
                       color: badgeColor,
                       borderColor: badgeColor,
@@ -650,8 +650,8 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                       key={idx}
                       className="rounded-lg px-2 py-1 bg-[#142632] border border-white/10"
                     >
-                      <div className="font-mono text-[9px] text-[#BDCBD3]">{k.label}</div>
-                      <div className="font-mono text-[11px] font-semibold text-[#F2F6F8]">
+                      <div className="font-mono text-[12px] text-[#BDCBD3]">{k.label}</div>
+                      <div className="font-mono text-[13px] font-semibold text-[#F2F6F8]">
                         {k.value}
                       </div>
                     </div>
@@ -702,7 +702,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 key={p.id}
                 type="button"
                 onClick={() => onSelectProject(p.id)}
-                className={`min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] shrink-0 border cursor-pointer ${
+                className={`min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[12px] shrink-0 border cursor-pointer ${
                   selected
                     ? 'bg-[#4C8DFF] text-[#101D27] border-[#4C8DFF] font-semibold'
                     : 'bg-[#101D27]/90 text-[#BDCBD3] border-white/20 hover:text-[#F2F6F8]'
@@ -723,7 +723,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
         >
           <div className="flex items-center justify-between gap-2">
             <div>
-              <div className="font-mono text-[10px] text-[#4C8DFF]">
+              <div className="font-mono text-[12px] text-[#4C8DFF]">
                 {activeProject.code} · {activeProject.client} · {activeProject.location}
               </div>
               <h3 className="font-display text-base font-semibold text-[#F2F6F8]">
@@ -731,7 +731,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
               </h3>
             </div>
             <span
-              className="font-mono text-[10px] px-2.5 py-1 rounded-lg border font-semibold"
+              className="font-mono text-[12px] px-2.5 py-1 rounded-lg border font-semibold"
               style={{
                 color: isBlocked
                   ? '#FF5666'
@@ -760,11 +760,11 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 key={idx}
                 className="rounded-xl p-2.5 bg-[#142632] border border-white/15 space-y-0.5"
               >
-                <div className="font-mono text-[10px] text-[#BDCBD3]">{kpi.label}</div>
+                <div className="font-mono text-[12px] text-[#BDCBD3]">{kpi.label}</div>
                 <div className="font-display text-sm font-semibold text-[#F2F6F8]">
                   {kpi.value}
                 </div>
-                <div className="font-mono text-[9px] text-[#36E88D]">{kpi.delta}</div>
+                <div className="font-mono text-[12px] text-[#36E88D]">{kpi.delta}</div>
               </div>
             ))}
           </div>
@@ -782,7 +782,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 data-ui-id={`project-tab-${tab.toLowerCase()}`}
                 data-action-id="project.select_tab"
                 onClick={() => setProjectDetailTab(tab)}
-                className={`min-h-[36px] px-2.5 py-1 rounded-lg font-mono text-[10px] shrink-0 border cursor-pointer ${
+                className={`min-h-[36px] px-2.5 py-1 rounded-lg font-mono text-[12px] shrink-0 border cursor-pointer ${
                   projectDetailTab === tab
                     ? 'bg-[#5CC8D7] text-[#101D27] border-[#5CC8D7] font-semibold'
                     : 'bg-[#101D27] text-[#BDCBD3] border-white/20 hover:text-[#F2F6F8]'
@@ -800,7 +800,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
             data-ui-id="project-open-tube"
             data-action-id="project.open_tube"
             onClick={() => onOpenProjectMediaTube?.(activeProject.id)}
-            className="min-h-[36px] px-3 py-1 rounded-lg font-mono text-[10px] font-semibold bg-[#4C8DFF] text-[#101D27] border border-[#65ACFF] hover:bg-[#65ACFF] shrink-0 cursor-pointer"
+            className="min-h-[36px] px-3 py-1 rounded-lg font-mono text-[12px] font-semibold bg-[#4C8DFF] text-[#101D27] border border-[#65ACFF] hover:bg-[#65ACFF] shrink-0 cursor-pointer"
           >
             3D Media Tube (24)
           </button>
@@ -810,13 +810,13 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
         <div className="rounded-xl p-3 bg-[#101D27]/90 border border-white/20 space-y-2.5">
           {projectDetailTab === 'Overview' && (
             <>
-              <div className="font-mono text-[10px] text-[#4C8DFF] uppercase">
+              <div className="font-mono text-[12px] text-[#4C8DFF] uppercase">
                 EXECUTIVE SUMMARY · LEAD: {activeProject.leadName} ({activeProject.ownerCode})
               </div>
               <p className="font-sans text-xs text-[#F2F6F8] leading-relaxed">
                 {activeProject.summary}
               </p>
-              <div className="rounded-lg p-2.5 bg-[#142632] border border-white/15 font-mono text-[11px] text-[#BDCBD3]">
+              <div className="rounded-lg p-2.5 bg-[#142632] border border-white/15 font-mono text-[13px] text-[#BDCBD3]">
                 <div>Next Milestone: {activeProject.timelineMilestone}</div>
                 <div>Pending Gate: {activeProject.nextApproval}</div>
               </div>
@@ -833,14 +833,14 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                     className="rounded-lg p-2.5 bg-[#142632] border border-white/15 flex items-center justify-between gap-2"
                   >
                     <div>
-                      <div className="font-mono text-[10px] text-[#4C8DFF]">
+                      <div className="font-mono text-[12px] text-[#4C8DFF]">
                         {t.id} · {t.ownerName} ({t.ownerCode}) · Due {t.dueDate}
                       </div>
                       <div className="font-sans text-xs text-[#F2F6F8] font-medium">
                         {t.title}
                       </div>
                     </div>
-                    <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#101D27] text-[#5CC8D7] border border-[#5CC8D7]/40">
+                    <span className="font-mono text-[12px] px-2 py-0.5 rounded bg-[#101D27] text-[#5CC8D7] border border-[#5CC8D7]/40">
                       {t.column}
                     </span>
                   </div>
@@ -859,9 +859,9 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                     <div className="font-sans text-xs font-semibold text-[#F2F6F8]">
                       [{member.code}] {member.name} · {member.nameAr}
                     </div>
-                    <div className="font-mono text-[10px] text-[#BDCBD3]">{member.title}</div>
+                    <div className="font-mono text-[12px] text-[#BDCBD3]">{member.title}</div>
                   </div>
-                  <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#101D27] text-[#4C8DFF] border border-[#4C8DFF]/40">
+                  <span className="font-mono text-[12px] px-2 py-0.5 rounded bg-[#101D27] text-[#4C8DFF] border border-[#4C8DFF]/40">
                     RACI: {member.raciRole}
                   </span>
                 </div>
@@ -878,14 +878,14 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 >
                   <div className="min-w-0">
                     <div className="font-sans text-xs text-[#F2F6F8] truncate">{f.name}</div>
-                    <div className="font-mono text-[10px] text-[#BDCBD3]">
+                    <div className="font-mono text-[12px] text-[#BDCBD3]">
                       {f.folder} · {f.pagesOrSize}
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => onOpenPanel('file-viewer')}
-                    className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
+                    className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[12px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
                   >
                     Inspect
                   </button>
@@ -902,7 +902,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                   className="rounded-lg p-2.5 bg-[#142632] border border-[#F2B66D]/40 flex items-center justify-between gap-2"
                 >
                   <div>
-                    <div className="font-mono text-[10px] text-[#F2B66D]">
+                    <div className="font-mono text-[12px] text-[#F2B66D]">
                       {m.type} · {m.aspect}
                     </div>
                     <div className="font-sans text-xs font-semibold text-[#F2F6F8]">
@@ -912,7 +912,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                   <button
                     type="button"
                     onClick={() => onOpenFullscreenMedia(m)}
-                    className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#F2B66D] text-[#101D27] font-semibold cursor-pointer"
+                    className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[12px] bg-[#F2B66D] text-[#101D27] font-semibold cursor-pointer"
                   >
                     Play Fullscreen
                   </button>
@@ -925,13 +925,13 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
             <div className="space-y-2 font-mono text-xs">
               <div className="grid grid-cols-2 gap-2">
                 <div className="rounded-lg p-2.5 bg-[#142632] border border-white/15">
-                  <div className="text-[10px] text-[#BDCBD3]">ALLOCATED CAPEX</div>
+                  <div className="text-[12px] text-[#BDCBD3]">ALLOCATED CAPEX</div>
                   <div className="text-sm font-semibold text-[#F2F6F8]">
                     {activeProject.budgetSummary.allocated}
                   </div>
                 </div>
                 <div className="rounded-lg p-2.5 bg-[#142632] border border-white/15">
-                  <div className="text-[10px] text-[#BDCBD3]">COMMITTED TO DATE</div>
+                  <div className="text-[12px] text-[#BDCBD3]">COMMITTED TO DATE</div>
                   <div className="text-sm font-semibold text-[#36E88D]">
                     {activeProject.budgetSummary.committed}
                   </div>
@@ -951,7 +951,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                   key={g.id}
                   className="rounded-lg p-2.5 bg-[#142632] border border-white/15 space-y-1"
                 >
-                  <div className="flex items-center justify-between font-mono text-[10px]">
+                  <div className="flex items-center justify-between font-mono text-[12px]">
                     <span className="text-[#4C8DFF]">
                       {g.projectCode} · {g.phaseName}
                     </span>
@@ -974,7 +974,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
 
           {projectDetailTab === 'Approvals' && (
             <div className="rounded-lg p-3 bg-[#142632] border border-[#F2B66D]/50 space-y-2">
-              <div className="font-mono text-[10px] text-[#F2B66D]">
+              <div className="font-mono text-[12px] text-[#F2B66D]">
                 OWNER 39 SIGN-OFF GATE
               </div>
               <div className="font-sans text-xs font-semibold text-[#F2F6F8]">
@@ -996,7 +996,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
 
           {projectDetailTab === 'Decisions' && (
             <div className="rounded-lg p-3 bg-[#142632] border border-white/20 space-y-2">
-              <div className="font-mono text-[10px] text-[#4C8DFF]">
+              <div className="font-mono text-[12px] text-[#4C8DFF]">
                 DECISION LEDGER · {activeProject.code}
               </div>
               <p className="font-sans text-xs text-[#F2F6F8]">
@@ -1058,7 +1058,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
             value={newTaskCol}
             onChange={(e) => setNewTaskCol(e.target.value as TaskBoardColumnId)}
             aria-label="Task column"
-            className="min-h-[38px] px-2 rounded-xl bg-[#101D27] border border-white/25 font-mono text-[10px] text-[#F2F6F8]"
+            className="min-h-[38px] px-2 rounded-xl bg-[#101D27] border border-white/25 font-mono text-[12px] text-[#F2F6F8]"
           >
             {columns.map((c) => (
               <option key={c} value={c}>
@@ -1084,7 +1084,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 data-testid={`task-col-${col.toLowerCase().replace(/\s+/g, '-')}`}
                 className="rounded-xl p-2.5 bg-[#101D27]/90 border border-white/20 space-y-2"
               >
-                <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-wider">
+                <div className="flex items-center justify-between font-mono text-[12px] uppercase tracking-wider">
                   <span className="text-[#5CC8D7] font-semibold">{col}</span>
                   <span className="px-1.5 py-0.5 rounded bg-[#142632] text-[#F2F6F8]">
                     {colCards.length}
@@ -1098,7 +1098,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                       onClick={() => setSelectedTaskCard(card)}
                       className="rounded-lg p-2 bg-[#142632] border border-white/15 hover:border-[#4C8DFF] cursor-pointer space-y-1"
                     >
-                      <div className="flex items-center justify-between font-mono text-[9px] text-[#BDCBD3]">
+                      <div className="flex items-center justify-between font-mono text-[12px] text-[#BDCBD3]">
                         <span className="text-[#4C8DFF]">
                           {card.projectCode} · {card.ownerCode}
                         </span>
@@ -1119,7 +1119,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                         {card.title}
                       </div>
                       {card.blockerReason && (
-                        <div className="font-mono text-[9px] text-[#FF5666]">
+                        <div className="font-mono text-[12px] text-[#FF5666]">
                           ⚠ {card.blockerReason}
                         </div>
                       )}
@@ -1138,7 +1138,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
             className="rounded-xl p-3 bg-[#101D27] border-2 border-[#4C8DFF] space-y-2"
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] text-[#4C8DFF]">
+              <span className="font-mono text-[12px] text-[#4C8DFF]">
                 TASK DETAIL SHEET · {selectedTaskCard.id} ({selectedTaskCard.projectCode})
               </span>
               <button
@@ -1159,7 +1159,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
               {selectedTaskCard.subtasks.map((st, idx) => (
                 <div
                   key={idx}
-                  className="font-mono text-[11px] text-[#F2F6F8] flex items-center gap-2"
+                  className="font-mono text-[13px] text-[#F2F6F8] flex items-center gap-2"
                 >
                   <span className="text-[#36E88D]">{st.done ? '☑' : '☐'}</span>
                   <span>{st.text}</span>
@@ -1172,7 +1172,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                   key={c}
                   type="button"
                   onClick={() => moveCardColumn(selectedTaskCard.id, c)}
-                  className={`min-h-[32px] px-2.5 py-1 rounded-lg font-mono text-[10px] cursor-pointer ${
+                  className={`min-h-[32px] px-2.5 py-1 rounded-lg font-mono text-[12px] cursor-pointer ${
                     selectedTaskCard.column === c
                       ? 'bg-[#4C8DFF] text-[#101D27] font-semibold'
                       : 'bg-[#142632] text-[#BDCBD3] border border-white/15'
@@ -1189,7 +1189,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                     `PATCH /api/pm/tasks/${selectedTaskCard.id} saved at ${new Date().toLocaleTimeString()}`
                   )
                 }
-                className="min-h-[32px] px-3 py-1 rounded-lg font-mono text-[10px] font-semibold bg-[#36E88D] text-[#101D27] cursor-pointer"
+                className="min-h-[32px] px-3 py-1 rounded-lg font-mono text-[12px] font-semibold bg-[#36E88D] text-[#101D27] cursor-pointer"
               >
                 Save Task PATCH
               </button>
@@ -1201,13 +1201,13 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                     `Zebda converted synthesis note into sub-task on ${selectedTaskCard.id}`
                   )
                 }
-                className="min-h-[32px] px-3 py-1 rounded-lg font-mono text-[10px] font-semibold bg-[#142632] border border-[#5CC8D7] text-[#5CC8D7] cursor-pointer"
+                className="min-h-[32px] px-3 py-1 rounded-lg font-mono text-[12px] font-semibold bg-[#142632] border border-[#5CC8D7] text-[#5CC8D7] cursor-pointer"
               >
                 Zebda: "Make this a task?"
               </button>
             </div>
             {taskPatchSavedMsg && (
-              <div className="font-mono text-[10px] text-[#36E88D]">{taskPatchSavedMsg}</div>
+              <div className="font-mono text-[12px] text-[#36E88D]">{taskPatchSavedMsg}</div>
             )}
           </div>
         )}
@@ -1225,7 +1225,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
           <span className="font-display text-xs font-semibold text-[#F2F6F8]">
             What needs you · 6 signals
           </span>
-          <span className="font-mono text-[10px] text-[#FF5666] font-semibold">
+          <span className="font-mono text-[12px] text-[#FF5666] font-semibold">
             2 BLOCKED (#FF5666)
           </span>
         </div>
@@ -1252,7 +1252,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
               >
                 <div className="flex items-center justify-between gap-2">
                   <span
-                    className="font-mono text-[10px] font-semibold"
+                    className="font-mono text-[12px] font-semibold"
                     style={{ color: accentHex }}
                   >
                     {sig.code} · {sig.projectCode} · {sig.metricBadge}
@@ -1268,7 +1268,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                     onClick={() =>
                       setInspectedSignalId(isInspected ? null : sig.id)
                     }
-                    className="min-h-[32px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#142632] border border-white/25 text-[#F2F6F8] cursor-pointer"
+                    className="min-h-[32px] px-2.5 py-1 rounded-lg font-mono text-[12px] bg-[#142632] border border-white/25 text-[#F2F6F8] cursor-pointer"
                   >
                     {isInspected ? 'Hide Inspect' : 'Inspect'}
                   </button>
@@ -1283,13 +1283,13 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                     data-testid={`inspect-drawer-${sig.id}`}
                     className="rounded-lg p-2.5 bg-[#142632] border border-white/20 space-y-2"
                   >
-                    <div className="font-mono text-[10px] text-[#4C8DFF]">
+                    <div className="font-mono text-[12px] text-[#4C8DFF]">
                       INSPECT TELEMETRY · RECOMMENDED ACTION
                     </div>
                     <p className="font-sans text-xs text-[#F2F6F8]">
                       {sig.inspectDetail}
                     </p>
-                    <div className="font-mono text-[10px] text-[#36E88D]">
+                    <div className="font-mono text-[12px] text-[#36E88D]">
                       Action: {sig.recommendedAction}
                     </div>
                     <button
@@ -1300,7 +1300,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                         }
                         onOpenPanel(sig.targetPanel);
                       }}
-                      className="min-h-[34px] px-3 py-1 rounded-lg font-mono text-[10px] font-semibold bg-[#4C8DFF] text-[#101D27] cursor-pointer"
+                      className="min-h-[34px] px-3 py-1 rounded-lg font-mono text-[12px] font-semibold bg-[#4C8DFF] text-[#101D27] cursor-pointer"
                     >
                       Open {sig.targetPanel.toUpperCase()} →
                     </button>
@@ -1321,7 +1321,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
     return (
       <div className="space-y-3" data-testid="panel-morning-briefing">
         <div className="rounded-xl p-3 bg-[#101D27] border border-[#36E88D]/50 space-y-1">
-          <div className="font-mono text-[10px] text-[#36E88D]">
+          <div className="font-mono text-[12px] text-[#36E88D]">
             AUTO-WINDOW: {MORNING_BRIEFING_DATA.cairoWindowLabel}
           </div>
           <div className="font-display text-sm font-semibold text-[#F2F6F8]">
@@ -1362,7 +1362,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 key={item.id}
                 className="rounded-xl p-2.5 bg-[#101D27]/90 border border-white/20 space-y-1"
               >
-                <div className="flex items-center justify-between font-mono text-[10px]">
+                <div className="flex items-center justify-between font-mono text-[12px]">
                   <span className="text-[#4C8DFF]">
                     {item.time} · {item.project}
                   </span>
@@ -1384,20 +1384,20 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 className="rounded-xl p-2.5 bg-[#101D27]/90 border border-white/20 flex items-center justify-between gap-2"
               >
                 <div>
-                  <div className="font-mono text-[10px] text-[#4C8DFF]">
+                  <div className="font-mono text-[12px] text-[#4C8DFF]">
                     {m.slot} · {m.location}
                   </div>
                   <div className="font-sans text-xs font-semibold text-[#F2F6F8]">
                     {m.title}
                   </div>
-                  <div className="font-mono text-[10px] text-[#BDCBD3]">
+                  <div className="font-mono text-[12px] text-[#BDCBD3]">
                     Attendees: {m.attendees}
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => onOpenPanel('calendar')}
-                  className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
+                  className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[12px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
                 >
                   Calendar
                 </button>
@@ -1416,7 +1416,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                   className="rounded-xl p-2.5 bg-[#101D27]/90 border border-[#F2B66D]/40 flex items-center justify-between gap-2"
                 >
                   <div>
-                    <div className="font-mono text-[10px] text-[#F2B66D]">
+                    <div className="font-mono text-[12px] text-[#F2B66D]">
                       {ap.project} · Requested by {ap.requestedBy}
                     </div>
                     <div className="font-sans text-xs font-semibold text-[#F2F6F8]">
@@ -1433,7 +1433,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                     onClick={() =>
                       setApprovedBriefingIds((prev) => [...prev, ap.id])
                     }
-                    className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#36E88D] text-[#101D27] font-semibold cursor-pointer"
+                    className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[12px] bg-[#36E88D] text-[#101D27] font-semibold cursor-pointer"
                   >
                     {isDone ? '✓ Approved' : 'Approve'}
                   </button>
@@ -1457,7 +1457,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
       <div className="space-y-3" data-testid="panel-gmail-split">
         {/* Google Workspace OAuth Connection Header */}
         <div className="rounded-xl p-2.5 bg-[#101D27] border border-white/20 flex flex-wrap items-center justify-between gap-2">
-          <div className="font-mono text-[10px]">
+          <div className="font-mono text-[12px]">
             <span className="text-[#4C8DFF] font-semibold">ACCOUNT: </span>
             <span className="text-[#F2F6F8]">{wsUserEmail || 'me@nojara.com'}</span>
             {gmailLiveLoaded && (
@@ -1472,7 +1472,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 type="button"
                 data-testid="workspace-oauth-signin"
                 onClick={handleWorkspaceSignIn}
-                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
+                className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[12px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
               >
                 Connect Google OAuth
               </button>
@@ -1481,14 +1481,14 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 <button
                   type="button"
                   onClick={handleLoadLiveGmail}
-                  className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#36E88D] text-[#101D27] font-semibold cursor-pointer"
+                  className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[12px] bg-[#36E88D] text-[#101D27] font-semibold cursor-pointer"
                 >
                   Sync Inbox
                 </button>
                 <button
                   type="button"
                   onClick={handleWorkspaceSignOut}
-                  className="min-h-[34px] px-2 py-1 rounded-lg font-mono text-[10px] bg-[#142632] text-[#BDCBD3] border border-white/20 cursor-pointer"
+                  className="min-h-[34px] px-2 py-1 rounded-lg font-mono text-[12px] bg-[#142632] text-[#BDCBD3] border border-white/20 cursor-pointer"
                 >
                   Sign Out
                 </button>
@@ -1498,7 +1498,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
         </div>
 
         {wsStatusMsg && (
-          <div className="font-mono text-[10px] text-[#36E88D] px-1">{wsStatusMsg}</div>
+          <div className="font-mono text-[12px] text-[#36E88D] px-1">{wsStatusMsg}</div>
         )}
 
         {/* Split View: Thread List + Active Thread Reader */}
@@ -1514,14 +1514,14 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                     : 'bg-[#101D27]/90 border-white/15 hover:border-white/35'
                 }`}
               >
-                <div className="flex items-center justify-between font-mono text-[9px] text-[#BDCBD3]">
+                <div className="flex items-center justify-between font-mono text-[12px] text-[#BDCBD3]">
                   <span className="text-[#4C8DFF] font-semibold">{th.from}</span>
                   <span>{th.timestamp}</span>
                 </div>
                 <div className="font-sans text-xs font-semibold text-[#F2F6F8] truncate">
                   {th.subject}
                 </div>
-                <div className="font-sans text-[11px] text-[#BDCBD3] truncate">
+                <div className="font-sans text-[13px] text-[#BDCBD3] truncate">
                   {th.snippet}
                 </div>
               </div>
@@ -1530,7 +1530,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
 
           {/* Active Thread Body */}
           <div className="rounded-xl p-2.5 bg-[#101D27]/95 border border-white/20 space-y-2">
-            <div className="font-mono text-[10px] text-[#4C8DFF]">
+            <div className="font-mono text-[12px] text-[#4C8DFF]">
               FROM: {activeThread.from} → TO: {activeThread.to}
             </div>
             <div className="font-display text-xs font-semibold text-[#F2F6F8]">
@@ -1544,7 +1544,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
 
         {/* Two-Tap Confirm Composer (4000ms confirm window / 5000ms undo window) */}
         <div className="rounded-xl p-3 bg-[#101D27] border border-white/25 space-y-2">
-          <div className="font-mono text-[10px] text-[#5CC8D7] uppercase">
+          <div className="font-mono text-[12px] text-[#5CC8D7] uppercase">
             COMPOSE FROM me@nojara.com · TWO-TAP SAFETY GATE (4000ms Confirm / 5000ms Undo)
           </div>
           <input
@@ -1571,7 +1571,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
           {/* Step 1 / Step 2 (4000ms) / Undo (5000ms) */}
           {gmailUndoUntil ? (
             <div className="flex items-center justify-between gap-2 rounded-xl p-2.5 bg-[#142632] border border-[#F2B66D]">
-              <span className="font-mono text-[11px] text-[#F2B66D]">
+              <span className="font-mono text-[13px] text-[#F2B66D]">
                 Dispatching in 5.0s... Undo available
               </span>
               <button
@@ -1627,7 +1627,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
           {gmailReceipt && (
             <div
               data-testid="gmail-receipt"
-              className="rounded-lg p-2 bg-[#142632] border border-[#36E88D]/50 font-mono text-[10px] text-[#36E88D]"
+              className="rounded-lg p-2 bg-[#142632] border border-[#36E88D]/50 font-mono text-[12px] text-[#36E88D]"
             >
               {gmailReceipt}
             </div>
@@ -1656,14 +1656,14 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
       <div className="space-y-3" data-testid="panel-calendar-week">
         {/* Top Toolbar: Google Calendar Sync + Google Meet Instant Space */}
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl p-2.5 bg-[#101D27] border border-white/20">
-          <div className="font-mono text-[10px] text-[#4C8DFF]">
+          <div className="font-mono text-[12px] text-[#4C8DFF]">
             MON–SUN · 09:00–19:00 CAIRO GRID
           </div>
           <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={handleLoadLiveCalendar}
-              className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
+              className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[12px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
             >
               Sync Calendar API
             </button>
@@ -1671,7 +1671,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
               type="button"
               data-testid="create-google-meet-btn"
               onClick={handleCreateMeetSpace}
-              className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#36E88D] text-[#101D27] font-semibold cursor-pointer"
+              className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[12px] bg-[#36E88D] text-[#101D27] font-semibold cursor-pointer"
             >
               + Google Meet Room
             </button>
@@ -1679,7 +1679,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
         </div>
 
         {calStatus && (
-          <div className="rounded-lg p-2 bg-[#142632] border border-[#36E88D]/40 font-mono text-[10px] text-[#36E88D]">
+          <div className="rounded-lg p-2 bg-[#142632] border border-[#36E88D]/40 font-mono text-[12px] text-[#36E88D]">
             {calStatus}
           </div>
         )}
@@ -1690,7 +1690,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
             type="button"
             data-cta-id="calendar-view-today"
             onClick={() => setCalViewMode('today')}
-            className={`min-h-[34px] flex-1 rounded-xl font-mono text-[11px] cursor-pointer ${
+            className={`min-h-[34px] flex-1 rounded-xl font-mono text-[13px] cursor-pointer ${
               calViewMode === 'today'
                 ? 'bg-[#4C8DFF] text-[#101D27] font-semibold'
                 : 'bg-[#101D27] text-[#BDCBD3] border border-white/20'
@@ -1702,7 +1702,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
             type="button"
             data-cta-id="calendar-view-week"
             onClick={() => setCalViewMode('week')}
-            className={`min-h-[34px] flex-1 rounded-xl font-mono text-[11px] cursor-pointer ${
+            className={`min-h-[34px] flex-1 rounded-xl font-mono text-[13px] cursor-pointer ${
               calViewMode === 'week'
                 ? 'bg-[#4C8DFF] text-[#101D27] font-semibold'
                 : 'bg-[#101D27] text-[#BDCBD3] border border-white/20'
@@ -1717,7 +1717,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
           className={`${calViewMode === 'today' ? 'block' : 'md:hidden'} space-y-1.5`}
           data-testid="calendar-phone-today-list"
         >
-          <div className="font-mono text-[10px] text-[#BDCBD3] uppercase">
+          <div className="font-mono text-[12px] text-[#BDCBD3] uppercase">
             TODAY AGENDA (COMPACT VIEW)
           </div>
           {calendarEvents.map((ev) => (
@@ -1726,14 +1726,14 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
               className="rounded-lg p-2.5 bg-[#101D27] border border-white/20 flex items-center justify-between"
             >
               <div>
-                <div className="font-mono text-[10px] text-[#4C8DFF]">
+                <div className="font-mono text-[12px] text-[#4C8DFF]">
                   {ev.dayLabel} · {ev.startHour}:00 ({ev.durationHours}h) · {ev.projectCode}
                 </div>
                 <div className="font-sans text-xs font-semibold text-[#F2F6F8]">
                   {ev.title}
                 </div>
               </div>
-              <span className="font-mono text-[10px] text-[#36E88D]">{ev.location}</span>
+              <span className="font-mono text-[12px] text-[#36E88D]">{ev.location}</span>
             </div>
           ))}
         </div>
@@ -1745,7 +1745,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
           } rounded-xl p-2.5 bg-[#101D27]/95 border border-white/20 overflow-x-auto`}
           data-testid="calendar-7day-grid"
         >
-          <div className="grid grid-cols-8 gap-1 min-w-[460px] font-mono text-[10px]">
+          <div className="grid grid-cols-8 gap-1 min-w-[460px] font-mono text-[12px]">
             <div className="text-[#BDCBD3] p-1">HR</div>
             {days.map((d) => (
               <div
@@ -1773,7 +1773,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                       className="min-h-[38px] p-1 border-t border-l border-white/10 rounded"
                     >
                       {slotEv && (
-                        <div className="rounded p-1 bg-[#4C8DFF]/25 border border-[#4C8DFF] text-[9px] text-[#F2F6F8] leading-tight">
+                        <div className="rounded p-1 bg-[#4C8DFF]/25 border border-[#4C8DFF] text-[12px] text-[#F2F6F8] leading-tight">
                           <div className="font-semibold truncate">{slotEv.title}</div>
                           <div className="text-[#B4DDFF]">{slotEv.projectCode}</div>
                         </div>
@@ -1788,7 +1788,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
 
         {/* Two-Tap Calendar Event Creator */}
         <div className="rounded-xl p-3 bg-[#101D27] border border-white/25 space-y-2">
-          <div className="font-mono text-[10px] text-[#5CC8D7]">
+          <div className="font-mono text-[12px] text-[#5CC8D7]">
             TWO-TAP CREATE CALENDAR EVENT (+ GOOGLE MEET LINK)
           </div>
           <input
@@ -1880,7 +1880,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
       <div className="space-y-3" data-testid="panel-drive-files">
         {/* Drive Top Bar: LIVE badge appears ONLY after loadDrive() is invoked */}
         <div className="rounded-xl p-2.5 bg-[#101D27] border border-white/20 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2 font-mono text-[10px]">
+          <div className="flex items-center gap-2 font-mono text-[12px]">
             <span className="text-[#36E88D] font-semibold">GOOGLE DRIVE</span>
             {driveLiveUnlocked ? (
               <span
@@ -1901,15 +1901,15 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
               data-testid="load-drive-btn"
               data-cta-id="drive-run-load"
               onClick={handleLoadDriveClick}
-              className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#36E88D] text-[#101D27] font-semibold cursor-pointer"
+              className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[12px] bg-[#36E88D] text-[#101D27] font-semibold cursor-pointer"
             >
-              Run loadDrive() (NOJARA_HQ_26 / CEREBRO / refs)
+              Refresh files (NOJARA_HQ_26 / CEREBRO / refs)
             </button>
             <button
               type="button"
               data-cta-id="open-in-file-viewer"
               onClick={() => onOpenPanel('file-viewer')}
-              className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
+              className="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[12px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
             >
               Open FileViewer (#11)
             </button>
@@ -1917,7 +1917,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
         </div>
 
         {/* Breadcrumb Trail + Search Input */}
-        <div className="flex flex-wrap items-center gap-1 font-mono text-[10px] text-[#BDCBD3]">
+        <div className="flex flex-wrap items-center gap-1 font-mono text-[12px] text-[#BDCBD3]">
           {driveBreadcrumb.map((crumb, idx) => (
             <React.Fragment key={crumb}>
               <button
@@ -1945,7 +1945,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
         {/* Live Drive Files (if returned from Google Drive API) */}
         {liveDriveFiles.length > 0 && (
           <div className="space-y-1.5">
-            <div className="font-mono text-[10px] text-[#36E88D]">
+            <div className="font-mono text-[12px] text-[#36E88D]">
               LIVE GOOGLE DRIVE API RESULTS ({liveDriveFiles.length})
             </div>
             {liveDriveFiles.map((df) => (
@@ -1957,7 +1957,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                   <div className="font-sans text-xs text-[#F2F6F8] truncate">
                     {df.name}
                   </div>
-                  <div className="font-mono text-[9px] text-[#BDCBD3]">
+                  <div className="font-mono text-[12px] text-[#BDCBD3]">
                     {df.mimeType}
                   </div>
                 </div>
@@ -1966,7 +1966,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                     href={df.webViewLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-mono text-[10px] text-[#4C8DFF] underline"
+                    className="font-mono text-[12px] text-[#4C8DFF] underline"
                   >
                     Open
                   </a>
@@ -1988,11 +1988,11 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 <div className="font-sans text-xs font-semibold text-[#F2F6F8] truncate">
                   {f.name}
                 </div>
-                <div className="font-mono text-[10px] text-[#BDCBD3]">
+                <div className="font-mono text-[12px] text-[#BDCBD3]">
                   {f.folder} · {f.type} · {f.pagesOrSize}
                 </div>
               </div>
-              <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#142632] text-[#36E88D]">
+              <span className="font-mono text-[12px] px-2 py-0.5 rounded bg-[#142632] text-[#36E88D]">
                 {f.status}
               </span>
             </div>
@@ -2001,7 +2001,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
 
         {/* Google Docs + Google Sheets 1P API Integration Box */}
         <div className="rounded-xl p-3 bg-[#101D27] border border-white/20 space-y-2.5">
-          <div className="font-mono text-[10px] text-[#4C8DFF]">
+          <div className="font-mono text-[12px] text-[#4C8DFF]">
             GOOGLE DOCS & GOOGLE SHEETS LIVE BRIDGE (TWO-TAP WRITE)
           </div>
 
@@ -2018,7 +2018,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
               <button
                 type="button"
                 onClick={handleReadGoogleDoc}
-                className="min-h-[34px] px-2.5 rounded-lg font-mono text-[10px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
+                className="min-h-[34px] px-2.5 rounded-lg font-mono text-[12px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
               >
                 Read Doc
               </button>
@@ -2026,7 +2026,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 <button
                   type="button"
                   onClick={() => setDocTwoTapArmed(true)}
-                  className="min-h-[34px] px-2.5 rounded-lg font-mono text-[10px] bg-[#5CC8D7] text-[#101D27] font-semibold cursor-pointer"
+                  className="min-h-[34px] px-2.5 rounded-lg font-mono text-[12px] bg-[#5CC8D7] text-[#101D27] font-semibold cursor-pointer"
                 >
                   Append Note
                 </button>
@@ -2034,14 +2034,14 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 <button
                   type="button"
                   onClick={handleConfirmAppendDoc}
-                  className="min-h-[34px] px-2.5 rounded-lg font-mono text-[10px] bg-[#36E88D] text-[#101D27] font-semibold cursor-pointer"
+                  className="min-h-[34px] px-2.5 rounded-lg font-mono text-[12px] bg-[#36E88D] text-[#101D27] font-semibold cursor-pointer"
                 >
                   Confirm Doc Write
                 </button>
               )}
             </div>
             {docContentPreview && (
-              <pre className="rounded p-2 bg-[#142632] font-mono text-[10px] text-[#F2F6F8] whitespace-pre-wrap max-h-24 overflow-y-auto">
+              <pre className="rounded p-2 bg-[#142632] font-mono text-[12px] text-[#F2F6F8] whitespace-pre-wrap max-h-24 overflow-y-auto">
                 {docContentPreview}
               </pre>
             )}
@@ -2060,7 +2060,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
               <button
                 type="button"
                 onClick={handleReadGoogleSheet}
-                className="min-h-[34px] px-2.5 rounded-lg font-mono text-[10px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
+                className="min-h-[34px] px-2.5 rounded-lg font-mono text-[12px] bg-[#4C8DFF] text-[#101D27] font-semibold cursor-pointer"
               >
                 Read Sheet
               </button>
@@ -2068,7 +2068,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 <button
                   type="button"
                   onClick={() => setSheetTwoTapArmed(true)}
-                  className="min-h-[34px] px-2.5 rounded-lg font-mono text-[10px] bg-[#5CC8D7] text-[#101D27] font-semibold cursor-pointer"
+                  className="min-h-[34px] px-2.5 rounded-lg font-mono text-[12px] bg-[#5CC8D7] text-[#101D27] font-semibold cursor-pointer"
                 >
                   Append Row
                 </button>
@@ -2076,14 +2076,14 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 <button
                   type="button"
                   onClick={handleConfirmAppendSheet}
-                  className="min-h-[34px] px-2.5 rounded-lg font-mono text-[10px] bg-[#36E88D] text-[#101D27] font-semibold cursor-pointer"
+                  className="min-h-[34px] px-2.5 rounded-lg font-mono text-[12px] bg-[#36E88D] text-[#101D27] font-semibold cursor-pointer"
                 >
                   Confirm Sheet Row
                 </button>
               )}
             </div>
             {sheetRowsPreview.length > 0 && (
-              <div className="rounded p-2 bg-[#142632] font-mono text-[10px] text-[#F2F6F8] space-y-1">
+              <div className="rounded p-2 bg-[#142632] font-mono text-[12px] text-[#F2F6F8] space-y-1">
                 {sheetRowsPreview.slice(0, 5).map((r, idx) => (
                   <div key={idx}>{r.join(' | ')}</div>
                 ))}
@@ -2109,7 +2109,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
           className="rounded-2xl p-3.5 bg-[#101D27] border-2 space-y-2.5"
           style={{ borderColor: '#F2B66D' }}
         >
-          <div className="flex items-center justify-between font-mono text-[10px]">
+          <div className="flex items-center justify-between font-mono text-[12px]">
             <span className="text-[#F2B66D] font-semibold">
               3D SHOWREEL CAROUSEL · AMBER #F2B66D ({activeShowreelIndex + 1} /{' '}
               {SHOWREEL_ITEMS.length})
@@ -2204,7 +2204,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
               className="rounded-xl p-2.5 bg-[#101D27]/90 border border-[#F2B66D]/35 flex items-center justify-between gap-2"
             >
               <div className="min-w-0">
-                <div className="font-mono text-[10px] text-[#F2B66D]">
+                <div className="font-mono text-[12px] text-[#F2B66D]">
                   {item.type} · {item.aspect} · {item.subtitle}
                 </div>
                 <div className="font-sans text-xs font-semibold text-[#F2F6F8] truncate">
@@ -2216,7 +2216,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 data-testid={`open-fullscreen-${item.id}`}
                 data-cta-id={`open-fullscreen-${item.id}`}
                 onClick={() => onOpenFullscreenMedia(item)}
-                className="min-h-[36px] px-3 rounded-xl font-mono text-[10px] font-semibold bg-[#F2B66D] text-[#101D27] shrink-0 cursor-pointer"
+                className="min-h-[36px] px-3 rounded-xl font-mono text-[12px] font-semibold bg-[#F2B66D] text-[#101D27] shrink-0 cursor-pointer"
               >
                 Fullscreen
               </button>
@@ -2250,7 +2250,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 setSelectedViewerDocId(doc.id);
                 setViewerPage(2);
               }}
-              className={`min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[10px] shrink-0 border cursor-pointer ${
+              className={`min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-[12px] shrink-0 border cursor-pointer ${
                 doc.id === activeDoc.id
                   ? 'bg-[#36E88D] text-[#101D27] border-[#36E88D] font-semibold'
                   : 'bg-[#101D27] text-[#BDCBD3] border-white/20'
@@ -2302,7 +2302,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
             >
               Zoom −
             </button>
-            <span className="font-mono text-[11px] text-[#BDCBD3]">
+            <span className="font-mono text-[13px] text-[#BDCBD3]">
               {viewerZoomPct}%
             </span>
             <button
@@ -2322,13 +2322,13 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
           className="rounded-xl p-4 bg-[#101D27]/95 border border-white/20 space-y-2.5 transition-transform origin-top-left"
           style={{ fontSize: `${Math.round((viewerZoomPct / 100) * 12)}px` }}
         >
-          <div className="font-mono text-[10px] text-[#36E88D]">
+          <div className="font-mono text-[12px] text-[#36E88D]">
             {activeDoc.title} · Updated {activeDoc.updatedAt}
           </div>
           <h4 className="font-display text-sm font-semibold text-[#F2F6F8]">
             {currentPageContent.heading}
           </h4>
-          <div className="font-mono text-[11px] text-[#4C8DFF]">
+          <div className="font-mono text-[13px] text-[#4C8DFF]">
             {currentPageContent.subheading}
           </div>
           <p className="font-sans text-xs text-[#BDCBD3] leading-relaxed">
@@ -2340,7 +2340,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
               {currentPageContent.callouts.map((c, i) => (
                 <span
                   key={i}
-                  className="px-2 py-1 rounded bg-[#142632] border border-[#36E88D]/40 font-mono text-[10px] text-[#36E88D]"
+                  className="px-2 py-1 rounded bg-[#142632] border border-[#36E88D]/40 font-mono text-[12px] text-[#36E88D]"
                 >
                   {c}
                 </span>
@@ -2350,7 +2350,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
 
           {currentPageContent.sheetRows && (
             <div className="overflow-x-auto pt-2">
-              <table className="w-full font-mono text-[10px] border-collapse">
+              <table className="w-full font-mono text-[12px] border-collapse">
                 <tbody>
                   {currentPageContent.sheetRows.map((row, rIdx) => (
                     <tr
@@ -2400,7 +2400,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
               type="button"
               data-cta-id={t.ctaId}
               onClick={() => setPeopleTab12(t.id)}
-              className={`min-h-[36px] flex-1 rounded-xl font-mono text-[11px] cursor-pointer ${
+              className={`min-h-[36px] flex-1 rounded-xl font-mono text-[13px] cursor-pointer ${
                 peopleTab12 === t.id
                   ? 'bg-[#7CE0B8] text-[#101D27] font-semibold'
                   : 'bg-[#101D27] text-[#BDCBD3] border border-white/20'
@@ -2421,7 +2421,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                   data-testid={`crew-chip-${m.code}`}
                   data-cta-id={`crew-chip-${m.code}`}
                   onClick={() => setSelectedCrewCode(m.code)}
-                  className={`min-h-[34px] rounded-lg font-mono text-[10px] border cursor-pointer ${
+                  className={`min-h-[34px] rounded-lg font-mono text-[12px] border cursor-pointer ${
                     m.code === activeMember.code
                       ? 'bg-[#7CE0B8] text-[#101D27] border-[#7CE0B8] font-bold'
                       : 'bg-[#101D27] text-[#F2F6F8] border-white/20'
@@ -2434,10 +2434,10 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
 
             <div className="rounded-xl p-3 bg-[#101D27]/95 border border-white/20 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] text-[#7CE0B8] font-semibold">
+                <span className="font-mono text-[12px] text-[#7CE0B8] font-semibold">
                   [{activeMember.code}] · {activeMember.tier} · RACI: {activeMember.raciRole}
                 </span>
-                <span className="font-mono text-[10px] text-[#36E88D]">
+                <span className="font-mono text-[12px] text-[#36E88D]">
                   {activeMember.status}
                 </span>
               </div>
@@ -2462,7 +2462,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 <div className="font-sans text-xs font-semibold text-[#F2F6F8]">
                   {row.deliverable} ({row.projectId})
                 </div>
-                <div className="grid grid-cols-4 gap-1 font-mono text-[10px]">
+                <div className="grid grid-cols-4 gap-1 font-mono text-[12px]">
                   <span className="text-[#4C8DFF]">R: {row.responsible}</span>
                   <span className="text-[#36E88D]">A: {row.accountable}</span>
                   <span className="text-[#F2B66D]">C: {row.consulted}</span>
@@ -2475,7 +2475,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
 
         {peopleTab12 === 'Contracts' && (
           <div className="rounded-xl p-3 bg-[#101D27] border border-white/25 space-y-2.5">
-            <div className="font-mono text-[10px] text-[#F2B66D]">
+            <div className="font-mono text-[12px] text-[#F2B66D]">
               OWNER 3939 CONTRACT & COMPENSATION VAULT
             </div>
             {!contractUnlocked3939 ? (
@@ -2509,7 +2509,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 {CREW_12_ROSTER.map((m) => (
                   <div
                     key={m.code}
-                    className="rounded-lg p-2 bg-[#142632] border border-[#36E88D]/40 flex items-center justify-between font-mono text-[10px]"
+                    className="rounded-lg p-2 bg-[#142632] border border-[#36E88D]/40 flex items-center justify-between font-mono text-[12px]"
                   >
                     <span className="text-[#F2F6F8] font-semibold">
                       [{m.code}] {m.name}
@@ -2564,7 +2564,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
     return (
       <div className="space-y-3" data-testid="panel-crew-2x2-sse">
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl p-2.5 bg-[#101D27] border border-white/20">
-          <span className="font-mono text-[10px] text-[#F2B66D] font-semibold">
+          <span className="font-mono text-[12px] text-[#F2B66D] font-semibold">
             Draft only · needs your approval
           </span>
           <div className="flex items-center gap-1.5">
@@ -2574,7 +2574,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
               data-cta-id="crew-start-stream"
               onClick={startCrewSseStream}
               disabled={crewStreamingActive}
-              className="min-h-[34px] px-3 rounded-lg font-mono text-[10px] font-semibold bg-[#4C8DFF] text-[#101D27] cursor-pointer disabled:opacity-50"
+              className="min-h-[34px] px-3 rounded-lg font-mono text-[12px] font-semibold bg-[#4C8DFF] text-[#101D27] cursor-pointer disabled:opacity-50"
             >
               {crewStreamingActive ? 'Streaming SSE...' : 'Stream 2×2 Crew SSE'}
             </button>
@@ -2582,7 +2582,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
               type="button"
               data-cta-id="crew-stop-stream"
               onClick={() => setCrewStreamingActive(false)}
-              className="min-h-[34px] px-2.5 rounded-lg font-mono text-[10px] bg-[#142632] border border-[#FF5666] text-[#FF5666] cursor-pointer"
+              className="min-h-[34px] px-2.5 rounded-lg font-mono text-[12px] bg-[#142632] border border-[#FF5666] text-[#FF5666] cursor-pointer"
             >
               Stop Stream
             </button>
@@ -2600,18 +2600,18 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 className="rounded-xl p-3 bg-[#101D27]/95 border border-white/20 flex flex-col justify-between space-y-2"
               >
                 <div className="space-y-1">
-                  <div className="flex items-center justify-between font-mono text-[10px]">
+                  <div className="flex items-center justify-between font-mono text-[12px]">
                     <span className="text-[#4C8DFF] font-semibold">{cell.name}</span>
                     <span className="text-[#F2B66D]">Draft only · needs your approval</span>
                   </div>
-                  <div className="font-mono text-[9px] text-[#BDCBD3]">{cell.role}</div>
+                  <div className="font-mono text-[12px] text-[#BDCBD3]">{cell.role}</div>
                   <p className="font-sans text-xs text-[#F2F6F8] leading-relaxed pt-1">
                     {crewStreams[cell.streamKey]}
                   </p>
                 </div>
 
                 <div className="flex items-center justify-between gap-1.5 pt-2 border-t border-white/10">
-                  <span className="font-mono text-[9px] text-[#BDCBD3]">
+                  <span className="font-mono text-[12px] text-[#BDCBD3]">
                     {approved ? '✓ Approved by 39' : 'Awaiting 39 sign-off'}
                   </span>
                   <div className="flex items-center gap-1">
@@ -2621,7 +2621,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                       onClick={() =>
                         navigator.clipboard?.writeText(crewStreams[cell.streamKey] || '')
                       }
-                      className="min-h-[30px] px-2 rounded-lg font-mono text-[10px] bg-[#142632] text-[#BDCBD3] border border-white/20 cursor-pointer"
+                      className="min-h-[30px] px-2 rounded-lg font-mono text-[12px] bg-[#142632] text-[#BDCBD3] border border-white/20 cursor-pointer"
                     >
                       Copy
                     </button>
@@ -2634,7 +2634,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                           [cell.code]: !prev[cell.code],
                         }))
                       }
-                      className={`min-h-[30px] px-2.5 rounded-lg font-mono text-[10px] font-semibold cursor-pointer ${
+                      className={`min-h-[30px] px-2.5 rounded-lg font-mono text-[12px] font-semibold cursor-pointer ${
                         approved
                           ? 'bg-[#36E88D] text-[#101D27]'
                           : 'bg-[#142632] text-[#F2F6F8] border border-white/20'
@@ -2690,7 +2690,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 key={bar.id}
                 className="rounded-xl p-2.5 bg-[#101D27]/95 border border-white/20 space-y-1.5"
               >
-                <div className="flex items-center justify-between font-mono text-[10px]">
+                <div className="flex items-center justify-between font-mono text-[12px]">
                   <span className="text-[#4C8DFF] font-semibold">
                     {bar.projectCode} · {bar.phaseName} (Owner: {bar.ownerCode})
                   </span>
@@ -2724,7 +2724,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
   if (panelId === 'kinzo') {
     return (
       <div className="space-y-3" data-testid="panel-kinzo-bots">
-        <div className="rounded-xl p-2.5 bg-[#101D27] border border-[#F2B66D]/40 font-mono text-[10px] text-[#F2B66D]">
+        <div className="rounded-xl p-2.5 bg-[#101D27] border border-[#F2B66D]/40 font-mono text-[12px] text-[#F2B66D]">
           KINZO SYNTHETIC CREW-BOT ROSTER · ALL UNITS LOCKED AS [PROPOSED] UNTIL 39 GATE
         </div>
         <div className="space-y-2">
@@ -2735,7 +2735,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 key={bot.id}
                 className="rounded-xl p-3 bg-[#101D27]/95 border border-white/20 space-y-1.5"
               >
-                <div className="flex items-center justify-between font-mono text-[10px]">
+                <div className="flex items-center justify-between font-mono text-[12px]">
                   <span className="text-[#4C8DFF] font-semibold">
                     {bot.code} · {bot.name}
                   </span>
@@ -2760,7 +2760,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                   {bot.specialization} ({bot.assignedProject})
                 </div>
                 <p className="font-sans text-xs text-[#BDCBD3]">{bot.lastDraftSummary}</p>
-                <div className="font-mono text-[10px] text-[#36E88D]">
+                <div className="font-mono text-[12px] text-[#36E88D]">
                   Supervisor: {bot.supervisorCode} · Quota: {bot.tokenQuota}
                 </div>
               </div>
@@ -2864,7 +2864,7 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
 
         {settingsTab === 'Hands' && (
           <div className="rounded-xl p-3 bg-[#101D27]/95 border border-white/20 space-y-2.5">
-            <div className="font-mono text-[10px] text-[#36E88D]">
+            <div className="font-mono text-[12px] text-[#36E88D]">
               21-LANDMARK MEDIAPIPE HAND RIG · ONEEUROFILTER · PENTATONIC C4–A4
             </div>
             <div className="font-sans text-xs text-[#BDCBD3] space-y-1">
@@ -2882,19 +2882,19 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                     soundEngine.playFingertipNote(n.idx);
                     setActiveSynthNote(`${n.note} (${n.hz})`);
                   }}
-                  className={`min-h-[38px] rounded-xl font-mono text-[11px] font-semibold border cursor-pointer transition-colors ${
+                  className={`min-h-[38px] rounded-xl font-mono text-[13px] font-semibold border cursor-pointer transition-colors ${
                     activeSynthNote?.startsWith(n.note)
                       ? 'bg-[#65ACFF] text-[#101D27] border-[#65ACFF]'
                       : 'bg-[#142632] text-[#F2F6F8] border-white/20 hover:border-[#65ACFF]'
                   }`}
                 >
                   <div>{n.note}</div>
-                  <div className="text-[9px] opacity-75">{n.hz}</div>
+                  <div className="text-[12px] opacity-75">{n.hz}</div>
                 </button>
               ))}
             </div>
             {activeSynthNote && (
-              <div className="font-mono text-[10px] text-[#65ACFF]">
+              <div className="font-mono text-[12px] text-[#65ACFF]">
                 Pentatonic Synth Triggered: {activeSynthNote}
               </div>
             )}
@@ -2905,14 +2905,14 @@ export const WireframesV11PanelContent: React.FC<WireframesV11PanelsProps> = ({
                 onClick={onToggleHands}
                 className="w-full min-h-[38px] rounded-xl font-mono text-xs font-semibold bg-[#36E88D] text-[#101D27] cursor-pointer"
               >
-                {handsActive ? 'Disable 21-Landmark Hand Rig' : 'Enable 21-Landmark Hand Rig'}
+                {handsActive ? 'Disable Hand Gesture' : 'Enable Hand Gesture (1×)'}
               </button>
             )}
           </div>
         )}
 
         {screenAmendments.length > 0 && (
-          <div className="rounded-xl p-2.5 bg-[#142632] border border-[#B4DDFF]/40 font-mono text-[10px] text-[#B4DDFF]">
+          <div className="rounded-xl p-2.5 bg-[#142632] border border-[#B4DDFF]/40 font-mono text-[12px] text-[#B4DDFF]">
             Active Screen Amendments ({screenAmendments.length}):{' '}
             {screenAmendments.map((a) => a.elementId).join(', ')}
           </div>

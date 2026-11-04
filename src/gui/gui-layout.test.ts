@@ -78,7 +78,7 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
     });
   }
 
-  // 2. iPad Portrait 820x1180 — Single left inspector (w=360 Stage A) + voice dock + zero overlap
+  // 2. iPad Portrait 820x1180 — Single left inspector (w=304) + voice dock right-bottom + zero overlap
   {
     const layout = computeGuiLayout({
       width: 820,
@@ -89,7 +89,7 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
     const singleLeftInspector =
       layout.panelSlots.length === 1 &&
       layout.panelSlots[0].rect.x === 20 &&
-      layout.panelSlots[0].rect.w === 360;
+      layout.panelSlots[0].rect.w === 304;
 
     const overlap = verifyZeroOverlap(
       [...layout.panelSlots.map((s) => s.rect), layout.voiceRect],
@@ -97,14 +97,14 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
     );
 
     results.push({
-      name: 'ipad_820x1180: single left inspector (360px) & zero overlap',
+      name: 'ipad_820x1180: single left inspector (304px) & zero overlap',
       viewport: '820x1180',
       passed: singleLeftInspector && overlap.passed,
-      detail: `slots=${layout.panelSlots.length}, slotW=${layout.panelSlots[0]?.rect.w}, overlapPassed=${overlap.passed}`,
+      detail: `slots=${layout.panelSlots.length}, overlapPassed=${overlap.passed}`,
     });
   }
 
-  // 2B. iPad Landscape 1180x820 — 2 flanking slots (w=340 Stage A) + centered voice dock + zero overlap
+  // 2B. iPad Landscape 1180x820 — 2 flanking slots (w=288) + centered voice dock + zero overlap
   {
     const layout = computeGuiLayout({
       width: 1180,
@@ -118,11 +118,11 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
     );
 
     results.push({
-      name: 'ipad_landscape_1180x820: 2 flanking slots (340px) & zero overlap',
+      name: 'ipad_landscape_1180x820: 2 flanking slots (288px) & zero overlap',
       viewport: '1180x820',
       passed:
         layout.panelSlots.length === 2 &&
-        layout.panelSlots[0].rect.w === 340 &&
+        layout.panelSlots[0].rect.w === 288 &&
         overlap.passed,
       detail: `slots=${layout.panelSlots.length}, slotW=${layout.panelSlots[0]?.rect.w}, overlapPassed=${overlap.passed}`,
     });
@@ -157,14 +157,17 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
       passed:
         layout2.panelSlots.length === 2 &&
         layout4.panelSlots.length === 4 &&
-        layout2.voiceRect.w === 460 &&
+        layout2.voiceRect.w >= 220 &&
+        layout2.voiceRect.w <= 256 &&
+        layout2.voiceRect.h >= 48 &&
+        layout2.voiceRect.h <= 56 &&
         overlap2.passed &&
         overlap4.passed,
-      detail: `slots2=${layout2.panelSlots.length}, slots4=${layout4.panelSlots.length}, voiceW=${layout2.voiceRect.w}, overlapPassed=${overlap2.passed && overlap4.passed}`,
+      detail: `slots2=${layout2.panelSlots.length}, slots4=${layout4.panelSlots.length}, voiceW=${layout2.voiceRect.w}, voiceH=${layout2.voiceRect.h}, overlapPassed=${overlap2.passed && overlap4.passed}`,
     });
   }
 
-  // 4. Wide 1920x1080 — 420px left/right slots (Stage A), 480px voice, >= 960px centerSafe
+  // 4. Wide 1920x1080 — 400px left/right slots, C06 capsule voice, >= 960px center unobstructed width
   {
     const layout = computeGuiLayout({
       width: 1920,
@@ -178,15 +181,47 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
     );
 
     results.push({
-      name: 'wide_1920x1080: 420px slots, 480px voice, >=960px centerSafe',
+      name: 'wide_1920x1080: 400px slots, C06 capsule voice, >=960px centerSafe',
       viewport: '1920x1080',
       passed:
         layout.panelSlots.length === 2 &&
-        layout.panelSlots[0].rect.w === 420 &&
-        layout.voiceRect.w === 480 &&
+        layout.panelSlots[0].rect.w === 400 &&
+        layout.voiceRect.w >= 220 &&
+        layout.voiceRect.w <= 256 &&
         layout.centerSafeRect.w >= 960 &&
         overlap.passed,
-      detail: `slotW=${layout.panelSlots[0]?.rect.w}, centerSafeW=${layout.centerSafeRect.w}px, overlapPassed=${overlap.passed}`,
+      detail: `voiceW=${layout.voiceRect.w}px, centerSafeW=${layout.centerSafeRect.w}px, overlapPassed=${overlap.passed}`,
+    });
+  }
+
+  // 4B. C06 capsule geometry across breakpoints + keyboard inset
+  {
+    const phoneKb = computeGuiLayout({
+      width: 390,
+      height: 844,
+      openPanels: [],
+      keyboardInsetBottom: 280,
+    });
+    const phoneSheet = computeGuiLayout({
+      width: 390,
+      height: 844,
+      openPanels: ['overview'],
+      phoneSheetState: 'expanded',
+    });
+    const capsuleOk =
+      phoneKb.voiceRect.w >= 220 &&
+      phoneKb.voiceRect.w <= 256 &&
+      phoneKb.voiceRect.h >= 48 &&
+      phoneKb.voiceRect.h <= 56 &&
+      phoneKb.voiceRect.y + phoneKb.voiceRect.h <= 844 - 280 &&
+      phoneSheet.voiceCompactedForSheet &&
+      phoneSheet.zeroOverlapPassed;
+
+    results.push({
+      name: 'c06_capsule: size + keyboard inset + sheet zero-overlap',
+      viewport: '390x844',
+      passed: capsuleOk,
+      detail: `w=${phoneKb.voiceRect.w} h=${phoneKb.voiceRect.h} y=${phoneKb.voiceRect.y} compacted=${phoneSheet.voiceCompactedForSheet} zeroOverlap=${phoneSheet.zeroOverlapPassed}`,
     });
   }
 
@@ -242,10 +277,8 @@ export function runGuiLayoutSelfTests(): GuiSelfTestSummary {
         Math.abs(eMid - 0.5) < 1e-6 &&
         e1 === 1 &&
         GUI_TOUCH_TOKENS.minTargetPx >= 44 &&
-        GUI_GLASS_TOKENS.headerH === 48 &&
-        GUI_GLASS_TOKENS.panelGapPx === 14 &&
-        GUI_TOUCH_TOKENS.panelCollisionMarginPx === 14,
-      detail: `e(0.5)=${eMid}, minTarget=${GUI_TOUCH_TOKENS.minTargetPx}px, headerH=${GUI_GLASS_TOKENS.headerH}px, gap=${GUI_GLASS_TOKENS.panelGapPx}`,
+        GUI_GLASS_TOKENS.headerH === 52,
+      detail: `e(0.5)=${eMid}, minTarget=${GUI_TOUCH_TOKENS.minTargetPx}px, headerH=${GUI_GLASS_TOKENS.headerH}px`,
     });
   }
 

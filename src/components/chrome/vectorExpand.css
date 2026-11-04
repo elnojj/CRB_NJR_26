@@ -1,0 +1,104 @@
+.vector-expand-shape {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 40px;
+  max-width: min(46vw, 11.5rem);
+  padding: 0.35rem 0.55rem 0.35rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(197, 204, 214, 0.28);
+  background: rgba(12, 18, 28, 0.72);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  color: #f2f6f8;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.vector-expand-shape:hover,
+.vector-expand-shape:focus-visible {
+  border-color: rgba(212, 175, 55, 0.7);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.vector-expand-shape.is-expanded {
+  border-color: rgba(212, 175, 55, 0.85);
+  background: rgba(212, 175, 55, 0.14);
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.2), 0 10px 28px rgba(0, 0, 0, 0.32);
+}
+
+.vector-expand-glyph {
+  flex: 0 0 auto;
+  display: block;
+}
+
+.vector-expand-hull,
+.vector-expand-fin {
+  fill: currentColor;
+  opacity: 0.92;
+}
+
+.vector-expand-core {
+  fill: #101622;
+}
+
+.vector-expand-shape.is-gold {
+  color: #d4af37;
+}
+
+.vector-expand-shape.is-ice {
+  color: #b4ddff;
+}
+
+.vector-expand-shape.is-alert {
+  color: #ff5666;
+}
+
+.vector-expand-shape.is-neutral {
+  color: #c5ccd6;
+}
+
+.vector-expand-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #f2f6f8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 5.5rem;
+}
+
+.vector-expand-metric {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: inherit;
+}
+
+.vector-expand-chevron {
+  font-size: 10px;
+  color: #c5ccd6;
+  margin-left: 0.05rem;
+}
+
+@media (min-width: 768px) {
+  .vector-expand-shape {
+    max-width: 14rem;
+  }
+
+  .vector-expand-label {
+    max-width: 8rem;
+  }
+}

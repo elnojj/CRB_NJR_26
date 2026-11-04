@@ -148,7 +148,9 @@ export function computeFittedCameraDistance(params: {
   const sinHalfAngle = Math.min(0.92, occupancyFractionOfFullViewportH * tanHalfFov);
   const distance = sphereRadius / Math.max(0.05, sinHalfAngle);
 
-  return Math.max(sphereRadius * 1.45, Math.min(68, distance));
+  // Allow interior-of-cage distances (outer rib ~1.015R ≈ 6.3u). Floor was 1.45R (~9u)
+  // which framed shots behind the armature and hid inner media.
+  return Math.max(sphereRadius * 0.58, Math.min(68, distance));
 }
 
 /**

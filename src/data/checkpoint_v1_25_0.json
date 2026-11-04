@@ -59,7 +59,7 @@
     { "id": "RED-SEA-PAVILION", "code": "PRJ-17 · RSP", "status": "Active", "ownerCode": "GD" }
   ],
   "crewRaciRoster": [
-    { "code": "39", "name": "Tarek Nojara (39)", "tier": "Owner", "raciRole": "A" },
+    { "code": "39", "name": "Tarek Mojara (39)", "tier": "Owner", "raciRole": "A" },
     { "code": "GD", "name": "Grandy (GD)", "tier": "Core Crew", "raciRole": "R" },
     { "code": "BL", "name": "Bilal (BL)", "tier": "Core Crew", "raciRole": "R" },
     { "code": "RS", "name": "Rasma (RS)", "tier": "Core Crew", "raciRole": "R" },

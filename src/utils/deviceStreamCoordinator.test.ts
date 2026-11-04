@@ -5,6 +5,7 @@
 
 import {
   __resetDeviceStreamCoordinatorForTests,
+  forceStopSharedWebcamStream,
   getDeviceStreamCoordinatorDebugState,
   getSharedMicrophoneStream,
   releaseSharedMicrophoneStream,
@@ -16,8 +17,10 @@ import { assertIntroBridgeClean, spawnIntroBackgroundMedia } from '../intro/brid
 function makeFakeStream(kind: 'audio' | 'video'): MediaStream {
   const track = {
     kind,
+    readyState: 'live' as MediaStreamTrackState,
     stop: () => {
-      (track as { stopped?: boolean }).stopped = true;
+      (track as { stopped?: boolean; readyState: MediaStreamTrackState }).stopped = true;
+      track.readyState = 'ended';
     },
     enabled: true,
   };
@@ -105,6 +108,55 @@ export async function runDeviceStreamCoordinatorSelfTests(): Promise<{
       'webcam released at zero refcount',
       getDeviceStreamCoordinatorDebugState().hasWebcam === false
     );
+
+    // Force-stop must invalidate in-flight acquires (toggle jam regression).
+    camCalls = 0;
+    let slowResolve: ((s: MediaStream) => void) | undefined;
+    stubDevices.getUserMedia = () =>
+      new Promise<MediaStream>((resolve) => {
+        camCalls += 1;
+        slowResolve = resolve;
+      });
+    const pending = getSharedWebcamStream();
+    forceStopSharedWebcamStream();
+    if (slowResolve) slowResolve(makeFakeStream('video'));
+    let cancelled = false;
+    try {
+      await pending;
+    } catch {
+      cancelled = true;
+    }
+    check('force-stop cancels in-flight webcam acquire', cancelled, `camCalls=${camCalls}`);
+    check(
+      'force-stop leaves no live webcam',
+      getDeviceStreamCoordinatorDebugState().hasWebcam === false &&
+        getDeviceStreamCoordinatorDebugState().webcamRefCount === 0
+    );
+    // Restore stub for concurrent test below.
+    stubDevices.getUserMedia = async (c: MediaStreamConstraints) => {
+      if (c.audio) {
+        micCalls += 1;
+        return makeFakeStream('audio');
+      }
+      camCalls += 1;
+      return makeFakeStream('video');
+    };
+
+    // Concurrent mic + cam must serialize through mediaDeviceManager (no parallel getUserMedia).
+    let concurrent = 0;
+    let maxConcurrent = 0;
+    stubDevices.getUserMedia = async (c: MediaStreamConstraints) => {
+      concurrent += 1;
+      maxConcurrent = Math.max(maxConcurrent, concurrent);
+      await new Promise((r) => setTimeout(r, 20));
+      concurrent -= 1;
+      if (c.audio) return makeFakeStream('audio');
+      return makeFakeStream('video');
+    };
+    await Promise.all([getSharedMicrophoneStream(), getSharedWebcamStream()]);
+    check('mic+cam getUserMedia never concurrent', maxConcurrent === 1, `max=${maxConcurrent}`);
+    releaseSharedMicrophoneStream();
+    releaseSharedWebcamStream();
   } finally {
     __resetDeviceStreamCoordinatorForTests();
     Object.defineProperty(navTarget.navigator, 'mediaDevices', {

@@ -155,7 +155,7 @@ export const EditorialMonograph: React.FC<EditorialMonographProps> = ({
   }, []);
 
   const onSelectNode = useCallback(
-    (id: string, _nodeType: string, sphere: 'hq' | 'cde') => {
+    (id: string, _nodeType: string, sphere: 'hq' | 'cde' | 'campaign-os' | 'about-us') => {
       setFocusedNodeId(id);
       dispatchCamera({
         verb: 'focus_node',
@@ -216,15 +216,9 @@ export const EditorialMonograph: React.FC<EditorialMonographProps> = ({
             reducedMotion={reducedMotion || tier === 'low'}
             forceWebglFallback={false}
             cameraCommand={cameraCommand}
-            editorialMode={false}
-            editorialCameraPose={null}
             onSelectNode={onSelectNode}
             onUserTouchPauseTour={() => undefined}
             onTelemetryChange={setTelemetry}
-            onWebglUnavailable={() => {
-              setWebglFailed(true);
-              setTier('fallback');
-            }}
           />
         ) : (
           <div className="editorial-fallback">

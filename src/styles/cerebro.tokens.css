@@ -82,7 +82,8 @@
   --status-held: var(--token-station-tasks);         /* #5CC8D7 Cyan Resonator (Zero Purple) */
 
   /* Locked 4-Font Typographic Hierarchy */
-  --font-display: 'Sora', 'JaapokkiSubtract', 'Inter', system-ui, sans-serif;
+  --font-display: 'JaapokkiSubtract', 'Sora', 'Inter', system-ui, sans-serif;
+  --font-film-display: var(--font-display);
   --font-sans: 'Inter', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
   --font-arabic: 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif;
@@ -164,4 +165,172 @@
 .optical-sub-pocket[data-active='true'],
 .optical-sub-pocket:focus-within {
   border-color: var(--token-focus);
+}
+
+/* ==========================================================================
+   UNIFIED CHROME LANGUAGE — every panel / dock / HUD / widget
+   Surfaces · hairlines · type · radius · cold/active · zero anthropomorphic neon
+   ========================================================================== */
+:root {
+  --token-glass-fill: var(--token-glass);
+  --token-glass-fallback: var(--token-glass-solid);
+  --token-glass-border: var(--token-divider);
+  --blur-glass: 12px;
+  --panel-radius: var(--radius-panel);
+  --control-radius: var(--radius-button);
+  --shadow-hud: var(--token-hud-outer-shadow);
+  --type-body-lh: 1.45;
+  --type-support: var(--type-supporting);
+  --type-support-sm: 12px;
+  --type-support-lh: 1.4;
+  --type-meta: var(--type-technical);
+  --type-meta-lh: 1.35;
+  --type-card: 13px;
+  --type-card-lh: 1.35;
+  --motion-fast: 160ms;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --token-cold-opacity: 0.72;
+  --token-cold-text: var(--token-text-secondary);
+  --token-cold-border: var(--token-divider);
+  --token-cold-fill: rgba(20, 38, 50, 0.42);
+  --token-active-opacity: 1;
+  --token-active-text: var(--token-text-primary);
+  --token-active-ice: var(--token-focus-glow);
+  --token-active-cobalt: var(--token-cobalt);
+  --token-active-gold: #D4AF37; /* film / 3D rail only — chrome prefers ice/cobalt */
+  --token-listening-ring: var(--token-voice-orb);
+  --c-void: #05090e;
+  --c-ice: var(--token-focus-glow);
+  --c-cobalt: var(--token-focus);
+  --c-silver: #c5ccd6;
+  --c-voice: var(--token-voice-orb);
+  --c-voice-state: var(--token-voice-semantic);
+  --cj-bg-viewport: var(--token-canvas);
+  --cj-bg-surface: var(--token-glass-solid);
+  --cj-glass-panel: var(--token-glass);
+  --cj-text-primary: var(--token-text-primary);
+  --cj-silver-metal: var(--token-text-secondary);
+}
+
+/* Shared chrome shell — docks, trays, drawers, hands HUD, camera optics */
+.cerebro-chrome,
+.cerebro-dock-pill,
+.cerebro-hands-hud,
+.cerebro-utility-chip,
+[data-chrome='glass'] {
+  background: var(--token-glass-fill);
+  backdrop-filter: blur(var(--blur-glass)) saturate(1.12);
+  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(1.12);
+  border: 1px solid var(--token-divider);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-hud);
+  color: var(--token-text-primary);
+}
+
+.cerebro-dock-pill,
+.cerebro-utility-chip,
+.cerebro-pill {
+  border-radius: var(--radius-chip);
+}
+
+.cerebro-chrome-title {
+  font-family: var(--font-display);
+  font-size: var(--type-panel-heading);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--token-text-primary);
+}
+
+.cerebro-chrome-meta {
+  font-family: var(--font-mono);
+  font-size: var(--type-meta);
+  line-height: var(--type-meta-lh);
+  color: var(--token-text-secondary);
+}
+
+.cerebro-chrome-btn {
+  min-height: var(--touch-min);
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-button);
+  border: 1px solid var(--token-divider);
+  background: var(--token-hud-pocket-bg);
+  color: var(--token-text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--type-technical);
+  cursor: pointer;
+  transition:
+    color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+
+.cerebro-chrome-btn:hover,
+.cerebro-chrome-btn:focus-visible {
+  color: var(--token-text-primary);
+  border-color: color-mix(in srgb, var(--token-focus-glow) 45%, transparent);
+}
+
+.cerebro-chrome-btn[data-chrome-state='active'],
+.cerebro-chrome-btn[aria-pressed='true'] {
+  color: var(--token-text-primary);
+  border-color: color-mix(in srgb, var(--token-focus) 55%, transparent);
+  background: color-mix(in srgb, var(--token-focus) 16%, transparent);
+}
+
+.cerebro-status-chip {
+  font-family: var(--font-mono);
+  font-size: var(--type-technical);
+  padding: 0.15rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--token-divider);
+  background: var(--token-hud-pocket-bg);
+  color: var(--token-text-secondary);
+}
+
+.cerebro-status-chip[data-state='live'] {
+  color: var(--token-tracking-valid);
+  border-color: color-mix(in srgb, var(--token-tracking-valid) 40%, transparent);
+}
+
+.cerebro-status-chip[data-state='wait'] {
+  color: var(--token-station-media);
+  border-color: color-mix(in srgb, var(--token-station-media) 35%, transparent);
+}
+
+.cerebro-status-chip[data-state='off'] {
+  color: var(--token-text-secondary);
+}
+
+/* Normalize ad-hoc dark wells toward glass-solid (panels that hard-code navy chips) */
+.bg-\[\#101622\],
+.bg-\[\#101622\]\/90,
+.bg-\[\#0c121c\] {
+  background-color: var(--token-glass-solid) !important;
+}
+
+/* Hands tracking overlay — instrument dots, not anthropomorphic gloves */
+.cerebro-hands-track {
+  pointer-events: none;
+}
+.cerebro-hands-track .tip {
+  fill: var(--token-focus-glow);
+  fill-opacity: 0.9;
+}
+.cerebro-hands-track .joint {
+  fill: var(--token-focus);
+  fill-opacity: 0.55;
+}
+.cerebro-hands-track .bone {
+  stroke: var(--token-focus-glow);
+  stroke-opacity: 0.38;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.cerebro-hands-track .pinch-chord {
+  stroke: var(--token-tracking-valid);
+  stroke-opacity: 0.7;
+  fill: none;
+  stroke-linecap: round;
 }

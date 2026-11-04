@@ -1,24 +1,73 @@
 /**
  * Hardware Stream Coordinator — single shared webcam / microphone / AudioContext.
- * Prevents orphaned mic tracks and duplicate getUserMedia calls across Hands + Voice.
+ * All getUserMedia calls go through mediaDeviceManager's exclusive lock so Voice
+ * and Hands cannot jam each other.
  */
 
-type WebcamConstraints = MediaTrackConstraints | boolean;
-type MicConstraints = MediaTrackConstraints | boolean;
+import { requestUserMedia, MediaSessionError } from './mediaDeviceManager';
+
+type WebcamConstraints =
+  | MediaTrackConstraints
+  | MediaStreamConstraints
+  | boolean;
+type MicConstraints =
+  | MediaTrackConstraints
+  | MediaStreamConstraints
+  | boolean;
+
+function asVideoTrackConstraints(
+  constraints: WebcamConstraints
+): MediaTrackConstraints | boolean {
+  if (typeof constraints === 'boolean') return constraints;
+  if ('video' in constraints || 'audio' in constraints) {
+    const video = (constraints as MediaStreamConstraints).video;
+    if (typeof video === 'boolean') return video;
+    if (video && typeof video === 'object') return video;
+    return DEFAULT_WEBCAM;
+  }
+  return constraints as MediaTrackConstraints;
+}
+
+function asAudioTrackConstraints(
+  constraints: MicConstraints
+): MediaTrackConstraints | boolean {
+  if (typeof constraints === 'boolean') return constraints;
+  if ('video' in constraints || 'audio' in constraints) {
+    const audio = (constraints as MediaStreamConstraints).audio;
+    if (typeof audio === 'boolean') return audio;
+    if (audio && typeof audio === 'object') return audio;
+    return DEFAULT_MIC;
+  }
+  return constraints as MediaTrackConstraints;
+}
+
+export function hasActiveWebcamStream(): boolean {
+  return Boolean(webcamStream && webcamStream.getVideoTracks().some((t) => t.readyState === 'live'));
+}
+
+export function hasActiveMicrophoneStream(): boolean {
+  return Boolean(
+    microphoneStream && microphoneStream.getAudioTracks().some((t) => t.readyState === 'live')
+  );
+}
 
 let webcamStream: MediaStream | null = null;
 let webcamRefCount = 0;
 let webcamInflight: Promise<MediaStream> | null = null;
+let webcamLastError: MediaSessionError | null = null;
+/** Bumped on force-stop so late getUserMedia resolves cannot resurrect a killed stream. */
+let webcamGeneration = 0;
 
 let microphoneStream: MediaStream | null = null;
 let microphoneRefCount = 0;
 let microphoneInflight: Promise<MediaStream> | null = null;
+let microphoneLastError: MediaSessionError | null = null;
 
 let sharedAudioContext: AudioContext | null = null;
 
 const DEFAULT_WEBCAM: MediaTrackConstraints = {
-  width: 960,
-  height: 540,
+  width: { ideal: 640 },
+  height: { ideal: 480 },
   facingMode: 'user',
 };
 
@@ -40,40 +89,72 @@ function stopStreamTracks(stream: MediaStream | null): void {
   }
 }
 
+export function getWebcamLastError(): MediaSessionError | null {
+  return webcamLastError;
+}
+
+export function getMicrophoneLastError(): MediaSessionError | null {
+  return microphoneLastError;
+}
+
 export async function getSharedWebcamStream(
   constraints: WebcamConstraints = DEFAULT_WEBCAM
 ): Promise<MediaStream> {
   if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
-    throw new Error('getUserMedia unavailable');
+    const err = new MediaSessionError('unsupported', 'getUserMedia unavailable');
+    webcamLastError = err;
+    throw err;
   }
 
   webcamRefCount += 1;
 
-  if (webcamStream) {
+  if (webcamStream && webcamStream.getVideoTracks().some((t) => t.readyState === 'live')) {
+    webcamLastError = null;
     return webcamStream;
   }
 
+  // Stale stopped stream left behind after a force-stop race — drop it.
+  if (webcamStream) {
+    stopStreamTracks(webcamStream);
+    webcamStream = null;
+  }
+
   if (!webcamInflight) {
-    const video = typeof constraints === 'boolean' ? constraints : { ...DEFAULT_WEBCAM, ...constraints };
-    webcamInflight = navigator.mediaDevices
-      .getUserMedia({ video, audio: false })
+    const generationAtStart = webcamGeneration;
+    const track = asVideoTrackConstraints(constraints);
+    const video =
+      typeof track === 'boolean' ? track : { ...DEFAULT_WEBCAM, ...track };
+    webcamInflight = requestUserMedia(
+      { video, audio: false },
+      { timeoutMs: 8000, label: 'webcam' }
+    )
       .then((stream) => {
-        webcamStream = stream;
         webcamInflight = null;
+        if (generationAtStart !== webcamGeneration) {
+          // Toggle was force-stopped while this acquire was in flight.
+          stopStreamTracks(stream);
+          throw new MediaSessionError('unknown', 'Webcam acquire cancelled');
+        }
+        webcamStream = stream;
+        webcamLastError = null;
         return stream;
       })
       .catch((err) => {
         webcamInflight = null;
         webcamRefCount = Math.max(0, webcamRefCount - 1);
-        throw err;
+        if (err instanceof MediaSessionError && err.message === 'Webcam acquire cancelled') {
+          webcamLastError = null;
+          throw err;
+        }
+        webcamLastError =
+          err instanceof MediaSessionError
+            ? err
+            : new MediaSessionError('unknown', err instanceof Error ? err.message : String(err));
+        throw webcamLastError;
       });
   }
 
-  try {
-    return await webcamInflight;
-  } catch (err) {
-    throw err;
-  }
+  return webcamInflight;
 }
 
 export function releaseSharedWebcamStream(): void {
@@ -83,32 +164,54 @@ export function releaseSharedWebcamStream(): void {
   webcamStream = null;
 }
 
+/** Force-release webcam (iOS Safari green indicator). Ignores refcount. */
+export function forceStopSharedWebcamStream(): void {
+  webcamGeneration += 1;
+  webcamRefCount = 0;
+  webcamInflight = null;
+  stopStreamTracks(webcamStream);
+  webcamStream = null;
+  webcamLastError = null;
+}
+
 export async function getSharedMicrophoneStream(
   constraints: MicConstraints = DEFAULT_MIC
 ): Promise<MediaStream> {
   if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
-    throw new Error('getUserMedia unavailable');
+    const err = new MediaSessionError('unsupported', 'getUserMedia unavailable');
+    microphoneLastError = err;
+    throw err;
   }
 
   microphoneRefCount += 1;
 
   if (microphoneStream) {
+    microphoneLastError = null;
     return microphoneStream;
   }
 
   if (!microphoneInflight) {
-    const audio = typeof constraints === 'boolean' ? constraints : { ...DEFAULT_MIC, ...constraints };
-    microphoneInflight = navigator.mediaDevices
-      .getUserMedia({ audio, video: false })
+    const track = asAudioTrackConstraints(constraints);
+    const audio =
+      typeof track === 'boolean' ? track : { ...DEFAULT_MIC, ...track };
+    microphoneInflight = requestUserMedia(
+      { audio, video: false },
+      { timeoutMs: 12000, label: 'microphone' }
+    )
       .then((stream) => {
         microphoneStream = stream;
         microphoneInflight = null;
+        microphoneLastError = null;
         return stream;
       })
       .catch((err) => {
         microphoneInflight = null;
         microphoneRefCount = Math.max(0, microphoneRefCount - 1);
-        throw err;
+        microphoneLastError =
+          err instanceof MediaSessionError
+            ? err
+            : new MediaSessionError('unknown', err instanceof Error ? err.message : String(err));
+        throw microphoneLastError;
       });
   }
 
@@ -145,6 +248,9 @@ export function getDeviceStreamCoordinatorDebugState(): {
   hasWebcam: boolean;
   hasMicrophone: boolean;
   hasAudioContext: boolean;
+  webcamError: string | null;
+  microphoneError: string | null;
+  webcamGeneration: number;
 } {
   return {
     webcamRefCount,
@@ -152,6 +258,9 @@ export function getDeviceStreamCoordinatorDebugState(): {
     hasWebcam: Boolean(webcamStream),
     hasMicrophone: Boolean(microphoneStream),
     hasAudioContext: Boolean(sharedAudioContext && sharedAudioContext.state !== 'closed'),
+    webcamError: webcamLastError?.message ?? null,
+    microphoneError: microphoneLastError?.message ?? null,
+    webcamGeneration,
   };
 }
 
@@ -164,6 +273,9 @@ export function __resetDeviceStreamCoordinatorForTests(): void {
   microphoneRefCount = 0;
   webcamInflight = null;
   microphoneInflight = null;
+  webcamLastError = null;
+  microphoneLastError = null;
+  webcamGeneration = 0;
   if (sharedAudioContext && sharedAudioContext.state !== 'closed') {
     sharedAudioContext.close().catch(() => {});
   }

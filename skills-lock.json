@@ -1,0 +1,185 @@
+{
+  "version": 1,
+  "skills": {
+    "3d-animation-short-generator": {
+      "source": "minimax-ai/minimax-h3",
+      "sourceType": "github",
+      "skillPath": "skills/3d-animation-short-generator/SKILL.md",
+      "computedHash": "ee2eeee8a234924c4bf52e7f65970b1697fa1225e3610c69b23bfe6e537c6d4f"
+    },
+    "ad-conversion-tracking": {
+      "source": "mbfinotti/advertising-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ad-conversion-tracking/SKILL.md",
+      "computedHash": "a1a05dd7cac6163162a094b6d2bfaa15318890c0560edfa3e9ef56303daef591"
+    },
+    "camera-systems": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/disciplines/camera-systems/SKILL.md",
+      "computedHash": "9d5ae7ff7f72ed682dd0da6718af55b8415f0f4dab775803a30f09cf0077d4af"
+    },
+    "cinematic-gsap-lenis-motion-system": {
+      "source": "mengto/skills",
+      "sourceType": "github",
+      "skillPath": "agent-skills/web-design/cinematic-gsap-lenis-motion-system/SKILL.md",
+      "computedHash": "c88995e62e587f7d2eaaa514131912a0ed5b77613513fdf61a938e51298ded4c"
+    },
+    "cinematic-script-writer": {
+      "source": "praveenspeaks/cinematic-script-writer",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "0d27354ebe1b3c543d5b3f036eee7b86d65ad6eeafd7bfd587aed9b6f41a1e5d"
+    },
+    "cinematic-scroll-storytelling": {
+      "source": "mengto/skills",
+      "sourceType": "github",
+      "skillPath": "agent-skills/web-design/cinematic-scroll-storytelling/SKILL.md",
+      "computedHash": "e5e835b5c3eb87e2f539f54872d00d8d2f540d8c250e64b52edbf89d1f6cfb2d"
+    },
+    "cinematography": {
+      "source": "fal-ai-community/skills",
+      "sourceType": "github",
+      "skillPath": "skills/cinematography/SKILL.md",
+      "computedHash": "c0c5ee6d1b570d61d622f4dfbd8ca55158101cfffcc9bf0819777476927b9dce"
+    },
+    "competitor-tracking": {
+      "source": "appeeky/aso-skills",
+      "sourceType": "github",
+      "skillPath": "skills/competitor-tracking/SKILL.md",
+      "computedHash": "63064b2caabfd053c04d6281227dcf7ec29ee43ea1118233815f19d5963b382f"
+    },
+    "extension-camera": {
+      "source": "caffeinelabs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/extension-camera/SKILL.md",
+      "computedHash": "2bab7f8931257e22ad493442b4156bd6fee4ab54c444cf0a4aa82cbd6b0d1d99"
+    },
+    "frost-sequence-camera-orbit": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "skillPath": "registry/blocks/frost-sequence-camera-orbit/SKILL.md",
+      "computedHash": "977afe32185a3abedb942512fe62d45238ddd92dac665daa5e535d7e86177066"
+    },
+    "godot-3d-essentials": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot/godot-3d-essentials/SKILL.md",
+      "computedHash": "69a6e8772960a710866ee46570b7218daf846b463a19d991d2232d919c4fb522"
+    },
+    "gsap-core": {
+      "source": "greensock/gsap-skills",
+      "sourceType": "github",
+      "skillPath": "skills/gsap-core/SKILL.md",
+      "computedHash": "c4a01101d9e1aafbf4b49f75d74f9349790d8741981ba0237c990093863035a6"
+    },
+    "gsap-plugins": {
+      "source": "greensock/gsap-skills",
+      "sourceType": "github",
+      "skillPath": "skills/gsap-plugins/SKILL.md",
+      "computedHash": "791bda0e6e460511fe82a78e745db519b88ffaeeab4d04a74879a03ca4f41740"
+    },
+    "gsap-react": {
+      "source": "greensock/gsap-skills",
+      "sourceType": "github",
+      "skillPath": "skills/gsap-react/SKILL.md",
+      "computedHash": "7d3b52822681a4158e371f895c58fb7030ecaf33f585a534b7162f9e92c5d893"
+    },
+    "gsap-scrolltrigger": {
+      "source": "freshtechbro/claudedesignskills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/gsap-scrolltrigger/SKILL.md",
+      "computedHash": "a084c870960fe6eea6090925245df29b942e627c65db446dfa60a5b9d1f4e834"
+    },
+    "gsap-timeline": {
+      "source": "greensock/gsap-skills",
+      "sourceType": "github",
+      "skillPath": "skills/gsap-timeline/SKILL.md",
+      "computedHash": "54981c2feec5a9c0d57988aeb32315af32bdeadd261550d5e9db7a7b1f08b487"
+    },
+    "img2threejs": {
+      "source": "img2threejs/img2threejs",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "4a5c02f444bf8bb533beb1d2723f9f8b3f3a752003c83f0b0f154f65798571b4"
+    },
+    "muapi-cinema-director": {
+      "source": "samuraigpt/generative-media-skills",
+      "sourceType": "github",
+      "skillPath": ".opencode/skills/muapi-cinema-director/SKILL.md",
+      "computedHash": "7110c94428b7e949a49d9a22e7d0ad6dcf219e7d181ab96e9902ed7edc667534"
+    },
+    "server-side-conversion-tracking": {
+      "source": "autonnel/autonnel-skills",
+      "sourceType": "github",
+      "skillPath": "server-side-conversion-tracking/SKILL.md",
+      "computedHash": "ce9dc86ac52ee7c043daec0f1084c7553fad27d099ddf959487d6e8289f9fe61"
+    },
+    "tao-train-nvpanoptix3d": {
+      "source": "nvidia/skills",
+      "sourceType": "github",
+      "skillPath": "skills/tao-train-nvpanoptix3d/SKILL.md",
+      "computedHash": "ec62bb544b0c947709480de2688bc11c5d475faa73c5156d6ea4948f2599b658"
+    },
+    "threejs-3d-generator": {
+      "source": "majidmanzarpour/threejs-game-skills",
+      "sourceType": "github",
+      "skillPath": "skills/threejs-3d-generator/SKILL.md",
+      "computedHash": "bb86884aa4edc44a91ddeed75a11d7123a40a12b295fe50c75299c944b688ce3"
+    },
+    "threejs-fundamentals": {
+      "source": "cloudai-x/threejs-skills",
+      "sourceType": "github",
+      "skillPath": "skills/threejs-fundamentals/SKILL.md",
+      "computedHash": "c0293a5eaf5168cdbeb1e9bfc5d5b7aa24396f604a8695b26a72d833c2352108"
+    },
+    "threejs-geometry": {
+      "source": "cloudai-x/threejs-skills",
+      "sourceType": "github",
+      "skillPath": "skills/threejs-geometry/SKILL.md",
+      "computedHash": "cae4d8f02ffe449edbc33a2a9ba79020dcb415e7c187d48ed8ffc166207d2e77"
+    },
+    "threejs-interaction": {
+      "source": "cloudai-x/threejs-skills",
+      "sourceType": "github",
+      "skillPath": "skills/threejs-interaction/SKILL.md",
+      "computedHash": "3a9d60c473947217f2bd9fbdfb12084e55ae2f240aa6fc718f61c55a73d6fb34"
+    },
+    "threejs-lighting": {
+      "source": "cloudai-x/threejs-skills",
+      "sourceType": "github",
+      "skillPath": "skills/threejs-lighting/SKILL.md",
+      "computedHash": "231a7aec3b2d6aa061026397b5453b22518ac9391eb0f31164bfd06dd4bcacd6"
+    },
+    "threejs-loaders": {
+      "source": "cloudai-x/threejs-skills",
+      "sourceType": "github",
+      "skillPath": "skills/threejs-loaders/SKILL.md",
+      "computedHash": "f43a0994b7bead131c51361ff347ea7b2db48ec64994a8ee263171c692beac88"
+    },
+    "threejs-postprocessing": {
+      "source": "cloudai-x/threejs-skills",
+      "sourceType": "github",
+      "skillPath": "skills/threejs-postprocessing/SKILL.md",
+      "computedHash": "21ba7ee7155d7ad8643bafc0a832d29bf87a37b24acd5e4201a0b7c01470ab09"
+    },
+    "threejs-shaders": {
+      "source": "cloudai-x/threejs-skills",
+      "sourceType": "github",
+      "skillPath": "skills/threejs-shaders/SKILL.md",
+      "computedHash": "af0a4cdfc80390b30a898bb5a3fe30e4f61b304776a9aebbdb7451b0fc1c2c0f"
+    },
+    "threejs-textures": {
+      "source": "cloudai-x/threejs-skills",
+      "sourceType": "github",
+      "skillPath": "skills/threejs-textures/SKILL.md",
+      "computedHash": "73544dc3606b38270ddd909d57fd8a5df8291c3bae432417cf3f797ab1ca1fd3"
+    },
+    "ue-sequencer-cinematics": {
+      "source": "quodsoler/unreal-engine-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ue-sequencer-cinematics/SKILL.md",
+      "computedHash": "1c6d8e94946b60e1352d0180ee3301dfbb96c7b48b5cf1a72f4c51a8209874e4"
+    }
+  }
+}

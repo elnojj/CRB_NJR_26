@@ -10,9 +10,13 @@ cp .env.example .env   # optional: set GEMINI_API_KEY / ElevenLabs keys
 PORT=3847 npm run dev
 ```
 
-Open `http://127.0.0.1:3847/?preview=1` to skip the boot gate and auto-arm the 18-screen Wireframe tour.
+Cold start is fully automatic: **CerebroIntro wordmark** (over the live constellation) → **LiveSphereOpenSequence** (continuous WebGL camera one-shot: wide reveal → About Us Shweekar → Khaled → Tarek → business arc) → **BootLoader** → **ExperienceCanvas** workspace. No Enter Cerebro / Skip CTAs on the open path.
 
-**Primary HQ (spheres + dashboard + 3D optics):** `http://127.0.0.1:3847/?preview=1` or `?preview=1&blueprint=H03`.
+Open-sequence duration is configurable: `?openDuration=48` (seconds). Reduced-motion caps the journey.
+
+Skip straight to workspace: `http://127.0.0.1:3847/?skipExplainer=1` or `?view=hq`.
+
+**Primary HQ (spheres + dashboard + 3D optics):** `http://127.0.0.1:3847/?skipExplainer=1` or `?preview=1&blueprint=H03`.
 
 ## labs.nojara.com
 
