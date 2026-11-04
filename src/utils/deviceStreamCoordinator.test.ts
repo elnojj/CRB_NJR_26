@@ -12,7 +12,6 @@ import {
   getSharedWebcamStream,
   releaseSharedWebcamStream,
 } from './deviceStreamCoordinator';
-import { assertIntroBridgeClean, spawnIntroBackgroundMedia } from '../intro/bridge';
 
 function makeFakeStream(kind: 'audio' | 'video'): MediaStream {
   const track = {
@@ -50,9 +49,6 @@ export async function runDeviceStreamCoordinatorSelfTests(): Promise<{
       details.push(`FAIL ${name}${detail ? ` — ${detail}` : ''}`);
     }
   };
-
-  assertIntroBridgeClean();
-  check('intro bridge spawns zero media', spawnIntroBackgroundMedia().length === 0);
 
   __resetDeviceStreamCoordinatorForTests();
 

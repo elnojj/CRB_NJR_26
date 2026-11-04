@@ -1,6 +1,5 @@
 import { runGuiLayoutSelfTests } from '../src/gui/gui-layout.test.ts';
 import { runDeviceStreamCoordinatorSelfTests } from '../src/utils/deviceStreamCoordinator.test.ts';
-import { assertIntroBridgeClean } from '../src/intro/bridge.ts';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -29,9 +28,6 @@ function runNodeTestFile(relPath: string): Promise<{ ok: boolean; output: string
 }
 
 async function main(): Promise<void> {
-  assertIntroBridgeClean();
-  console.log('intro/bridge: clean (zero media wraps)');
-
   const gui = runGuiLayoutSelfTests();
   console.log(`gui-layout: ${gui.passed}/${gui.total} passed`);
   for (const r of gui.results.filter((x) => !x.passed)) {

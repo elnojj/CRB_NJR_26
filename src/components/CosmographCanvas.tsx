@@ -64,7 +64,6 @@ import {
   type ProjectWorldHostHandle,
 } from '../three/projectWorldHost';
 import { getProjectWorldManifest } from '../data/projectWorldManifest';
-import { introBridge } from '../intro/bridge';
 import { HandGlove3D } from '../three/HandGlove3D';
 import { gloveFrustum } from '../three/handTracker';
 import { SpatialControlLayer, type SpatialButtonId } from '../three/spatialControls';
@@ -92,8 +91,6 @@ import {
 } from '../data/peerSphereContent';
 import { createIstanbaMouldProof, type IstanbaProofHandle } from '../three/istanbaMouldProof';
 import { SpatialLabelBillboardLayer } from '../three/spatialLabelBillboards';
-
-const sceneRandom = () => (introBridge.enabled ? introBridge.random() : Math.random());
 
 // ---------------------------------------------------------------------------
 // CEREBRO-NOJARA D0 v1.24 — SECTION 2: THREE.JS RENDERER, MATERIALS, LIGHTS
@@ -855,10 +852,7 @@ function buildLiquidGlassGalaxySphere(
     colors[i * 3 + 2] = _scratchColor.b;
 
     sizes[i] = (layer === 0 ? 7.5 : layer === 1 ? 5.5 : 4.0) * (0.55 + 0.45 * Math.abs(rand2));
-    // Seeded when introBridge is active so proof frames stay coherent across seeks.
-    phases[i] = introBridge.enabled
-      ? sceneRandom() * Math.PI * 2
-      : (i * 0.73) % (Math.PI * 2);
+    phases[i] = (i * 0.73) % (Math.PI * 2);
   }
 
   const geo = new THREE.BufferGeometry();
@@ -1765,9 +1759,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       return;
     }
 
-    // Intro journey needs the full optical pipeline; do not force software path.
-    if (introBridge.enabled) isSoftwareGl = false;
-
     const rendererAttempts: THREE.WebGLRendererParameters[] = [
       {
         antialias: !isSoftwareGl,
@@ -1945,7 +1936,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     bgTexture.colorSpace = THREE.SRGBColorSpace;
     scene.background = bgTexture;
     // Soft fog so blooms and star dust remain readable in workspace (was 0.014 → navy wash).
-    scene.fog = new THREE.FogExp2(voidColor, introBridge.enabled ? 0.006 : 0.007);
+    scene.fog = new THREE.FogExp2(voidColor, 0.007);
 
     applyNeutralStudioEnvironment(scene, renderer);
 
@@ -2178,8 +2169,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         shader.uniforms.uTime = glassUniforms.uTime;
         shader.uniforms.uAudioRms = glassUniforms.uAudioRms;
         shader.uniforms.uInteriorDome = glassUniforms.uInteriorDome;
-        // Intro: keep a tiny caustic shimmer without vertex pumping that z-fights the video band.
-        const waveAmp = introBridge.enabled ? '0.002' : '(0.015 + uAudioRms * 0.035)';
+        const waveAmp = '(0.015 + uAudioRms * 0.035)';
         shader.vertexShader =
           `uniform float uTime;\nuniform float uAudioRms;\n` +
           shader.vertexShader.replace(
@@ -3515,10 +3505,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const activeSphereNow = stateRef.current.activeSphere;
       const hitMeshes: THREE.Object3D[] = [];
       nodeRegistryRef.current.forEach((entry) => {
-        // Intro: both HQ and CDE inner spheres are tappable for media focus.
-        const sphereOk =
-          introBridge.enabled || entry.sphere === activeSphereNow;
-        if (entry.groupMesh && sphereOk) {
+        if (entry.groupMesh && entry.sphere === activeSphereNow) {
           hitMeshes.push(entry.groupMesh);
         }
       });
@@ -3793,12 +3780,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const w = container.clientWidth || window.innerWidth;
       const h = container.clientHeight || window.innerHeight;
       const comp = readHomeComposition(container);
-      if (!introBridge.enabled) {
-        executeAtomicReframe(camera, w, h, comp.occludedBottomPx);
-      } else {
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-      }
+      executeAtomicReframe(camera, w, h, comp.occludedBottomPx);
       renderer.setSize(w, h);
       if (composer) {
         composer.setSize(w, h);
@@ -3820,16 +3802,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     if (container) containerResizeObserver?.observe(container);
     // Initial atomic frame composition
     onResize();
-    introBridge.attach({
-      scene,
-      camera,
-      renderer,
-      spheres: getMountedSphereInstances(),
-      hqShell: hqAssembly.shellGroup,
-      cdeShell: cdeAssembly.shellGroup,
-      hqCore: hqAssembly.coreGroup,
-      cdeCore: cdeAssembly.coreGroup,
-    });
 
     const clock = new THREE.Clock();
     let frameId = 0;
@@ -3877,14 +3849,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       // Clamp dt to 33ms (GUI_WORLD_MOTION_TOKENS.dtClampMs)
       const dt = Math.min(clock.getDelta(), GUI_WORLD_MOTION_TOKENS.dtClampMs / 1000);
-      const elapsedTotal = introBridge.enabled ? introBridge.time() : clock.getElapsedTime();
+      const elapsedTotal = clock.getElapsedTime();
       const now = performance.now();
       const s = stateRef.current;
 
-      if (introBridge.enabled) s.audioRms = introBridge.audioRms(elapsedTotal);
       glassUniforms.uTime.value = s.reducedMotion ? 0 : elapsedTotal;
       // Intro: damp soundtrack RMS into glass so caustics don't strobe over the video plate.
-      const rmsTarget = introBridge.enabled ? s.audioRms * 0.18 : s.audioRms;
+      const rmsTarget = s.audioRms;
       glassUniforms.uAudioRms.value = THREE.MathUtils.damp(
         glassUniforms.uAudioRms.value,
         rmsTarget,
@@ -3903,12 +3874,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           Math.sin(
             (elapsedTotal * Math.PI * 2) / GUI_WORLD_MOTION_TOKENS.periodsSec.rimBreath
           );
-      // Intro: gentle breath only — large RMS-driven scale fights the inner video meshes.
       const breathScale = s.reducedMotion
         ? 1.0
-        : introBridge.enabled
-          ? 1.0 + 0.0025 * breathPhase
-          : 1.0 + 0.006 * breathPhase + liveRms * 0.012;
+        : 1.0 + 0.006 * breathPhase + liveRms * 0.012;
       hqAssembly.shellGroup.scale.setScalar(breathScale);
       cdeAssembly.shellGroup.scale.setScalar(breathScale);
       peerAssemblies['campaign-os']?.shellGroup.scale.setScalar(breathScale);
@@ -4087,7 +4055,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         childDomainShells[cs].scale.setScalar(breathScale);
       }
 
-      if (!introBridge.enabled) {
       // Cinematic damping — slower settle so moves feel like a crane, not a snap.
       // Was 4.2 (snappy); ~2.05 keeps continuity across place-to-place transitions.
       const dampFactor = s.reducedMotion ? 25 : 2.05;
@@ -4205,9 +4172,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         camera.lookAt(_scratchVec.copy(s.currentCenter).add(s.panOffset));
       }
 
-      } else {
-        introBridge.applyCamera(camera, s, elapsedTotal);
-      }
 
       // Interior Planetary Dome Mode Transition when camera.radius < 8.2u
       const isInsideDome = s.radius < 8.2;
@@ -4445,8 +4409,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         );
       }
 
-      introBridge.update?.(elapsedTotal);
-
       // Never apply setViewOffset (EffectComposer + bloom seam). Instead, soft-pan the
       // camera so the look-at projects into sceneSafeRect when a drawer/sheet is open.
       const curW = domEl.clientWidth || window.innerWidth;
@@ -4454,7 +4416,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       camera.clearViewOffset();
       const safeRect = unobstructedRectRef.current;
       if (
-        !introBridge.enabled &&
         safeRect &&
         safeRect.w > 40 &&
         safeRect.h > 40 &&
@@ -4756,7 +4717,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       window.removeEventListener(SPHERE_SHAPE_EVENT, onSphereShape);
       resetSphereShapes();
       disposeShellGeometryCache([sharedShellGeo]);
-      introBridge.detach();
       spatialBillboards.dispose();
       renderer.dispose();
     };
@@ -4799,21 +4759,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       /* host lives until id changes or scene teardown */
     };
   }, [projectWorldId, projectWorldState]);
-
-  if (introBridge.enabled) {
-    return (
-      <div
-        ref={mountRef}
-        className="source-world"
-        data-testid="cosmograph-canvas"
-        data-webgl-status={webglStatus}
-        data-webgl-reason={webglReason}
-        role="img"
-        tabIndex={0}
-        aria-label="Cerebro WebGL spatial scene. HQ and CDE dual-sphere intro."
-      />
-    );
-  }
 
   const showReducedGraphicsFallback =
     forceWebglFallback || webglStatus === 'FALLBACK' || webglStatus === 'CONTEXT_LOST';

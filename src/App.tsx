@@ -172,7 +172,6 @@ import { CosmographPilotGame } from './components/game/CosmographPilotGame';
 import { BioScienceExplorer } from './components/spatial/BioScienceExplorer';
 import { ImageStudioModal } from './components/spatial/ImageStudioModal';
 import { TeamChatDrawer } from './components/TeamChatDrawer';
-import { introBridge } from './intro/bridge';
 import { selectLatestSnapshotTimestamp } from './data/projectPlanModel';
 
 export interface SelfTestCheckResult {
@@ -3153,7 +3152,6 @@ export default function App() {
     setSoundMuted(false);
     setAmbienceMuted(false);
     setBootDone(true);
-    introBridge.enabled = false;
     setOpenPanels([]);
     setFocusedNodeId(null);
     setDashboardCollapsed(false);
