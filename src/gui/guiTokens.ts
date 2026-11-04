@@ -13,6 +13,7 @@
  */
 
 import type { GuiCameraPresetId } from './cameraPresets';
+import { CONTRACT_SHELL_MATERIAL } from '../design/systemContract';
 
 export const GUI_AMEND_SCHEMA =
   'cerebro.stellar.gui.amend/4.1.0' as const;
@@ -127,8 +128,8 @@ export const GUI_GLASS_TOKENS = {
   blurPx: 12,
   blurDesktopPx: 12,
   blurMobilePx: 12,
-  backdropFilter: 'blur(var(--blur-glass-max, 12px))',
-  backdropFilterMobile: 'blur(var(--blur-glass-max, 12px))',
+  backdropFilter: 'blur(var(--blur-glass))',
+  backdropFilterMobile: 'blur(var(--blur-glass))',
 
   saturate: 1.08,
 
@@ -422,14 +423,15 @@ export const GUI_FILM_OPTICAL_SHELL_PRESET = {
  * Film-only study remains in GUI_FILM_OPTICAL_SHELL_PRESET.
  */
 export const GUI_OPTICAL_SHELL_PRESET = {
-  ior: 1.48,
-  roughness: 0.08,
-  roughnessHq: 0.08,
-  roughnessCde: 0.08,
-  transmission: 0.88,
+  ior: CONTRACT_SHELL_MATERIAL.ior,
+  roughness: CONTRACT_SHELL_MATERIAL.roughness,
+  roughnessHq: CONTRACT_SHELL_MATERIAL.roughness,
+  roughnessCde: CONTRACT_SHELL_MATERIAL.roughness,
+  transmission: CONTRACT_SHELL_MATERIAL.transmission,
   thickness: 1.1,
-  clearcoat: 0.8,
-  clearcoatRoughness: 0.06,
+  clearcoat: CONTRACT_SHELL_MATERIAL.clearcoat,
+  clearcoatRoughness: CONTRACT_SHELL_MATERIAL.clearcoatRoughness,
+  envMapIntensity: CONTRACT_SHELL_MATERIAL.envMapIntensity,
   metalness: 0,
   fresnelExponent: 4,
   rimIntensity: 0.25,

@@ -18,6 +18,18 @@ import {
 } from '../gui/cameraPresets';
 import type { GuiRect } from '../gui/CollisionManager';
 import { GLASS_EMISSIVE_FLOOR } from './glassFallback';
+import { CONTRACT_SHELL_MATERIAL, CONTRACT_SPHERES } from '../design/systemContract';
+
+function contractSphere(id: (typeof CONTRACT_SPHERES)[number]['id']): (typeof CONTRACT_SPHERES)[number] {
+  const found = CONTRACT_SPHERES.find((s) => s.id === id);
+  if (!found) throw new Error(`systemContract is missing sphere ${id}`);
+  return found;
+}
+
+function contractCenter(id: (typeof CONTRACT_SPHERES)[number]['id']): [number, number, number] {
+  const [x, y, z] = contractSphere(id).center;
+  return [x, y, z];
+}
 
 export type ConnectedSphereId = 'hq' | 'cde' | 'campaign-os' | 'about-us';
 
@@ -46,19 +58,19 @@ export interface SharedOuterShellMaterialPreset {
 export const SHARED_OUTER_SHELL_MATERIAL_PRESET: SharedOuterShellMaterialPreset = {
   id: 'MAT_LIQUID_GLASS_SHELL',
   color: '#e8f2ff',
-  transmission: 0.88,
-  roughness: 0.12,
+  transmission: CONTRACT_SHELL_MATERIAL.transmission,
+  roughness: CONTRACT_SHELL_MATERIAL.roughness,
   metalness: 0.0,
-  ior: 1.45,
+  ior: CONTRACT_SHELL_MATERIAL.ior,
   thickness: 1.2,
-  clearcoat: 0.28,
-  clearcoatRoughness: 0.14,
+  clearcoat: CONTRACT_SHELL_MATERIAL.clearcoat,
+  clearcoatRoughness: CONTRACT_SHELL_MATERIAL.clearcoatRoughness,
   specularIntensity: 0.55,
   specularColor: '#B4DDFF',
   attenuationColor: '#d6e8ff',
   attenuationDistance: 60,
-  envMapIntensity: 0.7,
-} as const;
+  envMapIntensity: CONTRACT_SHELL_MATERIAL.envMapIntensity,
+};
 
 export function createSharedOuterShellMaterial(options?: {
   /** Flat (non-transmission) glass: software rasterizers and Apple mobile WebKit. */
@@ -98,7 +110,7 @@ export function createSharedOuterShellMaterial(options?: {
     transparent: true,
     opacity: softwareGl ? (face === 'back' ? 0.14 : 0.24) : face === 'back' ? 0.4 : 1,
     side,
-    depthWrite: false,
+    depthWrite: CONTRACT_SHELL_MATERIAL.depthWrite,
   });
 }
 
@@ -128,8 +140,8 @@ export const SPHERE_NETWORK: readonly SphereNetworkNode[] = [
     id: 'hq',
     labelEn: 'Cerebro HQ',
     labelAr: 'مقر سيريبو',
-    center: [0, 0, 0],
-    radius: 6.2,
+    center: contractCenter('hq'),
+    radius: contractSphere('hq').radius,
     materialPreset: 'MAT_LIQUID_GLASS_SHELL',
     outerShellMaterial: SHARED_OUTER_SHELL_MATERIAL_PRESET,
     status: 'live',
@@ -138,8 +150,8 @@ export const SPHERE_NETWORK: readonly SphereNetworkNode[] = [
     id: 'cde',
     labelEn: 'CDE Universe',
     labelAr: 'عالم التصميم',
-    center: [14, 2.5, -8],
-    radius: 6.2,
+    center: contractCenter('cde'),
+    radius: contractSphere('cde').radius,
     materialPreset: 'MAT_LIQUID_GLASS_SHELL',
     outerShellMaterial: SHARED_OUTER_SHELL_MATERIAL_PRESET,
     status: 'live',
@@ -148,8 +160,8 @@ export const SPHERE_NETWORK: readonly SphereNetworkNode[] = [
     id: 'campaign-os',
     labelEn: 'Campaign OS',
     labelAr: 'نظام الحملات',
-    center: [-13, 2, -7],
-    radius: 5.4,
+    center: contractCenter('campaign-os'),
+    radius: contractSphere('campaign-os').radius,
     materialPreset: 'MAT_LIQUID_GLASS_SHELL',
     outerShellMaterial: SHARED_OUTER_SHELL_MATERIAL_PRESET,
     status: 'live',
@@ -158,8 +170,8 @@ export const SPHERE_NETWORK: readonly SphereNetworkNode[] = [
     id: 'about-us',
     labelEn: 'About Us',
     labelAr: 'من نحن',
-    center: [8, 1.5, 12],
-    radius: 5.0,
+    center: contractCenter('about-us'),
+    radius: contractSphere('about-us').radius,
     materialPreset: 'MAT_LIQUID_GLASS_SHELL',
     outerShellMaterial: SHARED_OUTER_SHELL_MATERIAL_PRESET,
     status: 'live',
@@ -176,6 +188,23 @@ export function sphereNetworkCentroid(): THREE.Vector3 {
   }
   return acc.multiplyScalar(1 / SPHERE_NETWORK.length);
 }
+
+/**
+ * Camera radius at which the whole constellation reads at the 24 mm opening lens:
+ * farthest shell edge from the centroid, with framing margin (1.65 keeps the widest shell clear of a 16:10 frame).
+ */
+export const SPHERE_NETWORK_OVERVIEW_RADIUS: number = (() => {
+  const c = sphereNetworkCentroid();
+  let extent = 0;
+  for (const n of SPHERE_NETWORK) {
+    const d = Math.hypot(n.center[0] - c.x, n.center[1] - c.y, n.center[2] - c.z) + n.radius;
+    extent = Math.max(extent, d);
+  }
+  return Math.round(extent * 1.65);
+})();
+
+/** Furthest the user may dolly out: just past the overview framing. */
+export const MAX_ORBIT_RADIUS: number = Math.max(38, Math.ceil(SPHERE_NETWORK_OVERVIEW_RADIUS * 1.25));
 
 export const LIVE_SPHERE_IDS: readonly ConnectedSphereId[] = SPHERE_NETWORK.map((s) => s.id);
 
@@ -251,8 +280,8 @@ export const SPHERE_NETWORK_TOPOLOGY: Record<
     label: 'Cerebro HQ',
     labelEn: 'Cerebro HQ',
     labelAr: 'مقر سيريبو',
-    worldCenter: [0, 0, 0],
-    shellRadiusU: 6.2,
+    worldCenter: contractCenter('hq'),
+    shellRadiusU: contractSphere('hq').radius,
     materialPreset: 'MAT_LIQUID_GLASS_SHELL',
     outerShellMaterial: SHARED_OUTER_SHELL_MATERIAL_PRESET,
     status: 'PRIMARY_IMPLEMENTED',
@@ -263,8 +292,8 @@ export const SPHERE_NETWORK_TOPOLOGY: Record<
     label: 'CDE Universe',
     labelEn: 'CDE Universe',
     labelAr: 'عالم التصميم',
-    worldCenter: [14, 2.5, -8],
-    shellRadiusU: 6.2,
+    worldCenter: contractCenter('cde'),
+    shellRadiusU: contractSphere('cde').radius,
     materialPreset: 'MAT_LIQUID_GLASS_SHELL',
     outerShellMaterial: SHARED_OUTER_SHELL_MATERIAL_PRESET,
     status: 'PRIMARY_IMPLEMENTED',
@@ -275,8 +304,8 @@ export const SPHERE_NETWORK_TOPOLOGY: Record<
     label: 'Campaign OS',
     labelEn: 'Campaign OS',
     labelAr: 'نظام الحملات',
-    worldCenter: [-13, 2, -7],
-    shellRadiusU: 5.4,
+    worldCenter: contractCenter('campaign-os'),
+    shellRadiusU: contractSphere('campaign-os').radius,
     materialPreset: 'MAT_LIQUID_GLASS_SHELL',
     outerShellMaterial: SHARED_OUTER_SHELL_MATERIAL_PRESET,
     status: 'CONNECTED_DESTINATION_IMPLEMENTED',
@@ -287,8 +316,8 @@ export const SPHERE_NETWORK_TOPOLOGY: Record<
     label: 'About Us',
     labelEn: 'About Us',
     labelAr: 'من نحن',
-    worldCenter: [8, 1.5, 12],
-    shellRadiusU: 5.0,
+    worldCenter: contractCenter('about-us'),
+    shellRadiusU: contractSphere('about-us').radius,
     materialPreset: 'MAT_LIQUID_GLASS_SHELL',
     outerShellMaterial: SHARED_OUTER_SHELL_MATERIAL_PRESET,
     status: 'CONNECTED_DESTINATION_IMPLEMENTED',
@@ -299,8 +328,8 @@ export const SPHERE_NETWORK_TOPOLOGY: Record<
     label: 'Industry & Making',
     labelEn: 'Industry & Making',
     labelAr: 'إصطمبة',
-    worldCenter: [-18, -6, 16],
-    shellRadiusU: 4.8,
+    worldCenter: contractCenter('industry-istanba'),
+    shellRadiusU: contractSphere('industry-istanba').radius,
     materialPreset: 'proposed-die-world',
     outerShellMaterial: SHARED_OUTER_SHELL_MATERIAL_PRESET,
     status: 'PROPOSED_NOT_IMPLEMENTED_AS_FULL_SPHERE',

@@ -4,6 +4,7 @@
  * Do not invent alternate transmission / IOR / thickness recipes per sphere.
  */
 import * as THREE from 'three';
+import { CONTRACT_SHELL_MATERIAL } from '../design/systemContract';
 
 export const MAT_LIQUID_GLASS_SHELL_ID = 'MAT_LIQUID_GLASS_SHELL' as const;
 
@@ -11,13 +12,14 @@ export const MAT_LIQUID_GLASS_SHELL_ID = 'MAT_LIQUID_GLASS_SHELL' as const;
 export const MAT_LIQUID_GLASS_SHELL = {
   id: MAT_LIQUID_GLASS_SHELL_ID,
   color: '#0A1218',
-  transmission: 0.96,
-  roughness: 0.04,
+  transmission: CONTRACT_SHELL_MATERIAL.transmission,
+  roughness: CONTRACT_SHELL_MATERIAL.roughness,
   metalness: 0,
-  ior: 1.52,
+  ior: CONTRACT_SHELL_MATERIAL.ior,
   thickness: 2.8,
-  clearcoat: 0.9,
-  clearcoatRoughness: 0.06,
+  clearcoat: CONTRACT_SHELL_MATERIAL.clearcoat,
+  clearcoatRoughness: CONTRACT_SHELL_MATERIAL.clearcoatRoughness,
+  envMapIntensity: CONTRACT_SHELL_MATERIAL.envMapIntensity,
   attenuationColor: '#101D27',
   attenuationDistance: 3.4,
   specularColor: '#B4DDFF',
@@ -65,6 +67,7 @@ export function createMatLiquidGlassShell(
     attenuationDistance: MAT_LIQUID_GLASS_SHELL.attenuationDistance,
     clearcoat: MAT_LIQUID_GLASS_SHELL.clearcoat,
     clearcoatRoughness: MAT_LIQUID_GLASS_SHELL.clearcoatRoughness,
+    envMapIntensity: MAT_LIQUID_GLASS_SHELL.envMapIntensity,
     specularIntensity: 1.0,
     specularColor: new THREE.Color(MAT_LIQUID_GLASS_SHELL.specularColor),
     transparent: true,
@@ -72,6 +75,6 @@ export function createMatLiquidGlassShell(
     // Software GL needs a translucent fallback when transmission is unavailable.
     opacity: softwareGl ? (face === 'back' ? 0.16 : 0.28) : 1,
     side,
-    depthWrite: false,
+    depthWrite: CONTRACT_SHELL_MATERIAL.depthWrite,
   });
 }

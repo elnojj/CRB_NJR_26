@@ -39,16 +39,17 @@ describe('glass never resolves to pure black', () => {
     const full = createSharedOuterShellMaterial({ softwareGl: false, face: 'front' });
     assert.ok(full.transmission > 0.85);
     assert.ok(full.specularIntensity <= 0.65);
-    assert.ok(full.clearcoat <= 0.35);
+    assert.equal(full.clearcoat, 1.0);
+    assert.equal(full.clearcoatRoughness, 0.1);
     assert.ok(full.envMapIntensity <= 0.8);
   });
 
-  it('full glass is crisp and clear: transmission 0.88, roughness 0.10-0.15, ior 1.45, thickness 1.2, opaque alpha, no depth write', () => {
+  it('full glass follows the contract: transmission 0.92, roughness 0.05, ior 1.6, thickness 1.2, opaque alpha, no depth write', () => {
     const full = createSharedOuterShellMaterial({ softwareGl: false, face: 'front' });
-    assert.equal(full.transmission, 0.88);
+    assert.equal(full.transmission, 0.92);
     assert.equal(full.thickness, 1.2);
-    assert.ok(full.roughness >= 0.1 && full.roughness <= 0.15);
-    assert.equal(full.ior, 1.45);
+    assert.equal(full.roughness, 0.05);
+    assert.equal(full.ior, 1.6);
     assert.equal(full.opacity, 1);
     assert.equal(full.transparent, true);
     assert.equal(full.depthWrite, false);

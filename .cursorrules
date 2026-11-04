@@ -1,0 +1,778 @@
+# ==============================================================================
+# CEREBRO OS (.cursorrules) — MASTER SPECIFICATION & DECLARATIVE SYSTEM CONTRACT
+# Volume 02 · Updated Edition (November 2026)
+# Target Branch: njr39/Cerebro-core (feat/ds-v1-1 · HEAD 2d68907)
+# Single Source of Truth for Cursor AI Agent & Engineering Team
+# ==============================================================================
+
+You are the Lead Systems Architect and Culture & Design Engineer for CEREBRO OS (CRB_NJR_26) at NOJARA Studios (Cairo & Riyadh).
+When implementing, auditing, or refactoring code in this repository, you MUST comply strictly with this declarative contract and screen-by-screen architectural specification.
+
+---
+
+## SECTION 1: AGENT COMPLIANCE & BEHAVIORAL OVERRIDE DIRECTIVES
+
+1. **NO UNVERIFIED COMPLETION (RULE-01):**
+   - Never report a feature, integration, or bug fix as complete based on conversational transcript claims, placeholder code, or unexecuted mocks.
+   - Every completed task must provide verifiable source code anchors and satisfy automated testing criteria.
+
+2. **INVARIANT DESIGN FLOOR (RULE-02):**
+   - Never introduce ad-hoc CSS values, arbitrary colors, unapproved font families, or uncalibrated physics numbers.
+   - The design tokens, PBR shader uniforms, and layout matrices defined in Section 2 are strictly immutable.
+
+3. **TRUTHFUL MEDIA PROVENANCE (RULE-03):**
+   - Missing or unverified media must display authentic status tags (`loading`, `poster`, `unavailable`, `error`).
+   - Never invent mock playback, synthesize placeholder video reels, or hijack unrelated video files for missing project footage.
+
+4. **SINGLE-ACTIVE CONTEXT SURFACE (RULE-04):**
+   - Only one contextual surface host (`ProjectWorkspacePanel`, `StationInspector`, or `PhoneSheet`) may be active at any given moment.
+   - Opening a new surface must capture a snapshot of the prior state (tab, scroll, draft) and dynamically recalculate `sceneSafeRect` for the Three.js stage.
+
+5. **CAMERA CONTINUITY & SINGLE ACTION CONTROLLER:**
+   - Only one action controller owns the camera at a time (User, Tour, Cinematic Intro, or Gesture).
+   - Never hard-teleport camera coordinates across chapter boundaries; smoothly interpolate target, position, and focal length within a unified clock cycle.
+
+---
+
+## SECTION 2: DECLARATIVE SYSTEM CONTRACT (nojara.cerebro.system/2.0)
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaId": "nojara.cerebro.system/2.0",
+  "title": "CEREBRO OS Declarative Source of Truth & Agent Compliance Contract",
+  "version": "2.0.0",
+  "status": "LOCKED_AUTHORITATIVE_SOURCE_OF_TRUTH",
+  "enforcementLevel": "STRICT_OVERRIDE_MANDATORY",
+  "updatedAt": "2026-11-04T20:15:00+02:00",
+  "authority": {
+    "organization": "NOJARA Studios (Cairo & Riyadh)",
+    "architect": "Tarek Nojara (39) — Culture & Design Engineer",
+    "targetBranch": "njr39/Cerebro-core (feat/ds-v1-1)",
+    "lockedHead": "2d68907"
+  },
+  "agentBehaviorOverrides": {
+    "overrideDirective": "This schema supersedes all autonomous LLM heuristics, conversational assumptions, legacy presets, and unverified mock completions. The agent must comply with every locked parameter unconditionally.",
+    "rules": [
+      {
+        "id": "RULE-01-NO-UNVERIFIED-COMPLETION",
+        "description": "Never mark an action or integration complete solely based on conversational transcript claims. A structured typed action receipt is required.",
+        "severity": "CRITICAL_BLOCKER"
+      },
+      {
+        "id": "RULE-02-NO-COSMETIC-DRIFT",
+        "description": "Do not alter design tokens, PBR uniforms, or layout bounding rects based on temporary prompt variations. The schema defines the invariant floor.",
+        "severity": "CRITICAL_BLOCKER"
+      },
+      {
+        "id": "RULE-03-TRUTHFUL-MEDIA-PROVENANCE",
+        "description": "Missing video/asset sources must render explicit status badges ('loading', 'poster', 'unavailable', 'error'). Never generate placeholder or fake playback for uncataloged sources.",
+        "severity": "CRITICAL_BLOCKER"
+      },
+      {
+        "id": "RULE-04-SINGLE-ACTIVE-CONTEXT-SURFACE",
+        "description": "Only one contextual surface host (ProjectWorkspacePanel, StationInspector, or PhoneSheet) may be active at any time. Opening a new surface preserves a snapshot of the prior state and refits sceneSafeRect.",
+        "severity": "HIGH"
+      }
+    ]
+  },
+  "designTokens": {
+    "colorSystem": {
+      "void": "#05090E",
+      "canvas": "#101D27",
+      "glassSolid": "#142632",
+      "glassPanel": "rgba(20, 38, 50, 0.88)",
+      "glassLight": "rgba(20, 38, 50, 0.44)",
+      "hairline": "rgba(242, 246, 248, 0.12)",
+      "text": "#F2F6F8",
+      "textSecondary": "#D0DCE3",
+      "accentGold": "#D4AF37",
+      "neonCyan": "#4C8DFF",
+      "signalBlue": "#65ACFF",
+      "aiPulse": "#9AFFE0",
+      "error": "#E5484D"
+    },
+    "typographyFloors": {
+      "display": "Jaapokki Subtract, Sora, sans-serif",
+      "body": "Inter, sans-serif",
+      "metadata": "JetBrains Mono, monospace",
+      "arabic": "Cairo, Tajawal, sans-serif",
+      "bodyFloorPx": 16,
+      "metadataFloorPx": 12,
+      "hudFloorPx": 13,
+      "policy": "Never make body copy monospace. Preserve Arabic original logo as an image asset with intrinsic ratio."
+    }
+  },
+  "spatial3DTopologyAndPBR": {
+    "engine": "vanilla Three.js 0.186.1 inside CosmographCanvas.tsx",
+    "kinematicOrbitalSolver": {
+      "type": "SpringDamperLoop",
+      "stiffnessK": 3.8,
+      "dampingFactor": 0.88,
+      "timeStep": 0.01667,
+      "boundingSphereRepulsion": {
+        "enabled": true,
+        "zoomScaleFloor": 0.2,
+        "bufferUnits": 1.2,
+        "damping": 0.92
+      }
+    },
+    "meshPhysicalMaterialUniforms": {
+      "transmission": 0.92,
+      "roughness": 0.05,
+      "ior": 1.6,
+      "clearcoat": 1.0,
+      "clearcoatRoughness": 0.1,
+      "depthWrite": false,
+      "clampedEnvMapIntensity": 0.35,
+      "enforcement": "depthWrite: false MUST be enforced on all transmissive glass shells to eliminate Z-fighting against DOM overlays."
+    },
+    "mediaSurfaceDecoupling": {
+      "primarySphere": {
+        "id": "hq",
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "radius": 6.2,
+        "skin": "cobalt-glass",
+        "map": null,
+        "interiorVisibility": "100% exposed galaxy, C-core, and cardiac splines; video textures strictly forbidden."
+      },
+      "childPortalSpheres": {
+        "aspectRatio": "9:16",
+        "frameRateFps": 24,
+        "objectFit": "contain",
+        "audioClockSynced": true,
+        "activeReelTargets": [
+          "SEVEN",
+          "Mission Lotus",
+          "Young & Human",
+          "El Batron",
+          "Lovart.ai 39 OS"
+        ]
+      }
+    },
+    "sphereNetworkNodes": [
+      {
+        "id": "hq",
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "radius": 6.2,
+        "skin": "cobalt-glass",
+        "status": "IMPLEMENTED"
+      },
+      {
+        "id": "cde",
+        "center": [
+          38,
+          4,
+          -22
+        ],
+        "radius": 6.2,
+        "skin": "amber-crystal",
+        "status": "IMPLEMENTED"
+      },
+      {
+        "id": "campaign-os",
+        "center": [
+          14,
+          2.5,
+          8
+        ],
+        "radius": 4.4,
+        "skin": "emerald-plasma",
+        "status": "IMPLEMENTED"
+      },
+      {
+        "id": "about-us",
+        "center": [
+          -14,
+          1.8,
+          5
+        ],
+        "radius": 4.4,
+        "skin": "pearl-iridescent",
+        "status": "IMPLEMENTED"
+      },
+      {
+        "id": "industry-istanba",
+        "center": [
+          18,
+          -5,
+          -12
+        ],
+        "radius": 4.4,
+        "skin": "istanba-die",
+        "status": "PROPOSED_NOT_IMPLEMENTED"
+      }
+    ]
+  },
+  "glassmorphismAndCSS3DMatrix": {
+    "surfaceSpecification": {
+      "background": "rgba(20, 38, 50, 0.88)",
+      "backdropFilter": "blur(20px)",
+      "border": "1px solid rgba(242, 246, 248, 0.12)",
+      "borderRadius": "20px"
+    },
+    "css3DPerspectiveWrapper": {
+      "perspective": "1200px",
+      "transformStyle": "preserve-3d",
+      "appliedOffsets": {
+        "rotateX": "12deg",
+        "rotateY": "-8deg",
+        "translateZ": "40px"
+      },
+      "hoverState": {
+        "translateZ": "58px",
+        "transition": "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)"
+      }
+    }
+  },
+  "interactiveTokensAndCards": {
+    "interactiveTokenPill": {
+      "minHeightPx": 36,
+      "minHitTargetPx": 44,
+      "borderRadiusPx": 18,
+      "glowRingStyle": {
+        "neonCyan": "#4C8DFF",
+        "signalBlue": "#65ACFF",
+        "boxShadow": "0 0 0 2px rgba(76, 141, 255, 0.45), 0 0 22px rgba(76, 141, 255, 0.65)"
+      }
+    },
+    "modularFloatingCards": {
+      "paddingPx": 24,
+      "gapPx": 16,
+      "expandCollapseAnimation": "height 320ms cubic-bezier(0.22, 1, 0.36, 1)",
+      "zElevation": {
+        "idle": 20,
+        "hover": 35
+      }
+    }
+  },
+  "spatialCopilotAndTranscription": {
+    "hudPill": {
+      "maxWidthPx": 480,
+      "backdropFilter": "blur(16px)",
+      "background": "rgba(20, 38, 50, 0.78)",
+      "border": "1px solid rgba(242, 246, 248, 0.12)",
+      "borderRadius": "9999px",
+      "wordRevealStaggerMs": 40,
+      "ariaLive": "polite"
+    },
+    "fingerlessKeyboard": {
+      "renderMode": "frosted_circular_key_tokens",
+      "keyTokenSizePx": 30,
+      "keyTokenBackground": "rgba(255, 255, 255, 0.08)",
+      "keyTokenBorder": "1px solid rgba(255, 255, 255, 0.15)",
+      "illuminationColors": {
+        "cerebroAI": "#9AFFE0",
+        "operatorInput": "#4C8DFF"
+      },
+      "handMeshRendering": false
+    }
+  },
+  "layoutEngineContract": {
+    "algorithm": "computeGuiLayout",
+    "reservationOrder": [
+      "header",
+      "contextualSurfaceOrSheet",
+      "voiceDock",
+      "utilityBar",
+      "tourControls"
+    ],
+    "sceneSafeRectRule": "Remaining unreserved screen region allocated strictly to 3D canvas; refit camera on resize.",
+    "viewportsToVerify": [
+      {
+        "name": "Phone",
+        "width": 390,
+        "height": 844
+      },
+      {
+        "name": "Tablet Portrait",
+        "width": 820,
+        "height": 1180
+      },
+      {
+        "name": "Tablet Landscape",
+        "width": 1180,
+        "height": 820
+      },
+      {
+        "name": "Desktop HD",
+        "width": 1440,
+        "height": 900
+      },
+      {
+        "name": "Workstation 2K",
+        "width": 2560,
+        "height": 1440
+      }
+    ],
+    "collisionRegions": [
+      "header",
+      "inspector",
+      "phoneSheet",
+      "voiceDock",
+      "utilityBar",
+      "tourControls",
+      "modal",
+      "projectedLabels"
+    ],
+    "acceptanceTolerance": "ZERO_INTERACTIVE_REGION_OVERLAP"
+  },
+  "validationGates": [
+    {
+      "gate": "GATE-01-SCHEMA-COMPLIANCE",
+      "assertion": "Runtime state matches schema token values with zero unmapped overrides.",
+      "critical": true
+    },
+    {
+      "gate": "GATE-02-HIT-TARGETS",
+      "assertion": "Every clickable token has bounding box >= 44x44px.",
+      "critical": true
+    },
+    {
+      "gate": "GATE-03-DEPTHWRITE-INTEGRITY",
+      "assertion": "All transparent Three.js sphere shells have depthWrite === false.",
+      "critical": true
+    },
+    {
+      "gate": "GATE-04-HQ-SPHERE-MAP-NULL",
+      "assertion": "Central sphere material map is null; no video texture attached to sphere 01.",
+      "critical": true
+    },
+    {
+      "gate": "GATE-05-FPS-BUDGET",
+      "assertion": "p95 frame time <= 16.7ms on desktop, <= 33.3ms on mobile tiers.",
+      "critical": false
+    }
+  ]
+}
+```
+
+---
+
+## SECTION 3: CORE ENGINEERING INVARIANTS
+
+### 3.1 Three.js 0.186.1 PBR Shader & Kinematics Pipeline
+- **Orbital Solver:** Spring-damper loop (`k = 3.8`, `damping = 0.88`, `dt = 0.01667s`).
+- **Repulsion & Zoom:** Bounding-sphere repulsion vectors active down to 20% zoom scale (`targetZoomScale = 0.20`, `bufferUnits = 1.2`, `damping = 0.92`).
+- **MeshPhysicalMaterial Uniforms:**
+  - `transmission: 0.92` (GPU), `roughness: 0.05`, `ior: 1.6`, `clearcoat: 1.0`, `clearcoatRoughness: 0.1`
+  - `depthWrite: false` (MANDATORY on all transparent sphere shells to eliminate Z-fighting against DOM overlays)
+  - `clampedEnvMapIntensity: 0.35`
+- **Media Decoupling:**
+  - **Sphere 01 (CEREBRO HQ [0,0,0]):** `map: null` (strictly no video textures; 100% transmissive shell exposing internal 6,400-particle galaxy, C-core, and cardiac splines).
+  - **Child Spheres:** Route vertical video reels (9:16 aspect ratio, 24fps, contain) exclusively to child nodes (`SEVEN`, `Mission Lotus`, `Young & Human`, `El Batron`, `Lovart.ai 39 OS`).
+
+### 3.2 Glassmorphism & CSS 3D Perspective Matrix
+- **Void Glass Surface:**
+  - `background: rgba(20, 38, 50, 0.88)` (Void Black `#142632` at 88% opacity)
+  - `backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);`
+  - `border: 1px solid rgba(242, 246, 248, 0.12);`
+  - `border-radius: 20px;`
+- **3D Perspective Wrapper:**
+  - Parent container: `perspective: 1200px; transform-style: preserve-3d;`
+  - Flanking panels default offset: `transform: rotateX(12deg) rotateY(-8deg) translateZ(40px);`
+  - Hover elevation: `translateZ(58px);` (transition: `320ms cubic-bezier(0.22, 1, 0.36, 1)`)
+
+### 3.3 Interactive Tokens & Component Harmonization
+- **Geometry:** Micro-pill geometry (`min-height: 36px`, `border-radius: 18px`, min hit target `44×44px`).
+- **Glow Rings:** Active state glow rings in Neon Cyan (`#4C8DFF`) and Signal Blue (`#65ACFF`) (`box-shadow: 0 0 0 2px rgba(76, 141, 255, 0.45), 0 0 22px rgba(76, 141, 255, 0.65)`).
+- **Floating Cards:** Negative space layouts (`padding: 24px`, `gap: 16px`), hardware-accelerated expand/collapse height animations, z-elevation idle `z-20` -> hover `z-35`.
+
+### 3.4 Spatial Transcription HUD & Fingerless Micro-Keyboard
+- **HUD Transcription Pill:** Translucent container (`max-width: 480px`, `backdrop-filter: blur(16px)`, `background: rgba(20, 38, 50, 0.78)`).
+- **Word-Sync Stagger:** Words revealed sequentially via `40ms` stagger (`filter: blur(4px) -> 0; opacity: 0 -> 1`) locked to audio timestamps.
+- **Fingerless Keyboard:** Frosted circular key tokens (30px diameter, `background: rgba(255, 255, 255, 0.08)`, `border-radius: 9999px`) with live text-input buffering; keys illuminate autonomously (`#9AFFE0` for AI generation, `#4C8DFF` for operator input); no hand-mesh overhead.
+
+### 3.5 Dynamic Layout Engine (`computeGuiLayout`)
+- **Reservation Priority:** Header -> Contextual Surface / Phone Sheet -> Voice Dock -> Utility Bar -> Tour Controls.
+- **Remaining Viewport:** Allocated directly to `sceneSafeRect` for the Three.js viewport.
+- **Collision Tolerance:** Zero overlapping interactive bounding boxes across 390×844, 820×1180, 1180×820, 1440×900, and 2560×1440.
+
+---
+
+## SECTION 4: DETAILED SCREEN-BY-SCREEN SPECIFICATION (F01 – F24)
+
+### F01 — Owner Gate
+- **Registry Binding:** `Catalog S01 / tour S01 / view keypad`
+- **Source Code Anchor:** `src/components/BootLoader.tsx:85`
+- **Architectural Purpose:** Identify owner-entry state before entering the spatial workspace with hardware-verified token validation.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Single centered column. Keypad targets strictly >= 44x44px. Error feedback area reserved above entry action without causing layout shifts.
+  - **iPad (820×1180):** 820 x 1180: Centered compact floating glass card (Void Black rgba(20,38,50,0.88), blur(20px), 1px hairline border). Never enlarge keypad merely to fill tablet viewport.
+- **Visible Hierarchy:** Original NOJARA identity lockup (BrandLockup.tsx intrinsic aspect) / Four-position pin field / 3x4 Frosted numeric keypad / Dynamic error toast / Biometric bypass action.
+- **Primary Interaction & Flow:** Complete 4-pin or biometric owner entry; smoothly transition to BootLoader (F02) with 320ms ease-out.
+- **Required Lifecycle States:** Empty, partial input (1-3 dots), invalid input (shake animation + #E5484D glow), corrected input, authorized entry, keyboard focus.
+- **Material Risk & Contract Conflict Resolution:** Client-side gate was previously treated as mock authentication. Must bind to verifiable auth token with secure session persistence.
+- **Strict Acceptance Gate:** Zero brand substitution or distortion; no clipped copy or focus trap; hit targets >= 44x44px; bypass controls independently verifiable.
+
+### F02 — Loading Sequence & Word-Sync Loader
+- **Registry Binding:** `Catalog S02 / tour S01 / view loader`
+- **Source Code Anchor:** `src/components/BootLoader.tsx:250`
+- **Architectural Purpose:** Explain real spatial asset hydration and readiness without artificial delay, featuring audio-synced word-by-word motion typography.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Stacked progress bar with auto-wrapping status text. Reserve status width and allow text to grow vertically without glyph collisions.
+  - **iPad (820×1180):** 820 x 1180: Four loading milestones rendered at optimal reading width (max 480px). Align status indicators consistently with live percentage telemetry.
+- **Visible Hierarchy:** NOJARA brand lockup & elapsed timer / Linear progress bar (#4C8DFF fill) / Staggered word-by-word animated phrase / Four real hydration items & statuses.
+- **Primary Interaction & Flow:** Enter universe automatically when WebGL, shaders, and initial records are hydrated; allow explicit retry on failure; skip disabled unless QA mode.
+- **Required Lifecycle States:** Hydration pending, shader compile, asset loading, ready, failed retry, reduced motion (instant fade), normal completion.
+- **Material Risk & Contract Conflict Resolution:** Previous loader used artificial elapsed time intervals. Updated implementation must bind directly to real Three.js WebGL compile and data hydration promises.
+- **Strict Acceptance Gate:** Record every asset load frame; no fake completion ticks; word reveals synchronized mathematically to audio timestamp (40ms stagger, blur(4px) -> 0).
+
+### F03 — HQ Universe and Arrival
+- **Registry Binding:** `Catalog S03 / tour S02 / view hq`
+- **Source Code Anchor:** `src/components/CosmographCanvas.tsx:2397 & src/three/sphereNetwork.ts`
+- **Architectural Purpose:** Establish the continuous primary spatial cosmic stage and the studio's operational station clusters in deep space.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Dominant central HQ sphere framed within computed sceneSafeRect. Single bottom sheet dock with 72px peek and 264px default height.
+  - **iPad (820×1180):** 820 x 1180: Reframed cosmic stage beside responsive 304px inspector panel. Generous negative space preserving orbital particle parallax.
+- **Visible Hierarchy:** Transmissive HQ Sphere 01 ([0,0,0], r=6.2u) & internal 6,400-star spiral galaxy / Orbiting project & station nodes / Global header / Floating Voice Dock.
+- **Primary Interaction & Flow:** Pinch-zoom down to 20% scale, orbit via spring-damper physics, tap sphere or station node to focus camera with continuous interpolation.
+- **Required Lifecycle States:** Entrance flight, resting idle orbit, node hover highlight, selected node focus, interrupted flight, 20% zoom overview, reduced graphics fallback.
+- **Material Risk & Contract Conflict Resolution:** Older screenshots showed crowded metallic spheres and opaque video textures on HQ. Latest update strictly locks Sphere 01 to MeshPhysicalMaterial (transmission 0.92, roughness 0.05, depthWrite false, map: null).
+- **Strict Acceptance Gate:** Zero camera resets on node focus; internal galaxy completely visible without reflection clipping; continuous spring-damper physics with collision avoidance down to 20% scale.
+
+### F04 — CDE Universe and Dimensions
+- **Registry Binding:** `Catalog S04 / tour S17 / view cde`
+- **Source Code Anchor:** `src/components/CosmographCanvas.tsx:2446 & src/three/sphereNetwork.ts`
+- **Architectural Purpose:** Explore the four source-defined Culture and Design Engineering dimensions within the unified spatial stage.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Focuses one CDE dimension at a time with concise title and swipe gestures; preserves full 4-dimension carousel access.
+  - **iPad (820×1180):** 820 x 1180: Flanking 304px dimension inspector beside amber-crystal CDE Sphere 02 ([38,4,-22], r=6.2u).
+- **Visible Hierarchy:** Amber-crystal CDE Sphere 02 / Four dimension nodes (Strategy, Production, Talent & Culture, Media Technology) / Subdomain cards / Contextual narrative.
+- **Primary Interaction & Flow:** Select dimension to trigger camera flight; tap linked project chip to transition directly into Project Workspace (F07).
+- **Required Lifecycle States:** Dimension idle, dimension focused, subdomain selected, project camera travel, return to CDE core, media decode error.
+- **Material Risk & Contract Conflict Resolution:** App previously defaulted CDE to cobalt-glass. Schema locks CDE to amber-crystal with distinct refractive index and dedicated station routes.
+- **Strict Acceptance Gate:** Independent verification of Strategy, Production, Talent, and Media Technology IDs/colors; no camera teleportation; seamless bookmark return to HQ.
+
+### F05 — Responsive Panel Workspace
+- **Registry Binding:** `Catalog S05 / tour Several / view pockets`
+- **Source Code Anchor:** `src/gui/layoutEngine.ts:70 & src/components/PanelsOverlay.tsx`
+- **Architectural Purpose:** Provide floating, modular workspace panels around a clear spatial center without visual bleeding or screen clutter.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: One contextual bottom sheet with tab bar (peek 72px, default 264px, expanded 480px) occupying safe rect without covering top brand lockup.
+  - **iPad (820×1180):** 820 x 1180: Single 304px side inspector in portrait; dual 288px flanking inspectors in landscape (1180x820) wrapped in CSS 3D perspective.
+- **Visible Hierarchy:** Measured sceneSafeRect clear zone / Flanking floating glass cards / Tab strip / Expand-collapse triggers / Voice Dock.
+- **Primary Interaction & Flow:** Open, minimize to floating pill, restore, and close panels while preserving scroll position, active tab, and uncommitted form drafts.
+- **Required Lifecycle States:** Zero panels (pure 3D stage), single panel, multi-tabbed panel, expanded sheet, keyboard open, restored draft state.
+- **Material Risk & Contract Conflict Resolution:** Older builds suffered from unmounted v0.2 fallback DOM elements causing overlapping cards. Replaced by computeGuiLayout single-active-surface rule.
+- **Strict Acceptance Gate:** Zero critical bounding-box overlap; 100% preservation of draft/scroll state on minimize/restore; full compliance with 20px blur and 1px hairline border.
+
+### F06 — Portfolio Browser
+- **Registry Binding:** `Catalog S06 / tour S04 / view portfolio`
+- **Source Code Anchor:** `src/components/WireframesV11Panels.tsx:562`
+- **Architectural Purpose:** Filter, search, and navigate live studio projects with truthful status badges and direct workspace transition.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Vertically scrollable single-column card list inside bottom sheet. Horizontally scrollable filter pills with 44px hit targets.
+  - **iPad (820×1180):** 820 x 1180: Structured 304px inspector list beside the 3D cosmic stage; active project highlights linked node in WebGL.
+- **Visible Hierarchy:** Portfolio header & live project count / Filter pills (All, Active, Waiting on 39, Blocked) / Project card list with KPI badges / Open workspace CTA.
+- **Primary Interaction & Flow:** Tap filter chip to filter in <=16ms; tap project card to initiate smooth camera flight to project station node and open F07.
+- **Required Lifecycle States:** All projects, filtered subset, empty search result, project selected, stale snapshot warning, data loading, source error.
+- **Material Risk & Contract Conflict Resolution:** Seeded 17-project mock data previously displayed fake live metrics. Schema mandates explicit snapshot/sample provenance labels.
+- **Strict Acceptance Gate:** Every displayed project ID routes to valid project workspace; no forced detour through HQ; status colors match schema tokens.
+
+### F07 — Project Workspace & Deep Inspector
+- **Registry Binding:** `Catalog S07 / tour S05 / view project-detail`
+- **Source Code Anchor:** `src/components/WireframesV11Panels.tsx:671`
+- **Architectural Purpose:** Provide deep operational execution across nine functional tabs for a single verified studio project.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Horizontally scrolling tab row with active indicator. Single responsive content card with vertical scroll and collapsible header.
+  - **iPad (820×1180):** 820 x 1180: High-density 328px inspector card featuring CSS 3D perspective tilt (rotateX(12deg) rotateY(-8deg)) and negative space padding (24px).
+- **Visible Hierarchy:** Project identity, provenance badge & client logo / 9 Workspace Tabs (Overview, Plan, Tasks, People, Files, Media, Budget, Timeline, Decisions) / KPI grid / Action dock.
+- **Primary Interaction & Flow:** Switch tabs with zero lag; edit task or decision inline; tap media thumbnail to launch Media Showcase Modal (F15).
+- **Required Lifecycle States:** Overview active, tasks tab, media reel, budget review, decision pending, draft edit, approval needed, camera follow.
+- **Material Risk & Contract Conflict Resolution:** Hardcoded financial and budget numbers previously existed in templates. Now requires verified source provenance or explicit 'sample' disclaimer.
+- **Strict Acceptance Gate:** Selected project ID and active tab persist across 3D camera orbits, minimize/restore cycles, and modal dismissals.
+
+### F08 — Task Board and Task Detail
+- **Registry Binding:** `Catalog S08 / tour S06 / view tasks`
+- **Source Code Anchor:** `src/components/WireframesV11Panels.tsx:1015`
+- **Architectural Purpose:** Track operational tasks across 4 workflow stages with persistent state verification and owner assignment.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Segmented status control (To Do, Doing, Waiting, Done) with vertical card stack; tap card opens full-sheet editor.
+  - **iPad (820×1180):** 820 x 1180: Four-column Kanban board with readable 240px columns and smooth drag-and-drop or tap-to-move actions.
+- **Visible Hierarchy:** Board header with filter & search / 4 Kanban columns / Task card (Title, assignee avatar, due date, status pill) / Task detail flyout.
+- **Primary Interaction & Flow:** Tap task to inspect/edit permitted fields; drag or click status dropdown to move; confirm auto-save with action toast.
+- **Required Lifecycle States:** Empty board, tasks loaded, task selected, dirty draft, saving, saved confirmation, validation error, save failed.
+- **Material Risk & Contract Conflict Resolution:** Unsaved task suggestions from AI copilot previously conflated with committed tasks. Now strictly separated into 'Proposed' vs 'Committed'.
+- **Strict Acceptance Gate:** Zero lost form edits; task ID uniqueness verified; no duplicate task creation on rapid clicks; keyboard Enter saves draft.
+
+### F09 — Executive Insights & Anomaly Radar
+- **Registry Binding:** `Catalog S09 / tour S07 / view insights`
+- **Source Code Anchor:** `src/components/WireframesV11Panels.tsx:1221`
+- **Architectural Purpose:** Highlight critical studio bottlenecks, blocked deliverables, and urgent approvals backed by verifiable audit evidence.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Stacked anomaly feed ordered strictly by severity; urgent issues highlighted with #E5484D border without full opaque red blocks.
+  - **iPad (820×1180):** 820 x 1180: Restrained split view (Signal list on left, Evidence & Action card on right) with 3D perspective elevation.
+- **Visible Hierarchy:** 'What Needs You' executive counter / 6 source-defined signal cards / Evidence drawer / One-tap resolution action.
+- **Primary Interaction & Flow:** Tap anomaly card to inspect root cause; trigger resolution workflow or open linked project workspace with context retained.
+- **Required Lifecycle States:** All healthy (green pulse), attention required, critical blocker (#E5484D hairline), missing source audit, resolving, resolved.
+- **Material Risk & Contract Conflict Resolution:** Opaque red glitch boxes previously broke visual hierarchy. Replaced by 1px specular error hairlines and contextual badges.
+- **Strict Acceptance Gate:** Red styling reserved exclusively for confirmed blockers; every signal links to an authentic evidence entity; urgency counts never fabricated.
+
+### F10 — Morning Briefing Dashboard
+- **Registry Binding:** `Catalog S10 / tour S03 / view briefing`
+- **Source Code Anchor:** `src/components/WireframesV11Panels.tsx:1320`
+- **Architectural Purpose:** Deliver a time-aware executive summary of today's schedule, meetings, pending approvals, and studio milestones.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Single-column chronological agenda feed with sticky time header (Africa/Cairo timezone) and 44px approval action pills.
+  - **iPad (820×1180):** 820 x 1180: Multi-section dashboard card (Today's Agenda, Critical Approvals, Studio Pulse) integrated into the right-hand 3D perspective slot.
+- **Visible Hierarchy:** Date & freshness banner (Africa/Cairo) / Today's Meetings / Executive Approvals queue / Studio Key Milestones / Action CTAs.
+- **Primary Interaction & Flow:** Switch briefing sections; tap meeting to view attendee RACI; tap approval item to inspect contract before one-tap sign-off.
+- **Required Lifecycle States:** Morning auto-open (06:00-10:30 Cairo), manual trigger, empty agenda, pending sign-off, stale data warning, sync error.
+- **Material Risk & Contract Conflict Resolution:** Previous mockups assumed recurring automation without verifying backend scheduler. UI now surfaces live sync status vs snapshot.
+- **Strict Acceptance Gate:** Timezone strictly locked to Africa/Cairo (2026); opening briefing does not trigger silent auto-approvals; data freshness timestamp visible.
+
+### F11 — Mail & Communications Workspace
+- **Registry Binding:** `Catalog S11 / tour S08 / view gmail`
+- **Source Code Anchor:** `src/components/WireframesV11Panels.tsx:1452`
+- **Architectural Purpose:** Read, synthesize, and draft high-priority studio communications with explicit two-tap confirmation before sending.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Sequential views: Thread List -> Message View -> Floating Composer Sheet. Never render cramped 3-column layouts.
+  - **iPad (820×1180):** 820 x 1180: Two-pane layout (Thread list 280px, Conversation reader & draft composer remaining width) with clear recipient chips.
+- **Visible Hierarchy:** Search & filter header / Thread list with VIP tags / Active conversation thread / AI Draft suggestion / Two-tap confirm action bar.
+- **Primary Interaction & Flow:** Tap thread to read; tap 'Reply with Cerebro' to buffer draft in VoiceCard; requires explicit secondary tap on 'Confirm Send' to dispatch.
+- **Required Lifecycle States:** Cached snapshot, live mailbox sync, thread selected, draft in progress, confirming send, sent receipt toast, undo window, sync error.
+- **Material Risk & Contract Conflict Resolution:** Legacy UI reported 'live Gmail connected' even when offline. Updated contract requires explicit 'live' vs 'cached_snapshot' badge.
+- **Strict Acceptance Gate:** Zero automatic message sending during testing; recipient email verified; draft preserved on accidental close; undo action supported for 10s.
+
+### F12 — Calendar & Meeting Scheduler
+- **Registry Binding:** `Catalog S12 / tour S09 / view calendar`
+- **Source Code Anchor:** `src/components/WireframesV11Panels.tsx:1643`
+- **Architectural Purpose:** Inspect executive schedule, detect time conflicts, and draft meeting invitations across Cairo and global collaborator timezones.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Chronological day list by default with expandable week strip; meeting cards display time, title, and Google Meet pill.
+  - **iPad (820×1180):** 820 x 1180: 7-day calendar grid (Mon-Sun, 09:00-19:00 Cairo) with smooth vertical scrolling and readable event chips.
+- **Visible Hierarchy:** Timezone indicator (Africa/Cairo) & week picker / Calendar grid or day list / Event detail popover / Create/Edit meeting modal.
+- **Primary Interaction & Flow:** Select date to inspect availability; click time slot to draft event; drag event to reschedule with explicit confirmation prompt.
+- **Required Lifecycle States:** Today view, week view, event selected, empty day, conflicting time slot warning, invite draft, event created, error.
+- **Material Risk & Contract Conflict Resolution:** Displaying a Google Meet link previously created false impression of active meeting. Must verify calendar event creation receipt.
+- **Strict Acceptance Gate:** Timezone conversions mathematically verified; participants validated against People register (F16); no ghost events created on tour.
+
+### F13 — Drive File Browser & Asset Vault
+- **Registry Binding:** `Catalog S13 / tour S10 / view files`
+- **Source Code Anchor:** `src/components/WireframesV11Panels.tsx:1868`
+- **Architectural Purpose:** Browse, search, and verify Google Drive documents, brand assets, and 3D deliverables within the permitted project scope.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Single-column file list with breadcrumb path bar; swipe file to inspect metadata or launch preview.
+  - **iPad (820×1180):** 820 x 1180: Two-pane file explorer (Folder hierarchy tree on left, file list with thumbnail previews and metadata on right).
+- **Visible Hierarchy:** Breadcrumb path navigation / Search bar / Folder & file grid / File metadata sheet (MIME type, size, modified date, live source badge).
+- **Primary Interaction & Flow:** Navigate folders; tap file to inspect metadata; tap 'Open Viewer' to launch Document Viewer (F14) or Media Player (F15).
+- **Required Lifecycle States:** Folder loading, files loaded, file selected, empty folder, search active, unavailable file, access restricted error.
+- **Material Risk & Contract Conflict Resolution:** A 'LIVE' badge previously appeared on stale cached folder lists. Must indicate real Drive API sync timestamp.
+- **Strict Acceptance Gate:** File ID and MIME type truthfully mapped; no unauthorized folder traversal; opening file respects single-active surface rule.
+
+### F14 — Document & Technical Image Viewer
+- **Registry Binding:** `Catalog S13 / tour S11 / view file-viewer`
+- **Source Code Anchor:** `src/components/WireframesV11Panels.tsx:2233`
+- **Architectural Purpose:** Inspect multi-page PDFs, treatment decks, and high-res brand artwork with independent zoom controls decoupled from the 3D scene camera.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Full-width document canvas with pinch-to-zoom and pagination toolbar docked cleanly at bottom above safe area.
+  - **iPad (820×1180):** 820 x 1180: High-fidelity document reader with thumbnail sidebar, 100%/125% zoom presets, and full-bleed inspection mode.
+- **Visible Hierarchy:** Document title, page counter & format badge / Document render viewport / Zoom & navigation controls / Download & Share CTAs.
+- **Primary Interaction & Flow:** Pinch or click +/- to zoom document content without altering the Three.js 3D camera; swipe or click arrows to change pages.
+- **Required Lifecycle States:** Document loading, page rendering, page changed, 100%/125% zoom active, unsupported file format, load error.
+- **Material Risk & Contract Conflict Resolution:** Generated text mockups previously simulated PDF rendering. Must bind to authentic PDF canvas or vector image renderer.
+- **Strict Acceptance Gate:** Document zoom strictly isolated from 3D camera FOV; exact page total matches source bytes; close button restores prior file list.
+
+### F15 — Media Gallery & 9:16 Video Showcase
+- **Registry Binding:** `Catalog S14 / tour S12 / view media`
+- **Source Code Anchor:** `src/components/WireframesV11Panels.tsx:2101 & src/lib/sphereVideoTexture.ts`
+- **Architectural Purpose:** Play verified 9:16 vertical video reels, project showreels, and culture films with source-aspect contain framing and full transport controls.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Dominant 9:16 contain viewport centered on screen; transport controls and seek bar anchored in lower third.
+  - **iPad (820×1180):** 820 x 1180: Elegant floating media theatre card with 9:16 player beside project reel carousel; background WebGL dimming active.
+- **Visible Hierarchy:** Asset title & provenance tag (Verified / Sample / Study) / Video player aperture (object-fit: contain) / Transport bar (Play/Pause, Seek, Mute, Fullscreen).
+- **Primary Interaction & Flow:** Tap thumbnail or child sphere to open player; drag seek bar to scrub; tap fullscreen for landscape/portrait immersion; audio gesture required.
+- **Required Lifecycle States:** Loading poster, video ready, playing (24fps), paused, seeking, ended, autoplay blocked, decode failure, fullscreen exit.
+- **Material Risk & Contract Conflict Resolution:** Previous build blew out specular highlights by attaching video textures directly to primary central sphere. Now decoupled exclusively to child portal spheres.
+- **Strict Acceptance Gate:** No video texture attached to central Sphere 01; audio starts strictly after user interaction (no autoplay policy violation); timecode preserved on exit.
+
+### F16 — People, RACI & Collaborator Roster
+- **Registry Binding:** `Catalog S15 / tour S13 / view people`
+- **Source Code Anchor:** `src/components/WireframesV11Panels.tsx:2383`
+- **Architectural Purpose:** Clarify studio team structure, contributor allocations, RACI responsibilities, and distinguish human talent from autonomous agents.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Vertically scrolling team roster cards; tap card slides in detail sheet showing assigned projects and RACI role.
+  - **iPad (820×1180):** 820 x 1180: Comprehensive RACI matrix table with sticky name column, role chips, and workload allocation meters.
+- **Visible Hierarchy:** Roster filter (All, Leadership, Core Crew, External Partners, AI Agents) / Member card / RACI assignment matrix / Contact & contract status.
+- **Primary Interaction & Flow:** Filter by department; tap collaborator to view active projects and responsibilities; inspect verified contact records.
+- **Required Lifecycle States:** Human selected, agent selected, role detail open, RACI matrix expanded, restricted permission view, stale roster warning.
+- **Material Risk & Contract Conflict Resolution:** Archived 12-member list previously mixed hypothetical personas with real staff. UI now clearly partitions Verified Crew vs Agent Bots.
+- **Strict Acceptance Gate:** Strict separation between human personnel and AI bot agents; permissions badge verified; no unauthorized access escalation.
+
+### F17 — Crew Drafting & Agent Co-Working
+- **Registry Binding:** `Catalog S16 / tour S14 / view crew`
+- **Source Code Anchor:** `src/components/WireframesV11Panels.tsx:2531`
+- **Architectural Purpose:** Monitor autonomous agent drafting in real time while maintaining absolute owner control over final publication and dispatch.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Single live agent stream tab at a time; clear 'Draft Only - Unapproved' banner; bottom action bar with Copy, Stop, and Approve.
+  - **iPad (820×1180):** 820 x 1180: Two-agent split view (e.g. Copywriter Agent & Research Agent) with live token streaming and diff reviewer.
+- **Visible Hierarchy:** 'Draft Only' top security banner / Agent identity & active model badge / Live streaming text buffer / Copy, Stop, and Approve-Draft action tokens.
+- **Primary Interaction & Flow:** Watch live token streaming; click 'Stop' to halt model generation immediately; click 'Approve Draft' to promote text to active project.
+- **Required Lifecycle States:** Connecting, token streaming, paused by user, complete draft, approval pending, agent disconnected, generation error.
+- **Material Risk & Contract Conflict Resolution:** SSE stream components previously implied real backend agent execution. Contract requires honest connection state (Live / Stale / Mock).
+- **Strict Acceptance Gate:** Stop button terminates generation within <=100ms; no automated message dispatch without explicit secondary owner signature; draft diff visible.
+
+### F18 — Baghira Planning & Interactive Gantt
+- **Registry Binding:** `Catalog S17 / tour S15 / view baghira`
+- **Source Code Anchor:** `src/components/WireframesV11Panels.tsx:2658`
+- **Architectural Purpose:** Relate project schedules to authentic calendar dates, critical path dependencies, and deliverable milestones in a spatial timeline.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Chronological deliverable milestone list with horizontal Gantt mini-timeline; task names pinned on scroll.
+  - **iPad (820×1180):** 820 x 1180: Full interactive Gantt canvas with zoomable time axis (Days / Weeks / Months), dependency bezier splines, and drag handles.
+- **Visible Hierarchy:** Timeline header with date range selector / Gantt chart canvas / Milestone bars with progress fill / Dependency lines / Task detail inspector.
+- **Primary Interaction & Flow:** Pan timeline horizontally; click milestone bar to inspect dependency chain; drag bar to adjust schedule (in permitted role).
+- **Required Lifecycle States:** Timeline loaded, milestone selected, dependency conflict warning (#E5484D), schedule recalculating, edit saved, failed edit.
+- **Material Risk & Contract Conflict Resolution:** Bar lengths previously rendered arbitrary pixel widths. Updated engine computes bar lengths mathematically from ISO-8601 timestamps.
+- **Strict Acceptance Gate:** Visual bar lengths correspond 1:1 with real calendar dates; dependency cycle detection active; no unverified live scheduling claim.
+
+### F19 — Kinzo Agent Roster & Tool Permissions
+- **Registry Binding:** `Catalog S17 / tour S15 / view kinzo`
+- **Source Code Anchor:** `src/components/WireframesV11Panels.tsx:2724`
+- **Architectural Purpose:** Manage specialized agent bots, inspect model configurations, verify tool dispatch permissions, and review execution logs.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Single-column agent list; toggle switches have clear 'Proposed' vs 'Active' badges and 44px touch targets.
+  - **iPad (820×1180):** 820 x 1180: Detailed agent configuration workbench (Agent roster on left, parameter controls & audit logs on right).
+- **Visible Hierarchy:** Agent registry header / Bot cards (Identity, role, model version, system prompt hash) / Tool permission toggles / Execution log drawer.
+- **Primary Interaction & Flow:** Toggle agent enable/disable; inspect tool permissions (e.g. read_drive, draft_email); review execution history.
+- **Required Lifecycle States:** Agent proposed, agent active, agent disabled, tool connecting, permission denied, configuration error.
+- **Material Risk & Contract Conflict Resolution:** Toggling a bot in UI previously created illusion of deployed agent backend. Contract mandates explicit connection status receipt.
+- **Strict Acceptance Gate:** No false capability claims; system prompt hash and model version displayed truthfully; tool permissions strictly sandboxed.
+
+### F20 — Unified Settings & Preference Matrix
+- **Registry Binding:** `Catalog S18 / tour S16 / view settings`
+- **Source Code Anchor:** `src/components/WireframesV11Panels.tsx:2777`
+- **Architectural Purpose:** Configure language (EN / AR), motion preferences, camera sensitivity, audio toggles, and display tokens without hidden side effects.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Clean grouped list of setting rows with switch toggles, language picker, and 44px minimum hit targets.
+  - **iPad (820×1180):** 820 x 1180: Multi-column preference card with live preview stage illustrating immediate effect of motion/visual changes.
+- **Visible Hierarchy:** Settings categories (General, Spatial 3D, Language & RTL, Audio, Gestures) / Control rows with description / Reset to default CTA.
+- **Primary Interaction & Flow:** Toggle EN/AR locale to trigger instantaneous logical RTL refit; toggle Reduced Motion to disable orbital drift; adjust audio volume.
+- **Required Lifecycle States:** Standard motion, reduced motion active, EN active, AR active (RTL), audio enabled/muted, setting saved toast, persist error.
+- **Material Risk & Contract Conflict Resolution:** Changing appearance settings previously triggered full scene remounts and lost active drafts. Settings now update reactive CSS tokens cleanly.
+- **Strict Acceptance Gate:** Zero scene remounts or camera resets on setting changes; locale switch flips layout direction (dir='rtl') instantly; settings persist in localStorage.
+
+### F21 — Hands & Vision Gesture Controls
+- **Registry Binding:** `Catalog S18 / tour S16 / view hands`
+- **Source Code Anchor:** `src/components/HandsOverlay.tsx:50 & src/components/HandsWireframeRig.tsx`
+- **Architectural Purpose:** Enable optional 21-landmark spatial hand tracking for contactless navigation with clear camera permissions and instant kill-switch.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Compact gesture status pill in utility bar; camera preview suppressed to avoid obscuring workspace controls.
+  - **iPad (820×1180):** 820 x 1180: Translucent 21-landmark skeletal hand overlay rendered in corner viewport with gesture confidence meters.
+- **Visible Hierarchy:** Camera permission badge / Hand tracking status (Pinch, Spread, Point, Stop) / Landmark wireframe preview / Emergency Stop button.
+- **Primary Interaction & Flow:** Pinch to orbit scene, spread to zoom, open palm to halt motion; tap 'Stop Gestures' to terminate webcam stream immediately.
+- **Required Lifecycle States:** Permission pending, camera active, hand tracked, gesture recognized, tracking lost (damp velocity over 250ms), camera disabled.
+- **Material Risk & Contract Conflict Resolution:** Older notes claimed sub-millimeter gesture tracking. Contract clarifies gesture recognition is an opt-in spatial controller with standard webcam.
+- **Strict Acceptance Gate:** Camera stream immediately terminated on disable/unmount; zero background video recording; tracking loss gracefully decelerates camera.
+
+### F22 — Voice Widget & Spatial Transcription HUD
+- **Registry Binding:** `Catalog Cross-screen / tour S02 / view voice`
+- **Source Code Anchor:** `src/components/VoiceCard.tsx:896`
+- **Architectural Purpose:** Provide real-time speech-to-text input, Cerebro AI audio streaming, and fingerless spatial micro-keyboard typing feedback.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Compact floating HUD pill docked at bottom center (max-width 358px); tap expands to full transcription transcript.
+  - **iPad (820×1180):** 820 x 1180: Translucent HUD pill (max-width 480px, blur(16px)) with floating fingerless micro-keyboard rendered above VoiceCard.
+- **Visible Hierarchy:** Microphone trigger & status ring (#9AFFE0 AI / #4C8DFF Operator) / Live transcription text / Fingerless frosted key caps / Stop action.
+- **Primary Interaction & Flow:** Click mic to speak; watch words reveal word-by-word with audio sync; physical or spatial typing illuminates frosted circular key tokens.
+- **Required Lifecycle States:** Disconnected, listening, thinking (cyan pulse), speaking (audio synced), interrupted by user, muted, error.
+- **Material Risk & Contract Conflict Resolution:** Older UI used plain subtitle text. Updated architecture features fingerless frosted keys (30px diameter) pulsing autonomously without hand meshes.
+- **Strict Acceptance Gate:** No hot mic or lingering audio recording; text streaming adheres to 40ms stagger; aria-live='polite' announces finalized transcript tokens.
+
+### F23 — Cinematic Intro & Interactive Tour
+- **Registry Binding:** `Catalog Cross-screen / tour S01-S18 / view tour`
+- **Source Code Anchor:** `src/intro/main.tsx & src/utils/cerebroTourAndCtaStore.ts:53`
+- **Architectural Purpose:** Deliver the 180-second / 60fps cinematic film and the 18-screen interactive guided tour across the studio's universe.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Full-bleed 16:9 cinematic presentation framed in vertical orientation; restrained skip, pause, and replay controls.
+  - **iPad (820×1180):** 820 x 1180: Widescreen cinematic player with chapter progress timeline, bilingual title cards, and floating tour step counter.
+- **Visible Hierarchy:** Timeline progress bar / Chapter title & subtitle (EN / AR) / 3D camera trajectory / Step Counter (1 of 18) / Transport controls (Play, Pause, Skip, Exit).
+- **Primary Interaction & Flow:** Watch continuous 10,800-frame authored camera flight; click 'Pause' to halt and explore scene manually; click 'Resume' to pick up trajectory.
+- **Required Lifecycle States:** Intro playing, tour running, step settling, paused by user, user interrupted, resumed, tour completed, exit to workspace.
+- **Material Risk & Contract Conflict Resolution:** 180s cinematic intro (music/SFX, no spoken voice) was previously confused with the 252s interactive step tour. Contract formally separates them.
+- **Strict Acceptance Gate:** Single camera authority throughout; zero camera teleportation across chapter boundaries; user action immediately interrupts tour cleanly.
+
+### F24 — Custom Domain & Reversible Project Worlds
+- **Registry Binding:** `Catalog Extension / tour S18 / view domain`
+- **Source Code Anchor:** `src/three/sphereNetwork.ts & src/components/CosmographCanvas.tsx:2517`
+- **Architectural Purpose:** Spawn and enter dedicated, reversible 3D project worlds (such as Industry / Istanba إصطمبة) while maintaining seamless return bookmarks.
+- **Composition & Ergonomics:**
+  - **Phone (390×844):** 390 x 844: Single focused domain sphere view with concise action pills; prominent '← Return to HQ' button fixed in header.
+  - **iPad (820×1180):** 820 x 1180: Dedicated project world stage with domain inspector and interactive mechanical components (e.g. Istanba die-and-mould halves).
+- **Visible Hierarchy:** Domain world identifier / Custom 3D geometry & shaders / Linked sub-station nodes / '← Return to Originating Sphere' bookmark CTA.
+- **Primary Interaction & Flow:** Enter project world from portfolio or tour; manipulate custom domain mechanics (open die, imprint); click Return to restore camera bookmark.
+- **Required Lifecycle States:** Domain proposed, entering world, world active, interacting with 3D model, exiting world, restored originating sphere and camera.
+- **Material Risk & Contract Conflict Resolution:** Spawned domains previously leaked WebGL memory or reset the root scene. Contract enforces reversible sub-scenes with guaranteed cleanup.
+- **Strict Acceptance Gate:** Exiting domain world restores exact prior camera position, selected tab, and panel scroll; zero memory leaks or orphaned Three.js objects.
+
+
+---
+
+## SECTION 5: TOUR CUE & CTA EXECUTION REGISTER (S01 – S18)
+
+The 18 tour steps defined in `src/utils/cerebroTourAndCtaStore.ts` represent exact interactive cues. Automated agents must adhere to these IDs and never trigger actions on unmounted surfaces:
+
+| Tour Step | Duration | Camera Target / Node | Primary CTA ID | Registered Sub-Step CTA IDs | Source Anchor |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **S01** | 12s | HQ / Boot Loader | `loader-take-off` | `loader-take-off` | `cerebroTourAndCtaStore.ts:56` |
+| **S02** | 12s | HQ / Voice Card | `privacy-owner-only` | `privacy-owner-only`, `privacy-partner`, `voice-stop` | `cerebroTourAndCtaStore.ts:81` |
+| **S03** | 14s | HQ / Morning Briefing | `briefing-approve-lotus` | `briefing-tab-today`, `briefing-tab-meetings`, `briefing-tab-approvals` | `cerebroTourAndCtaStore.ts:118` |
+| **S04** | 14s | HQ / Portfolio | `portfolio-filter-all` | `portfolio-filter-active`, `portfolio-filter-waiting-on-39`, `portfolio-filter-blocked` | `cerebroTourAndCtaStore.ts:161` |
+| **S05** | 16s | HQ / Project Detail | `project-tab-overview` | `project-kpi-cards`, `project-tab-tasks`, `project-tab-media`, `project-tab-budget` | `cerebroTourAndCtaStore.ts:204` |
+| **S06** | 14s | HQ / Tasks | `task-save-patch` | `task-open-detail-TSK-101`, `task-save-patch`, `zebda-make-this-a-task` | `cerebroTourAndCtaStore.ts:283` |
+| **S07** | 14s | HQ / Insights | `insight-inspect-blocked` | `insight-inspect-blocked` | `cerebroTourAndCtaStore.ts:320` |
+| **S08** | 14s | HQ / Mail Workspace | `gmail-two-tap-arm` | `gmail-two-tap-arm`, `gmail-two-tap-confirm` | `cerebroTourAndCtaStore.ts:345` |
+| **S09** | 14s | HQ / Calendar | `calendar-confirm-create` | `calendar-view-today`, `calendar-view-week`, `calendar-arm-create` | `cerebroTourAndCtaStore.ts:376` |
+| **S10** | 13s | HQ / Drive Files | `open-in-file-viewer` | `drive-run-load`, `open-in-file-viewer` | `cerebroTourAndCtaStore.ts:413` |
+| **S11** | 13s | HQ / File Viewer | `file-viewer-zoom-in` | `file-viewer-next-page`, `file-viewer-prev-page`, `file-viewer-zoom-in` | `cerebroTourAndCtaStore.ts:444` |
+| **S12** | 14s | HQ / Media Player | `media-fullscreen` | `media-next-reel`, `media-prev-reel`, `media-add-url`, `media-fullscreen` | `cerebroTourAndCtaStore.ts:481` |
+| **S13** | 14s | HQ / People & RACI | `people-pin-3939` | `crew-chip-39`, `people-tab-raci`, `people-tab-contracts` | `cerebroTourAndCtaStore.ts:524` |
+| **S14** | 14s | HQ / Crew Drafting | `crew-approve-draft` | `crew-approve-draft`, `crew-copy-draft`, `crew-stop-stream` | `cerebroTourAndCtaStore.ts:561` |
+| **S15** | 14s | HQ / Baghira Gantt | `baghira-tab-timeline` | `baghira-tab-plan`, `baghira-tab-timeline`, `kinzo-toggle-BOT-01` | `cerebroTourAndCtaStore.ts:598` |
+| **S16** | 14s | HQ / Settings & Audio | `synth-note-C4` | `settings-tab-hands`, `synth-note-C4`, `synth-note-E4`, `synth-note-G4` | `cerebroTourAndCtaStore.ts:635` |
+| **S17** | 16s | CDE Sphere 02 | `cde-dim-strategy` | `cde-dim-strategy`, `cde-ch-01` | `cerebroTourAndCtaStore.ts:684` |
+| **S18** | 16s | Multi-Domain OS | `s18-spawn-lotus-sphere` | `s18-spawn-lotus-sphere`, `s18-bp-desktop`, `s18-bp-ipad`, `s18-bp-phone` | `cerebroTourAndCtaStore.ts:715` |
+
+
+---
+
+## SECTION 6: GUI STATE NAMESPACE (S01 – S09) & ACCEPTANCE MATRIX
+
+### 6.1 Canonical GUI State Machine (`src/gui/guiTokens.ts`)
+1. **S01 · Universe Entry:** Void canvas initial reveal, logo lockup, biometric or pin gate.
+2. **S02 · Sphere Hover & Target Ring:** Spatial raycaster intersection, cyan highlight ring, node name tooltip.
+3. **S03 · Station Focus & Single Panel:** Camera flight to station node, safe rect contraction, side inspector mount.
+4. **S04 · Camera Flight Transition:** Spring-damper trajectory execution, velocity damping, FOV adjustments.
+5. **S05 · Detail Inspection:** Deep workspace tab expansion, KPI card rendering, draft buffering.
+6. **S06 · Voice Active Session:** HUD transcription pill listening, audio spectrum animation, fingerless key pulsing.
+7. **S07 · Mobile Bottom Sheet:** Contextual sheet peek (72px), standard (264px), or expanded (480px).
+8. **S08 · Tablet Inspector:** Flanking 304px (portrait) or dual 288px (landscape) 3D perspective panels.
+9. **S09 · Return & Resume:** Stack pop, camera restoration to exact originating bookmark, state recovery.
+
+### 6.2 Viewport Acceptance & Performance Verification Grid
+- **Phone (390×844):** 100% single-column readability; minimum 44×44px hit targets; bottom sheet does not obscure top brand lockup.
+- **Tablet Portrait (820×1180):** Single 304px inspector beside WebGL stage; zero collision with VoiceCard.
+- **Tablet Landscape (1180×820):** Dual flanking 288px panels; `sceneSafeRect` retains at least 50% central cosmic viewport.
+- **Desktop HD (1440×900) & 2K (2560×1440):** Full 3D perspective tilt (`rotateX(12deg) rotateY(-8deg) translateZ(40px)`); frame rate target p95 <= 16.7ms.
+- **Mobile Tier Frame Rate:** p95 <= 33.3ms under battery constraints with AgXToneMapping and clamping.
+
+---
+
+## SECTION 7: EDGE, ERROR AND RECOVERY SAFEGUARDS
+
+1. **Context Loss & WebGL Recovery:**
+   - On `webglcontextlost`, gracefully mount the 2D accessible station cards inside `sceneSafeRect` without dropping active user drafts.
+2. **Audio Autoplay Rejection:**
+   - If browser blocks audio autoplay, keep audio muted and display the glowing `Sound: Off (Click to Enable)` token; never throw an uncaught promise error.
+3. **Tracking & Input Races:**
+   - Rapid camera clicks cancel existing flight trajectories cleanly, sampling current position and velocity to initialize the new trajectory without coordinate snapping.
+4. **RTL Language Toggle:**
+   - Changing locale to Arabic (`ar`) instantly applies `dir="rtl"` to contextual surfaces, preserves the original Arabic NOJARA logo image, and refits label alignment without remounting the 3D scene.
+

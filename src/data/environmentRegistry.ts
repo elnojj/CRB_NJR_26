@@ -330,10 +330,10 @@ const ring = (azimuthDeg: number, radius: number, y: number, standoffOverride?: 
 /** Stage anchors for every node a pitch beat points at, keyed by canonical association id. */
 const PITCH_ANCHORS: Readonly<Record<string, NodeAnchor>> = {
   about__premise__hello_friend: { position: [0, 0.2, 0], approachYawDeg: 25, standoffOverride: 11 },
-  about__people__shweekar: ring(-40, 3.6, 0.4),
-  about__people__khalid: ring(40, 3.6, 0.4),
-  about__people__tarek: ring(0, 3.8, 0.6),
-  about__identity__nojara: ring(150, 3.6, -0.4),
+  about__people__shweekar: ring(-40, 3.2, 0.4),
+  about__people__khalid: ring(40, 3.2, 0.4),
+  about__people__tarek: ring(0, 3.3, 0.6),
+  about__identity__nojara: ring(150, 3.2, -0.4),
   cde__domains__production: ring(-60, 3.8, 0.2),
   cde__domains__strategy: ring(20, 3.8, 0.4),
   cde__domains__talent: ring(110, 3.8, 0),

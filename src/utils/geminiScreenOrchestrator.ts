@@ -1,3 +1,4 @@
+import { CONTRACT_SHELL_MATERIAL } from '../design/systemContract';
 import { CRO_CDE_GOOGLE_TOOLS_SCHEMA } from '../services/voice/cerebroAgentManifest';
 
 export type DomainMaterialPreset =
@@ -66,24 +67,24 @@ export function getDomainMaterialColors(preset: DomainMaterialPreset): {
       return {
         shellHex: '#4C8DFF',
         rimHex: '#B4DDFF',
-        transmission: 0.88,
-        roughness: 0.06,
+        transmission: CONTRACT_SHELL_MATERIAL.transmission,
+        roughness: CONTRACT_SHELL_MATERIAL.roughness,
         wireframeOnly: false,
       };
     case 'amber-crystal':
       return {
         shellHex: '#F2B66D',
         rimHex: '#FFF1D4',
-        transmission: 0.84,
-        roughness: 0.08,
+        transmission: CONTRACT_SHELL_MATERIAL.transmission,
+        roughness: CONTRACT_SHELL_MATERIAL.roughness,
         wireframeOnly: false,
       };
     case 'emerald-plasma':
       return {
         shellHex: '#7CE0B8',
         rimHex: '#5CC8D7',
-        transmission: 0.82,
-        roughness: 0.12,
+        transmission: CONTRACT_SHELL_MATERIAL.transmission,
+        roughness: CONTRACT_SHELL_MATERIAL.roughness,
         wireframeOnly: false,
       };
     case 'wireframe-obsidian':
@@ -98,8 +99,8 @@ export function getDomainMaterialColors(preset: DomainMaterialPreset): {
       return {
         shellHex: '#9DB8D6',
         rimHex: '#F2F6F8',
-        transmission: 0.86,
-        roughness: 0.09,
+        transmission: CONTRACT_SHELL_MATERIAL.transmission,
+        roughness: CONTRACT_SHELL_MATERIAL.roughness,
         wireframeOnly: false,
       };
   }

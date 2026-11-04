@@ -8,6 +8,8 @@
  * Never blur text or apply film grain / bloom / refraction to DOM or media content.
  */
 
+import { CONTRACT_SHELL_MATERIAL } from './systemContract';
+
 export const LIQUID_GLASS_V7_SCHEMA = 'cerebro.cinematic-liquid-glass.v7' as const;
 
 export const LG_V7_TOKENS = {
@@ -151,13 +153,14 @@ export const LG_V7_COMPONENTS = {
 } as const;
 
 export const LG_V7_OPTICAL = {
-  ior: 1.48,
-  roughness: 0.08,
-  roughnessHq: 0.08,
-  roughnessCde: 0.08,
-  transmission: 0.88,
-  clearcoat: 0.8,
-  clearcoatRoughness: 0.06,
+  ior: CONTRACT_SHELL_MATERIAL.ior,
+  roughness: CONTRACT_SHELL_MATERIAL.roughness,
+  roughnessHq: CONTRACT_SHELL_MATERIAL.roughness,
+  roughnessCde: CONTRACT_SHELL_MATERIAL.roughness,
+  transmission: CONTRACT_SHELL_MATERIAL.transmission,
+  clearcoat: CONTRACT_SHELL_MATERIAL.clearcoat,
+  clearcoatRoughness: CONTRACT_SHELL_MATERIAL.clearcoatRoughness,
+  envMapIntensity: CONTRACT_SHELL_MATERIAL.envMapIntensity,
   metalness: 0,
   fresnelExponent: 4,
   rimIntensity: 0.25,
