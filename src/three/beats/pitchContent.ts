@@ -1,4 +1,5 @@
 import { ENVIRONMENTS } from '../../data/environmentRegistry';
+import { mediaStatusTag, resolveMediaProvenance } from '../../data/mediaProvenance';
 import { PITCH_BEATS, PITCH_PACING, PITCH_SOURCES, type PitchBeat } from '../../data/pitchBeats';
 import type { BeatContent, BeatContentProvider, SpeedRamp } from './beatTypes';
 
@@ -19,11 +20,13 @@ export function pitchRamp(beat: PitchBeat): SpeedRamp {
 
 function mediaFor(beat: PitchBeat): BeatContent['media'] {
   if (beat.sourceIds.length === 0) {
-    return { kind: 'title', title: beat.mediaKind === 'prototype' ? 'Concept' : 'Media pending', caption: 'Illustrative · not live' };
+    const status = resolveMediaProvenance({ runtimeUrl: null, posterUrl: null });
+    return { kind: 'title', title: beat.mediaKind === 'prototype' ? 'Concept' : 'No media', caption: mediaStatusTag(status, 'not live') };
   }
   const first = PITCH_SOURCES[beat.sourceIds[0]];
   const extra = beat.sourceIds.length > 1 ? ` +${beat.sourceIds.length - 1}` : '';
-  return { kind: 'title', title: `${first.title}${extra}`, caption: 'Source supplied · playback pending' };
+  const status = resolveMediaProvenance({ runtimeUrl: first.runtimeUrl, posterUrl: null });
+  return { kind: 'title', title: `${first.title}${extra}`, caption: mediaStatusTag(status, 'source supplied') };
 }
 
 function honestNoteFor(beat: PitchBeat): string {

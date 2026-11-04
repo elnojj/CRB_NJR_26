@@ -1,3 +1,4 @@
+import { mediaStatusTag, resolveMediaProvenance } from '../data/mediaProvenance';
 import { PUBLIC_BRAND_MEDIA } from '../data/publicBrandMedia';
 import { TUBE_TILE_BY_SLOT } from '../data/mediaTubeTiles';
 import { PROJECT_MEDIA_TUBE_SPECS } from './mediaTubeSpecs';
@@ -136,9 +137,10 @@ function buildBaseProjectMediaTubeItems(projectId: string): ProjectMediaTubeItem
 
     // Default / Unknown project truthful document items
     const isVideo = defaultKind === 'video';
+    const tag = mediaStatusTag(resolveMediaProvenance({ runtimeUrl: null, posterUrl: null }));
     const sub = isVideo
-      ? 'VIDEO · No cleared video linked · 16:9'
-      : `${defaultKind.toUpperCase()} · Row ${row} Col ${col} · ${defaultAspect}`;
+      ? `${tag} · VIDEO · No cleared video linked · 16:9`
+      : `${tag} · ${defaultKind.toUpperCase()} · Row ${row} Col ${col} · ${defaultAspect}`;
 
     return {
       index: idx,
