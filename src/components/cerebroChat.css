@@ -11,10 +11,16 @@
   /* Bottom safe area: the gap is added on top of the inset (not max()'d with it) so the
      dock clears iOS home indicators and mobile/tablet browser toolbars and overlays. */
   --cerebro-dock-gap: 16px;
-  bottom: calc(var(--cerebro-dock-gap) + env(safe-area-inset-bottom, 0px));
+  /* With the iOS keyboard open, --cerebro-kb-inset lifts the dock above it (the canvas never
+     resizes) and the home-indicator inset is dropped since the keyboard replaces it. */
+  bottom: calc(
+    var(--cerebro-dock-gap) + var(--cerebro-kb-inset, 0px) +
+      env(safe-area-inset-bottom, 0px) * var(--cerebro-safe-scale, 1)
+  );
   /* Keep dock + chat on one screen — never a second scrollable page */
   max-height: calc(
-    100dvh - var(--cerebro-dock-gap) - env(safe-area-inset-bottom, 0px) - env(safe-area-inset-top, 0px) - 8px
+    var(--cerebro-vv-height, 100dvh) - var(--cerebro-dock-gap) -
+      env(safe-area-inset-bottom, 0px) * var(--cerebro-safe-scale, 1) - env(safe-area-inset-top, 0px) - 8px
   );
 }
 
@@ -146,6 +152,15 @@
   color: var(--token-text-primary, #f2f6f8);
   pointer-events: auto;
   overflow: hidden;
+  touch-action: manipulation;
+}
+
+.cerebro-chat input,
+.cerebro-chat textarea {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+  touch-action: manipulation;
 }
 
 .cerebro-chat--docked {
@@ -207,6 +222,8 @@
   min-height: 120px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   padding: 10px 14px;
   display: flex;
   flex-direction: column;
@@ -382,6 +399,8 @@
 
 .cerebro-chat__input {
   flex: 1 1 auto;
+  -webkit-appearance: none;
+  appearance: none;
   min-height: 44px;
   max-height: 96px;
   resize: none;

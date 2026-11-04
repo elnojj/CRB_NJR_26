@@ -69,6 +69,7 @@ import { getProjectWorldManifest } from '../data/projectWorldManifest';
 import { HandGlove3D } from '../three/HandGlove3D';
 import { gloveFrustum } from '../three/handTracker';
 import { NodeInteractionLayer } from '../three/nodeInteraction';
+import { isEditableTarget } from '../gui/keyboardInset';
 import { createBackgroundStarfield } from '../three/backgroundStarfield';
 import { isolateDecorativeGeometry, type CosmeticFade } from '../three/decorativeIsolation';
 import { handIsFresh, handStateRef } from '../three/handStateRef';
@@ -3401,10 +3402,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     domEl.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('keydown', recordUserInput);
 
+    let lastCanvasW = initW;
     const onResize = () => {
       if (!container || contextLost) return;
       const w = container.clientWidth || window.innerWidth;
       const h = container.clientHeight || window.innerHeight;
+      // The iOS keyboard changes only the visual viewport height. Never resize or reframe the
+      // scene for it, otherwise the 3D view squishes and jumps while typing in the chat.
+      if (isEditableTarget(document.activeElement) && w === lastCanvasW) return;
+      lastCanvasW = w;
       const comp = readHomeComposition(container);
       executeAtomicReframe(camera, w, h, comp.occludedBottomPx);
       renderer.setSize(w, h);
@@ -3422,7 +3428,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     };
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
-    window.visualViewport?.addEventListener('resize', onResize);
     const containerResizeObserver =
       typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => onResize()) : null;
     if (container) containerResizeObserver?.observe(container);
@@ -4300,8 +4305,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       window.removeEventListener('keydown', recordUserInput);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('orientationchange', onResize);
-      window.visualViewport?.removeEventListener('resize', onResize);
-      containerResizeObserver?.disconnect();
+        containerResizeObserver?.disconnect();
       if (composer) {
         composer.dispose();
       }

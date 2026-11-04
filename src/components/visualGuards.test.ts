@@ -113,3 +113,31 @@ describe('visual guards: phone layout (live iPhone inspection)', () => {
     assert.match(indexCss, /button\.cerebro-infograph-label \{\s*max-width: calc\(100vw - 16px\)/);
   });
 });
+
+describe('visual guards: chat on iOS', () => {
+  const voiceSrc = read('./VoiceCard.tsx');
+
+  it('overlay is click-through and only the chat card takes pointer events', () => {
+    assert.match(dockCss, /\.cerebro-dock \{[^}]*pointer-events: none;/s);
+    assert.match(dockCss, /\.cerebro-dock > \* \{\s*pointer-events: auto;/);
+  });
+
+  it('inputs stay editable under the global user-select: none and touch-action: none', () => {
+    assert.match(dockCss, /\.cerebro-chat textarea \{[^}]*user-select: text;/s);
+    assert.match(dockCss, /touch-action: manipulation;/);
+    assert.match(indexCss, /body \{\s*position: fixed;/);
+  });
+
+  it('keyboard lifts the dock via CSS vars and never resizes the canvas', () => {
+    assert.ok(dockCss.includes('--cerebro-kb-inset'));
+    assert.ok(voiceSrc.includes('useKeyboardInsetVars(chatOpen)'));
+    assert.ok(canvasSrc.includes('isEditableTarget(document.activeElement) && w === lastCanvasW'));
+    assert.ok(!canvasSrc.includes("visualViewport?.addEventListener('resize', onResize)"));
+  });
+
+  it('send routes through the __user_chat__ dispatcher and Enter submits', () => {
+    assert.ok(voiceSrc.includes('onSimulateCommand(`__user_chat__:'));
+    assert.ok(voiceSrc.includes("e.key === 'Enter' && !e.shiftKey"));
+    assert.ok(voiceSrc.includes('type="submit"'));
+  });
+});

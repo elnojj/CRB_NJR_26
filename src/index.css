@@ -72,6 +72,12 @@
   }
 
   /* Default-app focus: cobalt #65ACFF (gold reserved for film / 3D rails) */
+  /* Pin the document so iOS cannot scroll/pan the page to reveal a focused field. */
+  body {
+    position: fixed;
+    inset: 0;
+  }
+
   *:focus-visible {
     outline: 2px solid var(--focus-ring, #65ACFF);
     outline-offset: 2px;

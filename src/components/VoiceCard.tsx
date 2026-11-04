@@ -12,6 +12,7 @@ import {
   type VoiceBridgeState,
 } from '../utils/googleAiStudioVoiceBridge';
 import { ComputedGuiLayout } from '../gui/layoutEngine';
+import { useKeyboardInsetVars } from '../gui/keyboardInset';
 import './cerebroChat.css';
 
 export type VoiceState =
@@ -349,6 +350,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     }
   }, [chatOpen]);
 
+  useKeyboardInsetVars(chatOpen);
+
   const send = useCallback(async () => {
     const text = draft.trim();
     if ((!text && !attachment) || busy) return;
@@ -513,6 +516,17 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
             </p>
           )}
 
+          <input
+            ref={fileRef}
+            type="file"
+            className="sr-only"
+            data-testid="cerebro-chat-file"
+            onChange={(e) => {
+              const f = e.target.files?.[0] ?? null;
+              setAttachment(f);
+              e.target.value = '';
+            }}
+          />
           <form
             className="cerebro-chat__composer"
             onSubmit={(e) => {
@@ -520,17 +534,6 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               void send();
             }}
           >
-            <input
-              ref={fileRef}
-              type="file"
-              className="sr-only"
-              data-testid="cerebro-chat-file"
-              onChange={(e) => {
-                const f = e.target.files?.[0] ?? null;
-                setAttachment(f);
-                e.target.value = '';
-              }}
-            />
             <button
               type="button"
               className="cerebro-chat__icon-btn"
@@ -546,11 +549,14 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               data-testid="cerebro-chat-input"
               rows={1}
               enterKeyHint="send"
+              autoComplete="off"
+              autoCorrect="on"
+              autoCapitalize="sentences"
               placeholder="Message Cerebro…"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                   e.preventDefault();
                   void send();
                 }

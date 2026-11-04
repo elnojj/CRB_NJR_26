@@ -60,6 +60,7 @@ async function main(): Promise<void> {
     ['visualGuards', 'src/components/visualGuards.test.ts'],
     ['glassFallback', 'src/three/glassFallback.test.ts'],
     ['motionPreference', 'src/utils/motionPreference.test.ts'],
+    ['keyboardInset', 'src/gui/keyboardInset.test.ts'],
   ] as const) {
     const run = await runNodeTestFile(file);
     const fail = run.output.match(/# fail (\d+)/)?.[1] || '0';
