@@ -134,6 +134,7 @@ import { soundEngine } from './utils/soundEngine';
 import { forceStopSharedWebcamStream } from './services/media/deviceStreamCoordinator';
 import { CEREBRO_VOICE_LABEL } from './services/voice/settings';
 import { useViewport } from './gui/useViewport';
+import { enforceSingleSurfaceHost } from './gui/surfaceHost';
 import { computeGuiLayout, PhoneSheetExpansion } from './gui/layoutEngine';
 import { GUI_CAMERA_PRESETS, GuiCameraPresetId } from './gui/cameraPresets';
 import {
@@ -854,6 +855,17 @@ export default function App() {
     },
     [activeCheckpointId, pushAlertToast]
   );
+
+  // RULE-04: one context surface host at a time. Per-panel scroll, drafts and project tabs live in
+  // panelScrollById / panelDraftsById / projectTabsById, so a displaced host reopens where it was left.
+  useEffect(() => {
+    const plan = enforceSingleSurfaceHost(openPanels, viewport.breakpoint, {
+      projectTab: projectTabsById[selectedProjectId] || 'tasks',
+      scrollTopByPanel: panelScrollById,
+      draftByPanel: panelDraftsById,
+    });
+    if (plan.displaced.length > 0) setOpenPanels(plan.panels);
+  }, [openPanels, viewport.breakpoint, projectTabsById, selectedProjectId, panelScrollById, panelDraftsById]);
 
   // Open a single primary working panel by default unless side-by-side comparison is requested
   const ensurePanelOpen = useCallback((panelId: string, replaceAll = true) => {

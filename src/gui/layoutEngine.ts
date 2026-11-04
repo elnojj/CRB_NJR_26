@@ -12,6 +12,7 @@
 
 import { GuiRect, clampRectToViewport, verifyZeroOverlap } from './CollisionManager';
 import { GUI_TOUCH_TOKENS } from './guiTokens';
+import { CONTRACT_PHONE_SHEET_PX } from '../design/systemContract';
 
 export type GuiBreakpoint = 'phone' | 'ipad' | 'ipad_landscape' | 'desktop' | 'wide';
 
@@ -112,10 +113,10 @@ export function computeGuiLayout(params: ComputeGuiLayoutParams): ComputedGuiLay
     if (isSheetOpen) {
       const targetSheetH =
         phoneSheetState === 'collapsed'
-          ? 72
+          ? CONTRACT_PHONE_SHEET_PX.peek
           : phoneSheetState === 'expanded'
-            ? Math.round(height * 0.7)
-            : Math.min(264, Math.round(height * 0.45));
+            ? Math.min(CONTRACT_PHONE_SHEET_PX.expanded, Math.round(height * 0.7))
+            : Math.min(CONTRACT_PHONE_SHEET_PX.default, Math.round(height * 0.45));
       const maxAvailableSheetH = Math.max(
         72,
         Math.min(
