@@ -3,7 +3,7 @@
  * Extends BootLoader health telemetry with live runtime banners + retries.
  */
 import React, { useCallback, useEffect, useState } from 'react';
-import { CEREBRO_VOICE_LABEL, CEREBRO_VOICE_PROVIDER } from '../config/voiceProvider';
+import { CEREBRO_VOICE_LABEL, CEREBRO_VOICE_PROVIDER } from '../services/voice/settings';
 
 export type SystemStatusKind =
   | 'offline'

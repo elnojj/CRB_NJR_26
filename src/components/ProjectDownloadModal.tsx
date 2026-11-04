@@ -15,8 +15,8 @@ import {
   CRO_CDE_GOOGLE_AGENT_NAME,
   CRO_CDE_GOOGLE_TOOLS_SCHEMA,
   buildGoogleAiStudioAgentPayload,
-} from '../data/croCdeGoogleAgentManifest';
-import { buildOpenAiRealtimeSession } from '../data/openAiRealtimeConfig';
+} from '../services/voice/cerebroAgentManifest';
+import { buildOpenAiRealtimeSession } from '../services/openai-realtime/sessionConfig';
 
 interface ProjectDownloadModalProps {
   open: boolean;

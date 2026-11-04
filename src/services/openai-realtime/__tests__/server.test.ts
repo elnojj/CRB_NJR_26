@@ -1,7 +1,9 @@
+import { verifyVoiceIdentity } from '../server/identity';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { EventEmitter } from 'node:events';
 import type { Request, Response as ExpressResponse } from 'express';
-import { createOpenAiRealtimeHandler, verifyVoiceIdentity } from './openAiRealtime';
+import { createOpenAiRealtimeHandler } from '../server/sessionHandler';
 
 function request(overrides: Record<string, unknown> = {}): Request {
   return {
@@ -107,4 +109,25 @@ test('Firebase account lookup validates the identity token and rejects disabled/
   assert.equal(await verifyVoiceIdentity('disabled', async () => new Response(JSON.stringify({
     users: [{ localId: 'uid-123', disabled: true }],
   }))), null);
+});
+
+test('disconnecting the HTTP client aborts upstream signaling and removes lifecycle listeners', async () => {
+  const req = Object.assign(new EventEmitter(), request()) as unknown as Request;
+  const { result, res } = response();
+  const connection = Object.assign(new EventEmitter(), res) as unknown as ExpressResponse;
+  let signal: AbortSignal | undefined;
+  const handler = createOpenAiRealtimeHandler({ env, verifyIdentity: identity, fetch: async (_url, options) => {
+    signal = options?.signal as AbortSignal;
+    return new Promise<Response>((_resolve, reject) => signal!.addEventListener('abort', () => {
+      reject(new DOMException('Cancelled', 'AbortError'));
+    }));
+  } });
+  const pending = handler(req, connection);
+  await new Promise<void>(resolve => setImmediate(resolve));
+  connection.emit('close');
+  await pending;
+  assert.equal(signal?.aborted, true);
+  assert.equal(result.status, 0, 'No error body is sent to the disconnected client');
+  assert.equal(connection.listenerCount('close'), 0);
+  assert.equal(req.listenerCount('aborted'), 0);
 });

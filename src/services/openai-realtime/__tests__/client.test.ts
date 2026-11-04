@@ -1,11 +1,12 @@
+import { parseRealtimeToolArguments } from '../tools';
 import assert from 'node:assert/strict';
 import { afterEach, test } from 'node:test';
-import { OpenAiRealtimeVoiceBridge, parseRealtimeToolArguments, type RealtimeBridgeDependencies } from './openAiRealtimeVoiceBridge';
-import { buildOpenAiRealtimeSession, buildOpenAiRealtimeTools } from '../data/openAiRealtimeConfig';
-import { CRO_CDE_GOOGLE_TOOLS_SCHEMA } from '../data/croCdeGoogleAgentManifest';
-import { auditToolRegistry } from './actionDispatcher';
-import type { VoiceBridgeState } from './voiceBridgeTypes';
-import { requestUserMedia } from './mediaDeviceManager';
+import { OpenAiRealtimeVoiceBridge, type RealtimeBridgeDependencies } from '../OpenAiRealtimeVoiceBridge';
+import { buildOpenAiRealtimeSession, buildOpenAiRealtimeTools } from '../sessionConfig';
+import { CRO_CDE_GOOGLE_TOOLS_SCHEMA } from '../../voice/cerebroAgentManifest';
+import { auditToolRegistry } from '../../../utils/actionDispatcher';
+import type { VoiceBridgeState } from '../../voice/types';
+import { requestUserMedia } from '../../media/mediaDeviceManager';
 
 const flush = () => new Promise<void>(resolve => setImmediate(resolve));
 const bridges: OpenAiRealtimeVoiceBridge[] = [];
@@ -252,6 +253,67 @@ test('context received before connection is refreshed without adding conversatio
   assert.equal(updates.length, 2);
   assert.match(updates.at(-1)?.session.instructions, /S02/);
   assert.ok(!h.sent.some(event => event.item?.type === 'message'));
+});
+
+test('a dropped connection can recover briefly; a persistent drop releases the mic and supports retry', async () => {
+  const h = harness();
+  const bridge = h.make({ reconnectTimeoutMs: 10 });
+  await bridge.connect();
+  h.emit({ type: 'session.created' });
+  const pc = h.pcs.at(-1);
+  pc.connectionState = 'disconnected';
+  pc.onconnectionstatechange();
+  assert.equal(h.states.at(-1)?.state, 'Reconnecting');
+  pc.connectionState = 'connected';
+  pc.onconnectionstatechange();
+  await new Promise(resolve => setTimeout(resolve, 25));
+  assert.equal(bridge.isLiveWebSocketOpen(), true);
+  pc.connectionState = 'disconnected';
+  pc.onconnectionstatechange();
+  await new Promise(resolve => setTimeout(resolve, 25));
+  assert.equal(h.states.at(-1)?.state, 'Error');
+  assert.equal(h.counts().releases, 1);
+  await bridge.retry();
+  h.emit({ type: 'session.created' });
+  assert.equal(bridge.isLiveWebSocketOpen(), true);
+  assert.equal(h.pcs.length, 2);
+});
+
+test('audio teardown errors cannot strand sender tracks or the shared mic lease', async () => {
+  const h = harness();
+  const bridge = h.make({ createAudio: () => ({
+    muted: false, srcObject: null, play: async () => {},
+    pause() { throw new Error('DOM audio teardown failed'); },
+    remove() { throw new Error('DOM removal failed'); },
+  }) as unknown as HTMLAudioElement });
+  await bridge.connect();
+  assert.doesNotThrow(() => bridge.disconnect());
+  assert.equal(h.counts().releases, 1);
+  assert.equal(h.pcs.at(-1).tracks[0].stopped, true);
+  assert.equal(h.pcs.at(-1).closed, true);
+});
+
+test('a tool completing during barge-in cannot create an overlapping model response', async () => {
+  const h = harness();
+  const bridge = h.make();
+  await bridge.connect();
+  h.emit({ type: 'session.created' });
+  let finish!: (value: string) => void;
+  bridge.updateCallbacks({ ...h.callbacks, onClientToolCall: () => new Promise(resolve => { finish = resolve; }) });
+  h.emit({ type: 'response.done', response: { status: 'completed', output: [
+    { type: 'function_call', call_id: 'slow-ui', name: 'get_page_state', arguments: '{}' },
+  ] } });
+  await flush();
+  h.emit({ type: 'input_audio_buffer.speech_started' });
+  h.emit({ type: 'input_audio_buffer.speech_stopped' });
+  h.emit({ type: 'response.created' });
+  h.sent.length = 0;
+  finish('{"ok":true}');
+  await flush();
+  assert.equal(h.sent.filter(event => event.type === 'response.create').length, 0);
+  assert.equal(h.sent.filter(event => event.item?.type === 'function_call_output').length, 1);
+  h.emit({ type: 'response.done', response: { status: 'completed', output: [] } });
+  assert.equal(h.sent.filter(event => event.type === 'response.create').length, 1);
 });
 
 test('double connect is idempotent; a failed session request releases mic and stays retryable', async () => {

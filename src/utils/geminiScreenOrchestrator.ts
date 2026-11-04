@@ -1,4 +1,4 @@
-import { CRO_CDE_GOOGLE_TOOLS_SCHEMA } from '../data/croCdeGoogleAgentManifest';
+import { CRO_CDE_GOOGLE_TOOLS_SCHEMA } from '../services/voice/cerebroAgentManifest';
 
 export type DomainMaterialPreset =
   | 'cobalt-glass'

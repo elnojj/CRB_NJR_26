@@ -112,7 +112,7 @@ import {
   CRO_CDE_GOOGLE_AGENT_NAME,
   CRO_CDE_GOOGLE_TOOLS_SCHEMA,
   DEFAULT_INTERNAL_AGENT_ID,
-} from './data/croCdeGoogleAgentManifest';
+} from './services/voice/cerebroAgentManifest';
 import { CEREBRO_17_PROJECTS, CEREBRO_18_SCREENS } from './data/cerebroData';
 import {
   CustomDomain3D,
@@ -122,7 +122,8 @@ import {
   orchestrateScreenCommandWithGemini,
 } from './utils/geminiScreenOrchestrator';
 import { soundEngine } from './utils/soundEngine';
-import { forceStopSharedWebcamStream } from './utils/deviceStreamCoordinator';
+import { forceStopSharedWebcamStream } from './services/media/deviceStreamCoordinator';
+import { CEREBRO_VOICE_LABEL } from './services/voice/settings';
 import { useViewport } from './gui/useViewport';
 import { computeGuiLayout, PhoneSheetExpansion } from './gui/layoutEngine';
 import { GUI_CAMERA_PRESETS, GuiCameraPresetId } from './gui/cameraPresets';
@@ -4752,7 +4753,7 @@ export default function App() {
                     }}
                     className="min-h-[38px] px-3 py-1.5 rounded-lg font-mono text-xs bg-[#1B2230] border border-[#D4AF37]/50 text-[#FFF4D0] cursor-pointer"
                   >
-                    Connect {CEREBRO_VOICE_PROVIDER === 'openai-realtime' ? 'OpenAI Voice' : 'Google Voice'} ({CRO_CDE_GOOGLE_TOOLS_SCHEMA.length} Tools)
+                    Connect {CEREBRO_VOICE_LABEL} ({CRO_CDE_GOOGLE_TOOLS_SCHEMA.length} Tools)
                   </button>
                   <button
                     type="button"

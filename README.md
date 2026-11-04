@@ -43,7 +43,7 @@ Requires a `VERCEL_TOKEN` for the Vercel team/project that already serves `labs.
 
 ## Secrets
 
-Copy `.env.example` → `.env`. The UI boots without live keys; Gemini / ElevenLabs features need:
+Copy `.env.example` → `.env`. The UI boots without live keys; live providers need:
 
 - `OPENAI_API_KEY` — server only, for the default OpenAI Voice provider
 - `GEMINI_API_KEY` — text chat / creative tools and the optional legacy voice provider
@@ -52,6 +52,8 @@ Copy `.env.example` → `.env`. The UI boots without live keys; Gemini / ElevenL
 ## OpenAI Voice
 
 `VoiceCard` → `createVoiceBridge` → `OpenAiRealtimeVoiceBridge` is the default call path.
+All voice services live in [`src/services/`](src/services/README.md): provider settings, shared tools,
+connection logic, server handlers, retained providers and media ownership. UI components consume services.
 It uses native WebRTC speech-to-speech, server VAD/interruption, final transcripts and the existing
 27 Cerebro tools. Tool results go back as `function_call_output` receipts before the next response.
 The same `handleExecuteToolCall` / `parseStructuredToolCall` / `executeTypedAction` path still owns UI actions.
@@ -70,6 +72,7 @@ Audience headers and visual access codes cannot authenticate this endpoint. Exis
 retain their own authorization requirements; voice sign-in does not establish project membership.
 The route runs in Express locally and as `api/openai/realtime/session.ts` on Vercel. It never returns
 the OpenAI key, and no `VITE_OPENAI_API_KEY` should be configured. No separate OpenAI agent ID is needed.
+The configurable badge label is `VITE_CEREBRO_VOICE_LABEL`; blank derives the provider's default label.
 
 To select the retained Google bridge, build with `VITE_CEREBRO_VOICE_PROVIDER=google-ai-studio`.
 The legacy `/api/gemini/voice-turn` backend must be available for that path; it is absent from this

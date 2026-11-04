@@ -18,6 +18,7 @@ export interface VoiceBridge {
   sendContextualUpdate(json: string): void;
   stopOutputAudioImmediately(): void;
   connect(agentId?: string): Promise<void>;
+  retry(): Promise<void>;
   disconnect(intentional?: boolean): void;
   setMuted(muted: boolean): void;
 }

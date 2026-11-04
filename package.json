@@ -13,7 +13,7 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "test": "node --import tsx scripts/run-self-tests.ts",
-    "test:voice": "node --import tsx --test src/utils/openAiRealtimeVoiceBridge.test.ts server/openAiRealtime.test.ts",
+    "test:voice": "node --import tsx --test src/services/openai-realtime/__tests__/client.test.ts src/services/openai-realtime/__tests__/server.test.ts src/services/openai-realtime/__tests__/integration.test.ts",
     "deploy:labs": "npm run build:labs && npx vercel deploy --prod --yes"
   },
   "dependencies": {

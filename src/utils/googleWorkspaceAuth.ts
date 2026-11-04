@@ -122,11 +122,8 @@ export const getAccessToken = async (): Promise<string | null> => {
   return cachedAccessToken;
 };
 
-/** Firebase identity token for our backend; never substitute a Workspace OAuth token. */
-export async function getCerebroIdToken(): Promise<string | null> {
-  await auth.authStateReady();
-  return auth.currentUser ? auth.currentUser.getIdToken() : null;
-}
+/** Shared auth instance for authenticated service adapters. */
+export const getWorkspaceAuth = () => auth;
 
 export const logout = async () => {
   await auth.signOut();

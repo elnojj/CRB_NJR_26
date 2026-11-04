@@ -1,5 +1,5 @@
 import { runGuiLayoutSelfTests } from '../src/gui/gui-layout.test.ts';
-import { runDeviceStreamCoordinatorSelfTests } from '../src/utils/deviceStreamCoordinator.test.ts';
+import { runDeviceStreamCoordinatorSelfTests } from '../src/services/media/deviceStreamCoordinator.test.ts';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -62,12 +62,15 @@ async function main(): Promise<void> {
     console.log(hands.output);
   }
 
-  const voice = await runNodeTestFile('src/utils/openAiRealtimeVoiceBridge.test.ts');
-  const voiceServer = await runNodeTestFile('server/openAiRealtime.test.ts');
+  const voice = await runNodeTestFile('src/services/openai-realtime/__tests__/client.test.ts');
+  const voiceServer = await runNodeTestFile('src/services/openai-realtime/__tests__/server.test.ts');
+  const voiceIntegration = await runNodeTestFile('src/services/openai-realtime/__tests__/integration.test.ts');
   console.log(`openai-realtime-voice: ${voice.ok ? 'passed' : 'FAILED'}`);
   console.log(`openai-realtime-server: ${voiceServer.ok ? 'passed' : 'FAILED'}`);
+  console.log(`openai-realtime-integration: ${voiceIntegration.ok ? 'passed' : 'FAILED'}`);
   if (!voice.ok) console.log(voice.output);
   if (!voiceServer.ok) console.log(voiceServer.output);
+  if (!voiceIntegration.ok) console.log(voiceIntegration.output);
 
   // Lightweight camera / spatial math checks (Three.js-free)
   const { masterPose, flightMs, buildClosedOrbitalLoopPoints } = await import(
@@ -107,7 +110,7 @@ async function main(): Promise<void> {
   );
   for (const f of regFails) console.log(`  FAIL ${f}`);
 
-  if (gui.failed > 0 || streams.failed > 0 || !plan.ok || !hands.ok || !voice.ok || !voiceServer.ok || !mathOk || !regOk) {
+  if (gui.failed > 0 || streams.failed > 0 || !plan.ok || !hands.ok || !voice.ok || !voiceServer.ok || !voiceIntegration.ok || !mathOk || !regOk) {
     process.exit(1);
   }
   console.log('All self-tests passed.');

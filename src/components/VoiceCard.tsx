@@ -8,24 +8,12 @@ import {
   sendGeminiChatTurn,
   type ChatTurn,
   type GeminiChatModelId,
-} from '../utils/googleAiStudioVoiceBridge';
-import { createVoiceBridge } from '../utils/createVoiceBridge';
-import type { VoiceBridge, VoiceBridgeState } from '../utils/voiceBridgeTypes';
-import { CEREBRO_VOICE_LABEL } from '../config/voiceProvider';
+} from '../services/google-ai-studio/mediaApi';
+import { createVoiceBridge, CEREBRO_VOICE_LABEL, formatVoiceStatus, type VoiceBridge, type VoiceBridgeState } from '../services/voice';
 import { ComputedGuiLayout } from '../gui/layoutEngine';
 import './cerebroChat.css';
 
-export type VoiceState =
-  | 'Ready'
-  | 'Connecting'
-  | 'Listening'
-  | 'Thinking'
-  | 'Speaking'
-  | 'Muted'
-  | 'Reconnecting'
-  | 'Disconnected'
-  | 'Error'
-  | 'Idle';
+export type VoiceState = VoiceBridgeState | 'Idle';
 
 export type VoicePocket = 'tap-to-talk' | 'hands' | 'compose';
 export type WidgetSnapEdge = 'bottom-center' | 'bottom-left' | 'bottom-right' | 'top-right';
@@ -319,8 +307,9 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       }
       return;
     }
-    await bridgeRef.current?.connect();
-  }, [voiceLive, tourState.active, onStopTour, onSimulateCommand]);
+    if (bridgeStatus === 'Error') await bridgeRef.current?.retry();
+    else await bridgeRef.current?.connect();
+  }, [voiceLive, bridgeStatus, tourState.active, onStopTour, onSimulateCommand]);
 
   useEffect(() => {
     if (openAgentModalTrigger && openAgentModalTrigger > lastCallTriggerRef.current) {
@@ -429,9 +418,9 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const handsLabel = handsActive ? 'Hands on' : 'Hands';
   const chatLabel = chatOpen ? 'Close chat' : 'Chat';
   const statusLine = bridgeStatus === 'Error'
-    ? bridgeDetail
+    ? formatVoiceStatus(bridgeDetail, bridgeStatus)
     : voiceLive
-    ? bridgeDetail || bridgeStatus
+    ? formatVoiceStatus(bridgeDetail, bridgeStatus)
     : handsActive
       ? 'Hands on · camera live · tap again to stop'
       : chatOpen

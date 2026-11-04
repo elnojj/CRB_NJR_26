@@ -185,9 +185,14 @@ export async function getSharedMicrophoneStream(
 
   microphoneRefCount += 1;
 
-  if (microphoneStream) {
+  if (microphoneStream?.getAudioTracks().some(track => track.readyState === 'live')) {
     microphoneLastError = null;
     return microphoneStream;
+  }
+
+  if (microphoneStream) {
+    stopStreamTracks(microphoneStream);
+    microphoneStream = null;
   }
 
   if (!microphoneInflight) {
@@ -206,7 +211,6 @@ export async function getSharedMicrophoneStream(
       })
       .catch((err) => {
         microphoneInflight = null;
-        microphoneRefCount = Math.max(0, microphoneRefCount - 1);
         microphoneLastError =
           err instanceof MediaSessionError
             ? err
@@ -215,7 +219,13 @@ export async function getSharedMicrophoneStream(
       });
   }
 
-  return microphoneInflight;
+  try {
+    return await microphoneInflight;
+  } catch (error) {
+    // Every caller owns a lease, including callers sharing the same failed acquire.
+    microphoneRefCount = Math.max(0, microphoneRefCount - 1);
+    throw error;
+  }
 }
 
 export function releaseSharedMicrophoneStream(): void {

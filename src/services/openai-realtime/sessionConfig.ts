@@ -1,18 +1,11 @@
 import {
   CRO_CDE_GOOGLE_FIRST_MESSAGE,
   CRO_CDE_GOOGLE_SYSTEM_PROMPT,
-  CRO_CDE_GOOGLE_TOOLS_SCHEMA,
-} from './croCdeGoogleAgentManifest';
+} from '../voice/cerebroAgentManifest';
 
-/** One registry and one executor for both providers. Preserve all 27 signatures. */
-export function buildOpenAiRealtimeTools() {
-  return CRO_CDE_GOOGLE_TOOLS_SCHEMA.map(({ name, description, parameters }) => ({
-    type: 'function' as const,
-    name,
-    description,
-    parameters,
-  }));
-}
+export { buildOpenAiRealtimeTools } from './tools';
+import { buildOpenAiRealtimeTools } from './tools';
+import { OPENAI_REALTIME_DEFAULTS } from './settings';
 
 export const CEREBRO_REALTIME_INSTRUCTIONS = `${CRO_CDE_GOOGLE_SYSTEM_PROMPT.replaceAll('Tarek Mojara', 'Tarek Nojara')}
 
@@ -23,7 +16,10 @@ Only report success after receiving a successful function_call_output receipt. N
 Keep all existing audience restrictions and confirmation requirements. A voice connection grants no extra permissions.
 The initial greeting is: ${CRO_CDE_GOOGLE_FIRST_MESSAGE}`;
 
-export function buildOpenAiRealtimeSession(model = 'gpt-realtime', voice = 'marin') {
+export function buildOpenAiRealtimeSession(
+  model: string = OPENAI_REALTIME_DEFAULTS.model,
+  voice: string = OPENAI_REALTIME_DEFAULTS.voice
+) {
   return {
     type: 'realtime' as const,
     model,

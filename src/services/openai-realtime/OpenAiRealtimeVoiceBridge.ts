@@ -1,11 +1,14 @@
-import { CRO_CDE_GOOGLE_FIRST_MESSAGE, CRO_CDE_GOOGLE_TOOLS_SCHEMA } from '../data/croCdeGoogleAgentManifest';
-import { CEREBRO_REALTIME_INSTRUCTIONS } from '../data/openAiRealtimeConfig';
+import { CRO_CDE_GOOGLE_FIRST_MESSAGE, CRO_CDE_GOOGLE_TOOLS_SCHEMA } from '../voice/cerebroAgentManifest';
+import { CEREBRO_REALTIME_INSTRUCTIONS } from './sessionConfig';
+import { parseRealtimeToolArguments } from './tools';
+import { OPENAI_REALTIME_CLIENT_SETTINGS } from './settings';
+import { getCerebroIdToken } from '../voice/clientIdentity';
 import {
   getSharedAudioContext,
   getSharedMicrophoneStream,
   releaseSharedMicrophoneStream,
-} from './deviceStreamCoordinator';
-import type { VoiceBridge, VoiceBridgeCallbacks, VoiceBridgeState } from './voiceBridgeTypes';
+} from '../media/deviceStreamCoordinator';
+import type { VoiceBridge, VoiceBridgeCallbacks, VoiceBridgeState } from '../voice/types';
 
 type FunctionCall = { type: string; call_id?: string; name?: string; arguments?: string };
 type RealtimeEvent = {
@@ -29,6 +32,9 @@ type Session = {
   muted: boolean;
   responding: boolean;
   speaking: boolean;
+  userSpeaking: boolean;
+  pendingToolBatches: number;
+  toolContinuationNeeded: boolean;
   calls: Set<string>;
   transcripts: Set<string>;
   toolQueue: Promise<void>;
@@ -47,10 +53,11 @@ export type RealtimeBridgeDependencies = {
   createStream: (tracks: MediaStreamTrack[]) => MediaStream;
   fetch: typeof fetch;
   connectionTimeoutMs: number;
+  reconnectTimeoutMs: number;
 };
 
 const defaults: RealtimeBridgeDependencies = {
-  getIdToken: async () => (await import('./googleWorkspaceAuth')).getCerebroIdToken(),
+  getIdToken: getCerebroIdToken,
   acquireMicrophone: getSharedMicrophoneStream,
   releaseMicrophone: releaseSharedMicrophoneStream,
   createPeerConnection: () => new RTCPeerConnection(),
@@ -64,36 +71,9 @@ const defaults: RealtimeBridgeDependencies = {
   },
   createStream: tracks => new MediaStream(tracks),
   fetch: (...args) => fetch(...args),
-  connectionTimeoutMs: 40000,
+  connectionTimeoutMs: OPENAI_REALTIME_CLIENT_SETTINGS.connectionTimeoutMs,
+  reconnectTimeoutMs: OPENAI_REALTIME_CLIENT_SETTINGS.reconnectTimeoutMs,
 };
-
-/** Validate function arguments before the existing typed action dispatcher sees them. */
-export function parseRealtimeToolArguments(name: string, raw: string): Record<string, unknown> {
-  const tool = CRO_CDE_GOOGLE_TOOLS_SCHEMA.find(tool => tool.name === name);
-  if (!tool) throw new Error(`Unknown Cerebro tool: ${name}`);
-  const value: unknown = JSON.parse(raw || '{}');
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error('Tool arguments must be an object.');
-  }
-  const parameters = value as Record<string, unknown>;
-  const schema = tool.parameters as {
-    required?: readonly string[];
-    properties: Record<string, { type: string; enum?: readonly unknown[] }>;
-  };
-  for (const key of schema.required || []) {
-    if (!(key in parameters)) throw new Error(`Missing required parameter: ${key}`);
-  }
-  for (const [key, value] of Object.entries(parameters)) {
-    const rule = schema.properties[key];
-    if (!rule) throw new Error(`Unknown parameter: ${key}`);
-    if (value === null || typeof value !== rule.type || Array.isArray(value)) {
-      throw new Error(`Invalid parameter type: ${key}`);
-    }
-    if (typeof value === 'number' && !Number.isFinite(value)) throw new Error(`Invalid parameter value: ${key}`);
-    if (rule.enum && !rule.enum.includes(value)) throw new Error(`Invalid parameter value: ${key}`);
-  }
-  return parameters;
-}
 
 /** Native speech-to-speech WebRTC; no browser STT/TTS or long-lived API key. */
 export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
@@ -151,9 +131,10 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
       const pc = this.deps.createPeerConnection();
       try {
         session = {
-          pc, dc: pc.createDataChannel('oai-events'), audio: this.deps.createAudio(),
+          pc, dc: pc.createDataChannel(OPENAI_REALTIME_CLIENT_SETTINGS.dataChannelName), audio: this.deps.createAudio(),
           abort: new AbortController(), stream: null, ownsMic: false, closed: false,
           live: false, muted: false, responding: false, speaking: false,
+          userSpeaking: false, pendingToolBatches: 0, toolContinuationNeeded: false,
           calls: new Set(), transcripts: new Set(), toolQueue: Promise.resolve(),
           sources: [], analysers: [], meter: null, deadline: null,
         };
@@ -174,11 +155,16 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
     session.dc.onclose = () => this.fail(session, 'OpenAI Voice disconnected. Tap Call to reconnect.');
     session.dc.onerror = () => this.fail(session, 'OpenAI Voice connection failed. Tap Call to retry.');
     session.pc.onconnectionstatechange = () => {
+      if (!this.current(session)) return;
       if (['failed', 'closed'].includes(session.pc.connectionState)) {
         this.fail(session, 'OpenAI Voice connection lost. Tap Call to retry.');
       } else if (session.pc.connectionState === 'disconnected') {
         this.status(session, 'Reconnecting', 'OpenAI Voice · reconnecting');
+        if (session.deadline) clearTimeout(session.deadline);
+        session.deadline = setTimeout(() => this.fail(session, 'OpenAI Voice connection lost. Tap Call to retry.'), this.deps.reconnectTimeoutMs);
       } else if (session.pc.connectionState === 'connected' && session.live) {
+        if (session.deadline) clearTimeout(session.deadline);
+        session.deadline = null;
         this.status(session, session.muted ? 'Muted' : session.speaking ? 'Speaking' : 'Listening');
       }
     };
@@ -210,7 +196,7 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
       if (!this.current(session)) return;
       await session.pc.setLocalDescription(offer);
       if (!this.current(session)) return;
-      const response = await this.deps.fetch('/api/openai/realtime/session', {
+      const response = await this.deps.fetch(OPENAI_REALTIME_CLIENT_SETTINGS.sessionEndpoint, {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -240,17 +226,24 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
         session.deadline = null;
         this.status(session, 'Listening', `OpenAI Voice · ${CRO_CDE_GOOGLE_TOOLS_SCHEMA.length} Cerebro tools`);
         this.pushContext(session);
+        session.responding = true;
         this.send(session, { type: 'response.create', response: {
           instructions: `Greet the user exactly: ${CRO_CDE_GOOGLE_FIRST_MESSAGE}`,
           tool_choice: 'none',
         } });
         break;
       case 'input_audio_buffer.speech_started':
+        session.userSpeaking = true;
         session.speaking = false;
         this.status(session, session.muted ? 'Muted' : 'Listening');
         break;
       case 'input_audio_buffer.speech_stopped':
       case 'response.created':
+        // Reserve the VAD response before response.created arrives on the data channel.
+        if (event.type === 'input_audio_buffer.speech_stopped') {
+          session.userSpeaking = false;
+          session.responding = true;
+        }
         if (event.type === 'response.created') {
           session.responding = true;
           session.audio.muted = session.muted;
@@ -284,10 +277,18 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
         if (event.response?.status !== 'completed') return;
         const calls = (event.response.output || []).filter(call => call.type === 'function_call');
         if (calls.length) {
-          session.toolQueue = session.toolQueue.then(() => this.executeTools(session, calls)).catch(() => {
-            this.fail(session, 'OpenAI Voice tool response failed. Reconnect to retry.');
-          });
-        } else if (!session.speaking) this.status(session, session.muted ? 'Muted' : 'Listening');
+          session.pendingToolBatches += 1;
+          session.toolQueue = session.toolQueue
+            .then(() => this.executeTools(session, calls))
+            .catch(() => this.fail(session, 'OpenAI Voice tool response failed. Reconnect to retry.'))
+            .finally(() => {
+              session.pendingToolBatches -= 1;
+              this.continueAfterTools(session);
+            });
+        } else {
+          if (!session.speaking) this.status(session, session.muted ? 'Muted' : 'Listening');
+          this.continueAfterTools(session);
+        }
         break;
       }
       case 'error':
@@ -326,8 +327,17 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
       } });
       sent = true;
     }
-    // One continuation for the whole tool batch, after every real UI receipt arrives.
-    if (sent && this.current(session) && !session.muted) this.send(session, { type: 'response.create' });
+    if (sent) session.toolContinuationNeeded = true;
+  }
+
+  private continueAfterTools(session: Session): void {
+    if (!this.current(session) || !session.live || !session.toolContinuationNeeded ||
+      session.pendingToolBatches > 0 || session.responding || session.userSpeaking || session.muted) return;
+    // Barge-in may have started a new response while a UI tool was awaiting its receipt.
+    // Wait for that turn instead of causing conversation_already_has_active_response.
+    session.toolContinuationNeeded = false;
+    session.responding = true;
+    this.send(session, { type: 'response.create' });
   }
 
   stopOutputAudioImmediately(): void {
@@ -347,7 +357,10 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
     if (muted) {
       this.stopOutputAudioImmediately();
       this.send(session, { type: 'input_audio_buffer.clear' });
-    } else session.audio.muted = false;
+    } else {
+      session.audio.muted = false;
+      this.continueAfterTools(session);
+    }
     this.status(session, muted ? 'Muted' : 'Listening');
   }
 
@@ -373,26 +386,28 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
   }
 
   private cleanup(session: Session): void {
+    // A browser audio/DOM teardown error must never prevent hardware release.
+    const release = (action: () => void) => { try { action(); } catch { /* keep releasing */ } };
     session.closed = true;
     session.live = false;
     session.abort.abort();
     if (session.deadline) clearTimeout(session.deadline);
     if (session.meter) clearInterval(session.meter);
-    session.sources.forEach(source => source.disconnect());
-    session.analysers.forEach(analyser => analyser.disconnect());
+    session.sources.forEach(source => release(() => source.disconnect()));
+    session.analysers.forEach(analyser => release(() => analyser.disconnect()));
     session.dc.onmessage = session.dc.onclose = session.dc.onerror = null;
     session.pc.ontrack = session.pc.onconnectionstatechange = null;
-    session.dc.close();
-    session.pc.close();
-    session.audio.pause();
-    session.audio.srcObject = null;
-    session.audio.remove();
-    session.stream?.getTracks().forEach(track => track.stop());
+    release(() => session.dc.close());
+    release(() => session.pc.close());
+    release(() => session.audio.pause());
+    release(() => { session.audio.srcObject = null; });
+    release(() => session.audio.remove());
+    session.stream?.getTracks().forEach(track => release(() => track.stop()));
     if (session.ownsMic) {
       session.ownsMic = false;
-      this.deps.releaseMicrophone();
+      release(() => this.deps.releaseMicrophone());
     }
-    this.callbacks.onAudioLevel?.(0);
+    release(() => this.callbacks.onAudioLevel?.(0));
   }
 
   private fail(session: Session, detail: string): void {
@@ -400,6 +415,11 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
     this.cleanup(session);
     this.session = null;
     this.callbacks.onStatusChange('Error', detail);
+  }
+
+  async retry(): Promise<void> {
+    this.disconnect();
+    await this.connect();
   }
 
   disconnect(): void {

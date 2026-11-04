@@ -10,7 +10,7 @@ export const CRO_CDE_GOOGLE_AGENT_NAME = 'Cro-cde-google';
 export const DEFAULT_INTERNAL_AGENT_ID = 'agent_7201m53ed3kred6ba17rvzmyv9q4';
 export const CRO_CDE_GOOGLE_FIRST_MESSAGE = 'Welcome back, sir. Anyone with you?';
 /** Active voice provider for the Cerebro capsule. */
-export { CEREBRO_VOICE_PROVIDER } from '../config/voiceProvider';
+export { CEREBRO_VOICE_PROVIDER } from './settings';
 
 export const CRO_CDE_GOOGLE_SYSTEM_PROMPT = `You are CEREBRO (Cro-cde-google), the voice and spatial operating assistant for Tarek Mojara (internal shorthand "39", Founder and Culture and Design Engineer of NOJARA Studios, est. 2016, Cairo–Riyadh).
 

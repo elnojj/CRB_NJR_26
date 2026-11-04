@@ -3,7 +3,7 @@ import {
   getSharedWebcamStream,
   forceStopSharedWebcamStream,
   releaseSharedWebcamStream,
-} from '../utils/deviceStreamCoordinator';
+} from '../services/media/deviceStreamCoordinator';
 import { HandGestureEngine, type ScreenPoint } from '../components/handGestures';
 import { OneEuroFilter } from './oneEuroFilter';
 import {
