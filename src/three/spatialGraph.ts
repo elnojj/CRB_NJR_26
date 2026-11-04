@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { PROJECTS_DATA } from '../data/sourceData';
-import { CDE_TAXONOMY, MASTER_RADIUS, SPATIAL_SCALE } from './spatialNavigation';
+import { CDE_TAXONOMY, MASTER_RADIUS, SPATIAL_SCALE } from './camera/CameraDirector';
 
 export interface SpatialGraphBinding {
   masterGroup: THREE.Group;

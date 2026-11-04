@@ -150,15 +150,15 @@ import {
   ActionReceipt,
   CEREBRO_UI_SCHEMA_V4,
 } from './gui/runtimeRegistry';
+import { TeamChatChip } from './components/TeamChatChip';
 import {
-  TeamChatChip,
   CDE_TAXONOMY,
   masterPose,
   flightMs,
   createResizeSnapshot,
   buildClosedOrbitalLoopPoints,
   DEFAULT_FIVE_AXIS_STATE,
-} from './three/spatialNavigation';
+} from './three/camera/CameraDirector';
 import { Cerebro39SystemModal } from './components/Cerebro39SystemModal';
 import { VisualAuthorityScopeId } from './data/cerebro39MasterSystem';
 import {
@@ -3589,7 +3589,7 @@ export default function App() {
       );
 
       // 21: PR #130 (Commit 8e8cf6d) Spatial Navigation, Closed Orbital Loops & TeamChatChip
-      updateCheck('21', 'RUNNING', 'Verifying spatialNavigation.tsx, closed orbital loops, 5-axis widget & TeamChatChip...');
+      updateCheck('21', 'RUNNING', 'Verifying CameraDirector framing helpers, closed orbital loops, 5-axis widget & TeamChatChip...');
       const poseDesktop = masterPose(16 / 9);
       const poseMobile = masterPose(9 / 16);
       const snap = createResizeSnapshot(1440, 900);

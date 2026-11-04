@@ -64,7 +64,7 @@ async function main(): Promise<void> {
 
   // Lightweight camera / spatial math checks (Three.js-free)
   const { masterPose, flightMs, buildClosedOrbitalLoopPoints } = await import(
-    '../src/three/spatialNavigation.tsx'
+    '../src/three/camera/CameraDirector.ts'
   );
   const pose = masterPose(16 / 9);
   const loop = buildClosedOrbitalLoopPoints(12, 12, 48);

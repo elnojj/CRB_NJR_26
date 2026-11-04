@@ -545,3 +545,278 @@ export class HandInteractionMachine {
 
 export const splineJourney = new SplineJourney();
 export const handInteractionMachine = new HandInteractionMachine();
+
+// ---------------------------------------------------------------------------------------------
+// Framing, reframe transaction and shared scene helpers (formerly spatialNavigation.tsx).
+// ---------------------------------------------------------------------------------------------
+
+export const SPATIAL_SCALE = 1.0;
+export const MASTER_RADIUS = 5;
+export const IDLE_MS = 5000;
+
+export const CDE_TAXONOMY = {
+  dimensions: ['Projects', 'Files', 'Media', 'Tasks', 'People'] as const,
+  glass: {
+    metalness: 0.0,
+    roughness: 0.04,
+    ior: 1.48,
+    transmission: 0.98,
+    thickness: 1.2,
+    specularIntensity: 1.0,
+    specularColor: '#B4DDFF',
+    sheen: 0.6,
+    sheenRoughness: 0.3,
+    sheenColor: '#FFF4D0',
+    opacity: 0.95,
+  },
+  bloomThresholdProposal: {
+    threshold: 0.88,
+    strength: 0.24,
+    radius: 0.35,
+  },
+} as const;
+
+export const DEFAULT_FIVE_AXIS_STATE = {
+  connection: 'live',
+  input: 'idle',
+  output: 'visual',
+  execution: 'ready',
+  persistence: 'synced',
+} as const;
+
+export interface Pose {
+  target: [number, number, number];
+  azimuth: number;
+  elevation: number;
+  fov: number;
+  distance: number;
+}
+
+export function fitDistance(
+  radius: number,
+  fovDeg: number,
+  aspect: number,
+  margin = 1.15
+): number {
+  const safeAspect = Math.max(0.25, aspect || 1);
+  const vFov = THREE.MathUtils.degToRad(fovDeg);
+  const hFov = 2 * Math.atan(Math.tan(vFov / 2) * safeAspect);
+  const limiting = Math.min(vFov, hFov);
+  return (radius * margin) / Math.sin(limiting / 2);
+}
+
+export function masterPose(aspect: number): Pose {
+  const fov = aspect < 0.8 ? 52 : 46; // Wider FOV for phone portrait
+  return {
+    target: [0, 0, 0],
+    azimuth: 0.22,
+    elevation: 0.19,
+    fov,
+    distance: fitDistance(MASTER_RADIUS * SPATIAL_SCALE, fov, aspect),
+  };
+}
+
+export function applyViewShift(
+  cam: THREE.PerspectiveCamera,
+  w: number,
+  h: number,
+  occludedBottomPx = 0
+): void {
+  if (w <= 0 || h <= 0) return;
+  if (Math.abs(occludedBottomPx) <= 1) {
+    cam.clearViewOffset();
+  } else {
+    cam.setViewOffset(w, h, 0, occludedBottomPx / 2, w, h);
+  }
+  cam.updateProjectionMatrix();
+}
+
+export const flightMs = (length: number): number =>
+  THREE.MathUtils.clamp(length * 140, 900, 2600);
+
+export interface ResizeSnapshot {
+  width: number;
+  height: number;
+  aspect: number;
+  generation: number;
+  pose: Pose;
+  occludedBottomPx: number;
+}
+
+let activeResizeGeneration = 0;
+
+export function createResizeSnapshot(
+  width: number,
+  height: number,
+  occludedBottomPx = 0
+): ResizeSnapshot {
+  activeResizeGeneration++;
+  const safeW = Math.max(1, width);
+  const safeH = Math.max(1, height);
+  const aspect = safeW / safeH;
+  const pose = masterPose(aspect);
+  return {
+    width: safeW,
+    height: safeH,
+    aspect,
+    generation: activeResizeGeneration,
+    pose,
+    occludedBottomPx,
+  };
+}
+
+/**
+ * Executes the D0 Atomic Resize Reframe Transaction:
+ * Computes viewport width/height, visible panel/sheet occlusion,
+ * masterPose(aspect) (fov: aspect < 0.8 ? 52 : 46, fitDistance(MASTER_RADIUS * SPATIAL_SCALE, fov, aspect, 1.15)),
+ * and cam.setViewOffset(w, h, 0, occludedBottomPx / 2, w, h) in one atomic snapshot,
+ * plus triggers a post-Home transaction refresh.
+ */
+export function executeAtomicReframe(
+  cam: THREE.PerspectiveCamera,
+  width: number,
+  height: number,
+  occludedBottomPx = 0
+): ResizeSnapshot {
+  const snap = createResizeSnapshot(width, height, occludedBottomPx);
+  cam.aspect = snap.aspect;
+  cam.fov = snap.pose.fov;
+  applyViewShift(cam, snap.width, snap.height, occludedBottomPx);
+  cam.updateProjectionMatrix();
+  return snap;
+}
+
+/**
+ * readHomeComposition:
+ * Reads .orb-slot-spacer, [data-orb-slot] or viewport bounds.
+ * Accounts for mobile sheet occlusion (< 720px) and returns framing data.
+ */
+export function readHomeComposition(domContainer?: HTMLElement | null): {
+  width: number;
+  height: number;
+  aspect: number;
+  occludedBottomPx: number;
+  pose: Pose;
+  slotRect?: DOMRect | null;
+} {
+  const w = domContainer?.clientWidth || (typeof window !== 'undefined' ? window.innerWidth : 1440);
+  const h = domContainer?.clientHeight || (typeof window !== 'undefined' ? window.innerHeight : 900);
+  const aspect = w / Math.max(1, h);
+
+  let occludedBottomPx = 0;
+  if (typeof document !== 'undefined') {
+    const isMobile = w < 720;
+    const sheetEl = document.querySelector('[data-sheet-open="true"], [data-bottom-sheet="true"]');
+    if (isMobile && sheetEl) {
+      const rect = sheetEl.getBoundingClientRect();
+      occludedBottomPx = Math.max(0, h - rect.top);
+    }
+  }
+
+  let slotRect: DOMRect | null = null;
+  if (typeof document !== 'undefined') {
+    const slotEl = document.querySelector('.orb-slot-spacer, [data-orb-slot]');
+    if (slotEl) {
+      slotRect = slotEl.getBoundingClientRect();
+    }
+  }
+
+  return {
+    width: w,
+    height: h,
+    aspect,
+    occludedBottomPx,
+    pose: masterPose(aspect),
+    slotRect,
+  };
+}
+
+/**
+ * Fix #1: Targets `#include <opaque_fragment>` (Three r154+ chunk name)
+ * with an explicit guard that warns instead of silently skipping.
+ */
+export function patchFresnelRimOnOpaqueFragment(
+  shader: { fragmentShader: string },
+  rimColor: THREE.Color,
+  bodyColor: THREE.Color,
+  fresnelPower = 2.6
+): boolean {
+  const targetChunk = '#include <opaque_fragment>';
+  if (!shader.fragmentShader.includes(targetChunk)) {
+    console.warn(
+      '[Cerebro v2 Shader Guard] Expected #include <opaque_fragment> in Three.js r154+ MeshPhysicalMaterial shader, falling back to #include <dithering_fragment>.'
+    );
+    return false;
+  }
+
+  // Stable rim: view-space fresnel (not fixed +Z) + time-only wave (not gl_FragCoord).
+  // Screen-space caustics + fixed-axis fresnel strobe when the camera moves around the sphere.
+  shader.fragmentShader = shader.fragmentShader.replace(
+    targetChunk,
+    `${targetChunk}
+    {
+      vec3 v2N = normalize(vNormal);
+      vec3 v2V = normalize(vViewPosition);
+      float v2Fresnel = pow(1.0 - clamp(abs(dot(v2N, v2V)), 0.0, 1.0), ${fresnelPower.toFixed(2)});
+      vec3 v2RimCol = vec3(${rimColor.r.toFixed(3)}, ${rimColor.g.toFixed(3)}, ${rimColor.b.toFixed(
+      3
+    )});
+      vec3 v2BodyCol = vec3(${bodyColor.r.toFixed(3)}, ${bodyColor.g.toFixed(
+      3
+    )}, ${bodyColor.b.toFixed(3)});
+      float v2Wave = 0.5 + 0.5 * sin(uTime * 0.55);
+      vec3 v2Tint = mix(v2BodyCol, v2RimCol, v2Wave) * v2Fresnel * (0.22 + uAudioRms * 0.1);
+      gl_FragColor.rgb += v2Tint;
+    }`
+  );
+  return true;
+}
+
+/**
+ * Fix #3 & #7: Bounded particle drift from immutable basePositions with per-frame reducedMotion check.
+ * Never compounds `pos.setY(pos.getY() + ...)` across frames.
+ */
+export function updateBoundedParticleDrift(
+  positionAttr: THREE.BufferAttribute,
+  basePositions: Float32Array,
+  phases: Float32Array,
+  elapsedSec: number,
+  reducedMotion: boolean,
+  amplitude = 0.075
+): void {
+  const count = Math.min(positionAttr.count, Math.floor(basePositions.length / 3));
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const bx = basePositions[idx];
+    const by = basePositions[idx + 1];
+    const bz = basePositions[idx + 2];
+    if (reducedMotion) {
+      positionAttr.setXYZ(i, bx, by, bz);
+    } else {
+      const ph = phases[i] ?? (i * 0.37) % (Math.PI * 2);
+      const dy = Math.sin(elapsedSec * 0.65 + ph) * amplitude;
+      const dx = Math.cos(elapsedSec * 0.45 + ph * 1.3) * (amplitude * 0.45);
+      positionAttr.setXYZ(i, bx + dx, by + dy, bz);
+    }
+  }
+  positionAttr.needsUpdate = true;
+}
+
+/**
+ * Fix #4: Closed orbital loop helper.
+ * Drops the duplicate endpoint returned by `EllipseCurve.getPoints(segments)`
+ * and constructs a closed `CatmullRomCurve3(pts3D, true, 'centripetal')`.
+ */
+export function buildClosedOrbitalLoopPoints(
+  radiusX: number,
+  radiusY = radiusX,
+  segments = 72
+): { curve: THREE.CatmullRomCurve3; points: THREE.Vector3[] } {
+  const ellipse = new THREE.EllipseCurve(0, 0, radiusX, radiusY, 0, Math.PI * 2, false, 0);
+  // EllipseCurve.getPoints(N) returns N+1 points where the last point duplicates the first
+  const raw2D = ellipse.getPoints(segments).slice(0, -1);
+  const controlPts3D = raw2D.map((p) => new THREE.Vector3(p.x, p.y, 0));
+  const closedCurve = new THREE.CatmullRomCurve3(controlPts3D, true, 'centripetal');
+  const sampledPoints = closedCurve.getPoints(segments);
+  return { curve: closedCurve, points: sampledPoints };
+}

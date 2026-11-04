@@ -45,7 +45,7 @@ import {
   readHomeComposition,
   executeAtomicReframe,
   IDLE_MS,
-} from '../three/spatialNavigation';
+} from '../three/camera/CameraDirector';
 import { SPHERE_SHOTS, STATION_SHOTS } from '../data/shotMediaCatalog';
 import {
   MAT_GOLD_SHEEN,
