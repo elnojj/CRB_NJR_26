@@ -5,8 +5,13 @@ import {
   HandGestureEngine,
   classifyPosture,
   computeHandMetrics,
+  type HandControlFrame,
+  type HandPosture,
   type ScreenPoint,
 } from './handGestures.ts';
+import { HandInteractionMachine } from '../three/camera/CameraDirector.ts';
+import { createHandState } from '../three/handStateRef.ts';
+import type { UiInteractResult } from '../three/spatialControls.ts';
 
 type Pose = 'open' | 'claw' | 'grab' | 'point';
 
@@ -167,5 +172,118 @@ describe('handGestures', () => {
       const f = engine.update(makeHand({ pose: 'open', x: 320 + i * 4 }), i * FRAME_MS);
       assert.equal(f.throw, null);
     }
+  });
+});
+
+describe('HandInteractionMachine priority', () => {
+  const FRAME_MS = 33;
+  const NO_UI: UiInteractResult = { locked: false, hovering: false, grabbedId: null };
+  const UI_GRAB: UiInteractResult = { locked: true, hovering: true, grabbedId: 'rail-zoom' };
+
+  function control(posture: HandPosture, extra: Partial<HandControlFrame> = {}): HandControlFrame {
+    return {
+      tMs: 0,
+      tracking: true,
+      posture,
+      pan: { x: 0, y: 0 },
+      zoomOut: 0,
+      orbit: 0,
+      flip: 0,
+      throw: null,
+      grabbing: posture === 'grab',
+      ...extra,
+    };
+  }
+
+  function handsWith(frameId: number, nowMs: number, frame: HandControlFrame) {
+    const state = createHandState();
+    state.active = true;
+    state.tracking = true;
+    state.frameId = frameId;
+    state.updatedAtMs = nowMs;
+    state.hands[0].present = true;
+    state.hands[0].control = frame;
+    return state;
+  }
+
+  it('never moves the camera while a spatial control is grabbed, whatever the posture', () => {
+    const postures: HandPosture[] = ['open', 'point', 'claw', 'grab'];
+    for (const posture of postures) {
+      const machine = new HandInteractionMachine();
+      let now = 1000;
+      for (let i = 0; i < 12; i += 1) {
+        now += FRAME_MS;
+        const intent = machine.evaluate(
+          now,
+          FRAME_MS / 1000,
+          UI_GRAB,
+          handsWith(i + 1, now, control(posture, { pan: { x: 0.2, y: 0.1 }, orbit: 0.4, zoomOut: 1 }))
+        );
+        assert.equal(intent.state, 'UI_INTERACT');
+        assert.equal(intent.panX, 0);
+        assert.equal(intent.panY, 0);
+        assert.equal(intent.dAzimuth, 0);
+        assert.equal(intent.dPolar, 0);
+        assert.equal(intent.zoomOut, 0);
+        assert.equal(intent.steering, false);
+      }
+    }
+  });
+
+  it('keeps the camera locked briefly after release, then hands control back', () => {
+    const machine = new HandInteractionMachine();
+    let now = 1000;
+    machine.evaluate(now, FRAME_MS / 1000, UI_GRAB, handsWith(1, now, control('grab', { orbit: 0.3 })));
+    now += 100;
+    const held = machine.evaluate(now, FRAME_MS / 1000, NO_UI, handsWith(2, now, control('grab', { orbit: 0.3 })));
+    assert.equal(held.state, 'UI_INTERACT');
+    now += 400;
+    const released = machine.evaluate(now, FRAME_MS / 1000, NO_UI, handsWith(3, now, control('grab', { orbit: 0.3 })));
+    assert.equal(released.state, 'CAMERA_SPHERE_ORBIT');
+    assert.ok(released.dAzimuth > 0);
+  });
+
+  it('ranks claw zoom, sphere orbit, flick throw and palm pan in that order', () => {
+    const machine = new HandInteractionMachine();
+    let now = 1000;
+    const step = (frame: HandControlFrame, id: number) => {
+      now += FRAME_MS;
+      return machine.evaluate(now, FRAME_MS / 1000, NO_UI, handsWith(id, now, frame));
+    };
+
+    const flick = step(control('open', { throw: { vx: 1.2, vy: 0.1 } }), 1);
+    assert.equal(flick.state, 'CAMERA_FLICK_THROW');
+
+    const panWhileThrowing = step(control('open', { pan: { x: 0.1, y: 0 } }), 2);
+    assert.equal(panWhileThrowing.state, 'CAMERA_FLICK_THROW');
+    assert.equal(panWhileThrowing.panX, 0);
+
+    const orbitOverThrow = step(control('grab', { orbit: 0.2 }), 3);
+    assert.equal(orbitOverThrow.state, 'CAMERA_SPHERE_ORBIT');
+
+    const clawOverAll = step(control('claw', { zoomOut: 0.8 }), 4);
+    assert.equal(clawOverAll.state, 'CAMERA_CLAW_ZOOM');
+    assert.equal(clawOverAll.zoomOut, 0.8);
+    assert.equal(clawOverAll.dAzimuth, 0);
+  });
+
+  it('pans with an open palm when nothing outranks it', () => {
+    const machine = new HandInteractionMachine();
+    let now = 1000;
+    let total = 0;
+    for (let i = 0; i < 10; i += 1) {
+      now += FRAME_MS;
+      const intent = machine.evaluate(now, FRAME_MS / 1000, NO_UI, handsWith(i + 1, now, control('open', { pan: { x: 0.02, y: 0 } })));
+      assert.equal(intent.state, 'CAMERA_PALM_PAN');
+      total += intent.panX;
+    }
+    assert.ok(total > 0.1 && total <= 0.2 + 1e-9);
+  });
+
+  it('goes idle when the detections are stale', () => {
+    const machine = new HandInteractionMachine();
+    const intent = machine.evaluate(5000, FRAME_MS / 1000, NO_UI, handsWith(1, 1000, control('open', { pan: { x: 0.3, y: 0 } })));
+    assert.equal(intent.state, 'IDLE');
+    assert.equal(intent.panX, 0);
   });
 });

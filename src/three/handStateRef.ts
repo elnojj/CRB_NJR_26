@@ -59,15 +59,17 @@ function createSlot(): HandSlot {
   };
 }
 
-export const handStateRef: { current: HandState } = {
-  current: {
+export function createHandState(): HandState {
+  return {
     active: false,
     tracking: false,
     frameId: 0,
     updatedAtMs: 0,
     hands: Array.from({ length: MAX_HANDS }, createSlot),
-  },
-};
+  };
+}
+
+export const handStateRef: { current: HandState } = { current: createHandState() };
 
 export function resetHandState(): void {
   const s = handStateRef.current;
