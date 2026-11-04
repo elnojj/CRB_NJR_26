@@ -7,7 +7,7 @@ import {
   getSharedAudioContext,
   getSharedMicrophoneStream,
   releaseSharedMicrophoneStream,
-} from './deviceStreamCoordinator';
+} from '../media/deviceStreamCoordinator';
 
 export interface GoogleVoiceMicSession {
   stream: MediaStream;

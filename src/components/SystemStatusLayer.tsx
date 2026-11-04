@@ -3,6 +3,7 @@
  * Extends BootLoader health telemetry with live runtime banners + retries.
  */
 import React, { useCallback, useEffect, useState } from 'react';
+import { CEREBRO_VOICE_LABEL, CEREBRO_VOICE_PROVIDER } from '../services/voice/settings';
 
 export type SystemStatusKind =
   | 'offline'
@@ -15,7 +16,7 @@ export type SystemStatusKind =
 export interface SystemStatusLayerProps {
   webglUnavailable?: boolean;
   webglReason?: string;
-  /** Google AI Studio / Gemini voice auth or key failure */
+  /** Active voice provider auth or key failure */
   voiceAuthFailed?: boolean;
   /** @deprecated Use voiceAuthFailed */
   elevenLabsAuthFailed?: boolean;
@@ -164,8 +165,10 @@ export const SystemStatusLayer: React.FC<SystemStatusLayerProps> = ({
     banners.push({
       id: 'voice-auth',
       tone: 'error',
-      title: 'Google Voice bridge failed',
-      body: 'Google AI Studio / Gemini rejected the session. Check GEMINI_API_KEY, then reconnect the capsule.',
+      title: `${CEREBRO_VOICE_LABEL} bridge failed`,
+      body: CEREBRO_VOICE_PROVIDER === 'openai-realtime'
+        ? 'Sign in to Cerebro and check the server OPENAI_API_KEY, then reconnect the capsule.'
+        : 'Google AI Studio / Gemini rejected the session. Check GEMINI_API_KEY, then reconnect the capsule.',
       actionLabel: 'Retry voice',
       onAction: onRetryVoice,
     });

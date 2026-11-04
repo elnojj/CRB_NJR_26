@@ -153,6 +153,19 @@ export async function runDeviceStreamCoordinatorSelfTests(): Promise<{
     check('mic+cam getUserMedia never concurrent', maxConcurrent === 1, `max=${maxConcurrent}`);
     releaseSharedMicrophoneStream();
     releaseSharedWebcamStream();
+
+    stubDevices.getUserMedia = async () => { throw new DOMException('Permission denied', 'NotAllowedError'); };
+    const failedAcquires = await Promise.allSettled([getSharedMicrophoneStream(), getSharedMicrophoneStream()]);
+    check('concurrent denied mic acquires both reject', failedAcquires.every(result => result.status === 'rejected'));
+    check('denied mic acquires release every caller lease', getDeviceStreamCoordinatorDebugState().microphoneRefCount === 0);
+
+    stubDevices.getUserMedia = async () => makeFakeStream('audio');
+    const stoppedMic = await getSharedMicrophoneStream();
+    stoppedMic.getTracks().forEach(track => track.stop());
+    const replacementMic = await getSharedMicrophoneStream();
+    check('ended cached mic stream is reacquired', replacementMic !== stoppedMic && replacementMic.getAudioTracks()[0].readyState === 'live');
+    releaseSharedMicrophoneStream();
+    releaseSharedMicrophoneStream();
   } finally {
     __resetDeviceStreamCoordinatorForTests();
     Object.defineProperty(navTarget.navigator, 'mediaDevices', {

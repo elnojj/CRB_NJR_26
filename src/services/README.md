@@ -1,0 +1,101 @@
+# Cerebro voice services
+
+The active call path is `VoiceCard` → `voice/index.ts` → `createVoiceBridge` →
+`OpenAiRealtimeVoiceBridge`. The browser sends microphone audio over WebRTC and exchanges
+events over its data channel. The existing UI executor still owns all spatial actions.
+
+## Complete file structure
+
+| Directory | Files | Responsibility |
+| --- | --- | --- |
+| `voice/` | `index.ts`, `types.ts`, `settings.ts`, `createVoiceBridge.ts` | Browser API, shared call contract, provider switch, configurable badge |
+| `voice/` | `cerebroAgentManifest.ts`, `clientIdentity.ts` | Canonical 27 tools and existing Firebase sign-in adapter |
+| `openai-realtime/` | `OpenAiRealtimeVoiceBridge.ts` | WebRTC connection, events, transcript separation, interruption, retry, cancellation, teardown |
+| `openai-realtime/` | `settings.ts`, `sessionConfig.ts`, `tools.ts` | Public defaults, GA session configuration, tool mapping and argument validation |
+| `openai-realtime/server/` | `settings.ts`, `identity.ts`, `sessionHandler.ts` | Server secrets, Firebase identity validation, SDP exchange and upstream cancellation |
+| `openai-realtime/__tests__/` | `client.test.ts`, `server.test.ts`, `integration.test.ts` | Mocked lifecycle/tool/endpoint tests and bundle/UI integration checks |
+| `media/` | `mediaDeviceManager.ts`, `deviceStreamCoordinator.ts`, `deviceStreamCoordinator.test.ts` | One shared device acquisition gate, mic/webcam leases and AudioContext |
+| `google-ai-studio/` | `GoogleAiStudioVoiceBridge.ts`, `mediaApi.ts`, `microphone.ts`, `toneConfig.ts` | Retained Google provider, existing chat/media API and tone settings |
+| `elevenlabs/` | `ElevenLabsBridge.ts`, `server/handlers.ts` | Retained inactive legacy bridge and existing admin endpoints |
+
+The route adapter remains at `api/openai/realtime/session.ts` so Vercel keeps the existing URL.
+Express registers the same service handler in `server.ts`. Those entry points delegate to the
+service; connection and provider logic live here. No compatibility copies remain in `src/utils`,
+`src/config` or `src/data`. Historical checkpoint records and the frozen Three.js snapshot retain
+their original paths and are not active imports.
+
+## Configuration
+
+| Setting | Location | Default |
+| --- | --- | --- |
+| `OPENAI_API_KEY` | Server environment only | Required for live OpenAI calls |
+| `OPENAI_REALTIME_MODEL` | Server environment | `gpt-realtime` |
+| `OPENAI_REALTIME_VOICE` | Server environment | `marin` |
+| `CEREBRO_VOICE_ALLOWED_UIDS` | Server environment | Empty; all users authenticated to the existing Firebase project may use voice |
+| `VITE_CEREBRO_VOICE_PROVIDER` | Public build environment | `openai-realtime`; alternative `google-ai-studio` |
+| `VITE_CEREBRO_VOICE_LABEL` | Public build environment | Derived `OpenAI Voice` / `Google Voice` |
+
+Public connection settings are centralized in `openai-realtime/settings.ts`: fixed same-origin
+session endpoint, 40-second initial connection deadline and 10-second reconnect grace period.
+Server request timeout and environment parsing live in `openai-realtime/server/settings.ts`.
+Never export the server modules from `voice/index.ts`, and never use a `VITE_` variable for a key.
+
+The selected model is the requested `gpt-realtime`, using the GA `/v1/realtime/calls` API.
+`gpt-4o-realtime-preview` is retired and is not used as a fallback. The published retirement for
+`gpt-realtime` is 20 January 2027; model configuration needs updating before that date.
+See [model details](https://developers.openai.com/api/docs/models/gpt-realtime) and
+[WebRTC documentation](https://developers.openai.com/api/docs/guides/voice-webrtc?voice-api=realtime).
+
+## Tools and UI integration
+
+`voice/cerebroAgentManifest.ts` remains the sole registry of the 27 signatures. `tools.ts`
+maps them to Realtime function tools and validates named arguments. Completed function calls
+are delivered to `VoiceCard.onExecuteToolCall`, which uses the existing
+`handleExecuteToolCall` → `parseStructuredToolCall` → `executeTypedAction` chain in `App.tsx`.
+Each result returns as a `function_call_output` using the original `call_id`; one continuation
+follows the completed tool batch. Duplicate call IDs cannot execute twice in a session.
+Raw transcripts only update history. Existing action authorization and confirmation gates remain
+the executor's responsibility. Firebase sign-in for voice does not grant private project membership.
+
+`VoiceCard` owns one bridge instance and refreshes callbacks as React state changes. Navigation
+does not create another connection. Real Listening/Speaking states drive the existing audio
+ducking. The Call/Hands/Chat IDs and accessibility labels remain the same. Keep this existing
+integration when embedding the service rather than allocating a bridge on every render.
+
+The shared bridge API includes `connect()`, `retry()`, `disconnect()`, `setMuted(boolean)`,
+`stopOutputAudioImmediately()`, `sendContextualUpdate(json)` and `updateCallbacks(callbacks)`.
+`isLiveWebSocketOpen()` retains its historical name and checks the WebRTC data channel for OpenAI.
+Retry is deliberate; provider failures do not start an automatic paid reconnect loop.
+
+## Lifecycle and failure behavior
+
+Microphone acquisition uses the shared media service with hardware echo cancellation,
+noise suppression and automatic gain control. The sender owns cloned audio tracks so mute
+and disconnect do not disable another consumer. Cleanup aborts signaling, closes the data
+channel and peer connection, detaches output audio, stops owned tracks, releases its mic lease,
+removes meters and cancels timers. Late permission grants and obsolete asynchronous results
+cannot revive a closed connection. Audio teardown exceptions do not block hardware release.
+
+Server VAD enables speech interruption. Explicit interruption cancels an active response and
+clears buffered output. A dropped connection gets a bounded grace period, then reports an
+error and releases resources. Permission denial, quota, missing configuration and transport
+errors stay visible and permit retry. Cancelling the HTTP client aborts upstream signaling and
+removes its server lifecycle listeners.
+
+Google is retained as a configurable provider, but its legacy `/api/gemini/voice-turn` backend
+is absent from this checkpoint and still requires its own deployment. ElevenLabs remains inactive
+on the primary Call path. Existing text chat/creative Gemini endpoints and legacy admin route paths
+and middleware are preserved.
+
+## Validation and release gate
+
+Run `npm run lint`, `npm run test:voice`, `npm test` and `npm run build:labs`.
+Tests cover all 27 mappings, receipt ordering, duplicate prevention, transcript separation,
+mute/interruption, cancellation, retries, connection deadlines, teardown errors, mic lease
+accounting, endpoint authorization/error responses, server/client module boundaries and badge rendering.
+
+These automated checks use mocked media and API requests. They do not certify real OpenAI
+audio, live Firebase authorization, acoustic echo handling or phone/iPad hardware. Configure a
+server key and complete those checks before treating this as verified production deployment.
+The lockfile's missing optional-platform entries have been repaired without changing existing
+dependency versions. A clean `npm ci` now succeeds.

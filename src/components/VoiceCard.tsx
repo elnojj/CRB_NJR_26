@@ -7,27 +7,16 @@ import { hudBridge, useSpatialHudActive, type HudDockSpec } from '../three/hudBr
 import type { AudienceLevel } from '../state/panelTypes';
 import type { HandDetectionMode } from '../three/handStateRef';
 import {
-  GoogleAiStudioVoiceBridge,
   sendGeminiChatTurn,
   type ChatTurn,
   type GeminiChatModelId,
-  type VoiceBridgeState,
-} from '../utils/googleAiStudioVoiceBridge';
+} from '../services/google-ai-studio/mediaApi';
+import { createVoiceBridge, CEREBRO_VOICE_LABEL, formatVoiceStatus, type VoiceBridge, type VoiceBridgeState } from '../services/voice';
 import { ComputedGuiLayout } from '../gui/layoutEngine';
 import { useKeyboardInsetVars } from '../gui/keyboardInset';
 import './cerebroChat.css';
 
-export type VoiceState =
-  | 'Ready'
-  | 'Connecting'
-  | 'Listening'
-  | 'Thinking'
-  | 'Speaking'
-  | 'Muted'
-  | 'Reconnecting'
-  | 'Disconnected'
-  | 'Error'
-  | 'Idle';
+export type VoiceState = VoiceBridgeState | 'Idle';
 
 export type VoicePocket = 'tap-to-talk' | 'hands' | 'compose';
 export type WidgetSnapEdge = 'bottom-center' | 'bottom-left' | 'bottom-right' | 'top-right';
@@ -106,6 +95,7 @@ interface VoiceCardProps {
   onPrevTourStop?: () => void;
   onStopTour?: () => void;
   onAudioLevel?: (rms: number) => void;
+  onVoiceStateChange?: (state: VoiceBridgeState) => void;
   guiLayout?: ComputedGuiLayout;
   onVoiceDragDeltaChange?: (delta: { x: number; y: number }) => void;
   onVoiceExpandedChange?: (expanded: boolean) => void;
@@ -226,6 +216,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   onSendCompose,
   onStopTour,
   onAudioLevel,
+  onVoiceStateChange,
   guiLayout,
   onVoiceExpandedChange,
   onVoiceDragDeltaChange,
@@ -246,13 +237,16 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const fileRef = useRef<HTMLInputElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const historyRef = useRef<ChatTurn[]>([]);
-  const bridgeRef = useRef<GoogleAiStudioVoiceBridge | null>(null);
+  const bridgeRef = useRef<VoiceBridge | null>(null);
   const onAudioLevelRef = useRef(onAudioLevel);
+  const onVoiceStateChangeRef = useRef(onVoiceStateChange);
+  const lastCallTriggerRef = useRef(0);
   const bridgeRmsRef = useRef(0);
 
   useEffect(() => {
     onAudioLevelRef.current = onAudioLevel;
-  }, [onAudioLevel]);
+    onVoiceStateChangeRef.current = onVoiceStateChange;
+  }, [onAudioLevel, onVoiceStateChange]);
 
   useEffect(() => {
     onVoiceExpandedChange?.(false);
@@ -264,9 +258,10 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   }, [chatOpen, onVoiceSheetExpandedChange]);
 
   useEffect(() => {
-    const bridge = new GoogleAiStudioVoiceBridge({
+    const bridge = createVoiceBridge({
       onStatusChange: (status, detail) => {
         setBridgeStatus(status);
+        onVoiceStateChangeRef.current?.(status);
         if (detail) setBridgeDetail(detail);
       },
       onTranscript: (role, text) => {
@@ -281,8 +276,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         if (onExecuteToolCall) {
           return await onExecuteToolCall(toolName, parameters || {});
         }
-        onSimulateCommand(toolName);
-        return `Executed ${toolName}`;
+        return JSON.stringify({ ok: false, error: 'Cerebro UI tool executor unavailable.' });
       },
       onAudioLevel: (rms) => {
         bridgeRmsRef.current = rms;
@@ -300,6 +294,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     bridgeRef.current?.updateCallbacks({
       onStatusChange: (status, detail) => {
         setBridgeStatus(status);
+        onVoiceStateChangeRef.current?.(status);
         if (detail) setBridgeDetail(detail);
       },
       onTranscript: (role, text) => {
@@ -314,8 +309,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         if (onExecuteToolCall) {
           return await onExecuteToolCall(toolName, parameters || {});
         }
-        onSimulateCommand(toolName);
-        return `Executed ${toolName}`;
+        return JSON.stringify({ ok: false, error: 'Cerebro UI tool executor unavailable.' });
       },
       onAudioLevel: (rms) => {
         bridgeRmsRef.current = rms;
@@ -325,8 +319,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   }, [onSimulateCommand, onExecuteToolCall]);
 
   useEffect(() => {
-    if (contextualUpdateJson && bridgeRef.current?.isLiveWebSocketOpen?.()) {
-      bridgeRef.current.sendContextualUpdate(contextualUpdateJson);
+    if (contextualUpdateJson) {
+      bridgeRef.current?.sendContextualUpdate(contextualUpdateJson);
     }
   }, [contextualUpdateJson]);
 
@@ -335,6 +329,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     bridgeStatus === 'Speaking' ||
     bridgeStatus === 'Thinking' ||
     bridgeStatus === 'Connecting' ||
+    bridgeStatus === 'Reconnecting' ||
     bridgeStatus === 'Muted' ||
     voiceState === 'Listening' ||
     voiceState === 'Speaking';
@@ -349,11 +344,13 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       }
       return;
     }
-    await bridgeRef.current?.connect();
-  }, [voiceLive, tourState.active, onStopTour, onSimulateCommand]);
+    if (bridgeStatus === 'Error') await bridgeRef.current?.retry();
+    else await bridgeRef.current?.connect();
+  }, [voiceLive, bridgeStatus, tourState.active, onStopTour, onSimulateCommand]);
 
   useEffect(() => {
-    if (openAgentModalTrigger && openAgentModalTrigger > 0) {
+    if (openAgentModalTrigger && openAgentModalTrigger > lastCallTriggerRef.current) {
+      lastCallTriggerRef.current = openAgentModalTrigger;
       void handleCall();
     }
   }, [openAgentModalTrigger, handleCall]);
@@ -458,20 +455,22 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const callLabel = voiceLive ? 'End call' : 'Call';
   const handsLabel = handsActive ? (handMode === 'one-hand' ? 'Hands · 1' : 'Hands · 2') : 'Hands';
   const handsAria = !handsActive
-    ? 'Turn on hand camera, one hand'
+    ? 'Turn on hand camera'
     : handMode === 'one-hand'
       ? 'One hand active, switch to two hands'
       : 'Two hands active, turn off hand camera';
   const chatLabel = chatOpen ? 'Close chat' : 'Chat';
-  const statusLine = voiceLive
-    ? bridgeDetail || bridgeStatus
+  const statusLine = bridgeStatus === 'Error'
+    ? formatVoiceStatus(bridgeDetail, bridgeStatus)
+    : voiceLive
+    ? formatVoiceStatus(bridgeDetail, bridgeStatus)
     : handsActive
       ? handMode === 'one-hand'
         ? '1 hand · point to touch · pinch to orbit · tap for 2'
         : '2 hands · pinch both to dolly, roll, pitch · tap to stop'
       : chatOpen
         ? 'Chat with Cerebro'
-        : 'Call · Hands · Chat · Nodes';
+        : `${CEREBRO_VOICE_LABEL} · ready`;
 
   const hudActive = useSpatialHudActive();
   const dockSpec: HudDockSpec = {

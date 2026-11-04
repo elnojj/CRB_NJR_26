@@ -3,7 +3,7 @@ import {
   getSharedWebcamStream,
   forceStopSharedWebcamStream,
   releaseSharedWebcamStream,
-} from '../utils/deviceStreamCoordinator';
+} from '../services/media/deviceStreamCoordinator';
 import { OneEuroFilter } from './oneEuroFilter';
 import {
   GLOVE_PLANE_Z,

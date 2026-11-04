@@ -79,5 +79,5 @@ export const hudBridge = {
 };
 
 export function useSpatialHudActive(): boolean {
-  return useSyncExternalStore(hudBridge.subscribe, () => hudBridge.get().active);
+  return useSyncExternalStore(hudBridge.subscribe, () => hudBridge.get().active, () => false);
 }

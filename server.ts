@@ -1,14 +1,15 @@
+import 'dotenv/config';
 import express from 'express';
+import { createLegacyElevenLabsHandlers } from './src/services/elevenlabs/server/handlers.ts';
+import { createOpenAiRealtimeHandler } from './src/services/openai-realtime/server/sessionHandler.ts';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import { GoogleGenAI } from '@google/genai';
 import {
-  CRO_CDE_GOOGLE_AGENT_MANIFEST,
   CRO_CDE_GOOGLE_TOOLS_SCHEMA,
   DEFAULT_INTERNAL_AGENT_ID,
-  buildElevenLabsAgentPayload,
-} from './src/data/croCdeGoogleAgentManifest.ts';
+} from './src/services/voice/cerebroAgentManifest.ts';
 import { buildLocalCerebroReply } from './src/utils/cerebroLocalChat.ts';
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -353,6 +354,8 @@ async function startServer() {
   const app = express();
   app.use(express.json({ limit: '15mb' }));
 
+  app.post('/api/openai/realtime/session', createOpenAiRealtimeHandler());
+
   // 1. Health & Version Checkpoint
   app.get('/api/health', (_req, res) => {
     res.json({
@@ -487,114 +490,13 @@ async function startServer() {
     });
   });
 
-  // 3. ElevenLabs Agent Status & Provisioning
-  let cachedAgentId: string = process.env.ELEVENLABS_AGENT_ID || DEFAULT_INTERNAL_AGENT_ID;
-
-  const handleAgentStatus = (_req: express.Request, res: express.Response) => {
-    res.json({
-      ok: true,
-      agentId: cachedAgentId || DEFAULT_INTERNAL_AGENT_ID,
-      defaultAgentId: DEFAULT_INTERNAL_AGENT_ID,
-      hasApiKey: Boolean(process.env.ELEVENLABS_API_KEY),
-      manifestName: CRO_CDE_GOOGLE_AGENT_MANIFEST.name,
-    });
-  };
-  app.get('/api/elevenlabs/agent', handleAgentStatus);
-  app.get('/api/elevenlabs/status', handleAgentStatus);
-
-  app.post('/api/elevenlabs/signed-url', async (req, res) => {
-    const agentId = String(req.body?.agentId || cachedAgentId || DEFAULT_INTERNAL_AGENT_ID).trim();
-    const apiKey = String(req.body?.apiKey || process.env.ELEVENLABS_API_KEY || '').trim();
-    if (!apiKey) {
-      return res.json({
-        ok: true,
-        agentId,
-        wsUrl: `wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${encodeURIComponent(agentId)}`,
-      });
-    }
-    try {
-      const r = await fetch(
-        `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${encodeURIComponent(agentId)}`,
-        { headers: { 'xi-api-key': apiKey } }
-      );
-      if (r.ok) {
-        const d = (await r.json()) as { signed_url?: string };
-        if (d.signed_url) {
-          return res.json({ ok: true, agentId, signedUrl: d.signed_url });
-        }
-      }
-    } catch {
-      // fallback to public agent_id wsUrl
-    }
-    return res.json({
-      ok: true,
-      agentId,
-      wsUrl: `wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${encodeURIComponent(agentId)}`,
-    });
-  });
-
-  const handleCreateOrProvisionAgent = async (req: express.Request, res: express.Response) => {
-    const apiKey = String(req.body?.apiKey || process.env.ELEVENLABS_API_KEY || '').trim();
-    const requestedAgentId = req.body?.agentId?.trim();
-
-    if (requestedAgentId) {
-      cachedAgentId = requestedAgentId;
-      return res.json({
-        ok: true,
-        status: 'CONFIGURED_EXISTING_AGENT',
-        agentId: cachedAgentId,
-      });
-    }
-
-    if (!apiKey) {
-      return res.json({
-        ok: true,
-        status: 'DEFAULT_INTERNAL_AGENT_ACTIVE',
-        agentId: cachedAgentId || DEFAULT_INTERNAL_AGENT_ID,
-        message: 'Using documented internal agent ID. Set ELEVENLABS_API_KEY on server only if creating a new remote agent.',
-      });
-    }
-
-    try {
-      const voiceId = req.body?.voiceId ? String(req.body.voiceId).trim() : undefined;
-      const payload = buildElevenLabsAgentPayload(voiceId);
-      const createRes = await fetch('https://api.elevenlabs.io/v1/convai/agents/create', {
-        method: 'POST',
-        headers: {
-          'xi-api-key': apiKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!createRes.ok) {
-        const errText = await createRes.text();
-        return res.status(createRes.status).json({
-          ok: false,
-          status: 'ELEVENLABS_API_ERROR',
-          error: errText,
-        });
-      }
-
-      const data = (await createRes.json()) as { agent_id?: string };
-      cachedAgentId = data.agent_id || cachedAgentId;
-
-      return res.json({
-        ok: true,
-        status: 'PROVISIONED_LIVE',
-        agentId: cachedAgentId,
-      });
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      return res.status(500).json({
-        ok: false,
-        status: 'PROVISION_EXCEPTION',
-        error: message,
-      });
-    }
-  };
-  app.post('/api/elevenlabs/provision', requireInternalAccess, handleCreateOrProvisionAgent);
-  app.post('/api/elevenlabs/create-agent', requireInternalAccess, handleCreateOrProvisionAgent);
+  // Retained legacy voice routes: same paths and access middleware.
+  const legacyVoice = createLegacyElevenLabsHandlers();
+  app.get('/api/elevenlabs/agent', legacyVoice.handleAgentStatus);
+  app.get('/api/elevenlabs/status', legacyVoice.handleAgentStatus);
+  app.post('/api/elevenlabs/signed-url', legacyVoice.handleSignedUrl);
+  app.post('/api/elevenlabs/provision', requireInternalAccess, legacyVoice.handleCreateOrProvisionAgent);
+  app.post('/api/elevenlabs/create-agent', requireInternalAccess, legacyVoice.handleCreateOrProvisionAgent);
 
   // 4. Real Byte File Uploads (`POST /api/uploads`) — supports both { fileName, base64Data } and { filename, contentBase64 }
   app.post('/api/uploads', requireInternalAccess, (req, res) => {
@@ -1131,6 +1033,8 @@ async function startServer() {
         'index.html',
         'metadata.json',
         'server.ts',
+        '.env.example',
+        'firebase-applet-config.json',
       ];
       for (const f of topFiles) {
         const full = path.join(rootDir, f);
@@ -1151,6 +1055,8 @@ async function startServer() {
         }
       };
       walkSrc(path.join(rootDir, 'src'));
+      walkSrc(path.join(rootDir, 'server'));
+      walkSrc(path.join(rootDir, 'api'));
       res.json({
         ok: true,
         version: BUILD_VERSION,

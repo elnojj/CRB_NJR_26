@@ -8,7 +8,7 @@ import {
   SHOWREEL_ITEMS,
   TEAM_CHECKPOINTS,
 } from '../data/sourceData';
-import { CRO_CDE_GOOGLE_TOOLS_SCHEMA } from '../data/croCdeGoogleAgentManifest';
+import { CRO_CDE_GOOGLE_TOOLS_SCHEMA } from '../services/voice/cerebroAgentManifest';
 import type { ProjectWorkspaceTab } from '../state/panelTypes';
 import {
   CinemaLensId,

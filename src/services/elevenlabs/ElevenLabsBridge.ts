@@ -1,9 +1,9 @@
-import { DEFAULT_INTERNAL_AGENT_ID } from '../data/croCdeGoogleAgentManifest';
+import { DEFAULT_INTERNAL_AGENT_ID } from '../voice/cerebroAgentManifest';
 import {
   getSharedAudioContext,
   getSharedMicrophoneStream,
   releaseSharedMicrophoneStream,
-} from './deviceStreamCoordinator';
+} from '../media/deviceStreamCoordinator';
 
 /**
  * ElevenLabs Conversational AI (ConvAI) Real-Time WebSocket & Audio Bridge
