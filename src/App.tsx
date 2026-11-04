@@ -51,6 +51,7 @@ import {
   ProjectMediaTubeItem,
   buildProjectMediaTubeItems,
 } from './three/ExperienceCanvas';
+import { firstMediaTileIndex } from './three/mediaTubeItems';
 import {
   isConnectedSphereId,
   type ConnectedSphereId,
@@ -1275,7 +1276,6 @@ export default function App() {
           setActiveSphere('hq');
           setFocusedNodeId(action.station);
           ensurePanelOpen(action.station, true);
-          dispatchCamera('focus_node', { targetSphere: 'hq', targetNodeId: action.station });
           // Media station: expand showreel previews inside the sphere (past armature cage).
           if (action.station === 'media') {
             setMediaTubeState((prev) => ({
@@ -1286,10 +1286,14 @@ export default function App() {
             }));
             dispatchCamera('set_angle', {
               targetSphere: 'hq',
-              anglePreset: 'interior_dome',
+              anglePreset: 'tube_front',
             });
-            setCaptionBubble('Media · 5 Showreels expanded · Interior Dome past cage');
+            setCaptionBubble('Media');
           } else {
+            dispatchCamera('focus_node', { targetSphere: 'hq', targetNodeId: action.station });
+            setMediaTubeState((prev) =>
+              prev.active ? { ...prev, active: false, focusedTileIndex: null, sphere: undefined } : prev
+            );
             setCaptionBubble(`Station · ${action.station.toUpperCase()}`);
           }
           return {
@@ -1351,6 +1355,21 @@ export default function App() {
           }
           setSelectedProjectId(proj.id);
           setFocusedNodeId(proj.id);
+          // Project node -> its real media: open this project's tube on its first verified tile,
+          // or close a tube left open by the previous node when this project has none.
+          const nodeMediaTile = firstMediaTileIndex(proj.id);
+          setMediaTubeState((prev) =>
+            nodeMediaTile !== null
+              ? {
+                  active: true,
+                  projectId: proj.id,
+                  focusedTileIndex: nodeMediaTile,
+                  savedPanels: prev.savedPanels.length > 0 ? prev.savedPanels : [...openPanels],
+                }
+              : prev.active
+                ? { ...prev, active: false, focusedTileIndex: null, sphere: undefined }
+                : prev
+          );
           const worldManifest =
             getProjectWorldManifest(`world-${proj.id}`) ||
             getProjectWorldManifest(proj.id);
@@ -1365,10 +1384,11 @@ export default function App() {
             setSpatialHealthMode('project');
             setDashboardCollapsed(false);
             ensurePanelOpen('project-detail', true);
-            dispatchCamera('focus_node', {
-              targetSphere: activeSphere,
-              targetNodeId: proj.id,
-            });
+            if (nodeMediaTile !== null) {
+              dispatchCamera('set_angle', { targetSphere: activeSphere, anglePreset: 'tube_front' });
+            } else {
+              dispatchCamera('focus_node', { targetSphere: activeSphere, targetNodeId: proj.id });
+            }
             setCaptionBubble(`${proj.name} · ${proj.health}`);
             return {
               ok: true,
@@ -1393,7 +1413,11 @@ export default function App() {
           } else {
             setOpenPanels((prev) => prev.filter((p) => p !== 'project-detail'));
           }
-          dispatchCamera('focus_node', { targetSphere: activeSphere, targetNodeId: proj.id });
+          if (nodeMediaTile !== null) {
+            dispatchCamera('set_angle', { targetSphere: activeSphere, anglePreset: 'tube_front' });
+          } else {
+            dispatchCamera('focus_node', { targetSphere: activeSphere, targetNodeId: proj.id });
+          }
           setCaptionBubble(`${proj.name} · ${proj.health}`);
           return {
             ok: true,
@@ -2191,10 +2215,7 @@ export default function App() {
               focusedTileIndex: action.tileIndex ?? 0,
               savedPanels: prev.savedPanels,
             }));
-            dispatchCamera('focus_node', {
-              targetSphere: activeSphere,
-              targetNodeId: targetProj,
-            });
+            dispatchCamera('set_angle', { targetSphere: activeSphere, anglePreset: 'tube_front' });
             setCaptionBubble(
               `Opened 3D Cylindrical Project Media Tube (24 Tiles · 8×3) for ${targetProj}`
             );

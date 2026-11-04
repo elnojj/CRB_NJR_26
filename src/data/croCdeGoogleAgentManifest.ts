@@ -325,6 +325,7 @@ export const CRO_CDE_GOOGLE_TOOLS_SCHEMA = [
             'ots_core',
             'macro_close',
             'interior_dome',
+            'tube_front',
             'tele_bridge',
           ],
         },

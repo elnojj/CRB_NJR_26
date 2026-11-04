@@ -173,4 +173,18 @@ describe('visual guards: brand lockup', () => {
     assert.match(indexCss, /clamp\(2\.25rem, 3\.6vw, 3rem\)/);
     assert.match(indexCss, /header\[data-testid='workspace-header'\] \{\s*padding-top: calc\(36px/);
   });
+
+  it('nodes are wired to media: project nodes open their tube in front of the tile', () => {
+    const app = read('../App.tsx');
+    assert.match(app, /firstMediaTileIndex\(proj\.id\)/);
+    assert.match(app, /anglePreset: 'tube_front'/);
+    const canvas = read('./CosmographCanvas.tsx');
+    assert.match(canvas, /case 'tube_front':/);
+    assert.ok(!/tileMesh\.rotateY\(Math\.PI\)/.test(canvas), 'tiles must face the tube axis');
+  });
+
+  it('node labels never balloon into full-screen cards', () => {
+    const src = read('../three/spatialLabelBillboards.ts');
+    assert.match(src, /clamp\(dist \* 0\.085, 0\.3, 5\.2\)/);
+  });
 });

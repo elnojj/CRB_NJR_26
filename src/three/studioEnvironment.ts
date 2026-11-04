@@ -7,12 +7,13 @@ import * as THREE from 'three';
  */
 export const NEUTRAL_STUDIO_ENV_CONFIG = {
   blurSigma: 0.12,
-  environmentIntensity: 0.6,
+  environmentIntensity: 0.75,
   backgroundBlurriness: 0.8,
   skyZenithColor: 0x2a3f9a,
   horizonBandColor: 0x101a45,
   nadirVoidColor: 0x04061a,
   accentPanelColor: 0x5cc8ff,
+  warmPanelColor: 0xffd9a0,
 } as const;
 
 export function applyNeutralStudioEnvironment(
@@ -50,9 +51,9 @@ export function applyNeutralStudioEnvironment(
   studioEnvScene.add(new THREE.Mesh(domeGeo, domeMat));
 
   // Two small cool light cards give the glass crisp specular highlights to catch.
-  const panelGeo = new THREE.PlaneGeometry(14, 3.2);
+  const panelGeo = new THREE.PlaneGeometry(22, 7);
   const panelMat = new THREE.MeshBasicMaterial({
-    color: new THREE.Color(NEUTRAL_STUDIO_ENV_CONFIG.accentPanelColor).multiplyScalar(2.2),
+    color: new THREE.Color(NEUTRAL_STUDIO_ENV_CONFIG.accentPanelColor).multiplyScalar(1.15),
     side: THREE.DoubleSide,
   });
   const panelA = new THREE.Mesh(panelGeo, panelMat);
@@ -61,7 +62,14 @@ export function applyNeutralStudioEnvironment(
   const panelB = new THREE.Mesh(panelGeo, panelMat);
   panelB.position.set(13, -5, -12);
   panelB.lookAt(0, 0, 0);
-  studioEnvScene.add(panelA, panelB);
+  const warmMat = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(NEUTRAL_STUDIO_ENV_CONFIG.warmPanelColor).multiplyScalar(0.9),
+    side: THREE.DoubleSide,
+  });
+  const panelC = new THREE.Mesh(panelGeo, warmMat);
+  panelC.position.set(4, 14, -14);
+  panelC.lookAt(0, 0, 0);
+  studioEnvScene.add(panelA, panelB, panelC);
 
   const envRT = pmremGenerator.fromScene(
     studioEnvScene,
@@ -73,6 +81,7 @@ export function applyNeutralStudioEnvironment(
   domeGeo.dispose();
   panelGeo.dispose();
   panelMat.dispose();
+  warmMat.dispose();
   domeMat.dispose();
   pmremGenerator.dispose();
   if (prevEnv && prevEnv !== envRT.texture) {

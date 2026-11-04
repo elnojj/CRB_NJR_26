@@ -35,12 +35,12 @@ describe('glass never resolves to pure black', () => {
     assert.equal(shouldUseFlatGlass({ softwareGl: false, forceFlat: true }), true);
   });
 
-  it('full glass is luminous: strong specular, clearcoat and env reflection', () => {
+  it('full glass is natural: soft specular and clearcoat, no hot plastic glints', () => {
     const full = createSharedOuterShellMaterial({ softwareGl: false, face: 'front' });
     assert.ok(full.transmission > 0.85);
-    assert.ok(full.specularIntensity >= 0.8);
-    assert.ok(full.clearcoat >= 0.5);
-    assert.ok(full.envMapIntensity >= 0.8);
+    assert.ok(full.specularIntensity <= 0.65);
+    assert.ok(full.clearcoat <= 0.35);
+    assert.ok(full.envMapIntensity <= 0.8);
   });
 
   it('full glass is crisp and clear: transmission 0.90-0.94, roughness 0.10-0.15, ior 1.25, opaque alpha, no depth write', () => {

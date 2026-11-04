@@ -181,3 +181,13 @@ export function buildProjectMediaTubeItems(projectId: string): ProjectMediaTubeI
     };
   });
 }
+
+/** Index of the first tile in a project's tube that carries real media (url or poster); null if none. */
+export function firstMediaTileIndex(projectId: string): number | null {
+  const items = buildProjectMediaTubeItems(projectId);
+  const hasMedia = (item: (typeof items)[number]) => Boolean(item.url || item.posterUrl);
+  const found =
+    items.find((item) => item.index < PROJECT_MEDIA_TUBE_SPECS.columns && hasMedia(item)) ??
+    items.find(hasMedia);
+  return found ? found.index : null;
+}

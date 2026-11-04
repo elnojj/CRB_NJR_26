@@ -217,6 +217,7 @@ export type CameraAnglePresetId =
   | 'ots_core'
   | 'macro_close'
   | 'interior_dome'
+  | 'tube_front'
   | 'tele_bridge';
 
 export type CameraLoopMode = 'off' | 'lemniscate' | 'helix' | 'vertigo' | 'macro_orbit';
@@ -1223,6 +1224,17 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           s.targetRollDeg = 0;
           s.targetPanOffset.set(0, 0, 0);
           break;
+        case 'tube_front':
+          // Inside the media tube, back to the focused tile (the tube rotates it to +Z), so the
+          // tile (top row) fills about a third of the view.
+          s.targetPolar = 1.57;
+          s.targetAzimuth = Math.PI;
+          s.targetRollDeg = 0;
+          s.targetFocalLengthMm = 85;
+          s.activeLensId = '85mm';
+          s.targetRadius = 3.2;
+          s.targetPanOffset.set(0, PROJECT_MEDIA_TUBE_SPECS.rowPitchU, 0);
+          break;
         case 'tele_bridge':
           s.targetPolar = 1.54;
           s.targetAzimuth = -1.50;
@@ -1383,7 +1395,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const s = stateRef.current;
     if (s.stoppedExplicitly || s.flightActive) return;
     // Do not yank Interior Dome / Macro Orbit back outside the armature cage (~6.3u).
-    if (s.activeAnglePreset === 'interior_dome' || s.activeLoopMode === 'macro_orbit') {
+    if (
+      s.activeAnglePreset === 'interior_dome' ||
+      s.activeLoopMode === 'macro_orbit' ||
+      (s.activeAnglePreset === 'tube_front' && mediaTubeStateRef.current?.active)
+    ) {
       return;
     }
     const sphereCenter = resolveSphereCenter(activeSphere);
@@ -1413,7 +1429,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const s = stateRef.current;
     if (s.stoppedExplicitly) return;
     // Fitted GUI distances floor near ~9u (outside cage). Skip while inside dome/macro.
-    if (s.activeAnglePreset === 'interior_dome' || s.activeLoopMode === 'macro_orbit') {
+    if (
+      s.activeAnglePreset === 'interior_dome' ||
+      s.activeLoopMode === 'macro_orbit' ||
+      (s.activeAnglePreset === 'tube_front' && mediaTubeStateRef.current?.active)
+    ) {
       return;
     }
     const spec = GUI_CAMERA_PRESETS[guiCameraPreset];
@@ -1779,9 +1799,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const sharedGoldRibbedMat = new THREE.MeshPhysicalMaterial({
       color: 0x8C6A45,
       metalness: 0.85,
-      roughness: 0.18,
-      clearcoat: 0.35,
-      clearcoatRoughness: 0.1,
+      roughness: 0.34,
+      clearcoat: 0.12,
+      clearcoatRoughness: 0.35,
       sheen: MAT_GOLD_SHEEN.sheen,
       sheenRoughness: MAT_GOLD_SHEEN.sheenRoughness,
       sheenColor: new THREE.Color(MAT_GOLD_SHEEN.sheenColor),
@@ -1795,9 +1815,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       emissive: new THREE.Color(0x382808),
       emissiveIntensity: 0.55,
       metalness: 0.95,
-      roughness: 0.14,
-      clearcoat: 0.45,
-      clearcoatRoughness: 0.08,
+      roughness: 0.24,
+      clearcoat: 0.15,
+      clearcoatRoughness: 0.3,
       sheen: MAT_GOLD_SHEEN.sheen,
       sheenRoughness: MAT_GOLD_SHEEN.sheenRoughness,
       sheenColor: new THREE.Color(MAT_GOLD_SHEEN.sheenColor),
@@ -1884,8 +1904,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           shader,
           rimColVec,
           bodyColVec,
-          isBack ? 2.2 : 2.6,
-          isBack ? 0.22 : 0.46
+          isBack ? 3.0 : 3.8,
+          isBack ? 0.16 : 0.34
         );
         if (!patchedOpaque) {
           shader.fragmentShader = shader.fragmentShader.replace(
@@ -3072,9 +3092,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       const tileMesh = new THREE.Mesh(tileGeo, buildTileMaterial(initialTubeItems[idx]));
       tileMesh.visible = tubeItemHasMedia(initialTubeItems[idx]);
       tileMesh.position.set(Math.sin(theta) * r, y, Math.cos(theta) * r);
+      // lookAt points the plane's front (+Z) at the axis, so media reads correctly from inside the tube.
       tileMesh.lookAt(0, y, 0);
-      // Flip so front face points outward/inward cleanly
-      tileMesh.rotateY(Math.PI);
       tileMesh.userData = {
         isMediaTubeTile: true,
         tileIndex: idx,

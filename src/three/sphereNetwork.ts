@@ -51,13 +51,13 @@ export const SHARED_OUTER_SHELL_MATERIAL_PRESET: SharedOuterShellMaterialPreset 
   metalness: 0.0,
   ior: 1.25,
   thickness: 0.8,
-  clearcoat: 0.6,
-  clearcoatRoughness: 0.08,
-  specularIntensity: 0.9,
+  clearcoat: 0.28,
+  clearcoatRoughness: 0.14,
+  specularIntensity: 0.55,
   specularColor: '#B4DDFF',
   attenuationColor: '#d6e8ff',
   attenuationDistance: 60,
-  envMapIntensity: 0.85,
+  envMapIntensity: 0.7,
 } as const;
 
 export function createSharedOuterShellMaterial(options?: {
@@ -92,6 +92,7 @@ export function createSharedOuterShellMaterial(options?: {
     emissiveIntensity: softwareGl
       ? GLASS_EMISSIVE_FLOOR.flatIntensity
       : GLASS_EMISSIVE_FLOOR.transmissiveIntensity,
+    dispersion: softwareGl ? 0 : 0.35,
     sheen: 0,
     sheenRoughness: 1,
     transparent: true,

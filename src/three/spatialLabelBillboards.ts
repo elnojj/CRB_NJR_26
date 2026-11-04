@@ -155,7 +155,8 @@ export class SpatialLabelBillboardLayer {
 
       sprite.position.copy(spec.worldPos);
       sprite.position.y += 1.15;
-      const s = THREE.MathUtils.clamp(dist * 0.085, 2.4, 5.2);
+      // Constant angular size: labels shrink with the camera instead of filling the screen up close.
+      const s = THREE.MathUtils.clamp(dist * 0.085, 0.3, 5.2);
       sprite.scale.set(s, s * 0.32, 1);
       sprite.renderOrder = Math.round(1000 - dist);
 
