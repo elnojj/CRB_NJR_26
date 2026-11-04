@@ -1,0 +1,33 @@
+---
+description: Core conventions for the Cerebro / NOJARA 3D app
+alwaysApply: true
+---
+
+# Cerebro core rules
+
+## Stack and commands
+- React + TypeScript + Vite, three.js with troika text, GSAP (core only, no plugins), Express dev server in `server.ts`.
+- Typecheck: `npm run lint` (`tsc --noEmit`). Tests: `npm test` (self-tests), `npm run test:voice`. Build: `npm run build`.
+- Run typecheck and tests before committing. Fix failures your change causes.
+
+## Code style
+- Imports at the top of the module. No inline or dynamic imports unless a circular dependency forces it, and then document why.
+- Switches over unions or enums end with a `never` check in `default`.
+- Comments explain non-obvious intent only. Never narrate what the code does.
+- Do not edit `src/three_LOCKED_BASELINE/`. It is a frozen reference.
+- `.agents/` and `.aistudio/` are untracked tooling folders. Do not commit them.
+
+## Honest state (non-negotiable)
+- Never invent metrics, percentages, playback, or media. Unreviewed media keeps `runtimeUrl: null` and renders a placeholder card with a `blocked` or `pending-media` status.
+- Node status vocabulary: verified, proposed, gap, disconnected, unverified. Use it as is.
+- Status UI (`system-status-layer`, `verified-progress`) reads real data or shows nothing.
+
+## Registry and naming
+- Nodes, anchors and environments come from `src/data/environmentRegistry.ts`. Do not hard-code node positions elsewhere.
+- Registry ids match `^[a-z]+__[a-z]+__[a-z0-9]+(_[a-z0-9]+)*$`.
+- Khalid is always `khalid` / "Khalid Alshaalan".
+- Add `data-testid` to every new interactive element. Keep existing test ids stable.
+
+## Git
+- Work on the current branch unless told otherwise. Commit in small logical steps with descriptive messages. Do not open a PR unless asked.
+- Never write tokens or secrets into files, commits, or messages.

@@ -1,0 +1,38 @@
+---
+description: Rules for the 3D scene, camera, hand input and cinematic mode
+globs: src/three/**/*.ts,src/three/**/*.tsx,src/components/CosmographCanvas.tsx,src/gui/**/*.ts
+alwaysApply: false
+---
+
+# 3D scene, camera and input
+
+## Renderer and scene
+- One renderer and one scene. Do not add a second canvas or a second WebGL context for new features.
+- Dispose geometries, materials and textures you create. Timers use `THREE.Timer`, loops use `renderer.setAnimationLoop`.
+- Use `layers.enable`, not `layers.set`, when adding a layer to a visible mesh.
+- Canvas keeps `touch-action: none`. Pointer events cover mouse, touch and pen; do not add separate touch handlers.
+
+## Camera authority
+- `CameraDirector` owns the camera. Other code requests moves through it; it does not set `camera.position` directly.
+- Priority: `UI_INTERACT` over `CAMERA_TWO_HAND` over `CAMERA_ONE_HAND` over pointer/touch orbit. A pressed HUD element or grabbed node must lock camera input.
+- Presets are 28 / 35 / 50 / 85 mm. Use the 36 mm film-gauge helpers for FOV, never raw FOV numbers.
+- Flights and journeys are interruptible by pointer-down or key press.
+
+## Hands
+- One Hands toggle: off, 1 hand, 2 hands, off. Never allow one-hand and two-hand gestures to drive the camera at the same time.
+- Single GPU tracker with CPU fallback. Stopping hands must stop webcam tracks immediately.
+- Denied camera permission must leave pointer and touch fully working.
+
+## Cinematic mode
+- `isCinematicMode` hides `app-chrome` with `display: none` and keeps it mounted so state survives.
+- Only the 3D scene, kinetic text, honest media cards and a subtle Esc / Stop remain.
+- The multi-environment network is the space authority (`?env=sphere1` is the explicit override). Sphere 1 is the opening container, not a second shell.
+- Keep an sr-only caption for screen readers.
+
+## Escape chain
+- One layer closes per Esc press, in the order defined in `src/App.tsx`. New closable layers must be added to that chain and to the matching test.
+- Never trigger camera shortcuts while typing in an input, textarea or contenteditable.
+
+## Motion
+- Respect `src/utils/motionPreference.ts`. Reduced motion disables drift and timelines.
+- GSAP core only. Do not add GSAP plugins without a reason noted in the PR or commit.
