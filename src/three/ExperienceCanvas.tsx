@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import * as THREE from 'three';
-import { useReducedMotion } from 'motion/react';
 import {
   CosmographCanvas,
   CameraCommandPayload,
@@ -197,8 +196,9 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
   handsActive = false,
   onJourneyBeat,
 }) => {
-  const osReducedMotion = useReducedMotion();
-  const effectiveReducedMotion = Boolean(reducedMotion || osReducedMotion);
+  // The OS setting is resolved once in App (see utils/motionPreference); do not re-join it here or
+  // a device-level Reduce Motion silently freezes every camera flight.
+  const effectiveReducedMotion = reducedMotion;
   const handleSceneReady = useCallback((scene: THREE.Scene) => {
     applyNeutralStudioEnvironment(scene);
   }, []);

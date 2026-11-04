@@ -30,8 +30,18 @@ export class CerebroSoundEngine {
       const unlockHandler = () => {
         this.unlock();
       };
-      window.addEventListener('pointerdown', unlockHandler, { passive: true });
-      window.addEventListener('keydown', unlockHandler, { passive: true });
+      // iOS Safari only lets an AudioContext start from touchend/click, not from pointerdown.
+      for (const type of ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'keydown'] as const) {
+        window.addEventListener(type, unlockHandler, { passive: true });
+      }
+      const resumeHandler = () => {
+        if (document.visibilityState === 'hidden') return;
+        const ctx = this.ctx;
+        if (ctx && ctx.state !== 'running') ctx.resume().catch(() => {});
+      };
+      document.addEventListener('visibilitychange', resumeHandler);
+      window.addEventListener('pageshow', resumeHandler);
+      window.addEventListener('focus', resumeHandler);
     }
   }
 
@@ -84,7 +94,7 @@ export class CerebroSoundEngine {
   public unlock(): boolean {
     const ctx = this.ensureContext();
     if (!ctx) return false;
-    if (ctx.state === 'suspended') {
+    if (ctx.state !== 'running') {
       ctx.resume().catch(() => {});
     }
     this.unlocked = true;

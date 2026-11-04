@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { resolveReducedMotion } from './utils/motionPreference';
+import { readSoundPreference, writeSoundPreference } from './utils/soundPreference';
 import { COLOUR_TOKENS, CdeDimensionId, StationId } from './tokens/colours';
 import {
   CEREBRO_STATIONS,
@@ -230,11 +232,15 @@ export default function App() {
   const [visualAuthorityScope, setVisualAuthorityScope] =
     useState<VisualAuthorityScopeId>('locked_app_1f78a12');
   const [screenAmendments, setScreenAmendments] = useState<ScreenElementAmendment[]>([]);
-  const [reducedMotion, setReducedMotion] = useState<boolean>(() => {
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const [reducedMotion] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    let storage: Storage | null = null;
+    try {
+      storage = window.localStorage;
+    } catch {
+      storage = null;
     }
-    return false;
+    return resolveReducedMotion(window.location.search, storage);
   });
   const [soundMuted, setSoundMuted] = useState<boolean>(true);
   const [audioRms, setAudioRms] = useState<number>(0);
@@ -498,9 +504,25 @@ export default function App() {
   const handleToggleAmbience = useCallback(() => {
     soundEngine.unlock();
     const next = !soundEngine.isMuted();
+    writeSoundPreference(next ? 'muted' : 'on');
     soundEngine.setMuted(next);
     setAmbienceMuted(next);
     setSoundMuted(next);
+  }, []);
+  useEffect(() => {
+    if (readSoundPreference() === 'muted') return;
+    const events = ['pointerup', 'touchend', 'click', 'keydown'] as const;
+    const onFirstGesture = () => {
+      if (!soundEngine.unlock()) return;
+      for (const type of events) window.removeEventListener(type, onFirstGesture);
+      soundEngine.setMuted(false);
+      setSoundMuted(false);
+      setAmbienceMuted(false);
+    };
+    for (const type of events) window.addEventListener(type, onFirstGesture, { passive: true });
+    return () => {
+      for (const type of events) window.removeEventListener(type, onFirstGesture);
+    };
   }, []);
   const [pendingTaskProposal, setPendingTaskProposal] = useState<PendingComposeTask | null>(null);
   const [customTasks, setCustomTasks] = useState<CustomTaskItem[]>([]);

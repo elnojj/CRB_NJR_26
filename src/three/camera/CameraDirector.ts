@@ -704,7 +704,8 @@ export function patchFresnelRimOnOpaqueFragment(
   shader: { fragmentShader: string },
   rimColor: THREE.Color,
   bodyColor: THREE.Color,
-  fresnelPower = 2.6
+  fresnelPower = 2.6,
+  rimIntensity = 0.22
 ): boolean {
   const targetChunk = '#include <opaque_fragment>';
   if (!shader.fragmentShader.includes(targetChunk)) {
@@ -730,7 +731,7 @@ export function patchFresnelRimOnOpaqueFragment(
       3
     )}, ${bodyColor.b.toFixed(3)});
       float v2Wave = 0.5 + 0.5 * sin(uTime * 0.55);
-      vec3 v2Tint = mix(v2BodyCol, v2RimCol, v2Wave) * v2Fresnel * (0.22 + uAudioRms * 0.1);
+      vec3 v2Tint = mix(v2BodyCol, v2RimCol, v2Wave) * v2Fresnel * (${rimIntensity.toFixed(3)} + uAudioRms * 0.1);
       gl_FragColor.rgb += v2Tint;
     }`
   );

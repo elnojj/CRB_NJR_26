@@ -51,13 +51,13 @@ export const SHARED_OUTER_SHELL_MATERIAL_PRESET: SharedOuterShellMaterialPreset 
   metalness: 0.06,
   ior: 1.48,
   thickness: 2.2,
-  clearcoat: 0.25,
-  clearcoatRoughness: 0.2,
-  specularIntensity: 0.35,
+  clearcoat: 0.6,
+  clearcoatRoughness: 0.08,
+  specularIntensity: 0.9,
   specularColor: '#B4DDFF',
   attenuationColor: '#142632',
   attenuationDistance: 3.8,
-  envMapIntensity: 0.35,
+  envMapIntensity: 0.85,
 } as const;
 
 export function createSharedOuterShellMaterial(options?: {

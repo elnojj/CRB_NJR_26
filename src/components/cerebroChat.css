@@ -43,6 +43,7 @@
 }
 
 .cerebro-dock__status {
+  pointer-events: none;
   margin: 0;
   padding: 0 4px;
   font-family: var(--font-mono, ui-monospace, monospace);

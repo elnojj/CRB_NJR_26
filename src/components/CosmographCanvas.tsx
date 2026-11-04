@@ -69,6 +69,7 @@ import { getProjectWorldManifest } from '../data/projectWorldManifest';
 import { HandGlove3D } from '../three/HandGlove3D';
 import { gloveFrustum } from '../three/handTracker';
 import { NodeInteractionLayer } from '../three/nodeInteraction';
+import { createBackgroundStarfield } from '../three/backgroundStarfield';
 import { isolateDecorativeGeometry, type CosmeticFade } from '../three/decorativeIsolation';
 import { handIsFresh, handStateRef } from '../three/handStateRef';
 import { IntentJitterGate, handInteractionMachine, splineJourney } from '../three/camera/CameraDirector';
@@ -87,7 +88,7 @@ import {
   sphereCenterVec,
   sphereNetworkCentroid,
 } from '../three/sphereNetwork';
-import { isAppleMobileWebKit, shouldUseFlatGlass } from '../three/glassFallback';
+import { shouldUseFlatGlass } from '../three/glassFallback';
 import {
   ABOUT_US_NODES,
   CAMPAIGN_OS_NODES,
@@ -1471,7 +1472,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     const useFlatGlass = shouldUseFlatGlass({
       softwareGl: isSoftwareGl,
-      appleMobile: isAppleMobileWebKit(typeof navigator === 'undefined' ? undefined : navigator),
+      forceFlat: new URLSearchParams(window.location.search).get('glass') === 'flat',
     });
 
     const rendererAttempts: THREE.WebGLRendererParameters[] = [
@@ -1606,14 +1607,20 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     bgCanvas.height = 1024;
     {
       const bgCtx = bgCanvas.getContext('2d')!;
-      // Base ink void — cooler and deeper than #101D27.
-      const g = bgCtx.createRadialGradient(512, 460, 30, 512, 540, 720);
-      g.addColorStop(0, '#243848');
-      g.addColorStop(0.22, '#142433');
-      g.addColorStop(0.48, '#0a1520');
-      g.addColorStop(0.78, '#050b14');
-      g.addColorStop(1, '#02050a');
+      // Deep-space volume: cosmic indigo core falling through navy into black.
+      const g = bgCtx.createRadialGradient(512, 470, 20, 512, 540, 760);
+      g.addColorStop(0, '#1b2556');
+      g.addColorStop(0.2, '#121a45');
+      g.addColorStop(0.46, '#0a1029');
+      g.addColorStop(0.76, '#04071a');
+      g.addColorStop(1, '#010208');
       bgCtx.fillStyle = g;
+      bgCtx.fillRect(0, 0, 1024, 1024);
+      // Faint electric-blue horizon wash so the glass has something to refract and reflect.
+      const wash = bgCtx.createRadialGradient(512, 930, 10, 512, 930, 560);
+      wash.addColorStop(0, 'rgba(40,110,210,0.20)');
+      wash.addColorStop(1, 'rgba(40,110,210,0)');
+      bgCtx.fillStyle = wash;
       bgCtx.fillRect(0, 0, 1024, 1024);
       // Sparse star dust — brighter so it survives fog + Hands wash.
       for (let i = 0; i < 220; i++) {
@@ -1707,14 +1714,16 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     // Sehly / Cerebro 39 Master Lighting Rig — toned down directional key & rim
     // intensities to eliminate blown-out white specular halos on outer shells.
-    const ambientLight = new THREE.AmbientLight(0x142632, 0.85);
+    const ambientLight = new THREE.AmbientLight(0x1c2a5c, 1.05);
     scene.add(ambientLight);
+    const skyFill = new THREE.HemisphereLight(0x4f9bff, 0x070a1c, 0.55);
+    scene.add(skyFill);
 
     const keyLight = new THREE.DirectionalLight(0xE8FBFF, 0.85);
     keyLight.position.set(15, 25, 20);
     scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0x65ACFF, 0.45);
+    const fillLight = new THREE.DirectionalLight(0x65ACFF, 0.7);
     fillLight.position.set(-20, -14, -15);
     scene.add(fillLight);
 
@@ -1730,6 +1739,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     const extraDisposables: Array<{ dispose: () => void }> = [];
     extraDisposables.push(bgTexture);
+
+    const starfield = createBackgroundStarfield();
+    scene.add(starfield.group);
+    extraDisposables.push(starfield);
 
     // Procedural subtle brushed silver anisotropy bump map (Sehly metal_core #BCC9D4)
     const createSinusoidalStripeBumpTexture = (): THREE.DataTexture => {
@@ -1845,8 +1858,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       face: 'front',
     });
 
-    const rimColVec = new THREE.Color(0xB4DDFF);
-    const bodyColVec = new THREE.Color(0x65ACFF);
+    const rimColVec = new THREE.Color(0x7FE9FF);
+    const bodyColVec = new THREE.Color(0x2F7BFF);
 
     const injectCausticShader = (mat: THREE.MeshPhysicalMaterial, isBack: boolean) => {
       mat.onBeforeCompile = (shader) => {
@@ -1870,7 +1883,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           shader,
           rimColVec,
           bodyColVec,
-          isBack ? 2.4 : 3.2
+          isBack ? 2.2 : 2.6,
+          isBack ? 0.3 : 0.62
         );
         if (!patchedOpaque) {
           shader.fragmentShader = shader.fragmentShader.replace(
@@ -1884,7 +1898,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             vec3 causticRim = vec3(${rimColVec.r.toFixed(3)}, ${rimColVec.g.toFixed(3)}, ${rimColVec.b.toFixed(3)});
             vec3 causticBody = vec3(${bodyColVec.r.toFixed(3)}, ${bodyColVec.g.toFixed(3)}, ${bodyColVec.b.toFixed(3)});
             float causticWave = 0.5 + 0.5 * sin(uTime * 0.55);
-            vec3 rimTint = mix(causticBody, causticRim, causticWave) * fresnel * (0.08 + uAudioRms * 0.05);
+            vec3 rimTint = mix(causticBody, causticRim, causticWave) * fresnel * (0.3 + uAudioRms * 0.1);
             gl_FragColor.rgb += rimTint;`
           );
         }
@@ -1897,7 +1911,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     // Shared Geometries matching regenerate_starter_meshes.py proportions (scaled to R = 6.2u)
     const sharedShellGeo = new THREE.SphereGeometry(6.2, 64, 48); // glass_shell: 1.00R = 6.2u
     const sharedInnerSilverCoreGeo = new THREE.SphereGeometry(6.2 * 0.82, 56, 40); // metal_core: 0.82R = 5.084u
-    const sharedOuterRibTorusGeo = new THREE.TorusGeometry(6.2 * 1.015, 6.2 * 0.008, 20, 128); // orbital_cage: R=1.015R (6.293u), r=0.008R (0.0496u)
     const sharedPortalRimGeo = new THREE.TorusGeometry(6.2 * 0.85, 6.2 * 0.012, 20, 96); // media_portal_rim: R=0.85R (5.27u)
     const sharedHaloGeo = new THREE.RingGeometry(0.76, 0.82, 48);
     const sharedPlanetBeadGeo = new THREE.SphereGeometry(0.085, 16, 16);
@@ -1997,22 +2010,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       shellGroup.add(perimeterDropletsGroup);
       root.add(shellGroup);
-
-      // Orbital cage: the three bronze ribs only. The thin gold/ice wireframe loops, the inner
-      // ice filament rings and the interior dome grid were removed for the clean-slate scene.
-      const orbitalRingsGroup = new THREE.Group();
-      const orbitalCageRibSpecs = [
-        { rotX: Math.PI / 2 - 0.18, rotY: 0.12, rotZ: 0 },
-        { rotX: 0.22, rotY: 0.48, rotZ: Math.PI / 2 },
-        { rotX: -0.28, rotY: -0.52, rotZ: Math.PI / 3 },
-      ];
-      orbitalCageRibSpecs.forEach((cfg) => {
-        const bronzeCageRing = new THREE.Mesh(sharedOuterRibTorusGeo, sharedGoldRibbedMat);
-        bronzeCageRing.scale.setScalar(shellScale);
-        bronzeCageRing.rotation.set(cfg.rotX, cfg.rotY, cfg.rotZ);
-        orbitalRingsGroup.add(bronzeCageRing);
-      });
-      shellGroup.add(orbitalRingsGroup);
 
       // OBJ-00: Central Liquid Glass Core Assembly at [0, 0, 0] (no opaque chrome inner core)
       const coreGroup = new THREE.Group();
@@ -3916,6 +3913,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       posAttr.needsUpdate = true;
       weaveAttr.needsUpdate = true;
 
+      starfield.update(elapsedTotal, !s.reducedMotion);
       if (!s.reducedMotion) {
         for (let i = 0; i < pulseBeads.length; i++) {
           const pb = pulseBeads[i];
@@ -4328,7 +4326,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       sharedBackOpticalGlassMat.dispose();
       sharedTitaniumMat.dispose();
       sharedShellGeo.dispose();
-      sharedOuterRibTorusGeo.dispose();
       sharedHaloGeo.dispose();
       sharedPlanetBeadGeo.dispose();
       sharedSatBeadGeo.dispose();

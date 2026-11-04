@@ -16,12 +16,13 @@ export function isAppleMobileWebKit(nav: GlassNavigatorLike | undefined): boolea
 }
 
 /**
- * Glass shells that rely on a transmission render target can resolve to pure black on
- * Apple mobile GPUs when that buffer fails. Those devices (and software rasterizers) use the
- * opacity-based glass instead, which never depends on the transmission buffer.
+ * Only software rasterizers use the opacity-based glass. Every real GPU, Apple mobile included,
+ * renders the full transmission/refraction material; the emissive floor below keeps it from
+ * resolving to pure black if the transmission buffer ever fails. `?glass=flat` forces the
+ * fallback for diagnosis.
  */
-export function shouldUseFlatGlass(opts: { softwareGl: boolean; appleMobile: boolean }): boolean {
-  return opts.softwareGl || opts.appleMobile;
+export function shouldUseFlatGlass(opts: { softwareGl: boolean; forceFlat?: boolean }): boolean {
+  return opts.softwareGl || opts.forceFlat === true;
 }
 
 export const GLASS_EMISSIVE_FLOOR = {

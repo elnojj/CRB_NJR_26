@@ -29,10 +29,18 @@ describe('Apple mobile WebKit detection', () => {
 });
 
 describe('glass never resolves to pure black', () => {
-  it('flat glass is used for software GL and Apple mobile only', () => {
-    assert.equal(shouldUseFlatGlass({ softwareGl: false, appleMobile: false }), false);
-    assert.equal(shouldUseFlatGlass({ softwareGl: true, appleMobile: false }), true);
-    assert.equal(shouldUseFlatGlass({ softwareGl: false, appleMobile: true }), true);
+  it('flat glass is used for software GL or an explicit override, never for real GPUs', () => {
+    assert.equal(shouldUseFlatGlass({ softwareGl: false }), false);
+    assert.equal(shouldUseFlatGlass({ softwareGl: true }), true);
+    assert.equal(shouldUseFlatGlass({ softwareGl: false, forceFlat: true }), true);
+  });
+
+  it('full glass is luminous: strong specular, clearcoat and env reflection', () => {
+    const full = createSharedOuterShellMaterial({ softwareGl: false, face: 'front' });
+    assert.ok(full.transmission > 0.85);
+    assert.ok(full.specularIntensity >= 0.8);
+    assert.ok(full.clearcoat >= 0.5);
+    assert.ok(full.envMapIntensity >= 0.8);
   });
 
   it('every shell material carries a non-zero emissive floor', () => {

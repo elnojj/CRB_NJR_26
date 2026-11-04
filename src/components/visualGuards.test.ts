@@ -22,7 +22,6 @@ describe('visual guards: master canvas', () => {
 
   it('has no galaxy dust, spiral shell particles or backdrop nebula blooms', () => {
     assert.ok(!canvasSrc.includes('buildLiquidGlassGalaxySphere'));
-    assert.ok(!/new THREE\.Points\(/.test(canvasSrc));
     assert.ok(!canvasSrc.includes('GALAXY_DUST'));
     assert.ok(!canvasSrc.includes('spiralPoints'));
     assert.ok(!canvasSrc.includes('Cool ice bloom'));
@@ -35,6 +34,35 @@ describe('visual guards: master canvas', () => {
     assert.ok(!canvasSrc.includes('domeGrid'));
     assert.ok(!canvasSrc.includes('isCageTorus'));
     assert.ok(!canvasSrc.includes('goldRimMat'));
+  });
+
+  it('has no bronze cage ribs slicing across the shells', () => {
+    assert.ok(!canvasSrc.includes('orbitalCageRibSpecs'));
+    assert.ok(!canvasSrc.includes('orbitalRingsGroup'));
+    assert.ok(!canvasSrc.includes('bronzeCageRing'));
+    assert.ok(!canvasSrc.includes('sharedOuterRibTorusGeo'));
+  });
+
+  it('keeps a sparse additive background starfield that never writes depth', () => {
+    const starSrc = read('../three/backgroundStarfield.ts');
+    assert.ok(canvasSrc.includes('createBackgroundStarfield()'));
+    assert.ok(canvasSrc.includes('starfield.update('));
+    assert.match(starSrc, /STARFIELD_ALPHA = 0\.18/);
+    assert.match(starSrc, /depthWrite: false/);
+    assert.match(starSrc, /AdditiveBlending/);
+    assert.match(starSrc, /fog: false/);
+  });
+
+  it('keeps the indigo-to-black backdrop and a cyan Fresnel rim on the glass', () => {
+    assert.ok(canvasSrc.includes("'#1b2556'"));
+    assert.ok(canvasSrc.includes('new THREE.Color(0x7FE9FF)'));
+    assert.ok(!canvasSrc.includes('isAppleMobileWebKit'));
+  });
+
+  it('camera flights are not gated by the OS Reduce Motion setting', () => {
+    const exp = read('../three/ExperienceCanvas.tsx');
+    assert.ok(!exp.includes('useReducedMotion'));
+    assert.ok(exp.includes('effectiveReducedMotion = reducedMotion'));
   });
 
   it('node halos are selection-only and in-sphere links render only when active', () => {
