@@ -28,6 +28,8 @@ const _outward = new THREE.Vector3();
 const _projected = new THREE.Vector3();
 
 const MIN_LABEL_GAP_PX = 28;
+/** Label width as a share of the view height (about 210px on a 768px-tall iPad). */
+const LABEL_VIEW_SHARE = 0.28;
 /** Beyond this camera distance, hide secondary metadata (LOD). */
 const MACRO_DIST = 14;
 
@@ -139,7 +141,8 @@ export class SpatialLabelBillboardLayer {
         const mat = new THREE.SpriteMaterial({
           map,
           transparent: true,
-          depthTest: true,
+          // Drawn over the node cages so rings never cut through the text.
+          depthTest: false,
           depthWrite: false,
           sizeAttenuation: true,
         });
@@ -164,8 +167,9 @@ export class SpatialLabelBillboardLayer {
 
       sprite.position.copy(spec.worldPos);
       sprite.position.y += 1.15;
-      // Constant angular size: labels shrink with the camera instead of filling the screen up close.
-      const s = THREE.MathUtils.clamp(dist * 0.085, 0.3, 5.2);
+      // Constant on-screen size for any distance and lens: a label spans a fixed share of the view height.
+      const halfView = Math.tan(THREE.MathUtils.degToRad(((camera as THREE.PerspectiveCamera).fov ?? 40) / 2));
+      const s = THREE.MathUtils.clamp(dist * halfView * LABEL_VIEW_SHARE * 2, 0.08, 6);
       sprite.scale.set(s, s * ((spec.meta ? 200 : 160) / 512), 1);
       sprite.renderOrder = Math.round(1000 - dist);
 

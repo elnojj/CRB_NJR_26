@@ -1941,7 +1941,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const sharedShellGeo = new THREE.SphereGeometry(6.2, 64, 48); // glass_shell: 1.00R = 6.2u
     const sharedInnerSilverCoreGeo = new THREE.SphereGeometry(6.2 * 0.82, 56, 40); // metal_core: 0.82R = 5.084u
     const sharedPortalRimGeo = new THREE.TorusGeometry(6.2 * 0.85, 6.2 * 0.012, 20, 96); // media_portal_rim: R=0.85R (5.27u)
-    const sharedHaloGeo = new THREE.RingGeometry(0.76, 0.82, 48);
+    const sharedHaloGeo = new THREE.RingGeometry(0.78, 0.795, 64);
     const sharedPlanetBeadGeo = new THREE.SphereGeometry(0.085, 16, 16);
     const sharedSatBeadGeo = new THREE.SphereGeometry(0.11, 16, 16);
     const sharedUnitSphereGeo = new THREE.SphereGeometry(1.0, 48, 48);
@@ -2333,7 +2333,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         color: new THREE.Color(0xB4DDFF),
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.28,
+        opacity: 0.55,
       });
       const haloMesh = new THREE.Mesh(sharedHaloGeo, haloMat);
       haloMesh.scale.setScalar(1.15);
@@ -4272,6 +4272,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               entry.canonicalId === s.focusedNodeId || entry.canonicalId === s.HoveredNodeId,
           });
         }
+        spatialBillboards.group.visible = !mediaTubeStateRef.current?.active;
         spatialBillboards.sync(billboardSpecs, camera);
 
         setLabels2D(projected);

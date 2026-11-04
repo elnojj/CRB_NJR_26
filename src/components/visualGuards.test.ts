@@ -185,7 +185,8 @@ describe('visual guards: brand lockup', () => {
 
   it('node labels never balloon into full-screen cards', () => {
     const src = read('../three/spatialLabelBillboards.ts');
-    assert.match(src, /clamp\(dist \* 0\.085, 0\.3, 5\.2\)/);
+    assert.match(src, /LABEL_VIEW_SHARE/);
+    assert.match(src, /depthTest: false/);
   });
 
   it('every node is visible, pickable and describes its contents', () => {
