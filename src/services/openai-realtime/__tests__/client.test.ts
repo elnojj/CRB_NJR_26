@@ -42,7 +42,7 @@ function harness() {
     },
   };
   const deps = {
-    getIdToken: async () => 'firebase-id-token',
+    getAccessToken: async () => 'owner-access-code-for-tests-1234567890',
     acquireMicrophone: async () => { acquires++; return shared; },
     releaseMicrophone: () => { releases++; },
     createPeerConnection: () => {
@@ -72,7 +72,7 @@ function harness() {
     createStream: (tracks: MediaStreamTrack[]) => stream(tracks as any),
     fetch: (async (_url: unknown, options: RequestInit) => {
       requests++;
-      assert.equal((options.headers as Record<string, string>).Authorization, 'Bearer firebase-id-token');
+      assert.equal((options.headers as Record<string, string>).Authorization, 'Bearer owner-access-code-for-tests-1234567890');
       assert.ok(JSON.parse(String(options.body)).sdp.startsWith('v=0'));
       return new Response('v=0\r\no=answer');
     }) as typeof fetch,
@@ -208,7 +208,7 @@ test('disconnect during mic permission cannot revive a stale call or leak its mi
   assert.equal(bridge.isLiveWebSocketOpen(), false);
 });
 
-test('permission denial, missing sign-in and provider errors are visible and retryable', async () => {
+test('permission denial, locked owner access and provider errors are visible and retryable', async () => {
   const h = harness();
   let denied = true;
   const bridge = h.make({ acquireMicrophone: async () => {
@@ -225,9 +225,9 @@ test('permission denial, missing sign-in and provider errors are visible and ret
   h.emit({ type: 'error', error: { code: 'authentication_error' } });
   assert.equal(h.states.at(-1)?.state, 'Error');
   assert.equal(h.counts().releases, 1);
-  const signedOut = h.make({ getIdToken: async () => null });
+  const signedOut = h.make({ getAccessToken: async () => null });
   await signedOut.connect();
-  assert.match(h.states.at(-1)?.detail || '', /Sign in/);
+  assert.match(h.states.at(-1)?.detail || '', /Unlock owner access/);
 });
 
 test('connection timeout closes resources and ignores stale data-channel callbacks', async () => {

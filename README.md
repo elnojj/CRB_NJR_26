@@ -65,15 +65,16 @@ The requested `gpt-realtime` model is used explicitly; model access/quota requir
 Its published retirement is 20 January 2027; update the server model configuration before then.
 The retired `gpt-4o-realtime-preview` is not the default.
 
-Sign in through the existing Firebase/Google flow before calling. `/api/openai/realtime/session`
-validates that Firebase ID token with Identity Toolkit, then exchanges SDP with OpenAI.
-`CEREBRO_VOICE_ALLOWED_UIDS` optionally limits voice access to comma-separated Firebase UIDs.
-Audience headers and visual access codes cannot authenticate this endpoint. Existing private actions
-retain their own authorization requirements; voice sign-in does not establish project membership.
-The route runs in Express locally and as `api/openai/realtime/session.js` (generated from the shared server source) on Vercel. It never returns
-the OpenAI key, and no `VITE_OPENAI_API_KEY` should be configured. No separate OpenAI agent ID is needed.
-The configurable badge label is `VITE_CEREBRO_VOICE_LABEL`; blank derives the provider's default label.
+Unlock with the server-configured owner access code before calling. `/api/openai/realtime/access`
+verifies that code; `/api/openai/realtime/session` checks it again before exchanging SDP with OpenAI.
+Set `CEREBRO_OWNER_ACCESS_CODE` to 24-256 random URL-safe characters on the server. The browser
+holds it in the current tab's memory only; refresh or Lock owner access clears it. Audience headers
+and the old visual keypad cannot authenticate this endpoint. No managed authentication SDK or
+Google account is required. Per-instance failed-attempt throttling limits repeated invalid codes.
+The route runs in Express locally and as standalone `api/openai/realtime/session.js` on Vercel.
+The OpenAI key never reaches the browser. No separate OpenAI agent ID is needed.
 
+The configurable badge label is `VITE_CEREBRO_VOICE_LABEL`; blank derives the provider's label.
 To select the retained Google bridge, build with `VITE_CEREBRO_VOICE_PROVIDER=google-ai-studio`.
 The legacy `/api/gemini/voice-turn` backend must be available for that path; it is absent from this
 checkpoint's Express routes. Text chat and creative Gemini endpoints are otherwise unchanged.
@@ -95,7 +96,7 @@ Canonical persistence lives under `src/data/`:
 
 ## Stack
 
-React 19 · Vite 8 · Three.js · Express · Tailwind 4 · Motion · MediaPipe · Firebase client
+React 19 · Vite 8 · Three.js · Express · Tailwind 4 · Motion · MediaPipe
 
 ## Neural Observatory v1.1
 
@@ -110,10 +111,14 @@ Build id: `cerebro-gui-v5.0.0` · Neural Observatory contract `v1.1`
 
 ## Repair checkpoint — spatial content and voice
 
-The existing CSS3D panel host now renders the selected workspace content. The same component is used in reduced graphics mode; the removed PanelsOverlay has not been restored. Register views identify their snapshot date and do not claim live sync. Sign in via Call to inspect owner snapshot records.
+The existing CSS3D panel host now renders the selected workspace content. The same component is used in reduced graphics mode; the removed PanelsOverlay has not been restored. Register views identify their snapshot date and do not claim live sync. Unlock owner access via Call to inspect owner snapshot records.
 
 `npm run build` and `npm run build:labs` bundle standalone Vercel voice functions. Run `node scripts/build-voice-functions.mjs` after changing server voice source. Generated `.js` functions must be committed; do not reintroduce an unbundled `.ts` entrypoint with the same URL.
 
-`GET /api/openai/realtime/status` reports configuration presence only, without keys or user data. It does not establish paid model access or working device audio. Set `OPENAI_API_KEY`, `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_PROJECT_ID`, and optionally the other Firebase client variables on the existing Vercel project, then rebuild. Server identity validation accepts `FIREBASE_API_KEY` or `VITE_FIREBASE_API_KEY`. Add the production hostname to Firebase Auth authorized domains. Voice sign-in uses the existing Firebase app and requests identity scopes only; it does not authorize Gmail, Calendar, or Drive.
+`GET /api/openai/realtime/status` reports configuration presence only, without keys or user data.
+It does not establish paid model access or working device audio. Set `OPENAI_API_KEY` and
+`CEREBRO_OWNER_ACCESS_CODE` on the existing Vercel project, then redeploy. No client authentication
+variables or third-party identity service are used. The access code is separate from the provider key.
+
 
 Chat uses server-owned `GEMINI_CHAT_MODEL` (default `gemini-3.8-flash`). Offline fallback is visibly identified. TXT, MD, JSON, CSV, and TSV attachments up to 256 KB send their actual text; PDFs and images are explicitly unsupported. Chat messages do not automatically create notes or tasks.

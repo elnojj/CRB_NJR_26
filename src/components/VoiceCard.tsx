@@ -17,7 +17,7 @@ import { useKeyboardInsetVars } from '../gui/keyboardInset';
 import './cerebroChat.css';
 import { readChatAttachment } from '../services/google-ai-studio/chatAttachment';
 import { CEREBRO_VOICE_PROVIDER } from '../services/voice/settings';
-import { observeCerebroIdentity, signInForCerebroVoice } from '../utils/googleWorkspaceAuth';
+import { observeOwnerAccess, unlockOwnerAccess, lockOwnerAccess } from '../services/voice/ownerAccess';
 
 export type VoiceState = VoiceBridgeState | 'Idle';
 
@@ -229,11 +229,12 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   tourState,
 }) => {
   const [voiceConfigured, setVoiceConfigured] = useState<boolean | null>(null);
-  const [voiceSignedIn, setVoiceSignedIn] = useState(false);
+  const [ownerUnlocked, setOwnerUnlocked] = useState(false);
   const [voiceAccessOpen, setVoiceAccessOpen] = useState(false);
   const [voiceAccessError, setVoiceAccessError] = useState<string | null>(null);
-  const [voiceSigningIn, setVoiceSigningIn] = useState(false);
-  useEffect(() => observeCerebroIdentity(setVoiceSignedIn), []);
+  const [ownerUnlocking, setOwnerUnlocking] = useState(false);
+  useEffect(() => observeOwnerAccess(setOwnerUnlocked), []);
+  const [ownerCode, setOwnerCode] = useState('');
   const checkVoiceConfiguration = useCallback(async () => {
     if (CEREBRO_VOICE_PROVIDER !== 'openai-realtime') return true;
     try {
@@ -266,6 +267,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const historyRef = useRef<ChatTurn[]>([]);
   const bridgeRef = useRef<VoiceBridge | null>(null);
+  useEffect(() => { if (!ownerUnlocked) bridgeRef.current?.disconnect(); }, [ownerUnlocked]);
   const onAudioLevelRef = useRef(onAudioLevel);
   const onVoiceStateChangeRef = useRef(onVoiceStateChange);
   const lastCallTriggerRef = useRef(0);
@@ -291,6 +293,11 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         setBridgeStatus(status);
         onVoiceStateChangeRef.current?.(status);
         if (detail) setBridgeDetail(detail);
+        if (status === 'Error' && /owner access|owner.*code/i.test(detail || '')) {
+          lockOwnerAccess();
+          setVoiceAccessError(detail || 'Unlock owner access again.');
+          setVoiceAccessOpen(true);
+        }
       },
       onTranscript: (role, text) => {
         if (role === 'user') {
@@ -324,6 +331,11 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         setBridgeStatus(status);
         onVoiceStateChangeRef.current?.(status);
         if (detail) setBridgeDetail(detail);
+        if (status === 'Error' && /owner access|owner.*code/i.test(detail || '')) {
+          lockOwnerAccess();
+          setVoiceAccessError(detail || 'Unlock owner access again.');
+          setVoiceAccessOpen(true);
+        }
       },
       onTranscript: (role, text) => {
         if (role === 'user') {
@@ -374,12 +386,12 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     }
     if (CEREBRO_VOICE_PROVIDER === 'openai-realtime') {
       const configured = await checkVoiceConfiguration();
-      if (!configured || !voiceSignedIn) { setVoiceAccessOpen(true); return; }
+      if (!configured || !ownerUnlocked) { setVoiceAccessOpen(true); return; }
     }
     setVoiceAccessOpen(false);
     if (bridgeStatus === 'Error') await bridgeRef.current?.retry();
     else await bridgeRef.current?.connect();
-  }, [voiceLive, bridgeStatus, tourState.active, onStopTour, onSimulateCommand, checkVoiceConfiguration, voiceSignedIn]);
+  }, [voiceLive, bridgeStatus, tourState.active, onStopTour, onSimulateCommand, checkVoiceConfiguration, ownerUnlocked]);
 
   useEffect(() => {
     if (openAgentModalTrigger && openAgentModalTrigger > lastCallTriggerRef.current) {
@@ -515,7 +527,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       : chatOpen
         ? 'Chat with Cerebro'
         : CEREBRO_VOICE_PROVIDER === 'openai-realtime'
-          ? `${CEREBRO_VOICE_LABEL} · ${voiceConfigured === null ? 'checking service' : !voiceConfigured ? 'configuration needed' : !voiceSignedIn ? 'sign in to call' : 'tap Call to connect'}`
+          ? `${CEREBRO_VOICE_LABEL} · ${voiceConfigured === null ? 'checking service' : !voiceConfigured ? 'configuration needed' : !ownerUnlocked ? 'unlock owner access' : 'tap Call to connect'}`
           : `${CEREBRO_VOICE_LABEL} · tap Call to connect`;
 
   const hudActive = useSpatialHudActive();
@@ -546,13 +558,21 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     >
       {voiceAccessOpen && <section className="cerebro-voice-access" aria-label="Voice access">
         <strong>{CEREBRO_VOICE_LABEL}</strong>
-        <p role="status">{voiceAccessError || (voiceSignedIn ? 'Signed in. Tap Call to connect.' : 'Sign in to start a voice call. Microphone access is requested when the call starts.')}</p>
-        {!voiceSignedIn && <button type="button" disabled={voiceSigningIn} onClick={() => {
-          setVoiceSigningIn(true);
+        <p role="status">{voiceAccessError || (ownerUnlocked ? 'Owner access unlocked. Tap Call to connect.' : 'Enter your owner access code. Microphone access is requested when the call starts.')}</p>
+        {!ownerUnlocked && <form onSubmit={event => {
+          event.preventDefault();
+          setOwnerUnlocking(true);
           setVoiceAccessError(null);
-          void signInForCerebroVoice().catch(() => setVoiceAccessError('Sign-in was not completed. Try again.'))
-            .finally(() => setVoiceSigningIn(false));
-        }}>{voiceSigningIn ? 'Signing in…' : 'Sign in for voice'}</button>}
+          void unlockOwnerAccess(ownerCode)
+            .then(() => setVoiceAccessError(voiceConfigured ? null : 'Owner access unlocked. Voice still needs server configuration.'))
+            .catch(error => setVoiceAccessError(error instanceof Error ? error.message : 'Owner access could not be verified.'))
+            .finally(() => { setOwnerUnlocking(false); setOwnerCode(''); });
+        }}>
+          <label>Owner access code<input type="password" value={ownerCode} autoComplete="off" autoCapitalize="none" spellCheck={false}
+            minLength={24} maxLength={256} required onChange={event => setOwnerCode(event.target.value)} /></label>
+          <button type="submit" disabled={ownerUnlocking}>{ownerUnlocking ? 'Unlocking…' : 'Unlock owner access'}</button>
+        </form>}
+        {ownerUnlocked && <button type="button" onClick={lockOwnerAccess}>Lock owner access</button>}
         {!voiceConfigured && <button type="button" onClick={() => void checkVoiceConfiguration()}>Check again</button>}
         <button type="button" onClick={() => setVoiceAccessOpen(false)}>Close</button>
       </section>}

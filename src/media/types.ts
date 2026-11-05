@@ -57,7 +57,7 @@ export interface SpatialMediaCollection {
 export type MediaFilterKind = 'all' | MediaKind;
 
 export interface MediaResolveContext {
-  /** Firebase / Google OAuth access token for Drive alt=media fetches. */
+  /** Google OAuth access token for Drive alt=media fetches. */
   accessToken?: string | null;
   preferLocalCache?: boolean;
 }

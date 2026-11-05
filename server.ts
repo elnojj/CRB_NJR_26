@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import { createLegacyElevenLabsHandlers } from './src/services/elevenlabs/server/handlers.ts';
+import { createOwnerAccessHandler } from './src/services/openai-realtime/server/ownerAccess.ts';
 import { readVoiceReadiness } from './src/services/openai-realtime/server/readiness.ts';
 import { createOpenAiRealtimeHandler } from './src/services/openai-realtime/server/sessionHandler.ts';
 import path from 'path';
@@ -356,6 +357,7 @@ async function startServer() {
   app.use(express.json({ limit: '15mb' }));
 
   app.get('/api/openai/realtime/status', (_req, res) => { res.setHeader('Cache-Control', 'no-store'); res.json(readVoiceReadiness()); });
+  app.post('/api/openai/realtime/access', createOwnerAccessHandler());
   app.post('/api/openai/realtime/session', createOpenAiRealtimeHandler());
 
   // 1. Health & Version Checkpoint

@@ -9,10 +9,10 @@ events over its data channel. The existing UI executor still owns all spatial ac
 | Directory | Files | Responsibility |
 | --- | --- | --- |
 | `voice/` | `index.ts`, `types.ts`, `settings.ts`, `createVoiceBridge.ts` | Browser API, shared call contract, provider switch, configurable badge |
-| `voice/` | `cerebroAgentManifest.ts`, `clientIdentity.ts` | Canonical 27 tools and existing Firebase sign-in adapter |
+| `voice/` | `cerebroAgentManifest.ts`, `ownerAccess.ts` | Canonical 27 tools and memory-only owner access client |
 | `openai-realtime/` | `OpenAiRealtimeVoiceBridge.ts` | WebRTC connection, events, transcript separation, interruption, retry, cancellation, teardown |
 | `openai-realtime/` | `settings.ts`, `sessionConfig.ts`, `tools.ts` | Public defaults, GA session configuration, tool mapping and argument validation |
-| `openai-realtime/server/` | `settings.ts`, `identity.ts`, `sessionHandler.ts` | Server secrets, Firebase identity validation, SDP exchange and upstream cancellation |
+| `openai-realtime/server/` | `settings.ts`, `ownerAccess.ts`, `sessionHandler.ts` | Server secrets, owner-code verification, SDP exchange and upstream cancellation |
 | `openai-realtime/__tests__/` | `client.test.ts`, `server.test.ts`, `integration.test.ts` | Mocked lifecycle/tool/endpoint tests and bundle/UI integration checks |
 | `media/` | `mediaDeviceManager.ts`, `deviceStreamCoordinator.ts`, `deviceStreamCoordinator.test.ts` | One shared device acquisition gate, mic/webcam leases and AudioContext |
 | `google-ai-studio/` | `GoogleAiStudioVoiceBridge.ts`, `mediaApi.ts`, `microphone.ts`, `toneConfig.ts` | Retained Google provider, existing chat/media API and tone settings |
@@ -31,7 +31,7 @@ their original paths and are not active imports.
 | `OPENAI_API_KEY` | Server environment only | Required for live OpenAI calls |
 | `OPENAI_REALTIME_MODEL` | Server environment | `gpt-realtime` |
 | `OPENAI_REALTIME_VOICE` | Server environment | `marin` |
-| `CEREBRO_VOICE_ALLOWED_UIDS` | Server environment | Empty; all users authenticated to the existing Firebase project may use voice |
+| `CEREBRO_OWNER_ACCESS_CODE` | Server environment only | Required; 24-256 random URL-safe characters |
 | `VITE_CEREBRO_VOICE_PROVIDER` | Public build environment | `openai-realtime`; alternative `google-ai-studio` |
 | `VITE_CEREBRO_VOICE_LABEL` | Public build environment | Derived `OpenAI Voice` / `Google Voice` |
 
@@ -55,7 +55,7 @@ are delivered to `VoiceCard.onExecuteToolCall`, which uses the existing
 Each result returns as a `function_call_output` using the original `call_id`; one continuation
 follows the completed tool batch. Duplicate call IDs cannot execute twice in a session.
 Raw transcripts only update history. Existing action authorization and confirmation gates remain
-the executor's responsibility. Firebase sign-in for voice does not grant private project membership.
+the executor's responsibility. Owner access is checked server-side; audience mode alone grants no access.
 
 `VoiceCard` owns one bridge instance and refreshes callbacks as React state changes. Navigation
 does not create another connection. Real Listening/Speaking states drive the existing audio
@@ -95,7 +95,17 @@ mute/interruption, cancellation, retries, connection deadlines, teardown errors,
 accounting, endpoint authorization/error responses, server/client module boundaries and badge rendering.
 
 These automated checks use mocked media and API requests. They do not certify real OpenAI
-audio, live Firebase authorization, acoustic echo handling or phone/iPad hardware. Configure a
+audio, live owner access configuration, acoustic echo handling or phone/iPad hardware. Configure a
 server key and complete those checks before treating this as verified production deployment.
 The lockfile's missing optional-platform entries have been repaired without changing existing
 dependency versions. A clean `npm ci` now succeeds.
+
+## Owner access without an authentication SDK
+
+`POST /api/openai/realtime/access` verifies an owner code without calling a paid provider.
+The browser sends it as a Bearer credential to this same-origin route and retains it only in module
+memory after a successful receipt. The session endpoint independently checks it on every call.
+Wrong codes are throttled per function instance. No code, provider key, or derived secret is returned
+in an API response. Refresh or Lock owner access clears the in-memory code; locking also disconnects
+the current voice bridge and releases its microphone lease. The server code must never be placed in
+a public `VITE_` variable. The old visual keypad remains a presentation control, not authorization.

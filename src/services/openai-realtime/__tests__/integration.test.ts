@@ -12,6 +12,7 @@ test('the browser voice entry bundles without server handlers or API-key environ
   const inputs = Object.keys(result.metafile!.inputs);
   assert.ok(inputs.some(path => path.endsWith('OpenAiRealtimeVoiceBridge.ts')));
   assert.ok(inputs.every(path => !/services\/.*\/server\//.test(path)));
+  assert.ok(inputs.every(path => !path.includes('firebase')));
   assert.ok(!result.outputFiles![0].text.includes('process.env.OPENAI_API_KEY'));
 });
 

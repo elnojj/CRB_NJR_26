@@ -32,24 +32,24 @@ test('text attachments include their contents and unsupported or oversized files
 
 test('voice readiness reports configuration presence without exposing any values', () => {
   assert.equal(readVoiceReadiness({}).configured, false);
-  const result = readVoiceReadiness({ OPENAI_API_KEY: 'private-test-value', VITE_FIREBASE_API_KEY: 'public-test-value', VITE_FIREBASE_PROJECT_ID: 'test-project' });
+  const result = readVoiceReadiness({ OPENAI_API_KEY: 'private-test-value', CEREBRO_OWNER_ACCESS_CODE: 'owner-access-code-for-tests-1234567890' });
   assert.equal(result.configured, true);
-  assert.equal(result.signInRequired, true);
+  assert.equal(result.signInRequired, false);
   assert.ok(!JSON.stringify(result).includes('private-test-value'));
 });
 
-test('workspace views render real project destinations and protect unsigned register details', async () => {
+test('workspace views render real project destinations and protect locked register details', async () => {
   const result = await build({
     stdin: { resolveDir: process.cwd(), loader: 'tsx', contents: `
       import React from 'react'; import { renderToStaticMarkup } from 'react-dom/server';
       import { WorkspaceContent } from './src/components/WorkspaceContent';
-      const props = { projectId: 'SEVEN', projectTab: 'overview', audience: 'Owner only', tasks: [], language: 'en', signedIn: false,
+      const props = { projectId: 'SEVEN', projectTab: 'overview', audience: 'Owner only', tasks: [], language: 'en', ownerUnlocked: false,
         onLanguage() {}, onClose() {}, onOpen() {}, onProject() {}, onProjectTab() {}, onMedia() {} };
       console.log(JSON.stringify({
         projects: renderToStaticMarkup(<WorkspaceContent {...props} panel="projects" />),
         details: renderToStaticMarkup(<WorkspaceContent {...props} panel="project-detail" />),
         tasks: renderToStaticMarkup(<WorkspaceContent {...props} panel="tasks" />),
-        signedTasks: renderToStaticMarkup(<WorkspaceContent {...props} panel="tasks" signedIn={true} />),
+        signedTasks: renderToStaticMarkup(<WorkspaceContent {...props} panel="tasks" ownerUnlocked={true} />),
       }));` },
     bundle: true, platform: 'node', format: 'esm', packages: 'external', write: false,
     loader: { '.css': 'empty' }, define: { 'import.meta.env': '{}' }, logLevel: 'silent',
@@ -59,7 +59,7 @@ test('workspace views render real project destinations and protect unsigned regi
   assert.match(views.projects, /workspace-project-SEVEN/);
   assert.match(views.projects, /Workspace view/);
   assert.doesNotMatch(views.details, /550 5\.1\.1/);
-  assert.match(views.tasks, /Sign in through Call/);
+  assert.match(views.tasks, /Use Call to unlock owner access/);
   assert.match(views.signedTasks, /Source evidence/);
 });
 
