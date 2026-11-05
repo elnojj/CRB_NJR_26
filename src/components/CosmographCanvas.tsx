@@ -82,7 +82,7 @@ import { handIsFresh, handStateRef, type HandDetectionMode } from '../three/hand
 import { IntentJitterGate, handInteractionMachine, splineJourney } from '../three/camera/CameraDirector';
 import type { JourneyBeat } from '../three/camera/journeyConfig';
 import { applyBoundingSphereRepulsion, OrbitSpringRig } from '../three/camera/orbitalSolver';
-import { CONTRACT_ORBITAL_SOLVER } from '../design/systemContract';
+import { CONTRACT_ORBITAL_SOLVER, CONTRACT_SHELL_MATERIAL } from '../design/systemContract';
 import {
   CAMERA_MOTION_TARGETS,
   clampNodeFocusMs,
@@ -1903,20 +1903,21 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       bumpScale: 0.015,
     });
 
-    // 2. Gold Attention Node Material (regenerate_starter_meshes.py: #D4AF37, metalness: 0.95, roughness: 0.14, emissive: #382808)
-    const sharedPolishedGoldMat = new THREE.MeshPhysicalMaterial({
-      color: 0xD4AF37,
-      emissive: new THREE.Color(0x382808),
-      emissiveIntensity: 0.55,
-      metalness: 0.95,
-      roughness: 0.24,
-      clearcoat: 0.15,
-      clearcoatRoughness: 0.3,
-      sheen: MAT_GOLD_SHEEN.sheen,
-      sheenRoughness: MAT_GOLD_SHEEN.sheenRoughness,
-      sheenColor: new THREE.Color(MAT_GOLD_SHEEN.sheenColor),
+    // 2. Cobalt glass accent for attention nodes and orbital rings (replaces the gold recipe; no emissive glow).
+    const sharedCobaltGlassMat = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color(0x0050ff),
+      emissive: new THREE.Color(0x000000),
+      emissiveIntensity: 0,
+      transmission: useFlatGlass ? 0 : 0.95,
+      thickness: 0.35,
+      opacity: useFlatGlass ? 0.7 : 1,
+      transparent: true,
+      roughness: 0.1,
+      metalness: 0.1,
+      clearcoat: 1,
+      clearcoatRoughness: 0.1,
     });
-    extraDisposables.push(sharedPolishedGoldMat);
+    extraDisposables.push(sharedCobaltGlassMat);
 
     // 3. Shared Liquid Glass Core Material — unified with SHARED_OUTER_SHELL_MATERIAL_PRESET
     // so left, center, and right spheres never render as opaque mirrored chrome.
@@ -2030,7 +2031,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       patchFresnelRimOnOpaqueFragment(shader, rimColVec, bodyColVec, 2.4, 0.95);
     };
     sharedGoldRibbedMat.envMapIntensity = 1.5;
-    sharedPolishedGoldMat.envMapIntensity = 1.6;
+    sharedCobaltGlassMat.envMapIntensity = CONTRACT_SHELL_MATERIAL.envMapIntensity;
 
     // Shared Geometries matching regenerate_starter_meshes.py proportions (scaled to R = 6.2u)
     const sharedShellGeo = new THREE.SphereGeometry(6.2, 64, 48); // glass_shell: 1.00R = 6.2u
@@ -2120,7 +2121,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       orbitalAttentionNodes.forEach((sat) => {
         const satMat =
           sat.kind === 'gold'
-            ? sharedPolishedGoldMat
+            ? sharedCobaltGlassMat
             : sharedCrystalGlassBubbleMat;
         const satMesh = new THREE.Mesh(sharedUnitSphereGeo, satMat);
         satMesh.position.set(
@@ -2158,7 +2159,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       // Precision bronze/gold orbital rings around the central core
       const coreEquator = new THREE.Mesh(
         new THREE.TorusGeometry(0.74, 0.016, 16, 64),
-        sharedPolishedGoldMat
+        sharedCobaltGlassMat
       );
       coreEquator.rotation.set(Math.PI / 2.4, 0.2, 0);
       coreGroup.add(coreEquator);
@@ -2296,7 +2297,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
         const cageRingB = new THREE.Mesh(
           new THREE.TorusGeometry(0.72, 0.032, 16, 64),
-          sharedPolishedGoldMat
+          sharedCobaltGlassMat
         );
         cageRingB.rotation.set(0.28, -0.35, Math.PI / 3);
         group.add(cageRingB);
@@ -2322,7 +2323,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
         const goldOrbit = new THREE.Mesh(
           new THREE.TorusGeometry(0.78, 0.028, 16, 64),
-          sharedPolishedGoldMat
+          sharedCobaltGlassMat
         );
         goldOrbit.rotation.set(-0.48, -0.32, 0.25);
         group.add(goldOrbit);
@@ -2341,7 +2342,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
         const goldBezelRing = new THREE.Mesh(
           new THREE.TorusGeometry(0.72, 0.056, 20, 64),
-          sharedPolishedGoldMat
+          sharedCobaltGlassMat
         );
         goldBezelRing.rotation.set(0.24, -0.28, -0.14);
         group.add(goldBezelRing);
@@ -2413,7 +2414,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
         const orbitalRing = new THREE.Mesh(
           new THREE.TorusGeometry(0.68, 0.032, 16, 56),
-          pulseIndex % 2 === 0 ? sharedPolishedGoldMat : sharedGoldRibbedMat
+          pulseIndex % 2 === 0 ? sharedCobaltGlassMat : sharedGoldRibbedMat
         );
         orbitalRing.rotation.set(0.52 + (pulseIndex % 3) * 0.25, -0.36, 0.28);
         group.add(orbitalRing);
@@ -2611,7 +2612,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       const beadMesh = new THREE.Mesh(
         new THREE.SphereGeometry(0.05, 12, 12),
-        sharedPolishedGoldMat
+        sharedCobaltGlassMat
       );
       beadMesh.visible = false;
       parentGroup.add(beadMesh);
