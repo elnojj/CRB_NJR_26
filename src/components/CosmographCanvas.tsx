@@ -3274,8 +3274,15 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       }
     };
 
+    const clearHoveredNode = () => {
+      if (stateRef.current.HoveredNodeId === null) return;
+      stateRef.current.HoveredNodeId = null;
+      callbacksRef.current.onHoverNodeChange?.(null);
+    };
+
     const resetPointerGesture = () => {
       pointerGestures.reset();
+      clearHoveredNode();
       domEl.style.cursor = 'grab';
       setTouchIndicator((prev) => ({ ...prev, active: false }));
     };
@@ -3294,6 +3301,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       if (pointerGestures.size === 0) {
         const hudHit = hud.handlePointerMove(e);
         if (hudHit) {
+          clearHoveredNode();
           domEl.style.cursor = hudHit.zone === 'menu-item' || hudHit.zone === 'menu-close' || hudHit.zone === 'dock-button' ? 'pointer' : 'default';
           return;
         }
@@ -3316,7 +3324,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               soundEngine.playNodeHover(panX);
             }
           }
-        }
+        } else clearHoveredNode();
         return;
       }
 
