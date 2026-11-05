@@ -7,17 +7,16 @@ import { hudBridge, useSpatialHudActive, type HudDockSpec } from '../three/hudBr
 import type { AudienceLevel } from '../state/panelTypes';
 import type { HandDetectionMode } from '../three/handStateRef';
 import {
-  sendGeminiChatTurn,
   type ChatTurn,
-  type GeminiChatModelId,
 } from '../services/google-ai-studio/mediaApi';
+import { sendCerebroChatTurn, ChatServiceError } from '../services/chat/chatClient';
 import { createVoiceBridge, CEREBRO_VOICE_LABEL, formatVoiceStatus, type VoiceBridge, type VoiceBridgeState } from '../services/voice';
 import { ComputedGuiLayout } from '../gui/layoutEngine';
 import { useKeyboardInsetVars } from '../gui/keyboardInset';
 import './cerebroChat.css';
 import { readChatAttachment } from '../services/google-ai-studio/chatAttachment';
 import { CEREBRO_VOICE_PROVIDER } from '../services/voice/settings';
-import { observeOwnerAccess, unlockOwnerAccess, lockOwnerAccess } from '../services/voice/ownerAccess';
+import { observeOwnerAccess, unlockOwnerAccess, lockOwnerAccess, restoreOwnerAccess, invalidateOwnerAccess } from '../services/voice/ownerAccess';
 import { forceStopSharedMicrophoneStream } from '../services/media/deviceStreamCoordinator';
 
 export type VoiceState = VoiceBridgeState | 'Idle';
@@ -236,8 +235,16 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const [voiceRecoveryOpen, setVoiceRecoveryOpen] = useState(false);
   const [voiceRecoveryMessage, setVoiceRecoveryMessage] = useState<string | null>(null);
   const [ownerUnlocking, setOwnerUnlocking] = useState(false);
-  useEffect(() => observeOwnerAccess(setOwnerUnlocked), []);
+  useEffect(() => {
+    const unsubscribe = observeOwnerAccess(setOwnerUnlocked);
+    void restoreOwnerAccess().catch(() => {});
+    const restore = () => { void restoreOwnerAccess().catch(() => {}); };
+    window.addEventListener('focus', restore);
+    return () => { unsubscribe(); window.removeEventListener('focus', restore); };
+  }, []);
   const [ownerCode, setOwnerCode] = useState('');
+  const [rememberDevice, setRememberDevice] = useState(true);
+  const [accessIntent, setAccessIntent] = useState<'voice' | 'chat'>('voice');
   const checkVoiceConfiguration = useCallback(async () => {
     if (CEREBRO_VOICE_PROVIDER !== 'openai-realtime') return true;
     try {
@@ -325,8 +332,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         if (status === 'Error' || (status === 'Muted' && /Microphone unavailable/.test(detail || ''))) {
           setChatOpen(false); setVoiceAccessOpen(false); setVoiceRecoveryOpen(true);
         }
-        if (status === 'Error' && /owner access|owner.*code/i.test(detail || '')) {
-          lockOwnerAccess();
+        if (status === 'Error' && /owner (?:access|session)|owner.*code/i.test(detail || '')) {
+          invalidateOwnerAccess();
           setVoiceAccessError(detail || 'Unlock owner access again.');
           setVoiceAccessOpen(true);
           setVoiceRecoveryOpen(false);
@@ -368,8 +375,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         if (status === 'Error' || (status === 'Muted' && /Microphone unavailable/.test(detail || ''))) {
           setChatOpen(false); setVoiceAccessOpen(false); setVoiceRecoveryOpen(true);
         }
-        if (status === 'Error' && /owner access|owner.*code/i.test(detail || '')) {
-          lockOwnerAccess();
+        if (status === 'Error' && /owner (?:access|session)|owner.*code/i.test(detail || '')) {
+          invalidateOwnerAccess();
           setVoiceAccessError(detail || 'Unlock owner access again.');
           setVoiceAccessOpen(true);
           setVoiceRecoveryOpen(false);
@@ -424,7 +431,12 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     }
     if (CEREBRO_VOICE_PROVIDER === 'openai-realtime') {
       const configured = await checkVoiceConfiguration();
-      if (!configured || !ownerUnlocked) { setChatOpen(false); setVoiceRecoveryOpen(false); setVoiceAccessOpen(true); return; }
+      const unlocked = ownerUnlocked || await restoreOwnerAccess().catch(() => null);
+      if (unlocked === null) {
+        setVoiceRecoveryMessage('Saved access could not be checked. Check your connection and tap Call again.');
+        setVoiceRecoveryOpen(true); return;
+      }
+      if (!configured || !unlocked) { setAccessIntent('voice'); setChatOpen(false); setVoiceRecoveryOpen(false); setVoiceAccessOpen(true); return; }
     }
     setVoiceAccessOpen(false);
     setVoiceRecoveryOpen(false);
@@ -458,6 +470,13 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     if ((!text && !attachment) || busy) return;
     setBusy(true);
     setError(null);
+    const savedAccess = ownerUnlocked || await restoreOwnerAccess().catch(() => null);
+    if (savedAccess === null) { setBusy(false); setError('Saved access could not be checked. Check your connection and retry.'); return; }
+    if (!savedAccess) {
+      setBusy(false); setAccessIntent('chat'); setVoiceRecoveryOpen(false); setChatOpen(false); setVoiceAccessOpen(true);
+      setVoiceAccessError('Unlock once to use Chat and Call. Your message is kept ready to send.');
+      return;
+    }
     let attachmentText = '';
     try {
       if (attachment) attachmentText = await readChatAttachment(attachment);
@@ -493,8 +512,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     ].slice(-12);
 
     try {
-      const result = await sendGeminiChatTurn({
-        model: 'gemini-3.8-flash' as GeminiChatModelId,
+      const result = await sendCerebroChatTurn({
         history: requestHistory,
         message: modelLine,
         projectId: selectedProjectId,
@@ -517,6 +535,13 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         },
       ]);
     } catch (err) {
+      historyRef.current = requestHistory;
+      setDraft(current => current || text);
+      setAttachment(current => current || attachment);
+      if (err instanceof ChatServiceError && err.status === 401) {
+        invalidateOwnerAccess(); setAccessIntent('chat'); setChatOpen(false); setVoiceAccessOpen(true);
+        setVoiceAccessError('Your session expired. Unlock again; your message is ready to retry.');
+      }
       const raw = err instanceof Error ? err.message : 'Chat reply failed';
       const msg =
         /NOT_FOUND|could not be found/i.test(raw)
@@ -528,7 +553,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         {
           id: `c-err-${Date.now()}`,
           role: 'cerebro',
-          text: 'The message could not be delivered. Nothing was saved remotely. Try again in a moment.',
+          text: msg,
           liquid: true,
         },
       ]);
@@ -536,7 +561,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       setBusy(false);
       inputRef.current?.focus();
     }
-  }, [attachment, busy, draft, onSimulateCommand, selectedProjectId]);
+  }, [attachment, busy, draft, onSimulateCommand, selectedProjectId, ownerUnlocked]);
 
   // Always pin to bottom-center so Call / Hands / Chat stay on one screen
   // (guiLayout voiceRect previously floated the sheet mid-viewport like a second page).
@@ -606,21 +631,29 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         <button type="button" onClick={() => setVoiceRecoveryOpen(false)}>Close</button>
       </section>}
       {voiceAccessOpen && <section className="cerebro-voice-access" aria-label="Voice access">
-        <strong>{CEREBRO_VOICE_LABEL}</strong>
+        <strong>Cerebro access</strong>
         <p role="status">{voiceAccessError || (ownerUnlocked ? 'Owner access unlocked. Tap Call to connect.' : 'Enter your owner access code. Microphone access is requested when the call starts.')}</p>
         {!ownerUnlocked && <form noValidate onSubmit={event => {
           event.preventDefault();
           setOwnerUnlocking(true);
           setVoiceAccessError(null);
-          void unlockOwnerAccess(ownerCode)
-            .then(() => { setOwnerCode(''); setVoiceAccessError(voiceConfigured ? null : 'Owner access unlocked. Voice still needs server configuration.'); })
+          void unlockOwnerAccess(ownerCode, fetch, rememberDevice)
+            .then(() => {
+              setOwnerCode(''); setVoiceAccessError(voiceConfigured ? null : 'Owner access unlocked. Voice still needs server configuration.');
+              if (accessIntent === 'chat') { setVoiceAccessOpen(false); setChatOpen(true); }
+            })
             .catch(error => setVoiceAccessError(error instanceof Error ? error.message : 'Owner access could not be verified.'))
             .finally(() => { setOwnerUnlocking(false); });
         }}>
-          <label>Owner access code<input type="password" value={ownerCode} autoComplete="off" autoCapitalize="none" spellCheck={false}
+          <label>Owner access code<input type="password" name="password" value={ownerCode} autoComplete="current-password" autoCapitalize="none" spellCheck={false}
             aria-describedby="owner-code-help" required onChange={event => setOwnerCode(event.target.value)} /></label>
-          <p id="owner-code-help">Use the same 24–256 character code saved on the server. Letters, numbers and symbols are accepted; no spaces. This is separate from your OpenAI API key.</p>
+          <p id="owner-code-help">Use your existing owner code once. This device can stay signed in for 30 days, including after a refresh.</p>
+          <label className="cerebro-owner-remember"><input type="checkbox" checked={rememberDevice} onChange={event => setRememberDevice(event.target.checked)} />Remember this device for 30 days</label>
           <button type="submit" disabled={ownerUnlocking}>{ownerUnlocking ? 'Unlocking…' : 'Unlock owner access'}</button>
+          <details><summary>Recover access</summary>
+            <p>Open your Vercel project → Settings → Environment Variables → CEREBRO_OWNER_ACCESS_CODE. Reveal its Value with the eye icon. If it cannot be revealed, replace the Value and redeploy once.</p>
+            <a href="https://vercel.com/tarek-nojara/cerebro-core" target="_blank" rel="noreferrer">Open project settings</a>
+          </details>
         </form>}
         {ownerUnlocked && <button type="button" onClick={lockOwnerAccess}>Lock owner access</button>}
         {!voiceConfigured && <button type="button" onClick={() => void checkVoiceConfiguration()}>Check again</button>}

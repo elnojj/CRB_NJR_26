@@ -6,21 +6,14 @@ import { readChatAttachment } from '../services/google-ai-studio/chatAttachment'
 import { readVoiceReadiness } from '../services/openai-realtime/server/readiness';
 import chatHandler from '../../api/gemini/chat.js';
 
-test('legacy project context cannot turn an unrelated question into a scripted project answer', async () => {
-  const previous = process.env.GEMINI_API_KEY;
-  delete process.env.GEMINI_API_KEY;
-  try {
-    let body: any;
-    const res = { setHeader() {}, status() { return this; }, json(value: unknown) { body = value; } };
-    await chatHandler({ method: 'POST', body: { message: '[project:SEVEN] Return exactly KR-AUDIT-39.' } } as any, res as any);
-    assert.equal(body.mode, 'offline');
-    assert.match(body.reply, /KR-AUDIT-39/);
-    assert.doesNotMatch(body.reply, /Register workstreams are live/);
-    assert.equal(body.model, 'cerebro-local-fallback');
-  } finally {
-    if (previous === undefined) delete process.env.GEMINI_API_KEY;
-    else process.env.GEMINI_API_KEY = previous;
-  }
+test('the shipped legacy chat URL requires owner access and never invents an offline AI reply', async () => {
+  let status = 0;
+  let body: any;
+  const res = { setHeader() {}, status(value: number) { status = value; return this; }, json(value: unknown) { body = value; } };
+  await chatHandler({ method: 'POST', headers: {}, body: { message: '[project:SEVEN] Return exactly KR-AUDIT-39.' } } as any, res as any);
+  assert.equal(status, 401);
+  assert.equal(body.reply, undefined);
+  assert.match(body.error, /Unlock owner access/);
 });
 
 test('text attachments include their contents and unsupported or oversized files fail explicitly', async () => {

@@ -1,5 +1,5 @@
 import { createOwnerAccessVerifier, createOwnerAccessHandler } from '../server/ownerAccess';
-import { getOwnerAccessToken, unlockOwnerAccess, lockOwnerAccess } from '../../voice/ownerAccess';
+import { hasOwnerAccessSession, unlockOwnerAccess, lockOwnerAccess } from '../../voice/ownerAccess';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { EventEmitter } from 'node:events';
@@ -128,7 +128,7 @@ test('a generated password with punctuation is accepted by both the browser and 
     createOwnerAccessHandler({ CEREBRO_OWNER_ACCESS_CODE: code })(request({ headers: { authorization: (options?.headers as Record<string, string>).Authorization } }), res);
     return new Response(JSON.stringify(result.body), { status: result.status });
   });
-  assert.equal(await getOwnerAccessToken(), code);
+  assert.equal(await hasOwnerAccessSession(), true);
   lockOwnerAccess();
 });
 
@@ -159,26 +159,26 @@ test('input failures explain the correction without sending a request; configura
   await assert.rejects(unlockOwnerAccess('test-only password with spaces12345', noRequest), /without spaces/);
   const message = 'CEREBRO_OWNER_ACCESS_CODE is missing from this deployment.';
   await assert.rejects(unlockOwnerAccess(env.CEREBRO_OWNER_ACCESS_CODE, async () => new Response(JSON.stringify({ error: message }), { status: 503 })), error => (error as Error).message === message);
-  assert.equal(await getOwnerAccessToken(), null);
+  assert.equal(await hasOwnerAccessSession(), false);
 });
 
 test('the client unlocks only after server verification and clears access on locking or rejection', async () => {
   lockOwnerAccess();
   await assert.rejects(unlockOwnerAccess(env.CEREBRO_OWNER_ACCESS_CODE, async () => new Response('{}', { status: 401 })), /not accepted/);
-  assert.equal(await getOwnerAccessToken(), null);
+  assert.equal(await hasOwnerAccessSession(), false);
   await unlockOwnerAccess(env.CEREBRO_OWNER_ACCESS_CODE, async () => new Response(JSON.stringify({ unlocked: true })));
-  assert.equal(await getOwnerAccessToken(), env.CEREBRO_OWNER_ACCESS_CODE);
+  assert.equal(await hasOwnerAccessSession(), true);
   lockOwnerAccess();
-  assert.equal(await getOwnerAccessToken(), null);
+  assert.equal(await hasOwnerAccessSession(), false);
 });
 
 test('locking during a pending unlock cannot be undone by its late server response', async () => {
   let finish!: (response: globalThis.Response) => void;
-  const pending = unlockOwnerAccess(env.CEREBRO_OWNER_ACCESS_CODE, () => new Promise(resolve => { finish = resolve; }));
+  const pending = unlockOwnerAccess(env.CEREBRO_OWNER_ACCESS_CODE, async (_url, options) => options?.method === 'DELETE' ? new Response('{}') : new Promise(resolve => { finish = resolve; }));
   lockOwnerAccess();
   finish(new Response(JSON.stringify({ unlocked: true })));
   await assert.rejects(pending, /cancelled/);
-  assert.equal(await getOwnerAccessToken(), null);
+  assert.equal(await hasOwnerAccessSession(), false);
 });
 
 test('disconnecting the HTTP client aborts upstream signaling and removes lifecycle listeners', async () => {

@@ -42,7 +42,7 @@ function harness() {
     },
   };
   const deps = {
-    getAccessToken: async () => 'owner-access-code-for-tests-1234567890',
+    isOwnerUnlocked: async () => true,
     acquireMicrophone: async () => { acquires++; return shared; },
     releaseMicrophone: () => { releases++; },
     createPeerConnection: () => {
@@ -72,7 +72,8 @@ function harness() {
     createStream: (tracks: MediaStreamTrack[]) => stream(tracks as any),
     fetch: (async (_url: unknown, options: RequestInit) => {
       requests++;
-      assert.equal((options.headers as Record<string, string>).Authorization, 'Bearer owner-access-code-for-tests-1234567890');
+      assert.equal((options.headers as Record<string, string>).Authorization, undefined);
+      assert.equal(options.credentials, 'same-origin');
       assert.ok(JSON.parse(String(options.body)).sdp.startsWith('v=0'));
       return new Response('v=0\r\no=answer');
     }) as typeof fetch,
@@ -225,7 +226,7 @@ test('permission denial, locked owner access and provider errors are visible and
   h.emit({ type: 'error', error: { code: 'authentication_error' } });
   assert.equal(h.states.at(-1)?.state, 'Error');
   assert.equal(h.counts().releases, 1);
-  const signedOut = h.make({ getAccessToken: async () => null });
+  const signedOut = h.make({ isOwnerUnlocked: async () => false });
   await signedOut.connect();
   assert.match(h.states.at(-1)?.detail || '', /Unlock owner access/);
 });
