@@ -13,7 +13,6 @@ import {
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { COLOUR_TOKENS } from '../tokens/colours';
 import {
@@ -1808,9 +1807,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       },
     });
 
-    // Post-Processing: default app bans bloom/glow (L10). Film bloom stays intro-scoped only.
+    // Post-Processing: bloom/glow is banned (L10). The composer only supplies the MSAA half-float target and output pass.
     let composer: EffectComposer | null = null;
-    let bloomPass: UnrealBloomPass | null = null;
     let cinemaPass: ShaderPass | null = null;
     if (!isSoftwareGl) {
       const composerTarget = new THREE.WebGLRenderTarget(initW, initH, {
@@ -1821,9 +1819,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       composer.setPixelRatio(renderer.getPixelRatio());
       composer.setSize(initW, initH);
       composer.addPass(new RenderPass(scene, camera));
-      // High threshold: only emissive nodes, connector pulses, media rings and specular peaks bloom.
-      bloomPass = new UnrealBloomPass(new THREE.Vector2(initW, initH), deviceProfile.bloomStrength, 0.55, 0.88);
-      composer.addPass(bloomPass);
       composer.addPass(new OutputPass());
     }
 
@@ -3553,9 +3548,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       panelLayer.setSize(w, h);
       if (composer) {
         composer.setSize(w, h);
-      }
-      if (bloomPass) {
-        bloomPass.resolution.set(w, h);
       }
       if (isSoftwareGl || !composer) {
         renderer.render(scene, camera);
