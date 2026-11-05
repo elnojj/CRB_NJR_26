@@ -69,6 +69,7 @@ async function main(): Promise<void> {
     ['openaiProviderErrors', 'src/services/openai-errors.test.ts'],
     ['voiceRecovery', 'src/components/VoiceRecovery.test.ts'],
     ['liveVoiceCallbacks', 'src/services/voice/liveCallbacks.test.ts'],
+    ['calloutLayout', 'src/three/calloutLayout.test.ts'],
     ['glassFallback', 'src/three/glassFallback.test.ts'],
     ['hudLayout', 'src/three/hudLayout.test.ts'],
     ['browserEngine', 'src/lib/browserEngine.test.ts'],

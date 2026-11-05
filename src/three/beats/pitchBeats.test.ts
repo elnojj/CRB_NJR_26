@@ -78,6 +78,13 @@ describe('pitch spec contract', () => {
 });
 
 describe('pitch content provider', () => {
+  it('groups multiple source files in one explicit panel instead of a misleading +N node label', () => {
+    const grouped = PITCH_BEATS.find(beat => beat.sourceIds.length > 1)!;
+    const media = pitchBeatContent(grouped).media!;
+    assert.equal(media.title, `${grouped.sourceIds.length} source files`);
+    assert.deepEqual(media.sources, grouped.sourceIds.map(id => ({ id, title: PITCH_SOURCES[id].title })));
+    assert.ok(!media.url, 'grouping provenance must not invent live playback');
+  });
   it('splits copy on whitespace and paces words at 0.18 s with sentence pauses', () => {
     const content = pitchContentProvider(0);
     assert.deepEqual(content?.text?.words, ['Fiction', 'gave', 'it', 'a', 'shape.', 'Reality', 'gave', 'it', 'a', 'job.']);

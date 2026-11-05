@@ -53,6 +53,8 @@ export interface BeatsTimelineOptions {
   factories?: Partial<BeatSlotFactories>;
   /** Explicit stage positions. Replaces the spiral layout, for hosts that place beats in a larger scene. */
   placements?: readonly BeatPlacement[];
+  /** Narrative stages own one complete content group, including while the outgoing beat fades. */
+  exclusiveContent?: boolean;
 }
 
 export class BeatsTimelineContainer {
@@ -61,15 +63,18 @@ export class BeatsTimelineContainer {
 
   private provider: BeatContentProvider | undefined;
   private activeIndex: number | null = null;
+  private readonly exclusiveContent: boolean;
   private readonly tweens = gsap.context(() => undefined);
   private readonly slotList: Array<BeatSlot<unknown>> = [];
 
   constructor(options: BeatsTimelineOptions) {
     this.group.name = 'BeatsTimelineContainer';
     this.provider = options.content;
+    this.exclusiveContent = options.exclusiveContent === true;
     const factories: BeatSlotFactories = { ...DEFAULT_SLOT_FACTORIES, ...options.factories };
     const placements = options.placements ?? computeBeatPlacements({ count: BEAT_COUNT, ...options.layout });
     this.nodes = placements.map((placement) => this.buildNode(placement, placements.length, factories, options.playback));
+    if (this.exclusiveContent) for (const node of this.nodes) node.group.visible = false;
     this.refreshContent();
   }
 
@@ -113,7 +118,8 @@ export class BeatsTimelineContainer {
     if (index === this.activeIndex) return;
     const previous = this.activeIndex;
     this.activeIndex = index;
-    if (previous !== null) this.tweenReveal(previous, 0, reducedMotion, 0);
+    if (this.exclusiveContent) for (const node of this.nodes) node.group.visible = node.index === index;
+    if (previous !== null) this.tweenReveal(previous, 0, reducedMotion || this.exclusiveContent, 0);
     if (index !== null) this.tweenReveal(index, 1, reducedMotion, enterDelaySec);
   }
 

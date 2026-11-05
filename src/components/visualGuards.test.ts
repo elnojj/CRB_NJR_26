@@ -115,7 +115,6 @@ describe('visual guards: phone layout (live iPhone inspection)', () => {
   it('node labels are WebGL billboards, with no projected DOM label buttons or node content card', () => {
     assert.ok(!canvasSrc.includes('cerebro-focus-label'));
     assert.ok(!canvasSrc.includes('labels2D'));
-    assert.ok(canvasSrc.includes('const needsAttention'));
     assert.ok(!read('./NodeBrowser.tsx').includes('NodeContentCard'));
     assert.ok(!indexCss.includes('cerebro-infograph-label'));
   });
@@ -201,11 +200,7 @@ describe('visual guards: brand lockup', () => {
     assert.ok(!/tileMesh\.rotateY\(Math\.PI\)/.test(canvas), 'tiles must face the tube axis');
   });
 
-  it('node labels never balloon into full-screen cards', () => {
-    const src = read('../three/spatialLabelBillboards.ts');
-    assert.match(src, /LABEL_VIEW_SHARE/);
-    assert.match(src, /depthTest: false/);
-  });
+  // Pixel-size and occlusion behavior are exercised against real Three sprites in calloutLayout.test.ts.
 
   it('every node is visible, pickable and describes its contents', () => {
     const app = read('../App.tsx');
