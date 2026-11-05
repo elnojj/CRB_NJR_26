@@ -128,28 +128,41 @@ export class OrbitSpringRig {
   private readonly radius = createSpringChannel(0);
   private carry = 0;
   private lastWritten: OrbitPose | null = null;
+  private readonly previous = { azimuth: 0, polar: 0, radius: 0 };
 
   step(pose: OrbitPose, frameSeconds: number): void {
     const last = this.lastWritten;
     const external = (a: number, b: number) => Math.abs(a - b) > 1e-6;
-    if (!last || external(pose.azimuth, last.azimuth)) this.azimuth.velocity = 0;
-    if (!last || external(pose.polar, last.polar)) this.polar.velocity = 0;
-    if (!last || external(pose.radius, last.radius)) this.radius.velocity = 0;
-    this.azimuth.value = pose.azimuth;
-    this.polar.value = pose.polar;
-    this.radius.value = pose.radius;
-    this.carry = advanceSprings(
-      [
-        { channel: this.azimuth, target: pose.targetAzimuth },
-        { channel: this.polar, target: pose.targetPolar },
-        { channel: this.radius, target: pose.targetRadius },
-      ],
-      frameSeconds,
-      this.carry
-    );
-    pose.azimuth = this.azimuth.value;
-    pose.polar = this.polar.value;
-    pose.radius = this.radius.value;
+    const channels = [
+      { key: 'azimuth', channel: this.azimuth, target: pose.targetAzimuth },
+      { key: 'polar', channel: this.polar, target: pose.targetPolar },
+      { key: 'radius', channel: this.radius, target: pose.targetRadius },
+    ] as const;
+    for (const { key, channel } of channels) {
+      if (!last || external(pose[key], last[key])) {
+        channel.value = this.previous[key] = pose[key];
+        channel.velocity = 0;
+      }
+    }
+    this.carry += Math.min(MAX_FRAME_SECONDS, Math.max(0, frameSeconds));
+    while (this.carry >= CONTRACT_SPRING.timeStep) {
+      for (const { key, channel, target } of channels) {
+        this.previous[key] = channel.value;
+        stepSpringFixed(channel, target);
+      }
+      this.carry -= CONTRACT_SPRING.timeStep;
+    }
+    // Physics stays at the contract's fixed timestep. Present between its last two poses so
+    // 90/120 Hz displays do not alternate between a held frame and a double-sized movement.
+    const alpha = this.carry / CONTRACT_SPRING.timeStep;
+    for (const { key, channel, target } of channels) {
+      if (Math.abs(channel.value - target) < SETTLE_POSITION_EPSILON &&
+          Math.abs(channel.velocity) < SETTLE_VELOCITY_EPSILON) {
+        channel.value = this.previous[key] = target;
+        channel.velocity = 0;
+      }
+      pose[key] = this.previous[key] + (channel.value - this.previous[key]) * alpha;
+    }
     this.lastWritten = {
       azimuth: pose.azimuth,
       polar: pose.polar,

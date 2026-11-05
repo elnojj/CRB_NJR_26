@@ -78,6 +78,7 @@ async function main(): Promise<void> {
     ['motionPreference', 'src/utils/motionPreference.test.ts'],
     ['keyboardInset', 'src/gui/keyboardInset.test.ts'],
     ['orbitalSolver', 'src/three/camera/orbitalSolver.test.ts'],
+    ['cameraInput', 'src/three/camera/cameraInput.test.ts'],
     ['zLayers', 'src/gui/zLayers.test.ts'],
     ['postFx', 'src/three/postFx.test.ts'],
     ['systemContract', 'src/design/systemContract.test.ts'],
