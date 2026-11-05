@@ -163,7 +163,7 @@ export function NasaAgentCards({ highlightNodeId, onClose }: NasaAgentCardsProps
       data-testid="nasa-roster"
       role="region"
       aria-label="NASA agent roster"
-      className="pointer-events-none fixed right-3 z-[57] flex w-[min(380px,calc(100vw-24px))] flex-col gap-2 overflow-y-auto overscroll-contain"
+      className="pointer-events-none fixed right-3 z-(--z-agent-cards) flex w-[min(380px,calc(100vw-24px))] flex-col gap-2 overflow-y-auto overscroll-contain"
       style={{
         top: 'calc(env(safe-area-inset-top, 0px) + 64px)',
         bottom: 'calc(env(safe-area-inset-bottom, 0px) + 176px)',

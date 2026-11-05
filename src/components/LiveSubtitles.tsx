@@ -35,7 +35,7 @@ export function LiveSubtitles({ line, holdMs = 5200 }: LiveSubtitlesProps) {
       data-testid="live-subtitles"
       role="status"
       aria-live="polite"
-      className="pointer-events-none fixed left-1/2 z-[58] w-[min(720px,calc(100vw-24px))] -translate-x-1/2 text-center"
+      className="pointer-events-none fixed left-1/2 z-(--z-live-subtitles) w-[min(720px,calc(100vw-24px))] -translate-x-1/2 text-center"
       style={{ top: 'calc(env(safe-area-inset-top, 0px) + 76px)' }}
     >
       <span className="sr-only">{line.speaker === 'you' ? 'You said: ' : 'Cerebro: '}</span>

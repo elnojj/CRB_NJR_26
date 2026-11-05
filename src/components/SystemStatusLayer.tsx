@@ -208,7 +208,7 @@ export const SystemStatusLayer: React.FC<SystemStatusLayerProps> = ({
     >
       {showTelemetry && (
         <div
-          className="pointer-events-none fixed bottom-3 left-3 z-[120] rounded-lg border border-white/10 bg-black/55 px-2.5 py-1.5 font-mono text-[10px] text-[#BDCBD3] backdrop-blur-md"
+          className="pointer-events-none fixed bottom-3 left-3 z-(--z-system-status) rounded-lg border border-white/10 bg-black/55 px-2.5 py-1.5 font-mono text-[10px] text-[#BDCBD3] backdrop-blur-md"
           data-testid="system-telemetry-strip"
         >
           {fps} FPS · {drawCalls} draws

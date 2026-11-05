@@ -101,7 +101,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
     return (
       <div
         data-testid="owner-gate-keypad"
-        className="fixed inset-0 z-50 flex flex-col items-center justify-center select-none pointer-events-auto overflow-hidden"
+        className="fixed inset-0 z-(--z-fullscreen-overlay) flex flex-col items-center justify-center select-none pointer-events-auto overflow-hidden"
         style={{
           width: '100%',
           height: '100dvh',
@@ -270,7 +270,7 @@ export const BootLoader: React.FC<BootLoaderProps> = ({
   return (
     <div
       data-testid="boot-loader-screen"
-      className="fixed inset-0 z-50 flex flex-col select-none pointer-events-auto overflow-hidden"
+      className="fixed inset-0 z-(--z-fullscreen-overlay) flex flex-col select-none pointer-events-auto overflow-hidden"
       style={{
         width: '100%',
         height: '100dvh',

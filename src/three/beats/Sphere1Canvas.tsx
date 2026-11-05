@@ -264,7 +264,7 @@ export function Sphere1Canvas({ ref, ...props }: Sphere1CanvasProps & { ref?: Re
   }, [command]);
 
   return (
-    <div className="fixed inset-0 z-[5] select-none" data-testid="sphere1-canvas-root" data-status={status}>
+    <div className="fixed inset-0 z-(--z-scene-canvas) select-none" data-testid="sphere1-canvas-root" data-status={status}>
       <div
         ref={mountRef}
         data-testid="cosmograph-canvas"

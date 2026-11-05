@@ -175,7 +175,7 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
   const fileKeys = Object.keys(filesMap).sort();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-[#101622]/95">
+    <div className="fixed inset-0 z-(--z-fullscreen-overlay) flex items-center justify-center p-4 md:p-8 bg-[#101622]/95">
       <div className="cj-glass-card w-full max-w-4xl max-h-[88vh] rounded-xl flex flex-col overflow-hidden shadow-2xl neural-reveal">
         {/* Header */}
         <div className="px-5 py-4 border-b border-[color:var(--token-divider)] flex items-center justify-between gap-4 shrink-0">

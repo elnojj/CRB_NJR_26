@@ -300,7 +300,7 @@ export const ExperienceCanvas: React.FC<ExperienceCanvasProps> = ({
       {(effectiveReducedMotion || forceWebglFallback) && (
         <div
           data-testid="sphere-fallback-rest-layer"
-          className="fixed inset-0 z-[7] pointer-events-none flex items-center justify-center"
+          className="fixed inset-0 z-(--z-experience-overlay) pointer-events-none flex items-center justify-center"
         >
           <img
             src="/cerebro/sphere_fallback_rest.png"

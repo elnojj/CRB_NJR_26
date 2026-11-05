@@ -2,7 +2,7 @@
 
 .cerebro-dock {
   position: fixed;
-  z-index: 100;
+  z-index: var(--z-voice-widget);
   display: flex;
   flex-direction: column;
   gap: 10px;

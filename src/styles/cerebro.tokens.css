@@ -41,13 +41,57 @@
   --token-people-semantic: #E6A2B4;             /* PROPOSED: human-identity accents (not station-people) */
   --token-ice: var(--token-focus-glow);         /* Blueprint ice ≡ #B4DDFF */
 
-  /* Blueprint spatial shell z targets (DOM). WebGL scene stays at z0 via canvas stacking. */
+  /* App stacking scale: mirrors GUI_Z_LAYERS in src/gui/guiTokens.ts (zLayers.test.ts enforces parity). */
+  --z-scene: 0;
   --z-world: 0;
+  --z-scene-canvas: 5;
+  --z-experience-overlay: 7;
+  --z-canvas: 10;
+  --z-scene-labels: 10;
   --z-world-labels: 10;
+  --z-hands-preview: 15;
+  --z-stage-caption: 15;
+  --z-ambient-hud: 20;
+  --z-avoidance-ring: 20;
+  --z-project-plan-stage: 24;
+  --z-panels: 25;
+  --z-executive-bar: 30;
   --z-cerebro: 30;
+  --z-project-plan: 36;
+  --z-sticky-header: 40;
   --z-work-surfaces: 40;
+  --z-chat-transcript: 48;
+  --z-active-panel: 50;
+  --z-flyout-drawer: 50;
   --z-transcript-health: 50;
+  --z-fullscreen-overlay: 50;
+  --z-journey-scrim: 55;
+  --z-agent-cards: 57;
+  --z-live-subtitles: 58;
+  --z-journey-chrome: 60;
+  --z-media-host: 70;
   --z-inputs-dialogs: 70;
+  --z-node-flyout: 80;
+  --z-system-modal: 85;
+  --z-noninteractive-focus: 90;
+  --z-focus-pointer: 90;
+  --z-node-browser: 90;
+  --z-team-chat-chip: 95;
+  --z-voice-caption: 99;
+  --z-modal-backdrop: 100;
+  --z-confirmation-dialog: 100;
+  --z-modal-content: 100;
+  --z-voice-widget: 100;
+  --z-voice-sheet: 101;
+  --z-voice: 110;
+  --z-voice-dock: 110;
+  --z-emergency-stop: 115;
+  --z-system-status: 120;
+  --z-team-chat-drawer: 160;
+  --z-pilot-game: 190;
+  --z-hands-overlay: 200;
+  --z-media-fullscreen-chrome: 210;
+  --z-system-toast: 300;
 
   /* ------------------------------------------------------------------------
      OPTICAL HUD ANATOMY SURFACES

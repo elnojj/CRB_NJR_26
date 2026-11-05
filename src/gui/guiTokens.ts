@@ -250,43 +250,77 @@ export const GUI_MOTION_TOKENS = {
   },
 } as const;
 
-/** PROPOSED: the consolidated CSS has no z-index hierarchy. */
+/**
+ * App-wide stacking scale. Every fixed or app-level layer takes its z-index from here (TypeScript) or from
+ * the matching `--z-*` custom property in `src/styles/cerebro.tokens.css` (CSS and Tailwind arbitrary-property z utilities).
+ * `zLayers.test.ts` keeps both in sync. Values are the ones the app already shipped with, so migrating to
+ * names never changes the relative order. Stacking inside one component (z-10 on a child) stays local.
+ */
 export const GUI_Z_LAYERS = {
   /** Blueprint z0 — WebGL world */
   scene: 0,
   world: 0,
+  /** The WebGL canvas root. */
+  sceneCanvas: 5,
+  experienceOverlay: 7,
   canvas: 10,
   /** Blueprint z10 — projected labels */
   sceneLabels: 10,
   worldLabels: 10,
+  handsPreview: 15,
+  stageCaption: 15,
   ambientHUD: 20,
   avoidanceRing: 20,
+  projectPlanStage: 24,
   panels: 25,
   /** Blueprint z30 — persistent Cerebro */
   executiveBar: 30,
   cerebro: 30,
+  projectPlan: 36,
   /** Blueprint z40 — work surfaces */
   stickyHeader: 40,
   workSurfaces: 40,
+  chatTranscript: 48,
   /** Blueprint z50 — transcript + health */
   activePanel: 50,
   flyoutDrawer: 50,
   transcriptHealth: 50,
+  fullscreenOverlay: 50,
+  journeyScrim: 55,
+  agentCards: 57,
+  liveSubtitles: 58,
+  journeyChrome: 60,
   /** Blueprint z60–80 — inputs / dialogs */
   mediaHost: 70,
   inputsDialogs: 70,
+  nodeFlyout: 80,
+  systemModal: 85,
   noninteractiveFocus: 90,
   focusPointer: 90,
+  nodeBrowser: 90,
+  teamChatChip: 95,
+  voiceCaption: 99,
   modalBackdrop: 100,
   confirmationDialog: 100,
   modalContent: 100,
+  voiceWidget: 100,
+  voiceSheet: 101,
   voice: 110,
   voiceDock: 110,
   emergencyStop: 115,
+  systemStatus: 120,
+  teamChatDrawer: 160,
+  pilotGame: 190,
   handsOverlay: 200,
   mediaFullscreenChrome: 210,
   systemToast: 300,
 } as const;
+
+export type GuiZLayer = keyof typeof GUI_Z_LAYERS;
+
+/** `ambientHUD` -> `--z-ambient-hud` */
+export const guiZLayerCssVar = (layer: GuiZLayer): string =>
+  `--z-${layer.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()}`;
 
 /**
  * PROPOSED responsive thresholds.

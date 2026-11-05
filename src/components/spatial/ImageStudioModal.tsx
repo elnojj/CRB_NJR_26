@@ -131,7 +131,7 @@ export const ImageStudioModal: React.FC<ImageStudioModalProps> = ({ open, onClos
     <div
       onPointerDown={(e) => e.stopPropagation()}
       onWheel={(e) => e.stopPropagation()}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-[#0A0E17]/95 animate-fade-in"
+      className="fixed inset-0 z-(--z-fullscreen-overlay) flex items-center justify-center p-3 sm:p-5 bg-[#0A0E17]/95 animate-fade-in"
     >
       <div
         data-testid="image-studio-modal"

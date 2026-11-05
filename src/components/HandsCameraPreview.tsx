@@ -85,7 +85,7 @@ export const HandsCameraPreview: React.FC<HandsCameraPreviewProps> = ({
   if (!active) return null;
   return (
     <div
-      className="fixed z-[15] pointer-events-none select-none"
+      className="fixed z-(--z-hands-preview) pointer-events-none select-none"
       style={{ left: 12, bottom: dockClearancePx + 8, opacity: 0 }}
       data-testid="hands-gesture-hud"
     >

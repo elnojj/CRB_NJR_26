@@ -344,7 +344,7 @@ button.cerebro-infograph-label[data-spatial-billboard='true'][data-chrome-state=
 /* D0 Voice/Talk Widget always on top (z-index: 100) and mobile sheet docking */
 [data-testid="voice-card"],
 .voice-talk-widget {
-  z-index: 100 !important;
+  z-index: var(--z-voice-widget) !important;
 }
 
 @media (max-width: 720px) {
@@ -377,7 +377,7 @@ button.cerebro-infograph-label[data-spatial-billboard='true'][data-chrome-state=
   top: max(12px, env(safe-area-inset-top));
   left: 50%;
   transform: translateX(-50%);
-  z-index: 120;
+  z-index: var(--z-system-status);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -597,7 +597,7 @@ button.cerebro-infograph-label[data-spatial-billboard='true'][data-chrome-state=
   left: 50%;
   transform: translateX(-50%);
   bottom: max(72px, calc(12% + 56px + env(safe-area-inset-bottom, 0px)));
-  z-index: 99;
+  z-index: var(--z-voice-caption);
   max-width: min(420px, 88vw);
   padding: 8px 12px;
   border-radius: 12px;
@@ -613,7 +613,7 @@ button.cerebro-infograph-label[data-spatial-billboard='true'][data-chrome-state=
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 101;
+  z-index: var(--z-voice-sheet);
   width: min(420px, calc(100vw - 24px));
   max-height: min(52vh, 420px);
   overflow: auto;

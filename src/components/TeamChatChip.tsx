@@ -28,7 +28,7 @@ export function TeamChatChip({
         }
       }}
       className={`cj-glass-card ${
-        inline ? 'relative' : 'fixed right-4 bottom-4 z-[95]'
+        inline ? 'relative' : 'fixed right-4 bottom-4 z-(--z-team-chat-chip)'
       } min-h-[40px] px-2.5 sm:px-3.5 py-1.5 rounded-full flex items-center gap-1.5 font-mono text-[11px] font-medium transition-colors hover:border-[#D4AF37] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] shrink-0`}
       style={{
         background: active ? 'rgba(212, 175, 55, 0.22)' : 'rgba(27, 34, 48, 0.88)',

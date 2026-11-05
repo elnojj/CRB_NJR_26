@@ -33,7 +33,7 @@ export function JourneyCaption({ beat, onSkip, reducedMotion = false }: JourneyC
             key={beat.id}
             data-testid="journey-dissolve"
             aria-hidden="true"
-            className="pointer-events-none fixed inset-0 z-[55] bg-[#03060c]"
+            className="pointer-events-none fixed inset-0 z-(--z-journey-scrim) bg-[#03060c]"
             style={{ animation: 'journey-dissolve 900ms ease-out forwards' }}
           />
         </>
@@ -47,7 +47,7 @@ export function JourneyCaption({ beat, onSkip, reducedMotion = false }: JourneyC
         data-testid="journey-skip"
         aria-label="Stop the 25 Beats explainer (Escape)"
         onClick={onSkip}
-        className="fixed left-3 top-3 z-[60] min-h-[44px] rounded-full border border-white/15 bg-black/30 px-4 font-mono text-[10px] uppercase tracking-[0.2em] text-white/55 transition-colors hover:border-white/40 hover:text-white/90 focus-visible:text-white"
+        className="fixed left-3 top-3 z-(--z-journey-chrome) min-h-[44px] rounded-full border border-white/15 bg-black/30 px-4 font-mono text-[10px] uppercase tracking-[0.2em] text-white/55 transition-colors hover:border-white/40 hover:text-white/90 focus-visible:text-white"
         style={{ top: 'max(12px, env(safe-area-inset-top))' }}
       >
         Esc · Stop

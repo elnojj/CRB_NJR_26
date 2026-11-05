@@ -4593,7 +4593,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     forceWebglFallback || webglStatus === 'FALLBACK' || webglStatus === 'CONTEXT_LOST';
 
   return (
-    <div className="fixed inset-0 z-[5] select-none">
+    <div className="fixed inset-0 z-(--z-scene-canvas) select-none">
       {/* WebGL Canvas Mount */}
       <div
         ref={mountRef}
@@ -4628,7 +4628,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       {showReducedGraphicsFallback && (
         <div
           data-testid="reduced-graphics-fallback"
-          className="fixed top-20 bottom-36 left-3 right-3 md:left-6 md:right-6 z-15 flex items-center justify-center pointer-events-none"
+          className="fixed top-20 bottom-36 left-3 right-3 md:left-6 md:right-6 z-(--z-stage-caption) flex items-center justify-center pointer-events-none"
         >
           <div
             onPointerDown={(e) => e.stopPropagation()}
@@ -4732,7 +4732,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       {/* On-Screen Camera Touch / Drag / Pinch / Pan Indicators */}
       {touchIndicator.active && (
         <div
-          className="fixed pointer-events-none z-20 -translate-x-1/2 -translate-y-1/2"
+          className="fixed pointer-events-none z-(--z-ambient-hud) -translate-x-1/2 -translate-y-1/2"
           style={{ left: touchIndicator.x, top: touchIndicator.y }}
         >
           <svg width="84" height="84" viewBox="0 0 84 84" fill="none">
@@ -4760,7 +4760,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       {/* Motion-graph infographic labels — continuous tether + land-in copy, camera-driven */}
       {!showReducedGraphicsFallback && !cinematic && (
-        <div className="cerebro-infograph-layer fixed inset-0 pointer-events-none z-10">
+        <div className="cerebro-infograph-layer fixed inset-0 pointer-events-none z-(--z-world-labels)">
           <svg className="fixed inset-0 w-full h-full pointer-events-none" aria-hidden="true">
             {labels2D.map((item, idx) => {
               // Cover-post density: stations/core only by default; projects only when
@@ -4953,7 +4953,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           {/* Caption suppressed — Cerebro chat widget owns bottom-center copy to avoid overlap. */}
           {false && captionBubble && (
             <div
-              className="cerebro-infograph-caption cerebro-intro-copy fixed left-1/2 bottom-[max(7.5rem,18%)] -translate-x-1/2 z-20 px-4 py-2.5 pointer-events-none max-w-[min(420px,88vw)]"
+              className="cerebro-infograph-caption cerebro-intro-copy fixed left-1/2 bottom-[max(7.5rem,18%)] -translate-x-1/2 z-(--z-ambient-hud) px-4 py-2.5 pointer-events-none max-w-[min(420px,88vw)]"
               role="status"
               aria-live="polite"
               data-testid="caption-bubble"

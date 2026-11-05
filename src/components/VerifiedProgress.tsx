@@ -127,7 +127,7 @@ export const BuildActivityHeader: React.FC<BuildActivityHeaderProps> = ({
     <div
       data-testid="build-activity-header"
       onPointerDown={(e) => e.stopPropagation()}
-      className="fixed top-16 left-4 right-4 z-30 pointer-events-auto flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl border text-xs"
+      className="fixed top-16 left-4 right-4 z-(--z-cerebro) pointer-events-auto flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl border text-xs"
       style={{
         backgroundColor: 'rgba(16, 29, 39, 0.84)',
         backdropFilter: 'blur(12px) saturate(1.2)',

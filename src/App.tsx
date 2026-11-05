@@ -4235,7 +4235,7 @@ export default function App() {
               {alertStack.length > 0 && (
                 <div
                   data-testid="alert-stack"
-                  className="fixed top-20 right-4 z-40 flex flex-col gap-1.5 pointer-events-auto max-w-sm"
+                  className="fixed top-20 right-4 z-(--z-work-surfaces) flex flex-col gap-1.5 pointer-events-auto max-w-sm"
                 >
                   {alertStack.map((al) => (
                     <div
@@ -4263,7 +4263,7 @@ export default function App() {
 
               {/* Non-Blocking Tracker-First Portal HUD Regions */}
               {portalHudOpen && (
-                <div className="fixed inset-x-4 top-28 bottom-28 z-30 pointer-events-none flex flex-col gap-3 overflow-hidden">
+                <div className="fixed inset-x-4 top-28 bottom-28 z-(--z-cerebro) pointer-events-none flex flex-col gap-3 overflow-hidden">
                   <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 pointer-events-none overflow-hidden">
                     <div className="lg:col-span-7 h-full min-h-0 pointer-events-auto overflow-hidden">
                       <BlueprintMap
@@ -4321,7 +4321,7 @@ export default function App() {
               )}
 
               {visualFeedbackOpen && (
-                <div className="fixed inset-0 z-50 bg-[#101D27]/92 flex items-center justify-center p-4 pointer-events-auto">
+                <div className="fixed inset-0 z-(--z-fullscreen-overlay) bg-[#101D27]/92 flex items-center justify-center p-4 pointer-events-auto">
                   <div className="w-full max-w-3xl">
                     <VisualFeedbackMap
                       projectId={selectedProjectId}
@@ -4365,7 +4365,7 @@ export default function App() {
       {/* 4. Clear fixed header — centered NOJARA + CEREBRO only */}
       <header
         data-testid="workspace-header"
-        className={`fixed top-0 left-0 right-0 z-30 pointer-events-none flex items-start justify-center px-4 pt-4 pb-2 safe-area-top ${
+        className={`fixed top-0 left-0 right-0 z-(--z-executive-bar) pointer-events-none flex items-start justify-center px-4 pt-4 pb-2 safe-area-top ${
           !bootDone ? 'opacity-0' : 'opacity-100'
         } transition-opacity duration-300`}
       >
@@ -4383,7 +4383,7 @@ export default function App() {
       {/* Floating icon-only toggles (phone / iPad / desktop) — kept out of the brand header */}
       <div
         data-testid="header-controls-region"
-        className={`fixed top-0 right-0 z-40 pointer-events-none px-4 pt-4 safe-area-top ${
+        className={`fixed top-0 right-0 z-(--z-sticky-header) pointer-events-none px-4 pt-4 safe-area-top ${
           !bootDone ? 'opacity-0' : 'opacity-100'
         } transition-opacity duration-300`}
       >
@@ -4512,7 +4512,7 @@ export default function App() {
               top: 'max(64px, env(safe-area-inset-top))',
               left: '50%',
               transform: 'translateX(-50%)',
-              zIndex: 'var(--z-ambient-status, 20)',
+              zIndex: 'var(--z-ambient-hud)',
               width: 'min(480px, calc(100vw - 24px))',
               pointerEvents: 'auto',
             }}
@@ -4633,7 +4633,7 @@ export default function App() {
             onWheel={(e) => e.stopPropagation()}
             className={
               showCameraTray || showGuiQaHud
-                ? `cj-glass-card cerebro-chrome fixed left-3 right-3 md:left-1/2 md:-translate-x-1/2 bottom-[96px] md:w-[min(420px,92vw)] max-h-[240px] overflow-y-auto overscroll-contain p-3 z-[48] font-mono text-[12px] text-[#C5CCD6] flex flex-col gap-2.5 pointer-events-auto`
+                ? `cj-glass-card cerebro-chrome fixed left-3 right-3 md:left-1/2 md:-translate-x-1/2 bottom-[96px] md:w-[min(420px,92vw)] max-h-[240px] overflow-y-auto overscroll-contain p-3 z-(--z-chat-transcript) font-mono text-[12px] text-[#C5CCD6] flex flex-col gap-2.5 pointer-events-auto`
                 : 'sr-only'
             }
           >
@@ -4852,7 +4852,7 @@ export default function App() {
         <div
           onPointerDown={(e) => e.stopPropagation()}
           onWheel={(e) => e.stopPropagation()}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#101622]/95"
+          className="fixed inset-0 z-(--z-fullscreen-overlay) flex items-center justify-center p-4 bg-[#101622]/95"
         >
           <div
             data-testid="developer-view-modal"
