@@ -64,16 +64,22 @@ export function WorkspaceContent(props: WorkspaceContentProps) {
       <button type="button" onClick={onClose} aria-label="Close workspace content">Back</button>
     </header>
     <div className="workspace-content__body" data-detail="true">
+      <label className="workspace-view-picker">Workspace view
+        <select value={panel} onChange={event => onOpen(event.target.value)} aria-label="Workspace view">
+          {![...PROJECTS_PANELS, ...NASA_PANELS].some(p => p.panelId === panel) && panel !== 'settings' && <option value={panel}>{title}</option>}
+          {[...PROJECTS_PANELS, ...NASA_PANELS, { panelId: 'settings', label: 'Settings' }].map(p => <option key={p.panelId} value={p.panelId}>{p.label}</option>)}
+        </select>
+      </label>
       <p className="workspace-meta">Source snapshot: {selectLatestSnapshotTimestamp()} · No live sync established</p>
       {panel === 'projects' && <ul className="workspace-records">{VISIBLE_PROJECTS_DATA.map(p => <li key={p.id}>
         <button type="button" onClick={() => props.onProject(p.id)} data-testid={`workspace-project-${p.id}`}><strong>{p.name}</strong></button>
-        <p>{p.subtitle}</p><p className="workspace-meta">{p.isSample ? 'Sample' : 'Register snapshot'} · {p.health} · Updated {p.lastActivity}</p>
+        <p>{p.subtitle}</p><p className="workspace-meta">{p.isSample ? 'Sample' : 'Register snapshot'}{canInspect ? ` · ${p.health} · Updated ${p.lastActivity}` : ''}</p>
       </li>)}</ul>}
       {panel === 'project-detail' && project && <>
-        <p>{project.description}</p><p className="workspace-meta">{project.health} · {project.healthNote}</p>
+        <p>{project.description}</p>{canInspect && <p className="workspace-meta">{project.health} · {project.healthNote}</p>}
         <nav className="workspace-content__tabs" aria-label="Project sections">{(['overview', 'tasks', 'decisions', 'minutes', 'files', 'team'] as const).map(tab =>
           <button key={tab} type="button" aria-pressed={tab === projectTab} onClick={() => props.onProjectTab(tab)}>{tab}</button>)}</nav>
-        {projectTab === 'overview' && <><p>Owner: {project.owner}</p><p>Next deadline: {project.nextDeadline}</p><p>{project.description}</p></>}
+        {projectTab === 'overview' && (canInspect ? <><p>Owner: {project.owner}</p><p>Next deadline: {project.nextDeadline}</p></> : <p>Sign in to inspect internal project status, owners, and deadlines.</p>)}
         {['tasks', 'decisions', 'minutes'].includes(projectTab) && <RecordList records={scoped.filter(r => projectTab === 'tasks' ? r.recordType === 'Action' : projectTab === 'decisions' ? r.recordType === 'Decision' : r.recordType === 'Update')} />}
         {projectTab === 'files' && <button onClick={() => onOpen('files')}>Browse source files</button>}
         {projectTab === 'team' && <button onClick={() => onOpen('people')}>Open NASA roster</button>}
@@ -84,14 +90,14 @@ export function WorkspaceContent(props: WorkspaceContentProps) {
         <RecordList records={records} />
         {panel === 'tasks' && props.tasks.length > 0 && <><h3>Session drafts</h3><ul>{props.tasks.map(t => <li key={t.id}>{t.title} · {t.projectCode} · Not confirmed saved remotely</li>)}</ul></>}
       </>}
-      {['people', 'crew', 'kinzo'].includes(panel) && <ul className="workspace-records">{PEOPLE_DATA.map(p => <li key={p.id}>
+      {['people', 'crew', 'kinzo'].includes(panel) && <><p>{canInspect ? 'Roster snapshot; live presence is unverified.' : 'Sign in to inspect the internal roster.'}</p><ul className="workspace-records">{PEOPLE_DATA.filter(() => canInspect).map(p => <li key={p.id}>
         <strong>{p.name}</strong><p>{p.title}</p><p className="workspace-meta">{p.subGroup} · {p.isSample ? 'Sample entry' : 'Roster snapshot'} · Runtime presence unverified</p>
-      </li>)}</ul>}
-      {['files', 'file-viewer'].includes(panel) && <ul className="workspace-records">{FILES_DATA.filter(f => !f.restricted || canInspect).map(f => {
+      </li>)}</ul></>}
+      {['files', 'file-viewer'].includes(panel) && <>{!canInspect && <p>Sign in to inspect source files.</p>}<ul className="workspace-records">{FILES_DATA.filter(() => canInspect).map(f => {
         const href = f.status === 'Missing from attachment' ? null : f.driveId.startsWith('local:/assets/') ? f.driveId.slice(6) : /^[\w-]{15,}$/.test(f.driveId) ? `https://drive.google.com/${f.type === 'Folder' ? 'drive/folders' : 'file/d'}/${f.driveId}` : null;
         return <li key={f.id}><strong>{f.name}</strong><p className="workspace-meta">{f.type} · {f.status} · {f.lastSaved}</p>
           {href ? <a href={href} target="_blank" rel="noreferrer">Open source file</a> : <p>Source file unavailable.</p>}</li>;
-      })}</ul>}
+      })}</ul></>}
       {['media', 'showreel'].includes(panel) && <ul className="workspace-records">{MEDIA_ITEMS.map(m => <li key={m.id}>
         <strong>{m.title}</strong><p>{m.subtitle}</p><p className="workspace-meta">{m.isSample ? 'Sample' : 'Catalog entry'} · {m.type}</p>
         {m.videoUrl || m.url ? <a href={m.videoUrl || m.url} target="_blank" rel="noreferrer">Open source media</a> : <p>Media unavailable.</p>}

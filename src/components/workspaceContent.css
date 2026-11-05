@@ -8,6 +8,8 @@
 .workspace-records { padding: 0; margin: 16px 0; list-style: none; display: grid; gap: 16px; }
 .workspace-records > li { padding-bottom: 16px; border-bottom: 1px solid var(--token-divider); }
 .workspace-content__tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.workspace-view-picker { display: grid; gap: 8px; }
+.workspace-view-picker select { width: 100%; min-height: var(--touch-min); padding: 8px; background: var(--token-glass-solid); color: var(--token-text-primary); border: 1px solid var(--token-divider); border-radius: var(--radius-button); font: inherit; }
 .workspace-content [aria-pressed='true'] { border-color: var(--token-focus); }
 .workspace-content summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
 @media (max-width: 767px) {

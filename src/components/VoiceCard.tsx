@@ -547,7 +547,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       {voiceAccessOpen && <section className="cerebro-voice-access" aria-label="Voice access">
         <strong>{CEREBRO_VOICE_LABEL}</strong>
         <p role="status">{voiceAccessError || (voiceSignedIn ? 'Signed in. Tap Call to connect.' : 'Sign in to start a voice call. Microphone access is requested when the call starts.')}</p>
-        {voiceConfigured && !voiceSignedIn && <button type="button" disabled={voiceSigningIn} onClick={() => {
+        {!voiceSignedIn && <button type="button" disabled={voiceSigningIn} onClick={() => {
           setVoiceSigningIn(true);
           setVoiceAccessError(null);
           void signInForCerebroVoice().catch(() => setVoiceAccessError('Sign-in was not completed. Try again.'))

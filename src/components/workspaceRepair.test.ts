@@ -47,6 +47,7 @@ test('workspace views render real project destinations and protect unsigned regi
         onLanguage() {}, onClose() {}, onOpen() {}, onProject() {}, onProjectTab() {}, onMedia() {} };
       console.log(JSON.stringify({
         projects: renderToStaticMarkup(<WorkspaceContent {...props} panel="projects" />),
+        details: renderToStaticMarkup(<WorkspaceContent {...props} panel="project-detail" />),
         tasks: renderToStaticMarkup(<WorkspaceContent {...props} panel="tasks" />),
         signedTasks: renderToStaticMarkup(<WorkspaceContent {...props} panel="tasks" signedIn={true} />),
       }));` },
@@ -56,6 +57,8 @@ test('workspace views render real project destinations and protect unsigned regi
   const output = execFileSync(process.execPath, ['--input-type=module'], { input: result.outputFiles![0].text, encoding: 'utf8' });
   const views = JSON.parse(output);
   assert.match(views.projects, /workspace-project-SEVEN/);
+  assert.match(views.projects, /Workspace view/);
+  assert.doesNotMatch(views.details, /550 5\.1\.1/);
   assert.match(views.tasks, /Sign in through Call/);
   assert.match(views.signedTasks, /Source evidence/);
 });
