@@ -62,6 +62,8 @@ let microphoneStream: MediaStream | null = null;
 let microphoneRefCount = 0;
 let microphoneInflight: Promise<MediaStream> | null = null;
 let microphoneLastError: MediaSessionError | null = null;
+let microphoneGeneration = 0;
+const microphoneGenerations = new WeakMap<MediaStream, number>();
 
 let sharedAudioContext: AudioContext | null = null;
 
@@ -184,6 +186,7 @@ export async function getSharedMicrophoneStream(
   }
 
   microphoneRefCount += 1;
+  const generationAtStart = microphoneGeneration;
 
   if (microphoneStream?.getAudioTracks().some(track => track.readyState === 'live')) {
     microphoneLastError = null;
@@ -199,40 +202,60 @@ export async function getSharedMicrophoneStream(
     const track = asAudioTrackConstraints(constraints);
     const audio =
       typeof track === 'boolean' ? track : { ...DEFAULT_MIC, ...track };
-    microphoneInflight = requestUserMedia(
+    const pending = requestUserMedia(
       { audio, video: false },
       { timeoutMs: 12000, label: 'microphone' }
     )
       .then((stream) => {
+        if (generationAtStart !== microphoneGeneration) {
+          stopStreamTracks(stream);
+          throw new MediaSessionError('unknown', 'Microphone acquire cancelled');
+        }
         microphoneStream = stream;
-        microphoneInflight = null;
+        microphoneGenerations.set(stream, generationAtStart);
         microphoneLastError = null;
         return stream;
       })
       .catch((err) => {
-        microphoneInflight = null;
+        if (generationAtStart !== microphoneGeneration) throw err;
         microphoneLastError =
           err instanceof MediaSessionError
             ? err
             : new MediaSessionError('unknown', err instanceof Error ? err.message : String(err));
         throw microphoneLastError;
+      })
+      .finally(() => {
+        if (microphoneInflight === pending) microphoneInflight = null;
       });
+    microphoneInflight = pending;
   }
 
   try {
     return await microphoneInflight;
   } catch (error) {
     // Every caller owns a lease, including callers sharing the same failed acquire.
-    microphoneRefCount = Math.max(0, microphoneRefCount - 1);
+    if (generationAtStart === microphoneGeneration) microphoneRefCount = Math.max(0, microphoneRefCount - 1);
     throw error;
   }
 }
 
-export function releaseSharedMicrophoneStream(): void {
+export function releaseSharedMicrophoneStream(stream?: MediaStream): void {
+  // A cancelled bridge may finish awaiting an already-granted old stream after Reset.
+  if (stream && microphoneGenerations.get(stream) !== microphoneGeneration) return;
   microphoneRefCount = Math.max(0, microphoneRefCount - 1);
   if (microphoneRefCount > 0) return;
   stopStreamTracks(microphoneStream);
   microphoneStream = null;
+}
+
+/** Explicit user recovery, scoped to this tab's mic; camera and other apps stay independent. */
+export function forceStopSharedMicrophoneStream(): void {
+  microphoneGeneration++;
+  microphoneRefCount = 0;
+  microphoneInflight = null;
+  stopStreamTracks(microphoneStream);
+  microphoneStream = null;
+  microphoneLastError = null;
 }
 
 export function getSharedAudioContext(): AudioContext {
@@ -286,6 +309,7 @@ export function __resetDeviceStreamCoordinatorForTests(): void {
   webcamLastError = null;
   microphoneLastError = null;
   webcamGeneration = 0;
+  microphoneGeneration++;
   if (sharedAudioContext && sharedAudioContext.state !== 'closed') {
     sharedAudioContext.close().catch(() => {});
   }

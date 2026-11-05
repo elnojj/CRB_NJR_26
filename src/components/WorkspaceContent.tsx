@@ -109,6 +109,7 @@ export function WorkspaceContent(props: WorkspaceContentProps) {
         <button type="button" aria-pressed={props.language === 'ar'} onClick={() => props.onLanguage('ar')}>العربية · RTL</button>
         <h3>Owner access</h3><p>Use Call to unlock with your owner access code. No Google login is required.</p><button type="button" disabled={!props.ownerUnlocked} onClick={lockOwnerAccess}>Lock owner access</button>
         <h3>Voice</h3><p>Use Call to check the voice service and start a microphone session.</p>
+        <button type="button" onClick={() => window.dispatchEvent(new Event('cerebro:voice-controls'))}>Microphone controls</button>
       </>}
       {panel === 'cde-explorer' && CDE_DIMENSIONS.map(d => <article key={d.id}><h3>{d.label}</h3>{d.subdomains.map(s => <p key={s.id}>{s.name}</p>)}</article>)}
       {panel === 'story-journey' && STORY_CHAPTERS.map(c => <article key={c.id}><h3>{c.title}</h3><p>{c.verifiedBody}</p></article>)}

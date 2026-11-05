@@ -3,6 +3,7 @@ import { CEREBRO_REALTIME_INSTRUCTIONS } from './sessionConfig';
 import { parseRealtimeToolArguments } from './tools';
 import { OPENAI_REALTIME_CLIENT_SETTINGS } from './settings';
 import { getOwnerAccessToken } from '../voice/ownerAccess';
+import { microphoneErrorMessage } from '../media/mediaDeviceManager';
 import {
   getSharedAudioContext,
   getSharedMicrophoneStream,
@@ -26,6 +27,7 @@ type Session = {
   audio: HTMLAudioElement;
   abort: AbortController;
   stream: MediaStream | null;
+  sharedStream: MediaStream | null;
   ownsMic: boolean;
   closed: boolean;
   live: boolean;
@@ -42,12 +44,14 @@ type Session = {
   analysers: AnalyserNode[];
   meter: ReturnType<typeof setInterval> | null;
   deadline: ReturnType<typeof setTimeout> | null;
+  micListeners: Array<() => void>;
+  micUnavailable: boolean;
 };
 
 export type RealtimeBridgeDependencies = {
   getAccessToken: () => Promise<string | null>;
   acquireMicrophone: () => Promise<MediaStream>;
-  releaseMicrophone: () => void;
+  releaseMicrophone: (stream?: MediaStream) => void;
   createPeerConnection: () => RTCPeerConnection;
   createAudio: () => HTMLAudioElement;
   createStream: (tracks: MediaStreamTrack[]) => MediaStream;
@@ -97,6 +101,10 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
   }
 
   private status(session: Session, state: VoiceBridgeState, detail?: string): void {
+    if (session.live && session.micUnavailable && ['Listening', 'Thinking', 'Speaking', 'Muted'].includes(state)) {
+      state = 'Muted';
+      detail = 'Microphone unavailable. Check your input device or use Reset microphone.';
+    }
     if (this.current(session)) this.callbacks.onStatusChange(state, detail || `OpenAI Voice · ${state.toLowerCase()}`);
   }
 
@@ -132,11 +140,11 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
       try {
         session = {
           pc, dc: pc.createDataChannel(OPENAI_REALTIME_CLIENT_SETTINGS.dataChannelName), audio: this.deps.createAudio(),
-          abort: new AbortController(), stream: null, ownsMic: false, closed: false,
+          abort: new AbortController(), stream: null, sharedStream: null, ownsMic: false, closed: false,
           live: false, muted: false, responding: false, speaking: false,
           userSpeaking: false, pendingToolBatches: 0, toolContinuationNeeded: false,
           calls: new Set(), transcripts: new Set(), toolQueue: Promise.resolve(),
-          sources: [], analysers: [], meter: null, deadline: null,
+          sources: [], analysers: [], meter: null, deadline: null, micListeners: [], micUnavailable: false,
         };
       } catch (error) { pc.close(); throw error; }
     } catch {
@@ -178,18 +186,31 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
       });
     };
 
+    let requestingMicrophone = false;
     try {
       const token = await this.deps.getAccessToken();
       if (!this.current(session)) return;
       if (!token) throw new Error('Unlock owner access before starting voice.');
+      requestingMicrophone = true;
+      this.status(session, 'Connecting', 'Requesting microphone access. Allow the browser prompt to continue.');
       const shared = await this.deps.acquireMicrophone();
       if (!this.current(session)) {
-        this.deps.releaseMicrophone();
+        this.deps.releaseMicrophone(shared);
         return;
       }
       session.ownsMic = true;
+      session.sharedStream = shared;
+      const inputTracks = shared.getAudioTracks();
+      if (!inputTracks.some(track => track.readyState === 'live')) throw new Error('No live microphone track');
       // Own the sender tracks so muting/stopping voice cannot mute another mic consumer.
-      session.stream = this.deps.createStream(shared.getAudioTracks().map(track => track.clone()));
+      session.stream = this.deps.createStream(inputTracks.filter(track => track.readyState === 'live').map(track => {
+        const clone = track.clone();
+        clone.enabled = true;
+        return clone;
+      }));
+      this.watchMicrophone(session, [...inputTracks, ...session.stream.getAudioTracks()]);
+      requestingMicrophone = false;
+      this.status(session, 'Connecting', 'Microphone acquired. Connecting to OpenAI Voice…');
       for (const track of session.stream.getAudioTracks()) session.pc.addTrack(track, session.stream);
       this.addMeter(session, session.stream);
       const offer = await session.pc.createOffer();
@@ -213,7 +234,28 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
       await session.pc.setRemoteDescription({ type: 'answer', sdp: answer });
     } catch (error) {
       if (!this.current(session)) return;
-      this.fail(session, error instanceof Error ? error.message : 'OpenAI Voice could not start. Tap Call to retry.');
+      this.fail(session, requestingMicrophone ? microphoneErrorMessage(error)
+        : error instanceof Error ? error.message : 'OpenAI Voice could not start. Tap Call to retry.');
+    }
+  }
+
+  private watchMicrophone(session: Session, tracks: MediaStreamTrack[]): void {
+    session.micUnavailable = tracks.some(input => input.muted);
+    for (const track of tracks) {
+      const ended = () => this.fail(session, 'Microphone disconnected or access was revoked. Check your input device, then tap Call to reconnect.');
+      const muted = () => {
+        session.micUnavailable = true;
+        this.status(session, 'Muted', 'Microphone unavailable. Check your input device or use Reset microphone.');
+      };
+      const unmuted = () => {
+        if (tracks.some(input => input.readyState === 'live' && input.muted)) return;
+        session.micUnavailable = false;
+        this.status(session, session.muted ? 'Muted' : !session.live ? 'Connecting' : session.speaking ? 'Speaking' : 'Listening');
+      };
+      for (const [event, handler] of [['ended', ended], ['mute', muted], ['unmute', unmuted]] as const) {
+        track.addEventListener?.(event, handler);
+        session.micListeners.push(() => track.removeEventListener?.(event, handler));
+      }
     }
   }
 
@@ -393,6 +435,8 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
     session.abort.abort();
     if (session.deadline) clearTimeout(session.deadline);
     if (session.meter) clearInterval(session.meter);
+    session.micListeners.forEach(remove => release(remove));
+    session.micListeners.length = 0;
     session.sources.forEach(source => release(() => source.disconnect()));
     session.analysers.forEach(analyser => release(() => analyser.disconnect()));
     session.dc.onmessage = session.dc.onclose = session.dc.onerror = null;
@@ -405,7 +449,7 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
     session.stream?.getTracks().forEach(track => release(() => track.stop()));
     if (session.ownsMic) {
       session.ownsMic = false;
-      release(() => this.deps.releaseMicrophone());
+      release(() => this.deps.releaseMicrophone(session.sharedStream || undefined));
     }
     release(() => this.callbacks.onAudioLevel?.(0));
   }
