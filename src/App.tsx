@@ -186,7 +186,7 @@ import {
 } from './utils/browserFullscreen';
 import { FloatingIconToggles } from './components/chrome/FloatingIconToggles';
 import { MoreMenuList } from './components/chrome/MoreMenuList';
-import { hudBridge, useSpatialHudActive, type HudMenuSpec } from './three/hudBridge';
+import { hudBridge, useSpatialHudActive, useSpatialHudInputMode, type HudMenuSpec } from './three/hudBridge';
 import { CosmographPilotGame } from './components/game/CosmographPilotGame';
 import { BioScienceExplorer } from './components/spatial/BioScienceExplorer';
 import { ImageStudioModal } from './components/spatial/ImageStudioModal';
@@ -2652,6 +2652,9 @@ export default function App() {
           setShowDownloadModal(false);
           return;
         }
+        if (showMoreMenu) { setShowMoreMenu(false); return; }
+        if (nodeBrowserOpen) { setNodeBrowserOpen(false); return; }
+        if (showCameraTray || showGuiQaHud) { setShowCameraTray(false); setShowGuiQaHud(false); return; }
         if (voiceSheetExpanded) {
           setVoiceSheetExpanded(false);
           return;
@@ -2686,7 +2689,7 @@ export default function App() {
       }
 
       // Never trigger 3D camera shortcuts while typing inside an input/textarea
-      if (isEditable) return;
+      if (isEditable || target?.closest('button, a, [role="menu"], [role="dialog"], .workspace-content, [data-testid="node-browser"], [data-testid="voice-card"]')) return;
 
       if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
         e.preventDefault();
@@ -2761,6 +2764,10 @@ export default function App() {
     projectWorld.projectId,
     showDeveloperDrawer,
     showDownloadModal,
+    showMoreMenu,
+    nodeBrowserOpen,
+    showCameraTray,
+    showGuiQaHud,
     tourState.active,
     voiceExpanded,
     voiceSheetExpanded,
@@ -2931,13 +2938,14 @@ export default function App() {
 
   const handlePickDirectoryEntry = useCallback(
     (entry: DirectoryEntry) => {
-      if (window.innerWidth <= 1100) setNodeBrowserOpen(false);
+      setNodeBrowserOpen(false);
       handleSelectNode(entry.nodeId, entry.nodeType, entry.sphere);
     },
     [handleSelectNode]
   );
 
   const hudActive = useSpatialHudActive();
+  useSpatialHudInputMode();
   const moreMenuSpec: HudMenuSpec = (() => {
     const pick = (action: () => void) => () => {
       setShowMoreMenu(false);
@@ -3089,6 +3097,19 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [showMoreMenu]);
 
+  const suspendWorkspace = showMoreMenu || nodeBrowserOpen || voiceSheetExpanded || showCameraTray || showGuiQaHud || showDeveloperDrawer || showDownloadModal || Boolean(fullscreenMedia) || portalHudOpen || visualFeedbackOpen;
+  const handleVoiceSheetExpandedChange = useCallback((expanded: boolean) => {
+    setVoiceSheetExpanded(expanded);
+    if (expanded) {
+      setShowMoreMenu(false); setNodeBrowserOpen(false); setShowCameraTray(false); setShowGuiQaHud(false);
+    }
+  }, []);
+  useEffect(() => {
+    if (showMoreMenu || nodeBrowserOpen || showCameraTray || showGuiQaHud || showDeveloperDrawer || showDownloadModal || fullscreenMedia || portalHudOpen || visualFeedbackOpen) {
+      window.dispatchEvent(new Event('cerebro:close-voice-sheet'));
+    }
+  }, [showMoreMenu, nodeBrowserOpen, showCameraTray, showGuiQaHud, showDeveloperDrawer, showDownloadModal, fullscreenMedia, portalHudOpen, visualFeedbackOpen]);
+
   const spatialPanels = useMemo<SpatialPanelSpec[]>(() => {
     if (!bootDone) return [];
     if (activePanel) return [{
@@ -3096,6 +3117,7 @@ export default function App() {
       nodeId: hqOwnerOfPanel(activePanel) || focusedNodeId || 'projects',
       sphere: activeSphere,
       slot: 0,
+      suspended: suspendWorkspace,
       content: <WorkspaceContent
         panel={activePanel} projectId={selectedProjectId}
         projectTab={projectTabsById[selectedProjectId] || 'overview'}
@@ -3116,6 +3138,7 @@ export default function App() {
         nodeId: hqDockNode,
         sphere: 'hq',
         slot: 0,
+        suspended: suspendWorkspace,
         content: (
           <HqPanelDock
             node={hqDockNode}
@@ -3128,7 +3151,7 @@ export default function App() {
       });
     }
     return panels;
-  }, [activePanel, activeSphere, bootDone, executeTypedAction, hqDockNode, focusedNodeId, selectedProjectId, projectTabsById, customTasks, audienceLevel, workspaceUnlocked, languageRtl]);
+  }, [activePanel, activeSphere, bootDone, executeTypedAction, hqDockNode, focusedNodeId, selectedProjectId, projectTabsById, customTasks, audienceLevel, workspaceUnlocked, languageRtl, suspendWorkspace]);
 
   // Live Page State Snapshot for Developer View & `get_page_state` (cerebro-ui/4)
   const pageStateSnapshot: Record<string, unknown> = {
@@ -4620,7 +4643,7 @@ export default function App() {
           guiLayout={guiLayout}
           onVoiceDragDeltaChange={setVoiceDragDelta}
           onVoiceExpandedChange={setVoiceExpanded}
-          onVoiceSheetExpandedChange={setVoiceSheetExpanded}
+          onVoiceSheetExpandedChange={handleVoiceSheetExpandedChange}
           contextualUpdateJson={contextualUpdateJson}
         />
         )}
@@ -4630,14 +4653,15 @@ export default function App() {
           Tray stays sr-only unless opened from Voice sheet Session → Optics. */}
       <div
         data-testid="bottom-utility-bar"
-        className="sr-only"
-        aria-hidden={!(showCameraTray || showGuiQaHud)}
-        inert={!(showCameraTray || showGuiQaHud)}
+        className={showCameraTray ? undefined : 'hidden'}
+        aria-hidden={!showCameraTray}
+        inert={!showCameraTray}
       >
         <div className="relative">
           <button
             type="button"
             data-testid="camera-control-toggle"
+            hidden
             aria-expanded={showCameraTray || showGuiQaHud}
             onClick={() => {
               setShowCameraTray((v) => !v);
@@ -4652,7 +4676,7 @@ export default function App() {
             onPointerDown={(e) => e.stopPropagation()}
             onWheel={(e) => e.stopPropagation()}
             className={
-              showCameraTray || showGuiQaHud
+              showCameraTray
                 ? `cj-glass-card cerebro-chrome fixed left-3 right-3 md:left-1/2 md:-translate-x-1/2 bottom-[96px] md:w-[min(420px,92vw)] max-h-[240px] overflow-y-auto overscroll-contain p-3 z-(--z-chat-transcript) font-mono text-[12px] text-[#C5CCD6] flex flex-col gap-2.5 pointer-events-auto`
                 : 'sr-only'
             }

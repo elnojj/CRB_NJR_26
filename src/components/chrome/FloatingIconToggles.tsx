@@ -179,6 +179,7 @@ export function FloatingIconToggles({ toggles, moreOpen, moreMenu, moreMenuMirro
         <div
           className={`floating-icon-more-menu${moreMenuMirror ? ' floating-icon-more-menu--mirror' : ''}`}
           data-testid="floating-more-menu"
+          data-hud-keyboard-control="true"
         >
           {moreMenu}
         </div>

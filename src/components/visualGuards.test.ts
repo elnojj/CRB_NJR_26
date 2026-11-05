@@ -137,7 +137,7 @@ describe('visual guards: chat on iOS', () => {
 
   it('keyboard lifts the dock via CSS vars and never resizes the canvas', () => {
     assert.ok(dockCss.includes('--cerebro-kb-inset'));
-    assert.ok(voiceSrc.includes('useKeyboardInsetVars(chatOpen)'));
+    assert.ok(voiceSrc.includes('useKeyboardInsetVars(voiceSheetOpen)'));
     assert.ok(canvasSrc.includes('isEditableTarget(document.activeElement) && w === lastCanvasW'));
     assert.ok(!canvasSrc.includes("visualViewport?.addEventListener('resize', onResize)"));
   });

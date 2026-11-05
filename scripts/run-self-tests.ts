@@ -62,6 +62,8 @@ async function main(): Promise<void> {
     ['visualGuards', 'src/components/visualGuards.test.ts'],
     ['workspaceRepair', 'src/components/workspaceRepair.test.ts'],
     ['microphoneRecovery', 'src/services/media/microphoneRecovery.test.ts'],
+    ['hudBridge', 'src/three/hudBridge.test.ts'],
+    ['overlayOwnership', 'src/components/overlayOwnership.test.ts'],
     ['glassFallback', 'src/three/glassFallback.test.ts'],
     ['hudLayout', 'src/three/hudLayout.test.ts'],
     ['browserEngine', 'src/lib/browserEngine.test.ts'],

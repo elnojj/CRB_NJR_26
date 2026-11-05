@@ -84,9 +84,9 @@ export const PLAIN_LANGUAGE_CONCERNS: ConcernMindMapNode[] = [
       previewDesc: 'Freezes background camera during node inspection and disables decorative loops.',
     },
     optionB: {
-      title: 'Static Rest Sphere Fallback',
-      tokensApplied: 'MotionConfig reducedMotion="user" · /cerebro/sphere_fallback_rest.png',
-      previewDesc: 'Locks 3D rotation and switches to static rest sphere with 2D SVG station pins.',
+      title: 'Reduced Ambient Motion',
+      tokensApplied: 'Reduced motion · live WebGL · accessible fallback on context loss',
+      previewDesc: 'Reduces ambient motion while preserving the live scene and direct navigation.',
     },
   },
   {
