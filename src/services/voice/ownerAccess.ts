@@ -1,3 +1,5 @@
+import { ownerCodeIssue } from './ownerCodeValidation';
+
 /** Owner access is held in this tab's memory only. Never persist it in browser storage. */
 let accessCode: string | null = null;
 let generation = 0;
@@ -19,7 +21,8 @@ export function lockOwnerAccess(): void {
 
 export async function unlockOwnerAccess(code: string, fetcher: typeof fetch = fetch): Promise<void> {
   const candidate = code.trim();
-  if (!/^[A-Za-z0-9_-]{24,256}$/.test(candidate)) throw new Error('Enter the owner access code.');
+  const issue = ownerCodeIssue(candidate);
+  if (issue) throw new Error(issue.message);
   const requestGeneration = ++generation;
   const response = await fetcher('/api/openai/realtime/access', {
     method: 'POST', credentials: 'same-origin', cache: 'no-store',
@@ -28,8 +31,12 @@ export async function unlockOwnerAccess(code: string, fetcher: typeof fetch = fe
   if (requestGeneration !== generation) throw new Error('Owner unlock was cancelled.');
   if (!response.ok) {
     lockOwnerAccess();
+    if (response.status === 503) {
+      const result = await response.json().catch(() => null) as { error?: string } | null;
+      throw new Error(typeof result?.error === 'string' ? result.error : 'Owner access needs server configuration.');
+    }
     throw new Error(response.status === 429 ? 'Too many attempts. Wait a minute and try again.'
-      : response.status === 503 ? 'Owner access needs server configuration.' : 'The owner access code was not accepted.');
+      : 'The owner access code was not accepted. Use the same code saved as CEREBRO_OWNER_ACCESS_CODE in this deployment.');
   }
   const result = await response.json() as { unlocked?: boolean };
   if (requestGeneration !== generation) throw new Error('Owner unlock was cancelled.');

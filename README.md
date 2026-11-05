@@ -67,7 +67,8 @@ The retired `gpt-4o-realtime-preview` is not the default.
 
 Unlock with the server-configured owner access code before calling. `/api/openai/realtime/access`
 verifies that code; `/api/openai/realtime/session` checks it again before exchanging SDP with OpenAI.
-Set `CEREBRO_OWNER_ACCESS_CODE` to 24-256 random URL-safe characters on the server. The browser
+Set `CEREBRO_OWNER_ACCESS_CODE` to 24-256 random printable ASCII characters (letters, numbers or
+symbols, without spaces) on the server. The browser
 holds it in the current tab's memory only; refresh or Lock owner access clears it. Audience headers
 and the old visual keypad cannot authenticate this endpoint. No managed authentication SDK or
 Google account is required. Per-instance failed-attempt throttling limits repeated invalid codes.

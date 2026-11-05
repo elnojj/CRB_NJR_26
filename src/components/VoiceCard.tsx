@@ -240,10 +240,10 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     try {
       const response = await fetch('/api/openai/realtime/status', { cache: 'no-store', signal: AbortSignal.timeout(8000) });
       if (!response.ok) throw new Error('Voice service is unavailable. Try again shortly.');
-      const status = await response.json() as { configured?: boolean };
+      const status = await response.json() as { configured?: boolean; issues?: { message: string }[] };
       const configured = status.configured === true;
       setVoiceConfigured(configured);
-      setVoiceAccessError(configured ? null : 'Voice needs server configuration before a call can start.');
+      setVoiceAccessError(configured ? null : status.issues?.map(issue => issue.message).join(' ') || 'Voice needs server configuration before a call can start.');
       return configured;
     } catch {
       setVoiceConfigured(false);
@@ -559,17 +559,18 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       {voiceAccessOpen && <section className="cerebro-voice-access" aria-label="Voice access">
         <strong>{CEREBRO_VOICE_LABEL}</strong>
         <p role="status">{voiceAccessError || (ownerUnlocked ? 'Owner access unlocked. Tap Call to connect.' : 'Enter your owner access code. Microphone access is requested when the call starts.')}</p>
-        {!ownerUnlocked && <form onSubmit={event => {
+        {!ownerUnlocked && <form noValidate onSubmit={event => {
           event.preventDefault();
           setOwnerUnlocking(true);
           setVoiceAccessError(null);
           void unlockOwnerAccess(ownerCode)
-            .then(() => setVoiceAccessError(voiceConfigured ? null : 'Owner access unlocked. Voice still needs server configuration.'))
+            .then(() => { setOwnerCode(''); setVoiceAccessError(voiceConfigured ? null : 'Owner access unlocked. Voice still needs server configuration.'); })
             .catch(error => setVoiceAccessError(error instanceof Error ? error.message : 'Owner access could not be verified.'))
-            .finally(() => { setOwnerUnlocking(false); setOwnerCode(''); });
+            .finally(() => { setOwnerUnlocking(false); });
         }}>
           <label>Owner access code<input type="password" value={ownerCode} autoComplete="off" autoCapitalize="none" spellCheck={false}
-            minLength={24} maxLength={256} required onChange={event => setOwnerCode(event.target.value)} /></label>
+            aria-describedby="owner-code-help" required onChange={event => setOwnerCode(event.target.value)} /></label>
+          <p id="owner-code-help">Use the same 24–256 character code saved on the server. Letters, numbers and symbols are accepted; no spaces. This is separate from your OpenAI API key.</p>
           <button type="submit" disabled={ownerUnlocking}>{ownerUnlocking ? 'Unlocking…' : 'Unlock owner access'}</button>
         </form>}
         {ownerUnlocked && <button type="button" onClick={lockOwnerAccess}>Lock owner access</button>}

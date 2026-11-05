@@ -8,18 +8,43 @@ import { createHash as createHash2 } from "node:crypto";
 
 // src/services/openai-realtime/server/ownerAccess.ts
 import { createHash, timingSafeEqual } from "node:crypto";
+
+// src/services/voice/ownerCodeValidation.ts
+function ownerCodeIssue(value) {
+  const code = value?.trim() || "";
+  if (!code) return { reason: "missing", message: "Enter the owner access code." };
+  if (code.length < 24) return { reason: "too_short", message: "The owner access code must contain at least 24 characters." };
+  if (code.length > 256) return { reason: "too_long", message: "The owner access code must contain no more than 256 characters." };
+  if (!/^[\x21-\x7e]+$/.test(code)) return {
+    reason: "unsupported_characters",
+    message: "Use English letters, numbers or symbols in the owner access code, without spaces or line breaks."
+  };
+  return null;
+}
+
+// src/services/openai-realtime/server/ownerAccess.ts
 function readOwnerAccessCode(env) {
   const code = env.CEREBRO_OWNER_ACCESS_CODE?.trim() || "";
-  return /^[A-Za-z0-9_-]{24,256}$/.test(code) ? code : null;
+  return ownerCodeIssue(code) ? null : code;
+}
+function ownerConfigurationIssue(env) {
+  const issue = ownerCodeIssue(env.CEREBRO_OWNER_ACCESS_CODE);
+  if (!issue) return null;
+  return {
+    variable: "CEREBRO_OWNER_ACCESS_CODE",
+    reason: issue.reason,
+    message: issue.reason === "missing" ? "CEREBRO_OWNER_ACCESS_CODE is missing from this deployment. Save it in the server environment and redeploy." : `CEREBRO_OWNER_ACCESS_CODE is invalid. ${issue.message} Update the server environment and redeploy.`
+  };
 }
 function createOwnerAccessVerifier(env = process.env, now = Date.now) {
   const expected = readOwnerAccessCode(env);
+  const configurationIssue = ownerConfigurationIssue(env);
   const failures = /* @__PURE__ */ new Map();
   return (req) => {
     if (req.headers["sec-fetch-site"] === "cross-site") return { ok: false, status: 403, error: "Start from the Cerebro workspace." };
     const supplied = /^Bearer (\S+)$/i.exec(String(req.headers.authorization || ""))?.[1];
     if (!supplied) return { ok: false, status: 401, error: "Unlock owner access before starting voice." };
-    if (!expected) return { ok: false, status: 503, error: "Owner access needs server configuration." };
+    if (!expected) return { ok: false, status: 503, error: configurationIssue.message };
     const time = now();
     for (const [key2, entry2] of failures) if (entry2.until <= time) failures.delete(key2);
     const ip = String(req.headers["x-forwarded-for"] || "unknown").split(",")[0].slice(0, 128);
