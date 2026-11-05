@@ -1,0 +1,19 @@
+.workspace-content { width: min(360px, calc(100vw - 24px)); color: var(--token-text-primary); font-family: var(--font-sans); font-size: var(--type-body, 16px); }
+.workspace-content__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: var(--workspace-padding); border-bottom: 1px solid var(--token-divider); }
+.workspace-content__head h2 { margin: 8px 0 0; font-family: var(--font-display); font-size: 20px; overflow-wrap: anywhere; }
+.workspace-content button, .workspace-content a { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; padding: 8px 12px; border: 1px solid var(--token-divider); border-radius: 18px; background: var(--token-glass-solid); color: var(--token-text-primary); text-align: start; font: inherit; }
+.workspace-content__body { padding: var(--workspace-padding); max-height: min(55dvh, 520px); overflow-y: auto; overscroll-behavior: contain; overflow-wrap: anywhere; touch-action: pan-y; }
+.workspace-content p { line-height: 1.5; }
+.workspace-content .workspace-meta { font-size: 12px; }
+.workspace-records { padding: 0; margin: 16px 0; list-style: none; display: grid; gap: 16px; }
+.workspace-records > li { padding-bottom: 16px; border-bottom: 1px solid var(--token-divider); }
+.workspace-content__tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.workspace-view-picker { display: grid; gap: 8px; }
+.workspace-view-picker select { width: 100%; min-height: var(--touch-min); padding: 8px; background: var(--token-glass-solid); color: var(--token-text-primary); border: 1px solid var(--token-divider); border-radius: var(--radius-button); font: inherit; }
+.workspace-content [aria-pressed='true'] { border-color: var(--token-focus); }
+.workspace-content summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+@media (max-width: 767px) {
+  .cerebro-spatial-fallback { right: 12px; bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
+  .workspace-content { width: 100%; }
+  .workspace-content__body { max-height: 264px; }
+}

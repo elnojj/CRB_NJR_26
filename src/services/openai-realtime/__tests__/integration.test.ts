@@ -17,8 +17,9 @@ test('the browser voice entry bundles without server handlers or API-key environ
 
 test('the Vercel route bundles and loads its server service independently', async () => {
   const result = await build({
-    entryPoints: ['api/openai/realtime/session.ts'], bundle: true,
+    entryPoints: ['src/services/openai-realtime/server/vercelSession.ts'], bundle: true,
     platform: 'node', format: 'esm', write: false, logLevel: 'silent',
+    define: { 'import.meta.env': '{}' },
   });
   const server = await import(`data:text/javascript;base64,${Buffer.from(result.outputFiles![0].text).toString('base64')}`);
   assert.equal(typeof server.default, 'function');

@@ -19,10 +19,12 @@ export async function sendGeminiChatTurn(args: {
   message: string;
   model: GeminiChatModelId;
   history: ChatTurn[];
+  projectId?: string;
 }): Promise<{
   reply: string;
   model: string;
   toolCalls: Array<{ toolName: string; parameters: Record<string, unknown> }>;
+  mode: 'live' | 'offline';
 }> {
   try {
     const res = await fetch('/api/gemini/chat', {
@@ -38,6 +40,7 @@ export async function sendGeminiChatTurn(args: {
           args.history.map((h) => ({ role: h.role, text: h.text }))
         ),
         model: 'cerebro-local-fallback',
+        mode: 'offline',
         toolCalls: [],
       };
     }
@@ -45,6 +48,7 @@ export async function sendGeminiChatTurn(args: {
       reply?: string;
       model?: string;
       toolCalls?: Array<{ toolName: string; parameters: Record<string, unknown> }>;
+      mode?: 'live' | 'offline';
     };
     return {
       reply:
@@ -54,6 +58,7 @@ export async function sendGeminiChatTurn(args: {
           args.history.map((h) => ({ role: h.role, text: h.text }))
         ),
       model: data.model || String(args.model),
+      mode: !data.reply?.trim() || data.mode === 'offline' || data.model === 'cerebro-local-fallback' ? 'offline' : 'live',
       toolCalls: Array.isArray(data.toolCalls) ? data.toolCalls : [],
     };
   } catch {
@@ -63,6 +68,7 @@ export async function sendGeminiChatTurn(args: {
         args.history.map((h) => ({ role: h.role, text: h.text }))
       ),
       model: 'cerebro-local-fallback',
+      mode: 'offline',
       toolCalls: [],
     };
   }

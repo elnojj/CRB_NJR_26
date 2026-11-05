@@ -34,7 +34,9 @@ const rawSourceModules = import.meta.glob(
     '/metadata.json',
     '/server.ts',
     '/server/**/*.ts',
-    '/api/**/*.ts',
+    '/api/**/*.{ts,js}',
+    '/scripts/**/*.{ts,mjs}',
+    '/README.md',
     '/.env.example',
   ],
   { query: '?raw', import: 'default' }
@@ -88,7 +90,7 @@ export const ProjectDownloadModal: React.FC<ProjectDownloadModalProps> = ({
         null,
         2
       );
-      collected['README.md'] = `# CEREBRO + CDE (v1.25 — NOJARA Studios)\n\nOwner: 39 (Tarek Nojara), Founder and Culture and Design Engineer, NOJARA Studios (est. 2016), Cairo–Riyadh.\n\n## Quick Start\n\`\`\`bash\nnpm install\nnpm run dev\n\`\`\`\n`;
+      collected['README.md'] ||=  `# CEREBRO + CDE (v1.25 — NOJARA Studios)\n\nOwner: 39 (Tarek Nojara), Founder and Culture and Design Engineer, NOJARA Studios (est. 2016), Cairo–Riyadh.\n\n## Quick Start\n\`\`\`bash\nnpm install\nnpm run dev\n\`\`\`\n`;
 
       if (active) {
         setFilesMap(collected);

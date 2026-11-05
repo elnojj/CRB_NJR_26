@@ -56,6 +56,8 @@ import { firstMediaTileIndex } from './three/mediaTubeItems';
 import { resolveNodeContent, type DirectoryEntry, type NodeContent } from './data/nodeContent';
 import { hqOwnerOfPanel, HQ_NODE_LABEL, PROJECTS_PANELS, type HqNodeId } from './data/hqNodeWiring';
 import { HqPanelDock } from './components/HqPanelDock';
+import { WorkspaceContent } from './components/WorkspaceContent';
+import { observeCerebroIdentity } from './utils/googleWorkspaceAuth';
 import type { SpatialPanelSpec } from './three/spatialPanels';
 import { NodeBrowser } from './components/NodeBrowser';
 import {
@@ -214,6 +216,8 @@ const BUILD_VERSION = '1.28.0';
 const EMPTY_PANELS: SpatialPanelSpec[] = [];
 
 export default function App() {
+  const [workspaceSignedIn, setWorkspaceSignedIn] = useState(false);
+  useEffect(() => observeCerebroIdentity(setWorkspaceSignedIn), []);
 
   // 1. Boot, Keypad, Reduced Motion, Sound, Language/RTL & WebGL Fallback State
   const [bootInitialMode, setBootInitialMode] = useState<'keypad' | 'loader'>(() => {
@@ -1395,7 +1399,7 @@ export default function App() {
             Boolean(worldManifest) && worldManifest?.worldType !== 'unavailable';
           const nextTab = action.tab || projectTabsById[proj.id] || 'overview';
           setProjectTabsById((prev) => ({ ...prev, [proj.id]: nextTab }));
-          // Keep camera in master when no verified 3D world — open 2D sheet, no unavailable toast.
+          // Keep camera in master when no verified 3D world — open spatial details, no unavailable toast.
           if (!available) {
             setProjectWorld((prev) => settleMasterWorld(exitProjectWorld(prev)));
             setSpatialHealthOpen(true);
@@ -1426,11 +1430,7 @@ export default function App() {
           setSpatialHealthOpen(true);
           setSpatialHealthMode('project');
           setDashboardCollapsed(false);
-          if (action.tab) {
-            ensurePanelOpen('project-detail', true);
-          } else {
-            setOpenPanels((prev) => prev.filter((p) => p !== 'project-detail'));
-          }
+          ensurePanelOpen('project-detail', true);
           if (nodeMediaTile !== null) {
             dispatchCamera('set_angle', { targetSphere: activeSphere, anglePreset: 'tube_front' });
           } else {
@@ -1445,7 +1445,7 @@ export default function App() {
               selectedProjectId: proj.id,
               activeTab: nextTab,
               spatialHealthMode: 'project',
-              openPanels: action.tab ? ['project-detail'] : [],
+              openPanels: ['project-detail'],
             },
             operationId: opId,
           };
@@ -2948,6 +2948,19 @@ export default function App() {
       onClose: () => setShowMoreMenu(false),
       sections: [
         {
+          id: 'navigation',
+          title: 'Navigation',
+          items: [
+            ...(['hq', 'cde', 'campaign-os', 'about-us'] as const).map(sphere => ({
+              id: `nav-${sphere}`, label: SPHERE_CAPTION[sphere],
+              onSelect: pick(() => executeTypedAction({ type: 'switch_sphere', sphere }, 'menu')),
+            })),
+            { id: 'nav-back', label: 'Go back', onSelect: pick(handleNavigateBack) },
+            { id: 'nav-journey', label: journeyActive ? 'Stop camera journey' : 'Play camera journey', onSelect: pick(() => toggleJourney()) },
+            { id: 'nav-tour', label: tourState.active ? 'Stop guided tour' : 'Start guided tour', onSelect: pick(() => executeTypedAction({ type: 'tour_control', action: tourState.active ? 'stop' : 'start' }, 'menu')) },
+          ],
+        },
+        {
           id: 'stations',
           title: 'Stations & Views',
           items: CEREBRO_STATIONS.map((st) => ({
@@ -3078,6 +3091,23 @@ export default function App() {
 
   const spatialPanels = useMemo<SpatialPanelSpec[]>(() => {
     if (!bootDone) return [];
+    if (activePanel) return [{
+      id: 'workspace-content',
+      nodeId: hqOwnerOfPanel(activePanel) || focusedNodeId || 'projects',
+      sphere: activeSphere,
+      slot: 0,
+      content: <WorkspaceContent
+        panel={activePanel} projectId={selectedProjectId}
+        projectTab={projectTabsById[selectedProjectId] || 'overview'}
+        tasks={customTasks} audience={audienceLevel} signedIn={workspaceSignedIn} language={languageRtl}
+        onLanguage={setLanguageRtl}
+        onClose={() => executeTypedAction({ type: 'open_panel', action: 'close', panel: activePanel }, 'workspace')}
+        onOpen={panel => executeTypedAction({ type: 'open_panel', action: 'open', panel }, 'workspace')}
+        onProject={projectId => executeTypedAction({ type: 'focus_project', projectId, tab: 'overview' }, 'workspace')}
+        onProjectTab={tab => setProjectTabsById(prev => ({ ...prev, [selectedProjectId]: tab }))}
+        onMedia={projectId => executeTypedAction({ type: 'project_media_tube', action: 'open', projectId }, 'workspace')}
+      />,
+    }];
     const panels: SpatialPanelSpec[] = [];
     const dockVisible = activeSphere === 'hq' && hqDockNode !== null;
     if (dockVisible && hqDockNode) {
@@ -3098,7 +3128,7 @@ export default function App() {
       });
     }
     return panels;
-  }, [activePanel, activeSphere, bootDone, executeTypedAction, hqDockNode]);
+  }, [activePanel, activeSphere, bootDone, executeTypedAction, hqDockNode, focusedNodeId, selectedProjectId, projectTabsById, customTasks, audienceLevel, workspaceSignedIn, languageRtl]);
 
   // Live Page State Snapshot for Developer View & `get_page_state` (cerebro-ui/4)
   const pageStateSnapshot: Record<string, unknown> = {
@@ -4602,6 +4632,7 @@ export default function App() {
         data-testid="bottom-utility-bar"
         className="sr-only"
         aria-hidden={!(showCameraTray || showGuiQaHud)}
+        inert={!(showCameraTray || showGuiQaHud)}
       >
         <div className="relative">
           <button

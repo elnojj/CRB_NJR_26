@@ -15,6 +15,9 @@ import { createVoiceBridge, CEREBRO_VOICE_LABEL, formatVoiceStatus, type VoiceBr
 import { ComputedGuiLayout } from '../gui/layoutEngine';
 import { useKeyboardInsetVars } from '../gui/keyboardInset';
 import './cerebroChat.css';
+import { readChatAttachment } from '../services/google-ai-studio/chatAttachment';
+import { CEREBRO_VOICE_PROVIDER } from '../services/voice/settings';
+import { observeCerebroIdentity, signInForCerebroVoice } from '../utils/googleWorkspaceAuth';
 
 export type VoiceState = VoiceBridgeState | 'Idle';
 
@@ -115,7 +118,8 @@ function LiquidReply({ text }: { text: string }) {
   let charIndex = 0;
   return (
     <p className="cerebro-chat__liquid" aria-live="polite">
-      {text.split(/(\s+)/).map((token, wi) => {
+      <span className="sr-only">{text}</span>
+      <span aria-hidden="true">{text.split(/(\s+)/).map((token, wi) => {
         if (token === '') return null;
         if (/^\s+$/.test(token)) return ' ';
         return (
@@ -134,7 +138,7 @@ function LiquidReply({ text }: { text: string }) {
             })}
           </span>
         );
-      })}
+      })}</span>
     </p>
   );
 }
@@ -224,10 +228,34 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   contextualUpdateJson,
   tourState,
 }) => {
+  const [voiceConfigured, setVoiceConfigured] = useState<boolean | null>(null);
+  const [voiceSignedIn, setVoiceSignedIn] = useState(false);
+  const [voiceAccessOpen, setVoiceAccessOpen] = useState(false);
+  const [voiceAccessError, setVoiceAccessError] = useState<string | null>(null);
+  const [voiceSigningIn, setVoiceSigningIn] = useState(false);
+  useEffect(() => observeCerebroIdentity(setVoiceSignedIn), []);
+  const checkVoiceConfiguration = useCallback(async () => {
+    if (CEREBRO_VOICE_PROVIDER !== 'openai-realtime') return true;
+    try {
+      const response = await fetch('/api/openai/realtime/status', { cache: 'no-store', signal: AbortSignal.timeout(8000) });
+      if (!response.ok) throw new Error('Voice service is unavailable. Try again shortly.');
+      const status = await response.json() as { configured?: boolean };
+      const configured = status.configured === true;
+      setVoiceConfigured(configured);
+      setVoiceAccessError(configured ? null : 'Voice needs server configuration before a call can start.');
+      return configured;
+    } catch {
+      setVoiceConfigured(false);
+      setVoiceAccessError('Voice service is unavailable. Try again shortly.');
+      return false;
+    }
+  }, []);
+  useEffect(() => { void checkVoiceConfiguration(); }, [checkVoiceConfiguration]);
   const [chatOpen, setChatOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [attachment, setAttachment] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [chatMode, setChatMode] = useState<'live' | 'offline' | null>(null);
   const [localTurns, setLocalTurns] = useState<ChatBubble[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [bridgeStatus, setBridgeStatus] = useState<VoiceBridgeState>('Ready');
@@ -344,9 +372,14 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       }
       return;
     }
+    if (CEREBRO_VOICE_PROVIDER === 'openai-realtime') {
+      const configured = await checkVoiceConfiguration();
+      if (!configured || !voiceSignedIn) { setVoiceAccessOpen(true); return; }
+    }
+    setVoiceAccessOpen(false);
     if (bridgeStatus === 'Error') await bridgeRef.current?.retry();
     else await bridgeRef.current?.connect();
-  }, [voiceLive, bridgeStatus, tourState.active, onStopTour, onSimulateCommand]);
+  }, [voiceLive, bridgeStatus, tourState.active, onStopTour, onSimulateCommand, checkVoiceConfiguration, voiceSignedIn]);
 
   useEffect(() => {
     if (openAgentModalTrigger && openAgentModalTrigger > lastCallTriggerRef.current) {
@@ -372,7 +405,18 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const send = useCallback(async () => {
     const text = draft.trim();
     if ((!text && !attachment) || busy) return;
+    setBusy(true);
+    setError(null);
+    let attachmentText = '';
+    try {
+      if (attachment) attachmentText = await readChatAttachment(attachment);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'The attachment could not be read.');
+      setBusy(false);
+      return;
+    }
     const attachmentName = attachment?.name;
+    const modelLine = [text, attachmentText].filter(Boolean).join('\n\n');
     const userLine = attachmentName
       ? `${text || 'Attachment'} · ${attachmentName}`
       : text;
@@ -389,22 +433,22 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     setAttachment(null);
     setBusy(true);
     setError(null);
-    onSendCompose(text || attachmentName || '', attachmentName);
     onSimulateCommand(`__user_chat__:${text || attachmentName || ''}`);
 
+    const requestHistory = historyRef.current;
     historyRef.current = [
-      ...historyRef.current,
-      { role: 'user' as const, text: userLine },
+      ...requestHistory,
+      { role: 'user' as const, text: modelLine },
     ].slice(-12);
 
     try {
       const result = await sendGeminiChatTurn({
         model: 'gemini-3.8-flash' as GeminiChatModelId,
-        history: historyRef.current,
-        message: selectedProjectId
-          ? `[project:${selectedProjectId}] ${userLine}`
-          : userLine,
+        history: requestHistory,
+        message: modelLine,
+        projectId: selectedProjectId,
       });
+      setChatMode(result.mode);
       const clean =
         (result.reply || '').trim() || 'I heard you — how can I help next?';
       historyRef.current = [
@@ -433,7 +477,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         {
           id: `c-err-${Date.now()}`,
           role: 'cerebro',
-          text: 'I saved your message. Try Send again in a moment.',
+          text: 'The message could not be delivered. Nothing was saved remotely. Try again in a moment.',
           liquid: true,
         },
       ]);
@@ -441,7 +485,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       setBusy(false);
       inputRef.current?.focus();
     }
-  }, [attachment, busy, draft, onSendCompose, onSimulateCommand, selectedProjectId]);
+  }, [attachment, busy, draft, onSimulateCommand, selectedProjectId]);
 
   // Always pin to bottom-center so Call / Hands / Chat stay on one screen
   // (guiLayout voiceRect previously floated the sheet mid-viewport like a second page).
@@ -470,7 +514,9 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         : '2 hands · pinch both to dolly, roll, pitch · tap to stop'
       : chatOpen
         ? 'Chat with Cerebro'
-        : `${CEREBRO_VOICE_LABEL} · ready`;
+        : CEREBRO_VOICE_PROVIDER === 'openai-realtime'
+          ? `${CEREBRO_VOICE_LABEL} · ${voiceConfigured === null ? 'checking service' : !voiceConfigured ? 'configuration needed' : !voiceSignedIn ? 'sign in to call' : 'tap Call to connect'}`
+          : `${CEREBRO_VOICE_LABEL} · tap Call to connect`;
 
   const hudActive = useSpatialHudActive();
   const dockSpec: HudDockSpec = {
@@ -498,13 +544,25 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       style={dockStyle}
       onPointerDown={(e) => e.stopPropagation()}
     >
+      {voiceAccessOpen && <section className="cerebro-voice-access" aria-label="Voice access">
+        <strong>{CEREBRO_VOICE_LABEL}</strong>
+        <p role="status">{voiceAccessError || (voiceSignedIn ? 'Signed in. Tap Call to connect.' : 'Sign in to start a voice call. Microphone access is requested when the call starts.')}</p>
+        {!voiceSignedIn && <button type="button" disabled={voiceSigningIn} onClick={() => {
+          setVoiceSigningIn(true);
+          setVoiceAccessError(null);
+          void signInForCerebroVoice().catch(() => setVoiceAccessError('Sign-in was not completed. Try again.'))
+            .finally(() => setVoiceSigningIn(false));
+        }}>{voiceSigningIn ? 'Signing in…' : 'Sign in for voice'}</button>}
+        {!voiceConfigured && <button type="button" onClick={() => void checkVoiceConfiguration()}>Check again</button>}
+        <button type="button" onClick={() => setVoiceAccessOpen(false)}>Close</button>
+      </section>}
       {chatOpen && (
         <section className="cerebro-chat cerebro-chat--docked" aria-label="Chat with Cerebro">
           <header className="cerebro-chat__head">
             <span className="cerebro-chat__orb" aria-hidden="true" />
             <div className="cerebro-chat__titles">
               <strong>Cerebro</strong>
-              <span>{busy ? 'Writing…' : 'Chat'}</span>
+              <span>{busy ? 'Writing…' : chatMode === 'offline' ? 'Offline assistance' : chatMode === 'live' ? 'Live AI' : 'Chat'}</span>
             </div>
             <button
               type="button"
@@ -520,7 +578,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
           <div className="cerebro-chat__thread" ref={listRef} data-testid="cerebro-chat-thread">
             {localTurns.length === 0 && (
               <div className="cerebro-chat__empty">
-                Message Cerebro below. Attach a file anytime.
+                Message Cerebro below. Attach TXT, MD, JSON, CSV, or TSV files up to 256 KB.
               </div>
             )}
             {localTurns.map((turn) => (
@@ -554,6 +612,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
             )}
           </div>
 
+          {chatMode === 'offline' && <p className="cerebro-chat__error" role="status">Live AI is unavailable. These are limited offline replies.</p>}
           {error && (
             <p className="cerebro-chat__error" role="alert">
               {error}
@@ -563,6 +622,9 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
           <input
             ref={fileRef}
             type="file"
+            accept=".txt,.md,.json,.csv,.tsv"
+            aria-label="Attach a text file, up to 256 KB"
+            tabIndex={-1}
             className="sr-only"
             data-testid="cerebro-chat-file"
             onChange={(e) => {
@@ -582,7 +644,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               type="button"
               className="cerebro-chat__icon-btn"
               data-testid="cerebro-chat-attach"
-              aria-label="Attach a file to Cerebro"
+              aria-label="Attach a text file to Cerebro"
               onClick={() => fileRef.current?.click()}
             >
               Attach
@@ -598,6 +660,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
               autoCorrect="on"
               autoCapitalize="sentences"
               placeholder="Message Cerebro…"
+              aria-label="Message Cerebro"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => {

@@ -27,7 +27,7 @@ import {
   ProjectHealth,
 } from '../data/sourceData';
 import { HQ_NODE_LINKS } from '../data/hqNodeWiring';
-import { contentChip, resolveNodeContent } from '../data/nodeContent';
+import { contentChip, resolveNodeContent, nodeDirectory } from '../data/nodeContent';
 import {
   PROJECT_MEDIA_TUBE_SPECS,
   buildProjectMediaTubeItems,
@@ -4480,12 +4480,12 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               borderColor: COLOUR_TOKENS.outlineControl,
             }}
           >
-            <div className="flex items-center justify-between gap-2 border-b border-[color:var(--token-divider)] pb-2.5">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-2 border-b border-[color:var(--token-divider)] pb-2.5">
               <div className="min-w-0">
                 <div className="font-mono text-[12px] text-[#D4AF37] uppercase tracking-wider">
                   REDUCED-GRAPHICS SPATIAL WORKSPACE
                 </div>
-                <h2 className="font-display text-sm md:text-base font-semibold text-[#F2F6F8] truncate">
+                <h2 className="font-display text-sm md:text-base font-semibold text-[#F2F6F8] break-words">
                   {SPHERE_CAPTION[activeSphere] + ' Spatial Map'}
                 </h2>
                 <p className="font-mono text-[11px] text-[#BDCBD3] mt-1" role="status">
@@ -4497,7 +4497,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               </div>
               <div className="flex flex-col items-end gap-2 shrink-0">
                 <span className="font-mono text-[12px] px-2 py-0.5 rounded bg-[#101622] border border-[color:var(--token-divider)] text-[#C5CCD6]">
-                  {webglReason || '2D Spatial Navigation Active'}
+                  2D navigation
                 </span>
                 <button
                   type="button"
@@ -4517,55 +4517,16 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {activeSphere === 'hq'
-                ? CEREBRO_STATIONS.map((st) => (
-                    <button
-                      key={st.id}
-                      type="button"
-                      onClick={() => onSelectNode(st.id, 'station', 'hq')}
-                      className="cerebro-tile-btn"
-                    >
-                      <div className="font-mono text-[12px]" style={{ color: st.colour }}>
-                        {st.code}
-                      </div>
-                      <div className="font-display text-xs font-semibold text-[#F2F6F8] truncate">
-                        {st.label}
-                      </div>
-                    </button>
-                  ))
-                : CDE_DIMENSIONS.map((dim) => (
-                    <button
-                      key={dim.id}
-                      type="button"
-                      onClick={() => onSelectNode(dim.id, 'dimension', 'cde')}
-                      className="cerebro-tile-btn"
-                    >
-                      <div className="font-mono text-[12px]" style={{ color: dim.colour }}>
-                        CDE DIMENSION
-                      </div>
-                      <div className="font-display text-xs font-semibold text-[#F2F6F8] truncate">
-                        {dim.label}
-                      </div>
-                    </button>
-                  ))}
-            </div>
-
-            <div className="pt-2 border-t border-[color:var(--token-divider)]">
-              <div className="font-mono text-[12px] text-[#C5CCD6] mb-1.5">PROJECTS</div>
-              <div className="flex flex-wrap gap-1.5">
-                {(activeSphere === 'hq' ? HQ_PROJECTS_DATA : VISIBLE_PROJECTS_DATA).map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => onSelectNode(p.id, 'project', activeSphere)}
-                    className="min-h-[36px] px-2.5 py-1 rounded-lg border border-[color:var(--token-divider)] bg-[#101622]/90 font-mono text-[13px] text-[#F2F6F8] hover:border-[#D4AF37] cursor-pointer transition-colors"
-                  >
-                    {p.code}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <nav className="grid grid-cols-2 sm:grid-cols-3 gap-2" aria-label={`${SPHERE_CAPTION[activeSphere]} nodes`}>
+              {nodeDirectory()[activeSphere].map(entry => (
+                <button key={`${entry.nodeType}-${entry.nodeId}`} type="button"
+                  onClick={() => onSelectNode(entry.nodeId, entry.nodeType, activeSphere)}
+                  className="cerebro-tile-btn">
+                  <span className="block font-mono text-xs">{entry.kindLabel}</span>
+                  <span className="block font-display text-sm">{entry.title}</span>
+                </button>
+              ))}
+            </nav>
           </div>
         </div>
       )}

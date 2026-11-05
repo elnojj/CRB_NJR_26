@@ -950,7 +950,6 @@ canvas {
   background: var(--c-void);
 }
 
-.media-transport 
 /* Phone: left-align the brand lockup so it cannot sit under the floating icon toggles. */
 @media (max-width: 520px) {
   [data-testid='workspace-header'] {

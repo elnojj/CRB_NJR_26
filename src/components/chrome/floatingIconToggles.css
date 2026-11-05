@@ -8,8 +8,8 @@
 }
 
 .floating-icon-toggles__btn {
-  min-height: 40px;
-  min-width: 40px;
+  min-height: 44px;
+  min-width: 44px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(0, 0, 0, 0.4);
@@ -20,10 +20,15 @@
   backdrop-filter: blur(6px);
 }
 
-.floating-icon-toggles__btn[data-active='1'] {
+.floating-icon-toggles__btn[aria-pressed='true'] {
   border-color: rgba(212, 175, 55, 0.6);
   background: rgba(212, 175, 55, 0.2);
   color: #fff4d0;
+}
+
+/* Keep the brand slot clear; the same destinations remain available in More. */
+@media (max-width: 1100px) {
+  .floating-icon-toggles__btn:not([data-testid='header-more-btn']) { display: none; }
 }
 
 .floating-icon-toggles__more {
