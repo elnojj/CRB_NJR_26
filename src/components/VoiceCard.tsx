@@ -18,6 +18,7 @@ import './cerebroChat.css';
 import { readChatAttachment } from '../services/google-ai-studio/chatAttachment';
 import { CEREBRO_VOICE_PROVIDER } from '../services/voice/settings';
 import { observeOwnerAccess, unlockOwnerAccess, lockOwnerAccess } from '../services/voice/ownerAccess';
+import { forceStopSharedMicrophoneStream } from '../services/media/deviceStreamCoordinator';
 
 export type VoiceState = VoiceBridgeState | 'Idle';
 
@@ -232,6 +233,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const [ownerUnlocked, setOwnerUnlocked] = useState(false);
   const [voiceAccessOpen, setVoiceAccessOpen] = useState(false);
   const [voiceAccessError, setVoiceAccessError] = useState<string | null>(null);
+  const [voiceRecoveryOpen, setVoiceRecoveryOpen] = useState(false);
+  const [voiceRecoveryMessage, setVoiceRecoveryMessage] = useState<string | null>(null);
   const [ownerUnlocking, setOwnerUnlocking] = useState(false);
   useEffect(() => observeOwnerAccess(setOwnerUnlocked), []);
   const [ownerCode, setOwnerCode] = useState('');
@@ -253,6 +256,11 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   }, []);
   useEffect(() => { void checkVoiceConfiguration(); }, [checkVoiceConfiguration]);
   const [chatOpen, setChatOpen] = useState(false);
+  useEffect(() => {
+    const open = () => { setVoiceRecoveryMessage(null); setVoiceAccessOpen(false); setChatOpen(false); setVoiceRecoveryOpen(true); };
+    window.addEventListener('cerebro:voice-controls', open);
+    return () => window.removeEventListener('cerebro:voice-controls', open);
+  }, []);
   const [draft, setDraft] = useState('');
   const [attachment, setAttachment] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
@@ -293,10 +301,15 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         setBridgeStatus(status);
         onVoiceStateChangeRef.current?.(status);
         if (detail) setBridgeDetail(detail);
+        setVoiceRecoveryMessage(null);
+        if (status === 'Error' || (status === 'Muted' && /Microphone unavailable/.test(detail || ''))) {
+          setChatOpen(false); setVoiceAccessOpen(false); setVoiceRecoveryOpen(true);
+        }
         if (status === 'Error' && /owner access|owner.*code/i.test(detail || '')) {
           lockOwnerAccess();
           setVoiceAccessError(detail || 'Unlock owner access again.');
           setVoiceAccessOpen(true);
+          setVoiceRecoveryOpen(false);
         }
       },
       onTranscript: (role, text) => {
@@ -331,10 +344,15 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         setBridgeStatus(status);
         onVoiceStateChangeRef.current?.(status);
         if (detail) setBridgeDetail(detail);
+        setVoiceRecoveryMessage(null);
+        if (status === 'Error' || (status === 'Muted' && /Microphone unavailable/.test(detail || ''))) {
+          setChatOpen(false); setVoiceAccessOpen(false); setVoiceRecoveryOpen(true);
+        }
         if (status === 'Error' && /owner access|owner.*code/i.test(detail || '')) {
           lockOwnerAccess();
           setVoiceAccessError(detail || 'Unlock owner access again.');
           setVoiceAccessOpen(true);
+          setVoiceRecoveryOpen(false);
         }
       },
       onTranscript: (role, text) => {
@@ -389,6 +407,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       if (!configured || !ownerUnlocked) { setVoiceAccessOpen(true); return; }
     }
     setVoiceAccessOpen(false);
+    setVoiceRecoveryOpen(false);
     if (bridgeStatus === 'Error') await bridgeRef.current?.retry();
     else await bridgeRef.current?.connect();
   }, [voiceLive, bridgeStatus, tourState.active, onStopTour, onSimulateCommand, checkVoiceConfiguration, ownerUnlocked]);
@@ -556,6 +575,16 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       style={dockStyle}
       onPointerDown={(e) => e.stopPropagation()}
     >
+      {voiceRecoveryOpen && <section className="cerebro-voice-access" aria-label="Voice recovery">
+        <strong>Voice connection</strong>
+        <p role="status">{voiceRecoveryMessage || bridgeDetail}</p>
+        <button type="button" onClick={() => {
+          bridgeRef.current?.disconnect();
+          forceStopSharedMicrophoneStream();
+          setVoiceRecoveryMessage('Microphone released in this tab. Tap Call to reconnect.');
+        }}>Reset microphone</button>
+        <button type="button" onClick={() => setVoiceRecoveryOpen(false)}>Close</button>
+      </section>}
       {voiceAccessOpen && <section className="cerebro-voice-access" aria-label="Voice access">
         <strong>{CEREBRO_VOICE_LABEL}</strong>
         <p role="status">{voiceAccessError || (ownerUnlocked ? 'Owner access unlocked. Tap Call to connect.' : 'Enter your owner access code. Microphone access is requested when the call starts.')}</p>

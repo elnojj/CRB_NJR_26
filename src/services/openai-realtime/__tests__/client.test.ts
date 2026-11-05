@@ -13,11 +13,11 @@ const bridges: OpenAiRealtimeVoiceBridge[] = [];
 afterEach(() => bridges.splice(0).forEach(bridge => bridge.disconnect()));
 
 function track() {
-  return {
-    enabled: true, stopped: false, readyState: 'live',
+  return Object.assign(new EventTarget(), {
+    enabled: true, muted: false, stopped: false, readyState: 'live',
     stop() { this.stopped = true; this.readyState = 'ended'; },
     clone() { return track(); },
-  };
+  });
 }
 function stream(tracks = [track()]) {
   return { getTracks: () => tracks, getAudioTracks: () => tracks } as unknown as MediaStream;
@@ -228,6 +228,61 @@ test('permission denial, locked owner access and provider errors are visible and
   const signedOut = h.make({ getAccessToken: async () => null });
   await signedOut.connect();
   assert.match(h.states.at(-1)?.detail || '', /Unlock owner access/);
+});
+
+test('microphone interruption is visible, revoked input closes the call, and a fresh mic can reconnect', async () => {
+  const h = harness();
+  let input = track();
+  const bridge = h.make({ acquireMicrophone: async () => stream([input]) });
+  await bridge.connect();
+  h.emit({ type: 'session.created' });
+  input.muted = true;
+  input.dispatchEvent(new Event('mute'));
+  assert.equal(h.states.at(-1)?.state, 'Muted');
+  assert.match(h.states.at(-1)?.detail || '', /Microphone unavailable/);
+  h.emit({ type: 'output_audio_buffer.started' });
+  assert.equal(h.states.at(-1)?.state, 'Muted', 'Provider events cannot hide an unavailable microphone');
+  h.emit({ type: 'output_audio_buffer.stopped' });
+  input.muted = false;
+  input.dispatchEvent(new Event('unmute'));
+  assert.equal(h.states.at(-1)?.state, 'Listening');
+  input.stop();
+  input.dispatchEvent(new Event('ended'));
+  assert.equal(h.states.at(-1)?.state, 'Error');
+  assert.match(h.states.at(-1)?.detail || '', /Microphone disconnected/);
+  assert.equal(h.counts().releases, 1);
+  assert.equal(h.pcs[0].closed, true);
+  input = track();
+  await bridge.retry();
+  h.emit({ type: 'session.created' });
+  assert.equal(bridge.isLiveWebSocketOpen(), true);
+});
+
+test('voice enables its own sender independently and rejects an empty or ended mic before signaling', async () => {
+  const h = harness();
+  const input = track();
+  input.enabled = false;
+  const bridge = h.make({ acquireMicrophone: async () => stream([input]) });
+  await bridge.connect();
+  assert.equal(h.pcs.at(-1).tracks[0].enabled, true);
+  assert.equal(input.enabled, false);
+  bridge.disconnect();
+  for (const invalid of [stream([]), (() => { const ended = track(); ended.stop(); return stream([ended]); })()]) {
+    const rejected = h.make({ acquireMicrophone: async () => invalid });
+    const count = h.counts().requests;
+    await rejected.connect();
+    assert.equal(h.states.at(-1)?.state, 'Error');
+    assert.match(h.states.at(-1)?.detail || '', /Microphone could not start/);
+    assert.equal(h.counts().requests, count);
+  }
+});
+
+test('busy microphone errors explain recovery and never call the voice provider', async () => {
+  const h = harness();
+  const bridge = h.make({ acquireMicrophone: async () => { throw new DOMException('Could not start audio source', 'NotReadableError'); } });
+  await bridge.connect();
+  assert.match(h.states.at(-1)?.detail || '', /Microphone unavailable or busy/);
+  assert.equal(h.counts().requests, 0);
 });
 
 test('connection timeout closes resources and ignores stale data-channel callbacks', async () => {

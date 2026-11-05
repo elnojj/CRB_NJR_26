@@ -109,3 +109,13 @@ Wrong codes are throttled per function instance. No code, provider key, or deriv
 in an API response. Refresh or Lock owner access clears the in-memory code; locking also disconnects
 the current voice bridge and releases its microphone lease. The server code must never be placed in
 a public `VITE_` variable. The old visual keypad remains a presentation control, not authorization.
+
+## Microphone recovery
+
+Voice reports permission, busy-device and missing-device failures explicitly and watches input
+tracks for browser mute/unmute or ended events. A stopped input closes the session; muted input
+stays visibly unavailable until it resumes. These signals cannot identify which other app owns a mic.
+Errors open a recovery card on mobile and desktop. Settings → Microphone controls opens it manually.
+Reset microphone disconnects the call and releases this tab's mic, invalidating pending acquisitions
+so a late permission grant cannot revive a stale stream or overwrite the replacement call's lease.
+It preserves the camera. Tap Call to request a new session; reset never enables the microphone itself.

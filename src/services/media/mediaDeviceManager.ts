@@ -77,6 +77,19 @@ function mapDomError(err: unknown): MediaSessionError {
   return new MediaSessionError('unknown', message || 'Media request failed');
 }
 
+/** Actionable mic errors without exposing browser internals or guessing which app owns it. */
+export function microphoneErrorMessage(error: unknown): string {
+  const code = error instanceof MediaSessionError ? error.code : mapDomError(error).code;
+  switch (code) {
+    case 'denied': return 'Microphone permission denied. Allow microphone access for this site in your browser and system settings, then tap Call.';
+    case 'in-use': return 'Microphone unavailable or busy. Stop other recordings, check the selected input device, then tap Call.';
+    case 'not-found': return 'No microphone found. Connect or select an input device, then tap Call.';
+    case 'timeout': return 'Microphone permission request timed out. Dismiss any old permission prompt, then tap Call and allow microphone access.';
+    case 'unsupported': return 'Microphone capture is unavailable. Open Cerebro in a browser with microphone support over HTTPS.';
+    default: return 'Microphone could not start. Check your input device and browser permissions, then tap Call.';
+  }
+}
+
 async function withTimeout<T>(
   promise: Promise<T>, ms: number, label: string, onLateResolve?: (value: T) => void
 ): Promise<T> {
