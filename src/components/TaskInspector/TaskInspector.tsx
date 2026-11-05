@@ -85,7 +85,7 @@ export const TaskInspector: React.FC<TaskInspectorProps> = ({
           className="flex-1 overflow-y-auto space-y-3 pr-1 text-xs"
         >
           {/* Field 1: What this is */}
-          <div className="p-2.5 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)]">
+          <div className="cerebro-info-card">
             <div className="font-mono text-[10px] text-[#BDCBD3] uppercase mb-1">
               1. What this is
             </div>
@@ -93,7 +93,7 @@ export const TaskInspector: React.FC<TaskInspectorProps> = ({
           </div>
 
           {/* Field 2: Why it exists */}
-          <div className="p-2.5 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)]">
+          <div className="cerebro-info-card">
             <div className="font-mono text-[10px] text-[#BDCBD3] uppercase mb-1">
               2. Why it exists
             </div>
@@ -101,7 +101,7 @@ export const TaskInspector: React.FC<TaskInspectorProps> = ({
           </div>
 
           {/* Field 3: What to expect */}
-          <div className="p-2.5 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)]">
+          <div className="cerebro-info-card">
             <div className="font-mono text-[10px] text-[#BDCBD3] uppercase mb-1">
               3. What to expect
             </div>
@@ -109,7 +109,7 @@ export const TaskInspector: React.FC<TaskInspectorProps> = ({
           </div>
 
           {/* Field 4: Current status (All 4 tiers + Honesty Label) */}
-          <div className="p-2.5 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] space-y-1.5">
+          <div className="cerebro-info-card space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="font-mono text-[10px] text-[#BDCBD3] uppercase">
                 4. Current status (4-Tier Separation)
@@ -183,7 +183,7 @@ export const TaskInspector: React.FC<TaskInspectorProps> = ({
           </div>
 
           {/* Field 5: Dependencies & Holds */}
-          <div className="p-2.5 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] space-y-1.5">
+          <div className="cerebro-info-card space-y-1.5">
             <div className="font-mono text-[10px] text-[#BDCBD3] uppercase">
               5. Dependencies & Standing Holds
             </div>
@@ -220,7 +220,7 @@ export const TaskInspector: React.FC<TaskInspectorProps> = ({
           </div>
 
           {/* Field 6: Preview */}
-          <div className="p-2.5 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)]">
+          <div className="cerebro-info-card">
             <div className="flex items-center justify-between mb-1">
               <span className="font-mono text-[10px] text-[#BDCBD3] uppercase">
                 6. Preview State
@@ -233,7 +233,7 @@ export const TaskInspector: React.FC<TaskInspectorProps> = ({
           </div>
 
           {/* Field 7: Verification & Evidence */}
-          <div className="p-2.5 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)]">
+          <div className="cerebro-info-card">
             <div className="flex items-center justify-between mb-1">
               <span className="font-mono text-[10px] text-[#BDCBD3] uppercase">
                 7. Verification & Evidence
@@ -246,7 +246,7 @@ export const TaskInspector: React.FC<TaskInspectorProps> = ({
           </div>
 
           {/* Field 8: Waiting for your decision */}
-          <div className="p-2.5 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)]">
+          <div className="cerebro-info-card">
             <div className="font-mono text-[10px] text-[#BDCBD3] uppercase mb-1">
               8. Waiting for your decision (ASK_OF_39)
             </div>
@@ -276,7 +276,7 @@ export const TaskInspector: React.FC<TaskInspectorProps> = ({
           </div>
 
           {/* Field 9: Agent Owner (Bound to v1.5 AgentCard avatar & Musa Provenance) */}
-          <div className="p-2.5 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] flex items-center justify-between gap-3">
+          <div className="cerebro-info-card flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <img
                 src={owner.portraitUrl}

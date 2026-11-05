@@ -4780,28 +4780,28 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => dispatchCamera('zoom_in')}
-                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                  className="cerebro-mini-btn"
                 >
                   + Zoom
                 </button>
                 <button
                   type="button"
                   onClick={() => dispatchCamera('zoom_out')}
-                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                  className="cerebro-mini-btn"
                 >
                   - Zoom
                 </button>
                 <button
                   type="button"
                   onClick={() => dispatchCamera('pan', { deltaPanX: -2.2, deltaPanY: 0 })}
-                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                  className="cerebro-mini-btn"
                 >
                   Pan Left
                 </button>
                 <button
                   type="button"
                   onClick={() => dispatchCamera('pan', { deltaPanX: 2.2, deltaPanY: 0 })}
-                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                  className="cerebro-mini-btn"
                 >
                   Pan Right
                 </button>
@@ -4815,7 +4815,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => dispatchCamera('center', { targetSphere: activeSphere })}
-                  className="min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer"
+                  className="cerebro-mini-btn"
                 >
                   Center
                 </button>

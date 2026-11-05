@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { CameraCommandPayload, CameraTelemetry } from '../../components/CosmographCanvas';
 import { AdaptiveResolution } from '../adaptiveResolution';
@@ -46,7 +46,7 @@ export interface Sphere1CanvasProps {
  * old four-sphere network built (secondary spheres, spline ribbons, offset environments) is simply not
  * created here, and the scene is isolated to the core rig on mount and again on unmount.
  */
-export const Sphere1Canvas = forwardRef<Sphere1Handle, Sphere1CanvasProps>(function Sphere1Canvas(props, ref) {
+export function Sphere1Canvas({ ref, ...props }: Sphere1CanvasProps & { ref?: React.Ref<Sphere1Handle> }) {
   const mountRef = useRef<HTMLDivElement>(null);
   const propsRef = useRef(props);
   propsRef.current = props;
@@ -276,4 +276,4 @@ export const Sphere1Canvas = forwardRef<Sphere1Handle, Sphere1CanvasProps>(funct
       />
     </div>
   );
-});
+}

@@ -4683,7 +4683,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                       key={st.id}
                       type="button"
                       onClick={() => onSelectNode(st.id, 'station', 'hq')}
-                      className="min-h-[42px] p-2 rounded-xl border border-[color:var(--token-divider)] bg-[#101622]/90 hover:border-[#D4AF37] text-left cursor-pointer transition-colors"
+                      className="cerebro-tile-btn"
                     >
                       <div className="font-mono text-[12px]" style={{ color: st.colour }}>
                         {st.code}
@@ -4698,7 +4698,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
                       key={dim.id}
                       type="button"
                       onClick={() => onSelectNode(dim.id, 'dimension', 'cde')}
-                      className="min-h-[42px] p-2 rounded-xl border border-[color:var(--token-divider)] bg-[#101622]/90 hover:border-[#D4AF37] text-left cursor-pointer transition-colors"
+                      className="cerebro-tile-btn"
                     >
                       <div className="font-mono text-[12px]" style={{ color: dim.colour }}>
                         CDE DIMENSION

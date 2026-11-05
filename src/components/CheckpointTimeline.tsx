@@ -221,7 +221,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
             <div
               key={dec.id}
               data-testid={`decision-item-${dec.id}`}
-              className="p-2.5 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] flex flex-wrap items-center justify-between gap-3"
+              className="cerebro-info-card flex flex-wrap items-center justify-between gap-3"
             >
               <div className="space-y-0.5 max-w-2xl">
                 <div className="flex items-center gap-2 font-mono tabular-nums text-[12px]">
@@ -337,7 +337,7 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
 
       {/* Tab 4: Checkpoint Diff View */}
       {activeTab === 'diff' && (
-        <div className="p-2.5 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)] space-y-1.5 font-mono tabular-nums text-[13px]">
+        <div className="cerebro-info-card space-y-1.5 font-mono tabular-nums text-[13px]">
           <div className="flex items-center justify-between text-[#65ACFF]">
             <span>
               Comparing {activeCp.id} ({activeCp.gitHash}) ↔ Live {liveCp.id} (

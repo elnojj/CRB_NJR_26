@@ -1,6 +1,33 @@
 @import "tailwindcss";
 @import "./styles/cerebro.tokens.css";
 
+/* Tokens as Tailwind colors: bg-cerebro-canvas, text-cerebro-text, border-cerebro-divider, ... */
+@theme inline {
+  --color-cerebro-canvas: var(--token-canvas);
+  --color-cerebro-glass: var(--token-glass-fill);
+  --color-cerebro-glass-solid: var(--token-glass-solid);
+  --color-cerebro-divider: var(--token-divider);
+  --color-cerebro-text: var(--token-text-primary);
+  --color-cerebro-text-muted: var(--token-text-secondary);
+  --color-cerebro-cobalt: var(--token-cobalt);
+  --color-cerebro-focus: var(--token-focus);
+}
+
+/* Shared control surfaces extracted from repeated utility strings. */
+@layer components {
+  .cerebro-mini-btn {
+    @apply min-h-[28px] px-2 py-0.5 rounded-lg bg-[#101622] border border-[color:var(--token-divider)] hover:border-[#D4AF37] text-[#F2F6F8] cursor-pointer;
+  }
+
+  .cerebro-tile-btn {
+    @apply min-h-[42px] p-2 rounded-xl border border-[color:var(--token-divider)] bg-[#101622]/90 hover:border-[#D4AF37] text-left cursor-pointer transition-colors;
+  }
+
+  .cerebro-info-card {
+    @apply p-2.5 rounded-lg bg-[rgba(20,38,50,0.72)] border border-[rgba(180,221,255,0.16)];
+  }
+}
+
 /* NOJARA master display face (Jaapokki Subtract, from the brand Drive). */
 @font-face {
   font-family: 'JaapokkiSubtract';
