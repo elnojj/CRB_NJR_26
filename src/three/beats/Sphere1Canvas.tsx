@@ -9,9 +9,9 @@ import { BeatsCameraRig, focalToVerticalFovDeg, type JourneyEndReason } from './
 import { Sphere1Environment } from './Sphere1Environment';
 import { isolateScene } from './disposal';
 import { probeWebgl } from './webglProbe';
+import { SCENE_VOID_HEX } from '../postFx';
 import type { BeatContent, BeatContentProvider, BeatSlotFactories } from './beatTypes';
 
-const VOID_COLOR = 0x03060c;
 const TELEMETRY_INTERVAL_MS = 250;
 const MAX_FRAME_SEC = 0.1;
 
@@ -96,14 +96,14 @@ export function Sphere1Canvas({ ref, ...props }: Sphere1CanvasProps & { ref?: Re
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1 + profile.exposureLift;
-    renderer.setClearColor(VOID_COLOR, 1);
+    renderer.setClearColor(SCENE_VOID_HEX, 1);
     renderer.setPixelRatio(governor.pixelRatio);
     const dom = renderer.domElement;
     Object.assign(dom.style, { display: 'block', width: '100%', height: '100%', touchAction: 'none', cursor: 'grab' });
     container.replaceChildren(dom);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(VOID_COLOR);
+    scene.background = new THREE.Color(SCENE_VOID_HEX);
     const camera = new THREE.PerspectiveCamera(focalToVerticalFovDeg(28), 1, 0.05, 220);
     scene.add(camera);
 

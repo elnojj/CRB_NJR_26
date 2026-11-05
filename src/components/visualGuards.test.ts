@@ -56,8 +56,9 @@ describe('visual guards: master canvas', () => {
     assert.match(starSrc, /fog: false/);
   });
 
-  it('keeps the indigo-to-black backdrop and a cyan Fresnel rim on the glass', () => {
-    assert.ok(canvasSrc.includes("'#1b2556'"));
+  it('uses the flat #050505 void backdrop and a cyan Fresnel rim on the glass', () => {
+    assert.ok(canvasSrc.includes('scene.background = new THREE.Color(SCENE_VOID_HEX)'));
+    assert.ok(!canvasSrc.includes("'#1b2556'"));
     assert.ok(canvasSrc.includes('new THREE.Color(0x7FE9FF)'));
     assert.ok(!canvasSrc.includes('isAppleMobileWebKit'));
   });

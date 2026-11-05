@@ -15,7 +15,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
-import { VignetteShader, bokehParams, resolvePostFxPlan } from '../three/postFx';
+import { SCENE_VOID_HEX, VignetteShader, bokehParams, resolvePostFxPlan } from '../three/postFx';
 import { COLOUR_TOKENS } from '../tokens/colours';
 import {
   CEREBRO_STATIONS,
@@ -642,7 +642,7 @@ const _scratchColor = new THREE.Color();
  * Post-Processing Custom Cinema ShaderPass (v4.0):
  * - 2.5% monochromatic grain updated at 24Hz (paused when stopped or reduced-motion)
  * - 0% radial chromatic aberration (keeps UI & 3D text razor sharp)
- * - Soft ink vignette (#03060c) — light enough to preserve atmospheric blooms
+ * - Soft ink vignette (#050505) — light enough to preserve atmospheric blooms
  */
 const CinemaFilmGrainVignetteShader = {
   uniforms: {
@@ -678,7 +678,7 @@ const CinemaFilmGrainVignetteShader = {
       float dist = length(dir);
       vec4 baseCol = texture2D(tDiffuse, vUv);
 
-      // Soft deep-ink vignette (#03060c) — avoids flattening back to old #101D27 navy
+      // Soft deep-ink vignette (#050505) — avoids flattening back to old #101D27 navy
       float vig = smoothstep(0.42, 0.96, dist);
       vec3 inkVignette = vec3(0.0118, 0.0235, 0.0471);
       vec3 graded = mix(baseCol.rgb, inkVignette, vig * uVignetteStrength);
@@ -1622,8 +1622,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0 + deviceProfile.exposureLift;
-    // Deep ink void for intro AND workspace — never the old flat #101D27 navy slab.
-    const voidColor = 0x03060c;
+    const voidColor = new THREE.Color(SCENE_VOID_HEX);
     renderer.setClearColor(voidColor, 1);
     renderer.setPixelRatio(resolutionGovernor.pixelRatio);
     renderer.setSize(initW, initH);
@@ -1696,43 +1695,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     const scene = new THREE.Scene();
     const spatialBillboards = new SpatialLabelBillboardLayer();
     scene.add(spatialBillboards.group);
-    // Atmospheric radial field behind the dual spheres (intro + workspace).
-    // Must read clearly against the old flat #101D27 navy — deeper ink, brighter blooms.
-    const bgCanvas = document.createElement('canvas');
-    bgCanvas.width = 1024;
-    bgCanvas.height = 1024;
-    {
-      const bgCtx = bgCanvas.getContext('2d')!;
-      // Deep-space volume: cosmic indigo core falling through navy into black.
-      const g = bgCtx.createRadialGradient(512, 470, 20, 512, 540, 760);
-      g.addColorStop(0, '#1b2556');
-      g.addColorStop(0.2, '#121a45');
-      g.addColorStop(0.46, '#0a1029');
-      g.addColorStop(0.76, '#04071a');
-      g.addColorStop(1, '#010208');
-      bgCtx.fillStyle = g;
-      bgCtx.fillRect(0, 0, 1024, 1024);
-      // Faint electric-blue horizon wash so the glass has something to refract and reflect.
-      const wash = bgCtx.createRadialGradient(512, 930, 10, 512, 930, 560);
-      wash.addColorStop(0, 'rgba(40,110,210,0.20)');
-      wash.addColorStop(1, 'rgba(40,110,210,0)');
-      bgCtx.fillStyle = wash;
-      bgCtx.fillRect(0, 0, 1024, 1024);
-      // Sparse star dust — brighter so it survives fog + Hands wash.
-      for (let i = 0; i < 220; i++) {
-        const x = (Math.sin(i * 12.9898) * 43758.5453) % 1;
-        const y = (Math.sin(i * 78.233) * 12345.6789) % 1;
-        const px = Math.abs(x) * 1024;
-        const py = Math.abs(y) * 1024;
-        const a = 0.22 + (Math.abs((Math.sin(i * 3.1) * 10000) % 1)) * 0.55;
-        const size = i % 19 === 0 ? 2.2 : i % 7 === 0 ? 1.5 : 1;
-        bgCtx.fillStyle = `rgba(242,246,248,${a.toFixed(3)})`;
-        bgCtx.fillRect(px, py, size, size);
-      }
-    }
-    const bgTexture = new THREE.CanvasTexture(bgCanvas);
-    bgTexture.colorSpace = THREE.SRGBColorSpace;
-    scene.background = bgTexture;
+    scene.background = new THREE.Color(SCENE_VOID_HEX);
     // Soft fog so blooms and star dust remain readable in workspace (was 0.014 → navy wash).
     scene.fog = new THREE.FogExp2(voidColor, 0.0035);
 
@@ -1865,7 +1828,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     };
 
     const extraDisposables: Array<{ dispose: () => void }> = [];
-    extraDisposables.push(bgTexture);
 
     const starfield = createBackgroundStarfield();
     scene.add(starfield.group);

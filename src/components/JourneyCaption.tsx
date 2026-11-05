@@ -33,7 +33,7 @@ export function JourneyCaption({ beat, onSkip, reducedMotion = false }: JourneyC
             key={beat.id}
             data-testid="journey-dissolve"
             aria-hidden="true"
-            className="pointer-events-none fixed inset-0 z-(--z-journey-scrim) bg-[#03060c]"
+            className="pointer-events-none fixed inset-0 z-(--z-journey-scrim) bg-[#050505]"
             style={{ animation: 'journey-dissolve 900ms ease-out forwards' }}
           />
         </>

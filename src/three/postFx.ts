@@ -7,6 +7,9 @@ export const POST_FX = {
   vignette: { offset: 0.1, darkness: 1.1 },
 } as const;
 
+/** Flat near-black scene ground shared by every WebGL canvas (clear colour, background and fog). */
+export const SCENE_VOID_HEX = '#050505';
+
 /** BokehPass works in world units; these scales convert the normalized focalLength/bokehScale values. */
 const APERTURE_PER_FOCAL_LENGTH = 0.0125;
 const MAX_BLUR_PER_BOKEH_SCALE = 0.005;
