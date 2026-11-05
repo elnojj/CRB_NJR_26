@@ -33,51 +33,87 @@ const LABEL_VIEW_SHARE = 0.28;
 /** Beyond this camera distance, hide secondary metadata (LOD). */
 const MACRO_DIST = 14;
 
+const CARD_COBALT = '#0050FF';
+const CARD_PAD_X = 20;
+const CARD_PAD_Y = 20;
+const CARD_MIN_WIDTH = 290;
+const CARD_FONT_PX = 24;
+const CARD_TITLE_BLOCK_PX = 49;
+const CARD_LINE_PX = 30;
+const CARD_META_GAP_PX = 10;
+const CARD_TITLE_TRACKING_PX = 2.4;
+
+type LetterSpacingContext = CanvasRenderingContext2D & { letterSpacing?: string };
+
 function paintLabelCanvas(
   label: string,
   sublabel: string | undefined,
   meta: string | undefined,
-  colour: string,
   focused: boolean
 ): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = meta ? 200 : 160;
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d')! as LetterSpacingContext;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const padX = 28;
-  ctx.font = '400 36px "JaapokkiSubtract", "Sora", "Inter", sans-serif';
-  const titleW = ctx.measureText(label).width;
-  ctx.font = '500 24px "JetBrains Mono", ui-monospace, monospace';
+  const title = label.toUpperCase();
+  const titleFont = `700 ${CARD_FONT_PX}px "Inter", "Helvetica Neue", sans-serif`;
+  const bodyFont = `500 ${CARD_FONT_PX}px "JetBrains Mono", ui-monospace, monospace`;
+  const hasDetail = Boolean(sublabel || meta);
+
+  ctx.font = titleFont;
+  ctx.letterSpacing = `${CARD_TITLE_TRACKING_PX}px`;
+  const titleW = ctx.measureText(title).width;
+  ctx.letterSpacing = '0px';
+  ctx.font = bodyFont;
   const subW = sublabel ? ctx.measureText(sublabel).width : 0;
   const metaW = meta ? ctx.measureText(meta).width : 0;
-  const boxW = Math.min(480, Math.max(titleW, subW, metaW) + padX * 2);
-  const boxH = (sublabel ? 112 : 78) + (meta ? 40 : 0);
+
+  const boxW = Math.min(480, Math.max(CARD_MIN_WIDTH, titleW, subW, metaW) + CARD_PAD_X * 2);
+  const titleBlock = hasDetail ? CARD_TITLE_BLOCK_PX : CARD_FONT_PX + 4;
+  const boxH =
+    CARD_PAD_Y * 2 +
+    titleBlock +
+    (sublabel ? CARD_LINE_PX : 0) +
+    (meta ? CARD_LINE_PX + CARD_META_GAP_PX : 0);
   const x = (canvas.width - boxW) / 2;
   const y = (canvas.height - boxH) / 2;
 
-  ctx.fillStyle = focused ? 'rgba(12, 22, 34, 0.82)' : 'rgba(8, 14, 22, 0.72)';
-  ctx.strokeStyle = focused ? colour : 'rgba(180, 221, 255, 0.35)';
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+  ctx.strokeStyle = focused ? CARD_COBALT : 'rgba(255, 255, 255, 0.1)';
   ctx.lineWidth = focused ? 3 : 2;
-  roundRect(ctx, x, y, boxW, boxH, 18);
+  roundRect(ctx, x, y, boxW, boxH, 24);
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = colour;
-  ctx.font = '400 36px "JaapokkiSubtract", "Sora", "Inter", sans-serif';
-  ctx.textAlign = 'center';
+  const innerLeft = x + CARD_PAD_X;
+  const innerRight = x + boxW - CARD_PAD_X;
+  ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  ctx.fillText(label, canvas.width / 2, y + (sublabel ? 38 : boxH / 2));
+
+  ctx.fillStyle = CARD_COBALT;
+  ctx.font = titleFont;
+  ctx.letterSpacing = `${CARD_TITLE_TRACKING_PX}px`;
+  const titleY = y + CARD_PAD_Y + CARD_FONT_PX / 2 + 2;
+  ctx.fillText(title, innerLeft, titleY, innerRight - innerLeft);
+  ctx.letterSpacing = '0px';
+
+  let cursorY = y + CARD_PAD_Y + titleBlock;
+  if (hasDetail) {
+    const ruleY = y + CARD_PAD_Y + CARD_FONT_PX + 12;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.fillRect(innerLeft, ruleY, innerRight - innerLeft, 2);
+  }
+  ctx.font = bodyFont;
   if (sublabel) {
-    ctx.fillStyle = 'rgba(189, 203, 211, 0.95)';
-    ctx.font = '500 24px "JetBrains Mono", ui-monospace, monospace';
-    ctx.fillText(sublabel, canvas.width / 2, y + 78);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.fillText(sublabel, innerLeft, cursorY + CARD_LINE_PX / 2, innerRight - innerLeft);
+    cursorY += CARD_LINE_PX;
   }
   if (meta) {
-    ctx.fillStyle = 'rgba(244, 214, 140, 0.95)';
-    ctx.font = '500 24px "JetBrains Mono", ui-monospace, monospace';
-    ctx.fillText(meta, canvas.width / 2, y + boxH - 26);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.fillText(meta, innerLeft, cursorY + CARD_META_GAP_PX + CARD_LINE_PX / 2, innerRight - innerLeft);
   }
   return canvas;
 }
@@ -135,7 +171,7 @@ export class SpatialLabelBillboardLayer {
       let entry = this.sprites.get(spec.id);
       if (!entry) {
         const map = new THREE.CanvasTexture(
-          paintLabelCanvas(spec.label, effectiveSub, spec.meta, spec.colour, !!spec.focused)
+          paintLabelCanvas(spec.label, effectiveSub, spec.meta, !!spec.focused)
         );
         map.colorSpace = THREE.SRGBColorSpace;
         const mat = new THREE.SpriteMaterial({
@@ -156,7 +192,7 @@ export class SpatialLabelBillboardLayer {
       if (entry.fingerprint !== fingerprint) {
         const mat = entry.sprite.material as THREE.SpriteMaterial;
         const map = mat.map as THREE.CanvasTexture;
-        map.image = paintLabelCanvas(spec.label, effectiveSub, spec.meta, spec.colour, !!spec.focused);
+        map.image = paintLabelCanvas(spec.label, effectiveSub, spec.meta, !!spec.focused);
         map.needsUpdate = true;
         entry.fingerprint = fingerprint;
       }
