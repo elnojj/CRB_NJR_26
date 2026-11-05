@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { resolveReducedMotion } from './utils/motionPreference';
 import { readSoundPreference, writeSoundPreference } from './utils/soundPreference';
 import { COLOUR_TOKENS, CdeDimensionId, StationId } from './tokens/colours';
+import { SCENE_VOID_HEX } from './three/postFx';
 import {
   CEREBRO_STATIONS,
   CDE_DIMENSIONS,
@@ -4082,7 +4083,7 @@ export default function App() {
         height: '100dvh',
         maxWidth: '100dvw',
         maxHeight: '100dvh',
-        backgroundColor: COLOUR_TOKENS.canvas,
+        backgroundColor: SCENE_VOID_HEX,
         color: COLOUR_TOKENS.textPrimary,
       }}
     >

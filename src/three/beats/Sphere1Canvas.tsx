@@ -10,6 +10,7 @@ import { Sphere1Environment } from './Sphere1Environment';
 import { isolateScene } from './disposal';
 import { probeWebgl } from './webglProbe';
 import { SCENE_VOID_HEX } from '../postFx';
+import { presentFrame } from '../framePresentation';
 import type { BeatContent, BeatContentProvider, BeatSlotFactories } from './beatTypes';
 
 const TELEMETRY_INTERVAL_MS = 250;
@@ -151,9 +152,10 @@ export function Sphere1Canvas({ ref, ...props }: Sphere1CanvasProps & { ref?: Re
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
+      renderer.render(scene, camera);
     };
     resize();
-    const observer = new ResizeObserver(resize);
+    const observer = new ResizeObserver(() => resize());
     observer.observe(container);
 
     const onPointerDown = (): void => {
@@ -196,13 +198,7 @@ export function Sphere1Canvas({ ref, ...props }: Sphere1CanvasProps & { ref?: Re
       environment.update(dt, timer.getElapsed(), propsRef.current.audioRms ?? 0);
       soundEngine.updateBreathingModulation(timer.getElapsed(), propsRef.current.audioRms ?? 0);
       rig.update(dt);
-      renderer.render(scene, camera);
-
-      const nextRatio = governor.sample(frameMs, nowMs);
-      if (nextRatio !== null) {
-        renderer.setPixelRatio(nextRatio);
-        resize();
-      }
+      presentFrame(renderer, scene, camera, governor.sample(frameMs, nowMs));
       if (nowMs - lastTelemetryMs > TELEMETRY_INTERVAL_MS) {
         lastTelemetryMs = nowMs;
         const orbit = rig.getOrbit();

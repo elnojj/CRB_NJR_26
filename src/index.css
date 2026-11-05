@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @import "./styles/cerebro.tokens.css";
 
+/* Canvas mounts keep the same ground while WebGL initializes, resizes or restores its context. */
+.cj-viewport-container,
+[data-testid='cosmograph-canvas'],
+[data-testid='cosmograph-canvas'] > canvas {
+  background: var(--scene-void, #050505);
+}
+
 /* Tokens as Tailwind colors: bg-cerebro-canvas, text-cerebro-text, border-cerebro-divider, ... */
 @theme inline {
   --color-cerebro-canvas: var(--token-canvas);
@@ -80,13 +87,8 @@
     overscroll-behavior: none;
     margin: 0;
     padding: 0;
-    /* Deep ink atmospheric field — void #05090E family, ice + cobalt blooms (no gold UI wash). */
-    background:
-      radial-gradient(95% 70% at 22% 18%, rgba(180, 221, 255, 0.22) 0%, transparent 48%),
-      radial-gradient(85% 65% at 78% 88%, rgba(101, 172, 255, 0.14) 0%, transparent 50%),
-      radial-gradient(120% 90% at 50% 48%, rgba(36, 56, 72, 0.55) 0%, transparent 55%),
-      linear-gradient(168deg, #02050a 0%, var(--c-void) 38%, #0a1520 68%, #03060c 100%);
-    background-color: var(--c-void);
+    /* Match the opaque WebGL clear from the first HTML paint through context recovery. */
+    background: var(--scene-void, #050505);
     color: var(--token-text-primary);
     font-family: var(--font-sans);
     font-size: 16px;

@@ -10,8 +10,10 @@
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="cerebro-build" content="cerebro-gui-v5.0.0" />
+    <meta name="theme-color" content="#050505" />
     <style>
-      html, body, #root { background: #101D27; color: #F2F6F8; min-height: 100%; }
+      html { --scene-void: #050505; color-scheme: dark; }
+      html, body, #root { background: var(--scene-void, #050505); color: #F2F6F8; min-height: 100%; margin: 0; padding: 0; overflow: hidden; }
     </style>
     <script>
       (function () {
@@ -76,7 +78,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
   </head>
-  <body class="bg-[#101D27] text-[#F2F6F8] antialiased selection:bg-[#4C8DFF] selection:text-[#101D27] overflow-hidden">
+  <body class="bg-[#050505] text-[#F2F6F8] antialiased selection:bg-[#4C8DFF] selection:text-[#101D27] overflow-hidden">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
