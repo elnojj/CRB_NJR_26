@@ -31,7 +31,7 @@ their original paths and are not active imports.
 | `OPENAI_API_KEY` | Server environment only | Required for live OpenAI calls |
 | `OPENAI_REALTIME_MODEL` | Server environment | `gpt-realtime` |
 | `OPENAI_REALTIME_VOICE` | Server environment | `marin` |
-| `CEREBRO_OWNER_ACCESS_CODE` | Server environment only | Required; 24-256 random URL-safe characters |
+| `CEREBRO_OWNER_ACCESS_CODE` | Server environment only | Required; 24-256 random printable ASCII characters, no spaces |
 | `VITE_CEREBRO_VOICE_PROVIDER` | Public build environment | `openai-realtime`; alternative `google-ai-studio` |
 | `VITE_CEREBRO_VOICE_LABEL` | Public build environment | Derived `OpenAI Voice` / `Google Voice` |
 

@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import { EventEmitter } from 'node:events';
 import type { Request, Response as ExpressResponse } from 'express';
 import { createOpenAiRealtimeHandler } from '../server/sessionHandler';
+import { readVoiceReadiness } from '../server/readiness';
 
 function request(overrides: Record<string, unknown> = {}): Request {
   return {
@@ -117,6 +118,48 @@ test('owner unlock endpoint never returns the owner code or the OpenAI key', () 
   assert.deepEqual(result.body, { unlocked: true });
   assert.ok(!JSON.stringify(result).includes(env.CEREBRO_OWNER_ACCESS_CODE));
   assert.ok(!JSON.stringify(result).includes(env.OPENAI_API_KEY));
+});
+
+test('a generated password with punctuation is accepted by both the browser and server', async () => {
+  const code = 'test-only!Password@With#Symbols$123456';
+  lockOwnerAccess();
+  await unlockOwnerAccess(code, async (_url, options) => {
+    const { result, res } = response();
+    createOwnerAccessHandler({ CEREBRO_OWNER_ACCESS_CODE: code })(request({ headers: { authorization: (options?.headers as Record<string, string>).Authorization } }), res);
+    return new Response(JSON.stringify(result.body), { status: result.status });
+  });
+  assert.equal(await getOwnerAccessToken(), code);
+  lockOwnerAccess();
+});
+
+test('readiness distinguishes missing, short, oversized and unsupported owner codes without exposing them', () => {
+  const cases = [
+    { code: undefined, reason: 'missing' },
+    { code: '3939', reason: 'too_short' },
+    { code: 'x'.repeat(257), reason: 'too_long' },
+    { code: 'test-only password with spaces12345', reason: 'unsupported_characters' },
+    { code: 'test-only-password-with-\r\n-newline12345', reason: 'unsupported_characters' },
+  ];
+  for (const { code, reason } of cases) {
+    const status = readVoiceReadiness({ ...env, CEREBRO_OWNER_ACCESS_CODE: code });
+    assert.equal(status.configured, false);
+    assert.equal(status.issues[0].reason, reason);
+    assert.deepEqual(reason === 'missing' ? status.missing : status.invalid, ['CEREBRO_OWNER_ACCESS_CODE']);
+    if (code) assert.ok(!JSON.stringify(status).includes(code));
+    const { result, res } = response();
+    createOwnerAccessHandler({ ...env, CEREBRO_OWNER_ACCESS_CODE: code })(request(), res);
+    assert.equal(result.status, 503);
+    assert.match((result.body as { error: string }).error, /CEREBRO_OWNER_ACCESS_CODE/);
+  }
+});
+
+test('input failures explain the correction without sending a request; configuration errors reach the form', async () => {
+  const noRequest = async () => { throw new Error('Invalid input must not reach the network'); };
+  await assert.rejects(unlockOwnerAccess('3939', noRequest), /at least 24/);
+  await assert.rejects(unlockOwnerAccess('test-only password with spaces12345', noRequest), /without spaces/);
+  const message = 'CEREBRO_OWNER_ACCESS_CODE is missing from this deployment.';
+  await assert.rejects(unlockOwnerAccess(env.CEREBRO_OWNER_ACCESS_CODE, async () => new Response(JSON.stringify({ error: message }), { status: 503 })), error => (error as Error).message === message);
+  assert.equal(await getOwnerAccessToken(), null);
 });
 
 test('the client unlocks only after server verification and clears access on locking or rejection', async () => {
