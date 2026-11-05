@@ -165,7 +165,7 @@ export function FloatingIconToggles({ toggles, moreOpen, moreMenu, moreMenuMirro
             aria-pressed={Boolean(t.active)}
             title={t.label}
             onClick={t.onClick}
-            className={`floating-icon-toggle${t.active ? ' is-active' : ''}${
+            className={`floating-icon-toggles__btn${t.active ? ' is-active' : ''}${
               t.id === 'more' && moreOpen ? ' is-open' : ''
             }`}
           >

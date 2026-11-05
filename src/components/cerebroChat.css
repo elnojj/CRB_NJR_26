@@ -1,4 +1,19 @@
 /* Floating dock: Call · Hands · Chat — three distinct controls */
+.cerebro-voice-access {
+  padding: 16px;
+  border: 1px solid var(--token-divider);
+  border-radius: 20px;
+  background: var(--token-glass-solid);
+  color: var(--token-text-primary);
+  font: 16px/1.5 var(--font-sans);
+}
+.cerebro-voice-access button {
+  min-height: 44px;
+  padding: 8px 12px;
+  margin-inline-end: 8px;
+  border: 1px solid var(--token-divider);
+  border-radius: 18px;
+}
 
 .cerebro-dock {
   position: fixed;

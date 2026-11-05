@@ -17,7 +17,6 @@ function response() {
     setHeader(key: string, value: unknown) { result.headers[key] = value; return res; },
     status(code: number) { result.status = code; return res; },
     json(body: unknown) { result.body = body; return res; },
-    type(type: string) { result.headers['Content-Type'] = type; return res; },
     send(body: unknown) { result.body = body; return res; },
   };
   return { result, res: res as unknown as ExpressResponse };

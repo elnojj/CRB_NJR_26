@@ -60,6 +60,7 @@ async function main(): Promise<void> {
     ['nodeContent', 'src/data/nodeContent.test.ts'],
     ['hqNodeWiring', 'src/data/hqNodeWiring.test.ts'],
     ['visualGuards', 'src/components/visualGuards.test.ts'],
+    ['workspaceRepair', 'src/components/workspaceRepair.test.ts'],
     ['glassFallback', 'src/three/glassFallback.test.ts'],
     ['hudLayout', 'src/three/hudLayout.test.ts'],
     ['browserEngine', 'src/lib/browserEngine.test.ts'],

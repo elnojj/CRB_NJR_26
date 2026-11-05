@@ -4,7 +4,7 @@
  */
 
 function buildLocalCerebroReply(message, history) {
-  const text = String(message || '').trim();
+  const text = String(message || '').replace(/^\[project:[^\]]*\]\s*/, '').trim();
   const lower = text.toLowerCase();
   const turn = (Array.isArray(history) ? history : []).filter((h) => h.role === 'user').length + 1;
 
@@ -12,7 +12,7 @@ function buildLocalCerebroReply(message, history) {
     return 'I am listening — type a message, attach a file, or tap Call for voice.';
   }
   if (/^(hi|hello|hey|salam|مرحبا|اهلا)\b/i.test(text)) {
-    return 'Hello — Cerebro online. Ask about HQ, CDE, projects, camera hands, or attach a brief.';
+    return 'Cerebro is in offline assistance mode. Browse Projects and Nodes for the available workspace.';
   }
   if (lower.includes('nojara')) {
     return 'NOJARA is the studio house. Cerebro is the owner OS — dual spheres HQ and CDE keep register, media, and crew in one spatial workspace.';
@@ -24,13 +24,13 @@ function buildLocalCerebroReply(message, history) {
     return 'Tap Hands on the dock to enable the camera and cryo-glass tracking. Pinch to orbit when LIVE.';
   }
   if (lower.includes('project') || lower.includes('seven') || lower.includes('bsocial')) {
-    return 'Register workstreams are live on HQ — SEVEN, Young & Human, Abu Hamdan, and BSocial. Say a project name to focus it.';
+    return 'Browse Projects or Nodes to inspect the available portfolio snapshot. Live project sync is not established.';
   }
   if (lower.includes('help') || lower.includes('what can')) {
-    return 'Use Call for voice, Hands for camera, Chat for text. Attach files here. I can steer spheres, tours, and register context.';
+    return 'Use Projects and Nodes to browse the workspace. Call checks voice access; live AI is currently unavailable.';
   }
   const preview = text.length > 120 ? `${text.slice(0, 117)}…` : text;
-  return `Noted (${turn}): “${preview}”. Live Gemini is offline on this host — your message is kept in-thread. Ask another question or attach a file.`;
+  return `Live AI is unavailable, so I cannot answer “${preview}” yet. You can still browse Projects and Nodes. This reply has not saved a note or changed any records.`;
 }
 
 export default async function handler(req, res) {
@@ -45,10 +45,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body || {};
-  const message = String(body.message || '').trim();
+  let body;
+  try { body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body || {}; }
+  catch { return res.status(400).json({ error: 'Valid JSON is required.' }); }
+  const message = String(body.message || '').replace(/^\[project:[^\]]*\]\s*/, '').trim();
   const history = Array.isArray(body.history) ? body.history : [];
-  const model = String(body.model || 'gemini-2.0-flash');
+  const model = process.env.GEMINI_CHAT_MODEL?.trim() || 'gemini-3.8-flash';
 
   if (!message) {
     return res.status(400).json({ error: 'message is required' });
@@ -57,8 +59,10 @@ export default async function handler(req, res) {
   const geminiKey = process.env.GEMINI_API_KEY;
   if (geminiKey) {
     try {
+      const previous = history.at(-1);
+      const turns = previous?.role === 'user' && previous?.text === message ? history.slice(0, -1) : history;
       const contents = [
-        ...history.slice(-12).map((turn) => ({
+        ...turns.slice(-12).map((turn) => ({
           role: turn.role === 'model' ? 'model' : 'user',
           parts: [{ text: String(turn.text || '') }],
         })),
@@ -83,16 +87,19 @@ export default async function handler(req, res) {
       if (!upstream.ok) {
         throw new Error(data?.error?.message || `Gemini HTTP ${upstream.status}`);
       }
-      const reply =
-        data?.candidates?.[0]?.content?.parts?.map((p) => p.text).filter(Boolean).join('\n').trim() ||
-        buildLocalCerebroReply(message, history);
-      return res.status(200).json({ reply, model, toolCalls: [] });
+      const providerReply = data?.candidates?.[0]?.content?.parts?.map((p) => p.text).filter(Boolean).join('\n').trim();
+      return res.status(200).json({
+        reply: providerReply || buildLocalCerebroReply(message, history),
+        model: providerReply ? model : 'cerebro-local-fallback',
+        mode: providerReply ? 'live' : 'offline', toolCalls: [],
+      });
     } catch (err) {
       return res.status(200).json({
         reply: buildLocalCerebroReply(message, history),
         model: 'cerebro-local-fallback',
+        mode: 'offline',
         toolCalls: [],
-        warning: err instanceof Error ? err.message : 'Gemini failed',
+        warning: 'Live AI is temporarily unavailable.',
       });
     }
   }
@@ -100,6 +107,7 @@ export default async function handler(req, res) {
   return res.status(200).json({
     reply: buildLocalCerebroReply(message, history),
     model: 'cerebro-local-fallback',
+    mode: 'offline',
     toolCalls: [],
   });
 }

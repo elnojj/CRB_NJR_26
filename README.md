@@ -70,7 +70,7 @@ validates that Firebase ID token with Identity Toolkit, then exchanges SDP with 
 `CEREBRO_VOICE_ALLOWED_UIDS` optionally limits voice access to comma-separated Firebase UIDs.
 Audience headers and visual access codes cannot authenticate this endpoint. Existing private actions
 retain their own authorization requirements; voice sign-in does not establish project membership.
-The route runs in Express locally and as `api/openai/realtime/session.ts` on Vercel. It never returns
+The route runs in Express locally and as `api/openai/realtime/session.js` (generated from the shared server source) on Vercel. It never returns
 the OpenAI key, and no `VITE_OPENAI_API_KEY` should be configured. No separate OpenAI agent ID is needed.
 The configurable badge label is `VITE_CEREBRO_VOICE_LABEL`; blank derives the provider's default label.
 
@@ -107,3 +107,13 @@ Single-Auteur Spatial Cinema aesthetic with deterministic compositing:
 - **`?preview=1`**: skips boot, starts the full 18-screen tour (`start_tour` / `step_tour` / `trigger_cta`)
 
 Build id: `cerebro-gui-v5.0.0` · Neural Observatory contract `v1.1`
+
+## Repair checkpoint — spatial content and voice
+
+The existing CSS3D panel host now renders the selected workspace content. The same component is used in reduced graphics mode; the removed PanelsOverlay has not been restored. Register views identify their snapshot date and do not claim live sync. Sign in via Call to inspect owner snapshot records.
+
+`npm run build` and `npm run build:labs` bundle standalone Vercel voice functions. Run `node scripts/build-voice-functions.mjs` after changing server voice source. Generated `.js` functions must be committed; do not reintroduce an unbundled `.ts` entrypoint with the same URL.
+
+`GET /api/openai/realtime/status` reports configuration presence only, without keys or user data. It does not establish paid model access or working device audio. Set `OPENAI_API_KEY`, `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_PROJECT_ID`, and optionally the other Firebase client variables on the existing Vercel project, then rebuild. Server identity validation accepts `FIREBASE_API_KEY` or `VITE_FIREBASE_API_KEY`. Add the production hostname to Firebase Auth authorized domains. Voice sign-in uses the existing Firebase app and requests identity scopes only; it does not authorize Gmail, Calendar, or Drive.
+
+Chat uses server-owned `GEMINI_CHAT_MODEL` (default `gemini-3.8-flash`). Offline fallback is visibly identified. TXT, MD, JSON, CSV, and TSV attachments up to 256 KB send their actual text; PDFs and images are explicitly unsupported. Chat messages do not automatically create notes or tasks.

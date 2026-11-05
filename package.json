@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build",
-    "build:labs": "VITE_BASE=/cro/ vite build",
+    "build": "node scripts/build-voice-functions.mjs && vite build",
+    "build:labs": "node scripts/build-voice-functions.mjs && VITE_BASE=/cro/ vite build",
     "start": "node server.ts",
     "preview": "vite preview",
     "preview:labs": "VITE_BASE=/cro/ vite preview --base /cro/",

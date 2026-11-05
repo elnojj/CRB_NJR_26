@@ -13,7 +13,7 @@ export function buildLocalCerebroReply(message: string, history: LocalChatTurn[]
   }
 
   if (/^(hi|hello|hey|salam|مرحبا|اهلا)\b/i.test(text)) {
-    return 'Hello — Cerebro online. Ask about HQ, CDE, projects, camera hands, or attach a brief.';
+    return 'Cerebro is in offline assistance mode. Browse Projects and Nodes for the available workspace.';
   }
 
   if (lower.includes('nojara')) {
@@ -29,13 +29,13 @@ export function buildLocalCerebroReply(message: string, history: LocalChatTurn[]
   }
 
   if (lower.includes('project') || lower.includes('seven') || lower.includes('bsocial')) {
-    return 'Register workstreams are live on HQ — SEVEN, Young & Human, Abu Hamdan, and BSocial. Say a project name to focus it.';
+    return 'Browse Projects or Nodes to inspect the available portfolio snapshot. Live project sync is not established.';
   }
 
   if (lower.includes('help') || lower.includes('what can')) {
-    return 'Use Call for voice, Hands for camera, Chat for text. Attach files here. I can steer spheres, tours, and register context.';
+    return 'Use Projects and Nodes to browse the workspace. Call checks voice access; live AI is currently unavailable.';
   }
 
   const preview = text.length > 120 ? `${text.slice(0, 117)}…` : text;
-  return `Noted (${turn}): “${preview}”. Live Gemini is offline on this host — your message is kept in-thread. Ask another question or attach a file.`;
+  return `Live AI is unavailable, so I cannot answer “${preview}” yet. You can still browse Projects and Nodes. This reply has not saved a note or changed any records.`;
 }

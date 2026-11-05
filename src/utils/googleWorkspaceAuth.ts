@@ -145,6 +145,17 @@ export const getAccessToken = async (): Promise<string | null> => {
 /** Shared auth instance for authenticated service adapters. */
 export const getWorkspaceAuth = () => requireAuth();
 
+/** Identity sign-in for voice only. Workspace data scopes are requested separately by googleSignIn. */
+export async function signInForCerebroVoice(): Promise<void> {
+  await signInWithPopup(requireAuth(), new GoogleAuthProvider());
+}
+
+export function observeCerebroIdentity(onChange: (signedIn: boolean) => void): () => void {
+  const auth = resolveAuth();
+  if (!auth) { onChange(false); return () => {}; }
+  return onAuthStateChanged(auth, user => onChange(Boolean(user)));
+}
+
 export const logout = async () => {
   await resolveAuth()?.signOut();
   cachedAccessToken = null;

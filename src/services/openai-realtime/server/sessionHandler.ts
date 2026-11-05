@@ -90,7 +90,9 @@ export function createOpenAiRealtimeHandler(options: Options = {}) {
         res.status(502).json({ error: 'OpenAI Voice returned an invalid WebRTC answer.' });
         return;
       }
-      res.status(200).type('application/sdp').send(answer);
+      // Vercel's Node response supports setHeader/status/send, but not Express's type() helper.
+      res.setHeader('Content-Type', 'application/sdp');
+      res.status(200).send(answer);
     } catch (error) {
       if (cancelled.signal.aborted) return;
       const timeout = error instanceof Error && /Timeout|Abort/.test(error.name);
