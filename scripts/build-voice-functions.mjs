@@ -5,6 +5,7 @@ await build({
   entryPoints: {
     session: 'src/services/openai-realtime/server/vercelSession.ts',
     status: 'src/services/openai-realtime/server/vercelStatus.ts',
+    access: 'src/services/openai-realtime/server/vercelAccess.ts',
   },
   outdir: 'api/openai/realtime', bundle: true, platform: 'node', format: 'esm', target: 'node20',
   define: { 'import.meta.env': '{}' },

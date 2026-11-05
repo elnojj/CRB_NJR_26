@@ -7,6 +7,7 @@ import { selectLatestSnapshotTimestamp } from '../data/projectPlanModel';
 import { PROJECTS_PANELS, NASA_PANELS } from '../data/hqNodeWiring';
 import type { AudienceLevel, CustomTaskItem, ProjectWorkspaceTab } from '../state/panelTypes';
 import './workspaceContent.css';
+import { lockOwnerAccess } from '../services/voice/ownerAccess';
 import { CONTRACT_INTERACTIVE, CONTRACT_TYPOGRAPHY } from '../design/systemContract';
 
 export interface WorkspaceContentProps {
@@ -15,7 +16,7 @@ export interface WorkspaceContentProps {
   projectTab: ProjectWorkspaceTab;
   tasks: CustomTaskItem[];
   audience: AudienceLevel;
-  signedIn: boolean;
+  ownerUnlocked: boolean;
   language: 'en' | 'ar';
   onLanguage: (language: 'en' | 'ar') => void;
   onClose: () => void;
@@ -47,7 +48,7 @@ export function WorkspaceContent(props: WorkspaceContentProps) {
   const { panel, projectId, projectTab, audience, onOpen, onClose } = props;
   const project = VISIBLE_PROJECTS_DATA.find(p => p.id === projectId);
   // Public visitors can browse the public portfolio, but private register details stay hidden.
-  const canInspect = props.signedIn && audience === 'Owner only';
+  const canInspect = props.ownerUnlocked && audience === 'Owner only';
   const privateRecords = canInspect ? REGISTER_RECORDS : [];
   const scoped = privateRecords.filter(r => r.projectId === projectId);
   const title = panel === 'project-detail' ? project?.name || 'Project unavailable' : TITLES[panel] || panel;
@@ -79,21 +80,21 @@ export function WorkspaceContent(props: WorkspaceContentProps) {
         <p>{project.description}</p>{canInspect && <p className="workspace-meta">{project.health} · {project.healthNote}</p>}
         <nav className="workspace-content__tabs" aria-label="Project sections">{(['overview', 'tasks', 'decisions', 'minutes', 'files', 'team'] as const).map(tab =>
           <button key={tab} type="button" aria-pressed={tab === projectTab} onClick={() => props.onProjectTab(tab)}>{tab}</button>)}</nav>
-        {projectTab === 'overview' && (canInspect ? <><p>Owner: {project.owner}</p><p>Next deadline: {project.nextDeadline}</p></> : <p>Sign in to inspect internal project status, owners, and deadlines.</p>)}
+        {projectTab === 'overview' && (canInspect ? <><p>Owner: {project.owner}</p><p>Next deadline: {project.nextDeadline}</p></> : <p>Unlock owner access to inspect internal project status, owners, and deadlines.</p>)}
         {['tasks', 'decisions', 'minutes'].includes(projectTab) && <RecordList records={scoped.filter(r => projectTab === 'tasks' ? r.recordType === 'Action' : projectTab === 'decisions' ? r.recordType === 'Decision' : r.recordType === 'Update')} />}
         {projectTab === 'files' && <button onClick={() => onOpen('files')}>Browse source files</button>}
         {projectTab === 'team' && <button onClick={() => onOpen('people')}>Open NASA roster</button>}
         <button type="button" onClick={() => props.onMedia(project.id)}>Open project media</button>
       </>}
       {recordPanel && <>
-        {!canInspect && <p>Sign in through Call, then select Owner only to inspect register details.</p>}
+        {!canInspect && <p>Use Call to unlock owner access, then select Owner only to inspect register details.</p>}
         <RecordList records={records} />
         {panel === 'tasks' && props.tasks.length > 0 && <><h3>Session drafts</h3><ul>{props.tasks.map(t => <li key={t.id}>{t.title} · {t.projectCode} · Not confirmed saved remotely</li>)}</ul></>}
       </>}
-      {['people', 'crew', 'kinzo'].includes(panel) && <><p>{canInspect ? 'Roster snapshot; live presence is unverified.' : 'Sign in to inspect the internal roster.'}</p><ul className="workspace-records">{PEOPLE_DATA.filter(() => canInspect).map(p => <li key={p.id}>
+      {['people', 'crew', 'kinzo'].includes(panel) && <><p>{canInspect ? 'Roster snapshot; live presence is unverified.' : 'Unlock owner access to inspect the internal roster.'}</p><ul className="workspace-records">{PEOPLE_DATA.filter(() => canInspect).map(p => <li key={p.id}>
         <strong>{p.name}</strong><p>{p.title}</p><p className="workspace-meta">{p.subGroup} · {p.isSample ? 'Sample entry' : 'Roster snapshot'} · Runtime presence unverified</p>
       </li>)}</ul></>}
-      {['files', 'file-viewer'].includes(panel) && <>{!canInspect && <p>Sign in to inspect source files.</p>}<ul className="workspace-records">{FILES_DATA.filter(() => canInspect).map(f => {
+      {['files', 'file-viewer'].includes(panel) && <>{!canInspect && <p>Unlock owner access to inspect source files.</p>}<ul className="workspace-records">{FILES_DATA.filter(() => canInspect).map(f => {
         const href = f.status === 'Missing from attachment' ? null : f.driveId.startsWith('local:/assets/') ? f.driveId.slice(6) : /^[\w-]{15,}$/.test(f.driveId) ? `https://drive.google.com/${f.type === 'Folder' ? 'drive/folders' : 'file/d'}/${f.driveId}` : null;
         return <li key={f.id}><strong>{f.name}</strong><p className="workspace-meta">{f.type} · {f.status} · {f.lastSaved}</p>
           {href ? <a href={href} target="_blank" rel="noreferrer">Open source file</a> : <p>Source file unavailable.</p>}</li>;
@@ -106,7 +107,8 @@ export function WorkspaceContent(props: WorkspaceContentProps) {
         <h3>Language direction</h3><p>Changes the workspace direction. Source records retain their original language.</p>
         <button type="button" aria-pressed={props.language === 'en'} onClick={() => props.onLanguage('en')}>English · LTR</button>
         <button type="button" aria-pressed={props.language === 'ar'} onClick={() => props.onLanguage('ar')}>العربية · RTL</button>
-        <h3>Voice</h3><p>Use Call to check the voice service, sign in, and start a microphone session.</p>
+        <h3>Owner access</h3><p>Use Call to unlock with your owner access code. No Google login is required.</p><button type="button" disabled={!props.ownerUnlocked} onClick={lockOwnerAccess}>Lock owner access</button>
+        <h3>Voice</h3><p>Use Call to check the voice service and start a microphone session.</p>
       </>}
       {panel === 'cde-explorer' && CDE_DIMENSIONS.map(d => <article key={d.id}><h3>{d.label}</h3>{d.subdomains.map(s => <p key={s.id}>{s.name}</p>)}</article>)}
       {panel === 'story-journey' && STORY_CHAPTERS.map(c => <article key={c.id}><h3>{c.title}</h3><p>{c.verifiedBody}</p></article>)}

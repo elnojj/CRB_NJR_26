@@ -2,7 +2,7 @@ import { CRO_CDE_GOOGLE_FIRST_MESSAGE, CRO_CDE_GOOGLE_TOOLS_SCHEMA } from '../vo
 import { CEREBRO_REALTIME_INSTRUCTIONS } from './sessionConfig';
 import { parseRealtimeToolArguments } from './tools';
 import { OPENAI_REALTIME_CLIENT_SETTINGS } from './settings';
-import { getCerebroIdToken } from '../voice/clientIdentity';
+import { getOwnerAccessToken } from '../voice/ownerAccess';
 import {
   getSharedAudioContext,
   getSharedMicrophoneStream,
@@ -45,7 +45,7 @@ type Session = {
 };
 
 export type RealtimeBridgeDependencies = {
-  getIdToken: () => Promise<string | null>;
+  getAccessToken: () => Promise<string | null>;
   acquireMicrophone: () => Promise<MediaStream>;
   releaseMicrophone: () => void;
   createPeerConnection: () => RTCPeerConnection;
@@ -57,7 +57,7 @@ export type RealtimeBridgeDependencies = {
 };
 
 const defaults: RealtimeBridgeDependencies = {
-  getIdToken: getCerebroIdToken,
+  getAccessToken: getOwnerAccessToken,
   acquireMicrophone: getSharedMicrophoneStream,
   releaseMicrophone: releaseSharedMicrophoneStream,
   createPeerConnection: () => new RTCPeerConnection(),
@@ -179,9 +179,9 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
     };
 
     try {
-      const token = await this.deps.getIdToken();
+      const token = await this.deps.getAccessToken();
       if (!this.current(session)) return;
-      if (!token) throw new Error('Sign in to Cerebro before starting OpenAI Voice.');
+      if (!token) throw new Error('Unlock owner access before starting voice.');
       const shared = await this.deps.acquireMicrophone();
       if (!this.current(session)) {
         this.deps.releaseMicrophone();

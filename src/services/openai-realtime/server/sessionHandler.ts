@@ -1,19 +1,19 @@
 import type { Request, Response } from 'express';
 import { createHash } from 'node:crypto';
-import { verifyVoiceIdentity, type VoiceIdentity } from './identity';
+import { createOwnerAccessVerifier } from './ownerAccess';
 import { readOpenAiRealtimeServerSettings } from './settings';
 import { buildOpenAiRealtimeSession } from '../sessionConfig';
 
 type Options = {
   env?: NodeJS.ProcessEnv;
   fetch?: typeof fetch;
-  verifyIdentity?: (token: string) => Promise<VoiceIdentity | null>;
 };
 
 /** Shared by Express and the Vercel function. Only SDP crosses back to the browser. */
 export function createOpenAiRealtimeHandler(options: Options = {}) {
   const settings = readOpenAiRealtimeServerSettings(options.env ?? process.env);
   const fetcher = options.fetch ?? fetch;
+  const verifyAccess = createOwnerAccessVerifier(options.env ?? process.env);
 
   return async (req: Request, res: Response): Promise<void> => {
     res.setHeader('Cache-Control', 'no-store');
@@ -22,13 +22,9 @@ export function createOpenAiRealtimeHandler(options: Options = {}) {
       res.status(405).json({ error: 'Use POST to start an OpenAI Voice session.' });
       return;
     }
-    if (req.headers['sec-fetch-site'] === 'cross-site') {
-      res.status(403).json({ error: 'Start voice from the Cerebro workspace.' });
-      return;
-    }
-    const token = /^Bearer (\S+)$/i.exec(String(req.headers.authorization || ''))?.[1];
-    if (!token) {
-      res.status(401).json({ error: 'Sign in to Cerebro before starting OpenAI Voice.' });
+    const access = verifyAccess(req);
+    if (access.ok === false) {
+      res.status(access.status).json({ error: access.error });
       return;
     }
     const cancelled = new AbortController();
@@ -37,19 +33,6 @@ export function createOpenAiRealtimeHandler(options: Options = {}) {
     req.once?.('aborted', cancel);
     res.once?.('close', onClose);
     try {
-      const identity = options.verifyIdentity
-        ? await options.verifyIdentity(token)
-        : await verifyVoiceIdentity(token, fetcher, cancelled.signal);
-      if (cancelled.signal.aborted) return;
-      if (!identity) {
-        res.status(401).json({ error: 'Your Cerebro sign-in expired. Sign in again.' });
-        return;
-      }
-      const allowed = settings.allowedUids;
-      if (allowed.length && !allowed.includes(identity.uid)) {
-        res.status(403).json({ error: 'This account does not have voice access.' });
-        return;
-      }
       if (!settings.apiKey) {
         res.status(503).json({ error: 'OpenAI Voice is not configured. Set OPENAI_API_KEY on the server.' });
         return;
@@ -69,7 +52,7 @@ export function createOpenAiRealtimeHandler(options: Options = {}) {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${settings.apiKey}`,
-          'OpenAI-Safety-Identifier': createHash('sha256').update(identity.uid).digest('hex'),
+          'OpenAI-Safety-Identifier': createHash('sha256').update('cerebro-owner').digest('hex'),
         },
         body: form,
         signal: AbortSignal.any([cancelled.signal, AbortSignal.timeout(settings.requestTimeoutMs)]),

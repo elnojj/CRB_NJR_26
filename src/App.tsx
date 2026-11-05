@@ -57,7 +57,7 @@ import { resolveNodeContent, type DirectoryEntry, type NodeContent } from './dat
 import { hqOwnerOfPanel, HQ_NODE_LABEL, PROJECTS_PANELS, type HqNodeId } from './data/hqNodeWiring';
 import { HqPanelDock } from './components/HqPanelDock';
 import { WorkspaceContent } from './components/WorkspaceContent';
-import { observeCerebroIdentity } from './utils/googleWorkspaceAuth';
+import { observeOwnerAccess } from './services/voice/ownerAccess';
 import type { SpatialPanelSpec } from './three/spatialPanels';
 import { NodeBrowser } from './components/NodeBrowser';
 import {
@@ -216,8 +216,8 @@ const BUILD_VERSION = '1.28.0';
 const EMPTY_PANELS: SpatialPanelSpec[] = [];
 
 export default function App() {
-  const [workspaceSignedIn, setWorkspaceSignedIn] = useState(false);
-  useEffect(() => observeCerebroIdentity(setWorkspaceSignedIn), []);
+  const [workspaceUnlocked, setWorkspaceUnlocked] = useState(false);
+  useEffect(() => observeOwnerAccess(setWorkspaceUnlocked), []);
 
   // 1. Boot, Keypad, Reduced Motion, Sound, Language/RTL & WebGL Fallback State
   const [bootInitialMode, setBootInitialMode] = useState<'keypad' | 'loader'>(() => {
@@ -3099,7 +3099,7 @@ export default function App() {
       content: <WorkspaceContent
         panel={activePanel} projectId={selectedProjectId}
         projectTab={projectTabsById[selectedProjectId] || 'overview'}
-        tasks={customTasks} audience={audienceLevel} signedIn={workspaceSignedIn} language={languageRtl}
+        tasks={customTasks} audience={audienceLevel} ownerUnlocked={workspaceUnlocked} language={languageRtl}
         onLanguage={setLanguageRtl}
         onClose={() => executeTypedAction({ type: 'open_panel', action: 'close', panel: activePanel }, 'workspace')}
         onOpen={panel => executeTypedAction({ type: 'open_panel', action: 'open', panel }, 'workspace')}
@@ -3128,7 +3128,7 @@ export default function App() {
       });
     }
     return panels;
-  }, [activePanel, activeSphere, bootDone, executeTypedAction, hqDockNode, focusedNodeId, selectedProjectId, projectTabsById, customTasks, audienceLevel, workspaceSignedIn, languageRtl]);
+  }, [activePanel, activeSphere, bootDone, executeTypedAction, hqDockNode, focusedNodeId, selectedProjectId, projectTabsById, customTasks, audienceLevel, workspaceUnlocked, languageRtl]);
 
   // Live Page State Snapshot for Developer View & `get_page_state` (cerebro-ui/4)
   const pageStateSnapshot: Record<string, unknown> = {

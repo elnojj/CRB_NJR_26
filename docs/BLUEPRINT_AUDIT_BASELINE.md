@@ -27,7 +27,7 @@
 | React | `19.x` |
 | Vite + Express | yes (`server.ts`) |
 | ElevenLabs bridge | `src/utils/elevenLabsBridge.ts` |
-| Firebase / Google OAuth | `src/utils/googleWorkspaceAuth.ts` |
+| Owner access | `src/services/openai-realtime/server/ownerAccess.ts` |
 | Automated test runner | **none** (in-app `gui-layout.test.ts` self-tests only) |
 
 **Architecture fact:** Primary world is imperative Three.js in `CosmographCanvas.tsx`, not R3F. Blueprint text that says “ONE primary R3F world” is reconciled as **one primary WebGL world context** — we will not add a second GPU canvas or introduce R3F unless a later phase proves incompatibility that cannot be met with the existing Path A renderer.

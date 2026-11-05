@@ -1,13 +1,14 @@
-import { verifyVoiceIdentity } from '../server/identity';
+import { createOwnerAccessVerifier, createOwnerAccessHandler } from '../server/ownerAccess';
+import { getOwnerAccessToken, unlockOwnerAccess, lockOwnerAccess } from '../../voice/ownerAccess';
 import assert from 'node:assert/strict';
-import { test, type TestContext } from 'node:test';
+import { test } from 'node:test';
 import { EventEmitter } from 'node:events';
 import type { Request, Response as ExpressResponse } from 'express';
 import { createOpenAiRealtimeHandler } from '../server/sessionHandler';
 
 function request(overrides: Record<string, unknown> = {}): Request {
   return {
-    method: 'POST', headers: { authorization: 'Bearer valid-firebase-id' },
+    method: 'POST', headers: { authorization: 'Bearer owner-access-code-for-tests-1234567890' },
     body: { sdp: 'v=0\r\no=offer' }, ...overrides,
   } as Request;
 }
@@ -21,20 +22,19 @@ function response() {
   };
   return { result, res: res as unknown as ExpressResponse };
 }
-const env = { OPENAI_API_KEY: 'server-only-test-key' };
-const identity = async () => ({ uid: 'signed-in-user' });
+const env = { OPENAI_API_KEY: 'server-only-test-key', CEREBRO_OWNER_ACCESS_CODE: 'owner-access-code-for-tests-1234567890' };
 
 test('authenticated session configures gpt-realtime and all tools; only SDP returns to client', async () => {
   let upstreamCalls = 0;
   const handler = createOpenAiRealtimeHandler({
-    env, verifyIdentity: identity,
+    env,
     fetch: (async (url, options) => {
       upstreamCalls++;
       assert.equal(url, 'https://api.openai.com/v1/realtime/calls');
       const headers = options?.headers as Record<string, string>;
       assert.equal(headers.Authorization, 'Bearer server-only-test-key');
       assert.equal(headers['OpenAI-Safety-Identifier'].length, 64);
-      assert.ok(!headers['OpenAI-Safety-Identifier'].includes('signed-in-user'));
+      assert.ok(!headers['OpenAI-Safety-Identifier'].includes(env.CEREBRO_OWNER_ACCESS_CODE));
       const form = options?.body as FormData;
       assert.equal(form.get('sdp'), 'v=0\r\no=offer');
       const session = JSON.parse(String(form.get('session')));
@@ -55,20 +55,20 @@ test('authenticated session configures gpt-realtime and all tools; only SDP retu
   assert.ok(!JSON.stringify(result).includes(env.OPENAI_API_KEY));
 });
 
-test('method, sign-in, revoked identity, allowlist, config, SDP and cross-site failures never call OpenAI', async () => {
+test('method, owner code, configuration, SDP and cross-site failures never call OpenAI', async () => {
   const cases = [
-    { req: request({ method: 'GET' }), env, verifyIdentity: identity, expected: 405 },
-    { req: request({ headers: { 'x-cerebro-audience': 'Owner only' } }), env, verifyIdentity: identity, expected: 401 },
-    { req: request(), env, verifyIdentity: async () => null, expected: 401 },
-    { req: request(), env: { ...env, CEREBRO_VOICE_ALLOWED_UIDS: 'another-user' }, verifyIdentity: identity, expected: 403 },
-    { req: request(), env: {}, verifyIdentity: identity, expected: 503 },
-    { req: request({ body: { sdp: 'not SDP' } }), env, verifyIdentity: identity, expected: 400 },
-    { req: request({ body: { sdp: `v=0${'x'.repeat(65536)}` } }), env, verifyIdentity: identity, expected: 400 },
-    { req: request({ headers: { authorization: 'Bearer valid', 'sec-fetch-site': 'cross-site' } }), env, verifyIdentity: identity, expected: 403 },
+    { req: request({ method: 'GET' }), env, expected: 405 },
+    { req: request({ headers: { 'x-cerebro-audience': 'Owner only' } }), env, expected: 401 },
+    { req: request({ headers: { authorization: 'Bearer wrong-owner-code' } }), env, expected: 401 },
+    { req: request(), env: { CEREBRO_OWNER_ACCESS_CODE: env.CEREBRO_OWNER_ACCESS_CODE }, expected: 503 },
+    { req: request(), env: { OPENAI_API_KEY: 'test-key' }, expected: 503 },
+    { req: request({ body: { sdp: 'not SDP' } }), env, expected: 400 },
+    { req: request({ body: { sdp: `v=0${'x'.repeat(65536)}` } }), env, expected: 400 },
+    { req: request({ headers: { authorization: `Bearer ${env.CEREBRO_OWNER_ACCESS_CODE}`, 'sec-fetch-site': 'cross-site' } }), env, expected: 403 },
   ];
   for (const entry of cases) {
     const handler = createOpenAiRealtimeHandler({
-      env: entry.env, verifyIdentity: entry.verifyIdentity,
+      env: entry.env,
       fetch: async () => { throw new Error('OpenAI must not be called'); },
     });
     const { result, res } = response();
@@ -80,7 +80,7 @@ test('method, sign-in, revoked identity, allowlist, config, SDP and cross-site f
 test('upstream quota, invalid model and network failures return safe retryable errors', async () => {
   for (const code of [401, 403, 429, 500]) {
     const handler = createOpenAiRealtimeHandler({
-      env, verifyIdentity: identity,
+      env,
       fetch: async () => new Response('private error with server-only-test-key', { status: code }),
     });
     const { result, res } = response();
@@ -88,7 +88,7 @@ test('upstream quota, invalid model and network failures return safe retryable e
     assert.equal(result.status, code === 429 ? 429 : 502);
     assert.ok(!JSON.stringify(result).includes(env.OPENAI_API_KEY));
   }
-  const timeout = createOpenAiRealtimeHandler({ env, verifyIdentity: identity, fetch: async () => {
+  const timeout = createOpenAiRealtimeHandler({ env, fetch: async () => {
     throw new DOMException('private detail', 'TimeoutError');
   } });
   const { result, res } = response();
@@ -96,42 +96,46 @@ test('upstream quota, invalid model and network failures return safe retryable e
   assert.equal(result.status, 504);
 });
 
-function withFirebaseKey(t: TestContext, key: string): void {
-  const previous = { server: process.env.FIREBASE_API_KEY, client: process.env.VITE_FIREBASE_API_KEY };
-  process.env.FIREBASE_API_KEY = key;
-  process.env.VITE_FIREBASE_API_KEY = '';
-  t.after(() => {
-    if (previous.server === undefined) delete process.env.FIREBASE_API_KEY;
-    else process.env.FIREBASE_API_KEY = previous.server;
-    if (previous.client === undefined) delete process.env.VITE_FIREBASE_API_KEY;
-    else process.env.VITE_FIREBASE_API_KEY = previous.client;
-  });
-}
-
-test('Firebase account lookup validates the identity token and rejects disabled/invalid accounts', async (t) => {
-  withFirebaseKey(t, 'test-key');
-  const seen: unknown[] = [];
-  const fetcher = (async (_url, options) => {
-    seen.push(JSON.parse(String(options?.body)));
-    return new Response(JSON.stringify({ users: [{ localId: 'uid-123' }] }));
-  }) as typeof fetch;
-  assert.deepEqual(await verifyVoiceIdentity('firebase-token', fetcher), { uid: 'uid-123' });
-  assert.deepEqual(seen, [{ idToken: 'firebase-token' }]);
-  assert.equal(await verifyVoiceIdentity('invalid', async () => new Response('{}', { status: 400 })), null);
-  assert.equal(await verifyVoiceIdentity('disabled', async () => new Response(JSON.stringify({
-    users: [{ localId: 'uid-123', disabled: true }],
-  }))), null);
+test('owner verification rejects missing/weak configuration and throttles repeated failures', () => {
+  const valid = request();
+  assert.equal(createOwnerAccessVerifier(env)(valid).ok, true);
+  assert.equal(createOwnerAccessVerifier({ CEREBRO_OWNER_ACCESS_CODE: '3939' })(valid).ok, false);
+  let time = 1000;
+  const verify = createOwnerAccessVerifier(env, () => time);
+  const wrong = request({ headers: { authorization: 'Bearer invalid' } });
+  for (let n = 0; n < 8; n++) assert.equal((verify(wrong) as { status: number }).status, 401);
+  assert.equal((verify(wrong) as { status: number }).status, 429);
+  time += 60001;
+  assert.equal(verify(valid).ok, true);
 });
 
-test('Firebase account lookup refuses every token when no API key is configured', async (t) => {
-  withFirebaseKey(t, '');
-  let called = false;
-  const fetcher = (async () => {
-    called = true;
-    return new Response(JSON.stringify({ users: [{ localId: 'uid-123' }] }));
-  }) as typeof fetch;
-  assert.equal(await verifyVoiceIdentity('firebase-token', fetcher), null);
-  assert.equal(called, false);
+test('owner unlock endpoint never returns the owner code or the OpenAI key', () => {
+  const handler = createOwnerAccessHandler(env);
+  const { result, res } = response();
+  handler(request(), res);
+  assert.equal(result.status, 200);
+  assert.deepEqual(result.body, { unlocked: true });
+  assert.ok(!JSON.stringify(result).includes(env.CEREBRO_OWNER_ACCESS_CODE));
+  assert.ok(!JSON.stringify(result).includes(env.OPENAI_API_KEY));
+});
+
+test('the client unlocks only after server verification and clears access on locking or rejection', async () => {
+  lockOwnerAccess();
+  await assert.rejects(unlockOwnerAccess(env.CEREBRO_OWNER_ACCESS_CODE, async () => new Response('{}', { status: 401 })), /not accepted/);
+  assert.equal(await getOwnerAccessToken(), null);
+  await unlockOwnerAccess(env.CEREBRO_OWNER_ACCESS_CODE, async () => new Response(JSON.stringify({ unlocked: true })));
+  assert.equal(await getOwnerAccessToken(), env.CEREBRO_OWNER_ACCESS_CODE);
+  lockOwnerAccess();
+  assert.equal(await getOwnerAccessToken(), null);
+});
+
+test('locking during a pending unlock cannot be undone by its late server response', async () => {
+  let finish!: (response: globalThis.Response) => void;
+  const pending = unlockOwnerAccess(env.CEREBRO_OWNER_ACCESS_CODE, () => new Promise(resolve => { finish = resolve; }));
+  lockOwnerAccess();
+  finish(new Response(JSON.stringify({ unlocked: true })));
+  await assert.rejects(pending, /cancelled/);
+  assert.equal(await getOwnerAccessToken(), null);
 });
 
 test('disconnecting the HTTP client aborts upstream signaling and removes lifecycle listeners', async () => {
@@ -139,7 +143,7 @@ test('disconnecting the HTTP client aborts upstream signaling and removes lifecy
   const { result, res } = response();
   const connection = Object.assign(new EventEmitter(), res) as unknown as ExpressResponse;
   let signal: AbortSignal | undefined;
-  const handler = createOpenAiRealtimeHandler({ env, verifyIdentity: identity, fetch: async (_url, options) => {
+  const handler = createOpenAiRealtimeHandler({ env, fetch: async (_url, options) => {
     signal = options?.signal as AbortSignal;
     return new Promise<Response>((_resolve, reject) => signal!.addEventListener('abort', () => {
       reject(new DOMException('Cancelled', 'AbortError'));

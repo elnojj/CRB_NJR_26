@@ -167,7 +167,7 @@ export const SystemStatusLayer: React.FC<SystemStatusLayerProps> = ({
       tone: 'error',
       title: `${CEREBRO_VOICE_LABEL} bridge failed`,
       body: CEREBRO_VOICE_PROVIDER === 'openai-realtime'
-        ? 'Sign in to Cerebro and check the server OPENAI_API_KEY, then reconnect the capsule.'
+        ? 'Unlock owner access and check voice configuration, then reconnect the capsule.'
         : 'Google AI Studio / Gemini rejected the session. Check GEMINI_API_KEY, then reconnect the capsule.',
       actionLabel: 'Retry voice',
       onAction: onRetryVoice,

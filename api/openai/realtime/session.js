@@ -4,30 +4,40 @@
 var define_import_meta_env_default = {};
 
 // src/services/openai-realtime/server/sessionHandler.ts
-import { createHash } from "node:crypto";
+import { createHash as createHash2 } from "node:crypto";
 
-// src/config/firebaseConfig.ts
-function readServerFirebaseApiKey(env) {
-  return env.FIREBASE_API_KEY?.trim() || env.VITE_FIREBASE_API_KEY?.trim() || null;
+// src/services/openai-realtime/server/ownerAccess.ts
+import { createHash, timingSafeEqual } from "node:crypto";
+function readOwnerAccessCode(env) {
+  const code = env.CEREBRO_OWNER_ACCESS_CODE?.trim() || "";
+  return /^[A-Za-z0-9_-]{24,256}$/.test(code) ? code : null;
 }
-
-// src/services/openai-realtime/server/identity.ts
-async function verifyVoiceIdentity(token, fetcher = fetch, signal) {
-  const apiKey = readServerFirebaseApiKey(process.env);
-  if (!apiKey) return null;
-  const response = await fetcher(
-    `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idToken: token }),
-      signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(8e3)]) : AbortSignal.timeout(8e3)
+function createOwnerAccessVerifier(env = process.env, now = Date.now) {
+  const expected = readOwnerAccessCode(env);
+  const failures = /* @__PURE__ */ new Map();
+  return (req) => {
+    if (req.headers["sec-fetch-site"] === "cross-site") return { ok: false, status: 403, error: "Start from the Cerebro workspace." };
+    const supplied = /^Bearer (\S+)$/i.exec(String(req.headers.authorization || ""))?.[1];
+    if (!supplied) return { ok: false, status: 401, error: "Unlock owner access before starting voice." };
+    if (!expected) return { ok: false, status: 503, error: "Owner access needs server configuration." };
+    const time = now();
+    for (const [key2, entry2] of failures) if (entry2.until <= time) failures.delete(key2);
+    const ip = String(req.headers["x-forwarded-for"] || "unknown").split(",")[0].slice(0, 128);
+    const key = createHash("sha256").update(ip).digest("hex");
+    const entry = failures.get(key);
+    if (entry && entry.count >= 8) return { ok: false, status: 429, error: "Too many access attempts. Wait a minute and try again." };
+    const valid = supplied.length <= 256 && timingSafeEqual(
+      createHash("sha256").update(supplied).digest(),
+      createHash("sha256").update(expected).digest()
+    );
+    if (!valid) {
+      if (failures.size >= 2048 && !failures.has(key)) return { ok: false, status: 429, error: "Access checks are busy. Try again shortly." };
+      failures.set(key, { count: (entry?.count || 0) + 1, until: entry?.until || time + 6e4 });
+      return { ok: false, status: 401, error: "The owner access code was not accepted." };
     }
-  );
-  if (!response.ok) return null;
-  const data = await response.json();
-  const user = data.users?.[0];
-  return user?.localId && !user.disabled ? { uid: user.localId } : null;
+    failures.delete(key);
+    return { ok: true };
+  };
 }
 
 // src/services/openai-realtime/settings.ts
@@ -48,7 +58,6 @@ function readOpenAiRealtimeServerSettings(env) {
     apiKey: env.OPENAI_API_KEY?.trim(),
     model: env.OPENAI_REALTIME_MODEL?.trim() || OPENAI_REALTIME_DEFAULTS.model,
     voice: env.OPENAI_REALTIME_VOICE?.trim() || OPENAI_REALTIME_DEFAULTS.voice,
-    allowedUids: (env.CEREBRO_VOICE_ALLOWED_UIDS || "").split(",").map((uid) => uid.trim()).filter(Boolean),
     requestTimeoutMs: 25e3
   };
 }
@@ -778,6 +787,7 @@ function buildOpenAiRealtimeSession(model = OPENAI_REALTIME_DEFAULTS.model, voic
 function createOpenAiRealtimeHandler(options = {}) {
   const settings2 = readOpenAiRealtimeServerSettings(options.env ?? process.env);
   const fetcher = options.fetch ?? fetch;
+  const verifyAccess = createOwnerAccessVerifier(options.env ?? process.env);
   return async (req, res) => {
     res.setHeader("Cache-Control", "no-store");
     if (req.method !== "POST") {
@@ -785,13 +795,9 @@ function createOpenAiRealtimeHandler(options = {}) {
       res.status(405).json({ error: "Use POST to start an OpenAI Voice session." });
       return;
     }
-    if (req.headers["sec-fetch-site"] === "cross-site") {
-      res.status(403).json({ error: "Start voice from the Cerebro workspace." });
-      return;
-    }
-    const token = /^Bearer (\S+)$/i.exec(String(req.headers.authorization || ""))?.[1];
-    if (!token) {
-      res.status(401).json({ error: "Sign in to Cerebro before starting OpenAI Voice." });
+    const access = verifyAccess(req);
+    if (access.ok === false) {
+      res.status(access.status).json({ error: access.error });
       return;
     }
     const cancelled = new AbortController();
@@ -802,17 +808,6 @@ function createOpenAiRealtimeHandler(options = {}) {
     req.once?.("aborted", cancel);
     res.once?.("close", onClose);
     try {
-      const identity = options.verifyIdentity ? await options.verifyIdentity(token) : await verifyVoiceIdentity(token, fetcher, cancelled.signal);
-      if (cancelled.signal.aborted) return;
-      if (!identity) {
-        res.status(401).json({ error: "Your Cerebro sign-in expired. Sign in again." });
-        return;
-      }
-      const allowed = settings2.allowedUids;
-      if (allowed.length && !allowed.includes(identity.uid)) {
-        res.status(403).json({ error: "This account does not have voice access." });
-        return;
-      }
       if (!settings2.apiKey) {
         res.status(503).json({ error: "OpenAI Voice is not configured. Set OPENAI_API_KEY on the server." });
         return;
@@ -832,7 +827,7 @@ function createOpenAiRealtimeHandler(options = {}) {
         method: "POST",
         headers: {
           Authorization: `Bearer ${settings2.apiKey}`,
-          "OpenAI-Safety-Identifier": createHash("sha256").update(identity.uid).digest("hex")
+          "OpenAI-Safety-Identifier": createHash2("sha256").update("cerebro-owner").digest("hex")
         },
         body: form,
         signal: AbortSignal.any([cancelled.signal, AbortSignal.timeout(settings2.requestTimeoutMs)])
