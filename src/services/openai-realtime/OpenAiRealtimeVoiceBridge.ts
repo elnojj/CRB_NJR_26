@@ -2,7 +2,7 @@ import { CRO_CDE_GOOGLE_FIRST_MESSAGE, CRO_CDE_GOOGLE_TOOLS_SCHEMA } from '../vo
 import { CEREBRO_REALTIME_INSTRUCTIONS } from './sessionConfig';
 import { parseRealtimeToolArguments } from './tools';
 import { OPENAI_REALTIME_CLIENT_SETTINGS } from './settings';
-import { getOwnerAccessToken } from '../voice/ownerAccess';
+import { hasOwnerAccessSession } from '../voice/ownerAccess';
 import { microphoneErrorMessage } from '../media/mediaDeviceManager';
 import {
   getSharedAudioContext,
@@ -49,7 +49,7 @@ type Session = {
 };
 
 export type RealtimeBridgeDependencies = {
-  getAccessToken: () => Promise<string | null>;
+  isOwnerUnlocked: () => Promise<boolean>;
   acquireMicrophone: () => Promise<MediaStream>;
   releaseMicrophone: (stream?: MediaStream) => void;
   createPeerConnection: () => RTCPeerConnection;
@@ -61,7 +61,7 @@ export type RealtimeBridgeDependencies = {
 };
 
 const defaults: RealtimeBridgeDependencies = {
-  getAccessToken: getOwnerAccessToken,
+  isOwnerUnlocked: hasOwnerAccessSession,
   acquireMicrophone: getSharedMicrophoneStream,
   releaseMicrophone: releaseSharedMicrophoneStream,
   createPeerConnection: () => new RTCPeerConnection(),
@@ -188,9 +188,9 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
 
     let requestingMicrophone = false;
     try {
-      const token = await this.deps.getAccessToken();
+      const ownerUnlocked = await this.deps.isOwnerUnlocked();
       if (!this.current(session)) return;
-      if (!token) throw new Error('Unlock owner access before starting voice.');
+      if (!ownerUnlocked) throw new Error('Unlock owner access before starting voice.');
       requestingMicrophone = true;
       this.status(session, 'Connecting', 'Requesting microphone access. Allow the browser prompt to continue.');
       const shared = await this.deps.acquireMicrophone();
@@ -220,7 +220,7 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
       const response = await this.deps.fetch(OPENAI_REALTIME_CLIENT_SETTINGS.sessionEndpoint, {
         method: 'POST',
         credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sdp: session.pc.localDescription?.sdp || offer.sdp }),
         signal: session.abort.signal,
       });

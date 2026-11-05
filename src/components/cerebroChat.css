@@ -1,5 +1,9 @@
 /* Floating dock: Call · Hands · Chat — three distinct controls */
 .cerebro-voice-access {
+  overflow-y: auto;
+  min-height: 0;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   padding: 16px;
   border: 1px solid var(--token-divider);
   border-radius: 20px;
@@ -16,6 +20,10 @@
 }
 .cerebro-voice-access form, .cerebro-voice-access label { display: grid; gap: 8px; }
 .cerebro-voice-access input { min-height: var(--touch-min); width: 100%; padding: 8px 12px; border: 1px solid var(--token-divider); border-radius: var(--radius-button); background: var(--token-glass-solid); color: var(--token-text-primary); font: inherit; }
+.cerebro-voice-access .cerebro-owner-remember { display: flex; align-items: center; min-height: 44px; }
+.cerebro-voice-access .cerebro-owner-remember input { width: 20px; min-height: 20px; height: 20px; }
+.cerebro-voice-access summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+.cerebro-voice-access a { color: var(--token-text-primary); min-height: 44px; display: inline-flex; align-items: center; }
 
 .cerebro-dock {
   position: fixed;

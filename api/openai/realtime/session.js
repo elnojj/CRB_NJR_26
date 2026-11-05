@@ -7,7 +7,7 @@ var define_import_meta_env_default = {};
 import { createHash as createHash2 } from "node:crypto";
 
 // src/services/openai-realtime/server/ownerAccess.ts
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
 // src/services/voice/ownerCodeValidation.ts
 function ownerCodeIssue(value) {
@@ -36,16 +36,46 @@ function ownerConfigurationIssue(env) {
     message: issue.reason === "missing" ? "CEREBRO_OWNER_ACCESS_CODE is missing from this deployment. Save it in the server environment and redeploy." : `CEREBRO_OWNER_ACCESS_CODE is invalid. ${issue.message} Update the server environment and redeploy.`
   };
 }
+var OWNER_SESSION_COOKIE = "__Host-cerebro-owner";
+var REMEMBER_SECONDS = 30 * 24 * 60 * 60;
+var SESSION_SECONDS = 12 * 60 * 60;
+function signSession(payload, secret) {
+  return createHmac("sha256", secret).update(`cerebro-owner-session/v1
+${payload}`).digest("base64url");
+}
+function sessionCookie(req) {
+  const item = String(req.headers.cookie || "").split(";").map((item2) => item2.trim()).find((item2) => item2.startsWith(`${OWNER_SESSION_COOKIE}=`));
+  return item?.slice(OWNER_SESSION_COOKIE.length + 1) || null;
+}
+function validSession(token, secret, time) {
+  if (!token || token.length > 200) return false;
+  const match = /^v1\.(\d{10})\.(\d{10})\.([A-Za-z0-9_-]{32})\.([A-Za-z0-9_-]{43})$/.exec(token);
+  if (!match) return false;
+  const issued = Number(match[1]), expires = Number(match[2]), seconds = Math.floor(time / 1e3);
+  if (issued > seconds + 30 || expires <= seconds || expires - issued > REMEMBER_SECONDS || expires <= issued) return false;
+  const payload = token.slice(0, token.lastIndexOf("."));
+  return timingSafeEqual(Buffer.from(match[4], "base64url"), Buffer.from(signSession(payload, secret), "base64url"));
+}
 function createOwnerAccessVerifier(env = process.env, now = Date.now) {
   const expected = readOwnerAccessCode(env);
   const configurationIssue = ownerConfigurationIssue(env);
   const failures = /* @__PURE__ */ new Map();
   return (req) => {
     if (req.headers["sec-fetch-site"] === "cross-site") return { ok: false, status: 403, error: "Start from the Cerebro workspace." };
+    if (req.headers.origin) {
+      try {
+        if (new URL(String(req.headers.origin)).host !== req.headers.host) return { ok: false, status: 403, error: "Start from the Cerebro workspace." };
+      } catch {
+        return { ok: false, status: 403, error: "Start from the Cerebro workspace." };
+      }
+    }
     const supplied = /^Bearer (\S+)$/i.exec(String(req.headers.authorization || ""))?.[1];
-    if (!supplied) return { ok: false, status: 401, error: "Unlock owner access before starting voice." };
+    const cookie = sessionCookie(req);
+    if (!supplied && !cookie) return { ok: false, status: 401, error: "Unlock owner access to use Chat and Call." };
     if (!expected) return { ok: false, status: 503, error: configurationIssue.message };
     const time = now();
+    if (validSession(cookie, expected, time)) return { ok: true };
+    if (!supplied) return { ok: false, status: 401, error: "Your owner session expired. Unlock access again." };
     for (const [key2, entry2] of failures) if (entry2.until <= time) failures.delete(key2);
     const ip = String(req.headers["x-forwarded-for"] || "unknown").split(",")[0].slice(0, 128);
     const key = createHash("sha256").update(ip).digest("hex");

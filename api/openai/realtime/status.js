@@ -23,6 +23,8 @@ function ownerConfigurationIssue(env) {
     message: issue.reason === "missing" ? "CEREBRO_OWNER_ACCESS_CODE is missing from this deployment. Save it in the server environment and redeploy." : `CEREBRO_OWNER_ACCESS_CODE is invalid. ${issue.message} Update the server environment and redeploy.`
   };
 }
+var REMEMBER_SECONDS = 30 * 24 * 60 * 60;
+var SESSION_SECONDS = 12 * 60 * 60;
 
 // src/services/openai-realtime/server/readiness.ts
 function readVoiceReadiness(env = process.env) {

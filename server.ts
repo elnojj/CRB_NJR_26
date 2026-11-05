@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import { createLegacyElevenLabsHandlers } from './src/services/elevenlabs/server/handlers.ts';
 import { createOwnerAccessHandler } from './src/services/openai-realtime/server/ownerAccess.ts';
+import { createCerebroChatHandler } from './src/services/chat/server/chatHandler.ts';
 import { readVoiceReadiness } from './src/services/openai-realtime/server/readiness.ts';
 import { createOpenAiRealtimeHandler } from './src/services/openai-realtime/server/sessionHandler.ts';
 import path from 'path';
@@ -357,7 +358,7 @@ async function startServer() {
   app.use(express.json({ limit: '15mb' }));
 
   app.get('/api/openai/realtime/status', (_req, res) => { res.setHeader('Cache-Control', 'no-store'); res.json(readVoiceReadiness()); });
-  app.post('/api/openai/realtime/access', createOwnerAccessHandler());
+  app.all('/api/openai/realtime/access', createOwnerAccessHandler());
   app.post('/api/openai/realtime/session', createOpenAiRealtimeHandler());
 
   // 1. Health & Version Checkpoint
@@ -1076,54 +1077,9 @@ async function startServer() {
     res.redirect('/api/project/files');
   });
 
-  // 8b. Gemini text chat for Cerebro chat widget (`POST /api/gemini/chat`)
-  app.post('/api/gemini/chat', async (req, res) => {
-    const message = String(req.body?.message || '').trim();
-    const history = Array.isArray(req.body?.history) ? req.body.history : [];
-    const model = String(req.body?.model || 'gemini-2.0-flash');
-    if (!message) {
-      return res.status(400).json({ error: 'message is required' });
-    }
-
-    const geminiKey = process.env.GEMINI_API_KEY;
-    if (geminiKey) {
-      try {
-        const ai = new GoogleGenAI({ apiKey: geminiKey });
-        const contents = [
-          ...history.slice(-12).map((turn: { role?: string; text?: string }) => ({
-            role: turn.role === 'model' ? 'model' : 'user',
-            parts: [{ text: String(turn.text || '') }],
-          })),
-          { role: 'user', parts: [{ text: message }] },
-        ];
-        const response = await ai.models.generateContent({
-          model,
-          contents,
-          config: {
-            systemInstruction:
-              'You are Cerebro, the NOJARA Studios spatial OS assistant for Owner 39 (Tarek). Be concise and concrete about HQ, CDE, projects, media, and crew.',
-          },
-        });
-        const reply =
-          (response.text || '').trim() || buildLocalCerebroReply(message, history);
-        return res.json({ reply, model, toolCalls: [] });
-      } catch (err) {
-        const warning = err instanceof Error ? err.message : 'Gemini failed';
-        return res.json({
-          reply: buildLocalCerebroReply(message, history),
-          model: 'cerebro-local-fallback',
-          toolCalls: [],
-          warning,
-        });
-      }
-    }
-
-    return res.json({
-      reply: buildLocalCerebroReply(message, history),
-      model: 'cerebro-local-fallback',
-      toolCalls: [],
-    });
-  });
+  // Shared owner-authenticated OpenAI chat; keep the old URL as a compatibility alias.
+  app.post('/api/chat', createCerebroChatHandler());
+  app.post('/api/gemini/chat', createCerebroChatHandler());
 
   // 9. Gemini Live Screen & 3D Domain Orchestrator (`POST /api/gemini/orchestrate`)
   app.post('/api/gemini/orchestrate', async (req, res) => {

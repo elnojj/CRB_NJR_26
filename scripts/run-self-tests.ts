@@ -65,6 +65,7 @@ async function main(): Promise<void> {
     ['hudBridge', 'src/three/hudBridge.test.ts'],
     ['overlayOwnership', 'src/components/overlayOwnership.test.ts'],
     ['framePresentation', 'src/three/framePresentation.test.ts'],
+    ['rememberedAccessAndChat', 'src/services/chat/chat.test.ts'],
     ['glassFallback', 'src/three/glassFallback.test.ts'],
     ['hudLayout', 'src/three/hudLayout.test.ts'],
     ['browserEngine', 'src/lib/browserEngine.test.ts'],

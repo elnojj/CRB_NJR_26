@@ -6,7 +6,7 @@
 
 ```bash
 npm install
-cp .env.example .env   # set OPENAI_API_KEY for voice; GEMINI_API_KEY for text/creative tools
+cp .env.example .env   # set OPENAI_API_KEY for Chat and Call; GEMINI_API_KEY for optional creative tools
 PORT=3847 npm run dev
 ```
 
@@ -45,8 +45,8 @@ Requires a `VERCEL_TOKEN` for the Vercel team/project that already serves `labs.
 
 Copy `.env.example` → `.env`. The UI boots without live keys; live providers need:
 
-- `OPENAI_API_KEY` — server only, for the default OpenAI Voice provider
-- `GEMINI_API_KEY` — text chat / creative tools and the optional legacy voice provider
+- `OPENAI_API_KEY` — server only, for Chat and the default OpenAI Voice provider
+- `GEMINI_API_KEY` — optional creative tools and the legacy voice provider
 - `ELEVENLABS_API_KEY` / `ELEVENLABS_AGENT_ID` (optional voice agent)
 
 ## OpenAI Voice
@@ -66,10 +66,10 @@ Its published retirement is 20 January 2027; update the server model configurati
 The retired `gpt-4o-realtime-preview` is not the default.
 
 Unlock with the server-configured owner access code before calling. `/api/openai/realtime/access`
-verifies that code; `/api/openai/realtime/session` checks it again before exchanging SDP with OpenAI.
+verifies that code and issues a signed Secure HttpOnly SameSite=Strict cookie. Chat and Call verify the cookie independently.
 Set `CEREBRO_OWNER_ACCESS_CODE` to 24-256 random printable ASCII characters (letters, numbers or
-symbols, without spaces) on the server. The browser
-holds it in the current tab's memory only; refresh or Lock owner access clears it. Audience headers
+symbols, without spaces) on the server. Remember this device keeps the signed session for up to 30 days;
+the code itself is never saved in JS or browser storage. Lock clears the session cookie. Audience headers
 and the old visual keypad cannot authenticate this endpoint. No managed authentication SDK or
 Google account is required. Per-instance failed-attempt throttling limits repeated invalid codes.
 The route runs in Express locally and as standalone `api/openai/realtime/session.js` on Vercel.
@@ -78,7 +78,8 @@ The OpenAI key never reaches the browser. No separate OpenAI agent ID is needed.
 The configurable badge label is `VITE_CEREBRO_VOICE_LABEL`; blank derives the provider's label.
 To select the retained Google bridge, build with `VITE_CEREBRO_VOICE_PROVIDER=google-ai-studio`.
 The legacy `/api/gemini/voice-turn` backend must be available for that path; it is absent from this
-checkpoint's Express routes. Text chat and creative Gemini endpoints are otherwise unchanged.
+checkpoint's Express routes. Chat uses `/api/chat` with the same OPENAI_API_KEY, and `OPENAI_CHAT_MODEL` defaults to `gpt-5.4-mini`.
+The old `/api/gemini/chat` URL aliases the authenticated Chat handler. Optional creative Gemini endpoints remain separate.
 
 Run `npm run test:voice` for mocked WebRTC lifecycle, all-tool mapping, auth and endpoint checks.
 Run `npm run lint`, `npm test` and `npm run build:labs` for broader checks (voice tests are included).

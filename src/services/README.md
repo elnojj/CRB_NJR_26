@@ -100,15 +100,21 @@ server key and complete those checks before treating this as verified production
 The lockfile's missing optional-platform entries have been repaired without changing existing
 dependency versions. A clean `npm ci` now succeeds.
 
-## Owner access without an authentication SDK
+## Remembered owner access
 
-`POST /api/openai/realtime/access` verifies an owner code without calling a paid provider.
-The browser sends it as a Bearer credential to this same-origin route and retains it only in module
-memory after a successful receipt. The session endpoint independently checks it on every call.
-Wrong codes are throttled per function instance. No code, provider key, or derived secret is returned
-in an API response. Refresh or Lock owner access clears the in-memory code; locking also disconnects
-the current voice bridge and releases its microphone lease. The server code must never be placed in
-a public `VITE_` variable. The old visual keypad remains a presentation control, not authorization.
+POST /api/openai/realtime/access verifies the owner code and issues a signed host-only Secure,
+HttpOnly, SameSite=Strict cookie. Remember this device sets a 30-day maximum age; unchecked uses a
+12-hour token in a browser-session cookie. GET restores the verified unlock flag after refresh.
+Chat and Call check the cookie independently. No raw code or provider key is retained in JavaScript,
+localStorage or sessionStorage. Rotating the server code invalidates old cookies. DELETE clears the
+cookie; Lock also disconnects voice and releases its mic. Failed code attempts remain throttled per
+function instance. The code can be recovered or replaced in the existing Vercel project settings.
+
+Chat uses the server-only OPENAI_API_KEY through the Responses API, defaults to gpt-5.4-mini, and
+accepts OPENAI_CHAT_MODEL as a server override. It has no action tools and returns provider errors
+explicitly; these errors do not sign the owner out. The client preserves failed drafts for retry.
+/api/gemini/chat is a compatibility alias for the same protected handler. Gemini remains optional
+for the other creative services. Responses use store:false and bounded history/output.
 
 ## Microphone recovery
 
