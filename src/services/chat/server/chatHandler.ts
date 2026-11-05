@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { createOwnerAccessVerifier } from '../../openai-realtime/server/ownerAccess';
+import { readOpenAiFailure } from '../../openai-errors';
 
 const INSTRUCTIONS = `You are Cerebro, the NOJARA Studios workspace assistant for Tarek Nojara.
 Reply concisely in the user's language, including natural Egyptian Arabic. Help explain creative production,
@@ -36,9 +37,9 @@ export function createCerebroChatHandler(options: { env?: NodeJS.ProcessEnv; fet
         signal: AbortSignal.timeout(25000),
       });
       if (!upstream.ok) {
-        res.status(upstream.status === 429 ? 429 : 502).json({ error: upstream.status === 429
-          ? 'OpenAI quota or rate limit reached. Check API billing or try again later.'
-          : 'OpenAI chat could not start. Check the server key and text-model access.' });
+        const failure = await readOpenAiFailure(upstream);
+        if (failure.retryAfterSeconds) res.setHeader('Retry-After', String(failure.retryAfterSeconds));
+        res.status(upstream.status === 429 ? 429 : 502).json(failure);
         return;
       }
       const data = await upstream.json() as { output?: Array<{ type?: string; content?: Array<{ type?: string; text?: string; refusal?: string }> }> };

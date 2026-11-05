@@ -18,6 +18,8 @@ import { readChatAttachment } from '../services/google-ai-studio/chatAttachment'
 import { CEREBRO_VOICE_PROVIDER } from '../services/voice/settings';
 import { observeOwnerAccess, unlockOwnerAccess, lockOwnerAccess, restoreOwnerAccess, invalidateOwnerAccess } from '../services/voice/ownerAccess';
 import { forceStopSharedMicrophoneStream } from '../services/media/deviceStreamCoordinator';
+import { openAiRetryBlock, type OpenAiFailure } from '../services/openai-errors';
+import { VoiceRecovery } from './VoiceRecovery';
 
 export type VoiceState = VoiceBridgeState | 'Idle';
 
@@ -234,6 +236,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   const [voiceAccessError, setVoiceAccessError] = useState<string | null>(null);
   const [voiceRecoveryOpen, setVoiceRecoveryOpen] = useState(false);
   const [voiceRecoveryMessage, setVoiceRecoveryMessage] = useState<string | null>(null);
+  const [voiceFailure, setVoiceFailure] = useState<OpenAiFailure | null>(null);
+  const voiceRetryAtRef = useRef(0);
   const [ownerUnlocking, setOwnerUnlocking] = useState(false);
   useEffect(() => {
     const unsubscribe = observeOwnerAccess(setOwnerUnlocked);
@@ -324,15 +328,21 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
 
   useEffect(() => {
     const bridge = createVoiceBridge({
-      onStatusChange: (status, detail) => {
+      onStatusChange: (status, detail, failure) => {
         setBridgeStatus(status);
         onVoiceStateChangeRef.current?.(status);
         if (detail) setBridgeDetail(detail);
         setVoiceRecoveryMessage(null);
+        if (status === 'Error') {
+          setVoiceFailure(failure ?? null);
+          voiceRetryAtRef.current = Date.now() + (failure?.retryAfterSeconds ?? 0) * 1000;
+        } else if (status === 'Connecting' || status === 'Listening') {
+          setVoiceFailure(null);
+        }
         if (status === 'Error' || (status === 'Muted' && /Microphone unavailable/.test(detail || ''))) {
           setChatOpen(false); setVoiceAccessOpen(false); setVoiceRecoveryOpen(true);
         }
-        if (status === 'Error' && /owner (?:access|session)|owner.*code/i.test(detail || '')) {
+        if (status === 'Error' && !failure && /owner (?:access|session)|owner.*code/i.test(detail || '')) {
           invalidateOwnerAccess();
           setVoiceAccessError(detail || 'Unlock owner access again.');
           setVoiceAccessOpen(true);
@@ -419,7 +429,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     voiceState === 'Listening' ||
     voiceState === 'Speaking';
 
-  const handleCall = useCallback(async () => {
+  const handleCall = useCallback(async (afterAccountUpdate = false) => {
     if (voiceLive) {
       bridgeRef.current?.stopOutputAudioImmediately();
       bridgeRef.current?.disconnect();
@@ -428,6 +438,11 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
         onSimulateCommand('stop tour');
       }
       return;
+    }
+    const retryBlock = openAiRetryBlock(voiceFailure, voiceRetryAtRef.current, Date.now(), afterAccountUpdate);
+    if (retryBlock) {
+      setVoiceRecoveryMessage(retryBlock);
+      setChatOpen(false); setVoiceAccessOpen(false); setVoiceRecoveryOpen(true); return;
     }
     if (CEREBRO_VOICE_PROVIDER === 'openai-realtime') {
       const configured = await checkVoiceConfiguration();
@@ -442,7 +457,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     setVoiceRecoveryOpen(false);
     if (bridgeStatus === 'Error') await bridgeRef.current?.retry();
     else await bridgeRef.current?.connect();
-  }, [voiceLive, bridgeStatus, tourState.active, onStopTour, onSimulateCommand, checkVoiceConfiguration, ownerUnlocked]);
+  }, [voiceLive, bridgeStatus, tourState.active, onStopTour, onSimulateCommand, checkVoiceConfiguration, ownerUnlocked, voiceFailure]);
 
   useEffect(() => {
     if (openAgentModalTrigger && openAgentModalTrigger > lastCallTriggerRef.current) {
@@ -620,16 +635,13 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       style={dockStyle}
       onPointerDown={(e) => e.stopPropagation()}
     >
-      {voiceRecoveryOpen && <section className="cerebro-voice-access" aria-label="Voice recovery">
-        <strong>Voice connection</strong>
-        <p role="status">{voiceRecoveryMessage || bridgeDetail}</p>
-        <button type="button" onClick={() => {
+      {voiceRecoveryOpen && <VoiceRecovery detail={voiceRecoveryMessage || bridgeDetail} failure={voiceFailure}
+        onRetry={() => { void handleCall(true); }}
+        onReset={() => {
           bridgeRef.current?.disconnect();
           forceStopSharedMicrophoneStream();
           setVoiceRecoveryMessage('Microphone released in this tab. Tap Call to reconnect.');
-        }}>Reset microphone</button>
-        <button type="button" onClick={() => setVoiceRecoveryOpen(false)}>Close</button>
-      </section>}
+        }} onClose={() => setVoiceRecoveryOpen(false)} />}
       {voiceAccessOpen && <section className="cerebro-voice-access" aria-label="Voice access">
         <strong>Cerebro access</strong>
         <p role="status">{voiceAccessError || (ownerUnlocked ? 'Owner access unlocked. Tap Call to connect.' : 'Enter your owner access code. Microphone access is requested when the call starts.')}</p>

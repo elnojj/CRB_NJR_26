@@ -838,6 +838,67 @@ function buildOpenAiRealtimeSession(model = OPENAI_REALTIME_DEFAULTS.model, voic
   };
 }
 
+// src/services/openai-errors.ts
+function describeOpenAiFailure(status, error, retryAfterSeconds) {
+  const code = typeof error?.code === "string" ? error.code : "";
+  const billing = {
+    credit_balance_exhausted: "OpenAI API credits are depleted. Check Billing in the OpenAI project used by this app before reconnecting.",
+    project_spend_limit_exceeded: "The OpenAI project reached its spend limit. Review that project\u2019s Limits before reconnecting.",
+    organization_spend_limit_exceeded: "The OpenAI organization reached its spend limit. Review the organization\u2019s Limits before reconnecting.",
+    organization_usage_limit_exceeded: "The OpenAI organization reached its approved API usage limit. Review Limits or contact OpenAI support before reconnecting.",
+    insufficient_quota: "OpenAI reports insufficient API quota. Check API credits and the project\u2019s spend and usage limits before reconnecting."
+  };
+  if (Object.hasOwn(billing, code)) return { kind: "billing", code, retryable: false, error: billing[code] };
+  if (error?.type === "insufficient_quota") return { kind: "billing", code: "insufficient_quota", retryable: false, error: billing.insufficient_quota };
+  if (code === "rate_limit_exceeded" || code === "slow_down" || error?.type === "rate_limit_error") {
+    return {
+      kind: "rate-limit",
+      code: code === "slow_down" ? code : "rate_limit_exceeded",
+      retryable: true,
+      error: `OpenAI temporarily rate-limited this request. ${retryAfterSeconds ? `Wait at least ${retryAfterSeconds} seconds, then retry.` : "Wait briefly, then retry."}`,
+      ...retryAfterSeconds ? { retryAfterSeconds } : {}
+    };
+  }
+  if (status === 429) return {
+    kind: "limit",
+    code: "usage_limit_unknown",
+    retryable: false,
+    error: "OpenAI reported an unspecified usage limit. Check API credits and Limits before reconnecting."
+  };
+  if (status === 401) return {
+    kind: "configuration",
+    code: "api_key_rejected",
+    retryable: false,
+    error: "OpenAI rejected the server API key. Check OPENAI_API_KEY in Vercel; your owner access remains unlocked."
+  };
+  if ([400, 403, 404].includes(status)) return {
+    kind: "configuration",
+    code: "model_or_permission_rejected",
+    retryable: false,
+    error: "OpenAI rejected the model, permissions or session settings. Check the app\u2019s OpenAI project and model access."
+  };
+  return {
+    kind: "service",
+    code: "provider_unavailable",
+    retryable: true,
+    error: "OpenAI could not complete this request. Wait briefly, then retry.",
+    ...retryAfterSeconds ? { retryAfterSeconds } : {}
+  };
+}
+function readRetryAfter(value, now = Date.now()) {
+  if (!value) return void 0;
+  const seconds = /^\d+(?:\.\d+)?$/.test(value.trim()) ? Number(value) : (Date.parse(value) - now) / 1e3;
+  return Number.isFinite(seconds) && seconds > 0 && seconds <= 31536e3 ? Math.ceil(seconds) : void 0;
+}
+async function readOpenAiFailure(response) {
+  const body = await response.json().catch(() => null);
+  const retryAfterSeconds = readRetryAfter(response.headers.get("Retry-After"));
+  return {
+    ...describeOpenAiFailure(response.status, body?.error, retryAfterSeconds),
+    ...retryAfterSeconds ? { retryAfterSeconds } : {}
+  };
+}
+
 // src/services/openai-realtime/server/sessionHandler.ts
 function createOpenAiRealtimeHandler(options = {}) {
   const settings2 = readOpenAiRealtimeServerSettings(options.env ?? process.env);
@@ -889,9 +950,9 @@ function createOpenAiRealtimeHandler(options = {}) {
       });
       if (cancelled.signal.aborted) return;
       if (!upstream.ok) {
-        res.status(upstream.status === 429 ? 429 : 502).json({
-          error: upstream.status === 429 ? "OpenAI Voice is busy or its quota is exhausted. Try again shortly." : "OpenAI Voice could not start. Check the server key and Realtime model access."
-        });
+        const failure = await readOpenAiFailure(upstream);
+        if (failure.retryAfterSeconds) res.setHeader("Retry-After", String(failure.retryAfterSeconds));
+        res.status(upstream.status === 429 ? 429 : 502).json(failure);
         return;
       }
       const answer = await upstream.text();

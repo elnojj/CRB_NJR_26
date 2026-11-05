@@ -66,6 +66,8 @@ async function main(): Promise<void> {
     ['overlayOwnership', 'src/components/overlayOwnership.test.ts'],
     ['framePresentation', 'src/three/framePresentation.test.ts'],
     ['rememberedAccessAndChat', 'src/services/chat/chat.test.ts'],
+    ['openaiProviderErrors', 'src/services/openai-errors.test.ts'],
+    ['voiceRecovery', 'src/components/VoiceRecovery.test.ts'],
     ['glassFallback', 'src/three/glassFallback.test.ts'],
     ['hudLayout', 'src/three/hudLayout.test.ts'],
     ['browserEngine', 'src/lib/browserEngine.test.ts'],

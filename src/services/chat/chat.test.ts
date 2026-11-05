@@ -104,7 +104,8 @@ test('locked chat never calls OpenAI, and quota errors stay distinct from owner 
   await handler(req(), quota.res);
   assert.equal(quota.result.status, 429);
   assert.equal(quota.result.body.reply, undefined);
-  assert.match(quota.result.body.error, /quota/);
+  assert.equal(quota.result.body.code, 'usage_limit_unknown');
+  assert.equal(quota.result.body.retryable, false);
   assert.ok(!JSON.stringify(quota.result).includes('private-provider-detail'));
   await assert.rejects(sendCerebroChatTurn({ message: 'Retry', history: [] }, async () => new Response(JSON.stringify(quota.result.body), { status: 429 })), error => error instanceof ChatServiceError && error.status === 429);
 });

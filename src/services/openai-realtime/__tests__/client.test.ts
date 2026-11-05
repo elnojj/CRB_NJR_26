@@ -7,6 +7,7 @@ import { CRO_CDE_GOOGLE_TOOLS_SCHEMA } from '../../voice/cerebroAgentManifest';
 import { auditToolRegistry } from '../../../utils/actionDispatcher';
 import type { VoiceBridgeState } from '../../voice/types';
 import { requestUserMedia } from '../../media/mediaDeviceManager';
+import { describeOpenAiFailure, type OpenAiFailure } from '../../openai-errors';
 
 const flush = () => new Promise<void>(resolve => setImmediate(resolve));
 const bridges: OpenAiRealtimeVoiceBridge[] = [];
@@ -24,7 +25,7 @@ function stream(tracks = [track()]) {
 }
 
 function harness() {
-  const states: Array<{ state: VoiceBridgeState; detail?: string }> = [];
+  const states: Array<{ state: VoiceBridgeState; detail?: string; failure?: OpenAiFailure }> = [];
   const transcripts: Array<{ role: string; text: string }> = [];
   const calls: Array<{ name: string; parameters: Record<string, unknown> }> = [];
   const sent: Array<Record<string, any>> = [];
@@ -34,7 +35,7 @@ function harness() {
   let acquires = 0;
   let requests = 0;
   const callbacks = {
-    onStatusChange: (state: VoiceBridgeState, detail?: string) => { states.push({ state, detail }); },
+    onStatusChange: (state: VoiceBridgeState, detail?: string, failure?: OpenAiFailure) => { states.push({ state, detail, ...(failure ? { failure } : {}) }); },
     onTranscript: (role: 'user' | 'agent', text: string) => { transcripts.push({ role, text }); },
     onClientToolCall: async (name: string, parameters: Record<string, unknown>) => {
       calls.push({ name, parameters });
@@ -370,6 +371,29 @@ test('a tool completing during barge-in cannot create an overlapping model respo
   assert.equal(h.sent.filter(event => event.item?.type === 'function_call_output').length, 1);
   h.emit({ type: 'response.done', response: { status: 'completed', output: [] } });
   assert.equal(h.sent.filter(event => event.type === 'response.create').length, 1);
+});
+
+test('provider billing and rate metadata survive signaling errors and still release the microphone', async () => {
+  for (const code of ['credit_balance_exhausted', 'slow_down']) {
+    const h = harness();
+    const failure = describeOpenAiFailure(429, { code }, 20);
+    const bridge = h.make({ fetch: async () => new Response(JSON.stringify(failure), { status: 429 }) });
+    await bridge.connect();
+    assert.deepEqual(h.states.at(-1)?.failure, failure);
+    assert.equal(h.states.at(-1)?.detail, failure.error);
+    assert.equal(h.counts().releases, 1);
+    assert.equal(h.pcs[0].closed, true);
+  }
+});
+
+test('Realtime response failures retain the specific quota category without leaking raw messages', async () => {
+  const h = harness(); const bridge = h.make(); await bridge.connect();
+  h.emit({ type: 'response.done', response: { status: 'failed', status_details: { error: {
+    code: 'project_spend_limit_exceeded', message: 'private-provider-detail', type: 'insufficient_quota',
+  } } } });
+  assert.equal(h.states.at(-1)?.failure?.code, 'project_spend_limit_exceeded');
+  assert.equal(h.counts().releases, 1);
+  assert.ok(!JSON.stringify(h.states).includes('private-provider-detail'));
 });
 
 test('double connect is idempotent; a failed session request releases mic and stays retryable', async () => {
