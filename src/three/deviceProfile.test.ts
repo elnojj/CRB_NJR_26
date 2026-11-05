@@ -29,10 +29,9 @@ describe('deviceProfile', () => {
     );
   });
 
-  it('caps tablet resolution below retina and softens bloom', () => {
+  it('caps tablet resolution below retina', () => {
     const p = resolveDeviceProfile(IPAD_STAGE_WINDOW);
     assert.ok(p.initialPixelRatio <= 1.75);
-    assert.ok(p.bloomStrength < 0.42);
     assert.ok(p.maxVideoTextures <= 2);
     assert.equal(p.preserveDrawingBuffer, false);
   });
@@ -47,7 +46,6 @@ describe('deviceProfile', () => {
   it('treats software GL as the cheapest path regardless of tier', () => {
     const p = resolveDeviceProfile({ ...IPAD_STAGE_WINDOW, softwareGl: true });
     assert.equal(p.pixelRatioCap, 1);
-    assert.equal(p.bloomStrength, 0);
   });
 
   it('reduces the video budget on low-memory tablets', () => {

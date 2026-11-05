@@ -73,6 +73,7 @@ async function main(): Promise<void> {
     ['keyboardInset', 'src/gui/keyboardInset.test.ts'],
     ['orbitalSolver', 'src/three/camera/orbitalSolver.test.ts'],
     ['zLayers', 'src/gui/zLayers.test.ts'],
+    ['postFx', 'src/three/postFx.test.ts'],
     ['systemContract', 'src/design/systemContract.test.ts'],
     ['surfaceHost', 'src/gui/surfaceHost.test.ts'],
     ['mediaProvenance', 'src/data/mediaProvenance.test.ts'],

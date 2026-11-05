@@ -14,6 +14,8 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { VignetteShader, bokehParams, resolvePostFxPlan } from '../three/postFx';
 import { COLOUR_TOKENS } from '../tokens/colours';
 import {
   CEREBRO_STATIONS,
@@ -534,6 +536,13 @@ function getProjectHealthColour(health: ProjectHealth): string {
 
 const _scratchVec = new THREE.Vector3();
 const _scratchVec2 = new THREE.Vector3();
+const _dofFocusPoint = new THREE.Vector3();
+
+/** Aim the camera and remember the point the depth-of-field pass keeps in focus. */
+function lookAtFocus(camera: THREE.Camera, target: THREE.Vector3): void {
+  camera.lookAt(target);
+  _dofFocusPoint.copy(target);
+}
 const _scratchRight = new THREE.Vector3();
 const _scratchUp = new THREE.Vector3();
 const _scratchForward = new THREE.Vector3();
@@ -1810,6 +1819,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     // Post-Processing: bloom/glow is banned (L10). The composer only supplies the MSAA half-float target and output pass.
     let composer: EffectComposer | null = null;
     let cinemaPass: ShaderPass | null = null;
+    let bokehPass: BokehPass | null = null;
     if (!isSoftwareGl) {
       const composerTarget = new THREE.WebGLRenderTarget(initW, initH, {
         type: THREE.HalfFloatType,
@@ -1819,6 +1829,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       composer.setPixelRatio(renderer.getPixelRatio());
       composer.setSize(initW, initH);
       composer.addPass(new RenderPass(scene, camera));
+      const postFxPlan = resolvePostFxPlan(deviceProfile, isSoftwareGl);
+      if (postFxPlan.depthOfField) {
+        const bokeh = bokehParams(SPHERE_NETWORK_OVERVIEW_RADIUS);
+        bokehPass = new BokehPass(scene, camera, bokeh);
+        composer.addPass(bokehPass);
+      }
+      if (postFxPlan.vignette) composer.addPass(new ShaderPass(VignetteShader));
       composer.addPass(new OutputPass());
     }
 
@@ -3874,7 +3891,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         camera.fov = pitchVerticalFovDeg(journeyPose.focalMm, camera.aspect);
         camera.updateProjectionMatrix();
         camera.position.copy(journeyPose.position);
-        camera.lookAt(journeyPose.target);
+        lookAtFocus(camera, journeyPose.target);
       } else if (s.flightActive && s.flightCurve) {
         const elapsed = now - s.flightStartTime;
         const rawT = Math.min(1, elapsed / Math.max(100, s.flightDurationMs));
@@ -3900,9 +3917,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
         if (s.flightLookAtCurve) {
           s.flightLookAtCurve.getPoint(easedT, _scratchVec);
-          camera.lookAt(_scratchVec);
+          lookAtFocus(camera, _scratchVec);
         } else {
-          camera.lookAt(_scratchVec.copy(s.currentCenter).add(s.panOffset));
+          lookAtFocus(camera, _scratchVec.copy(s.currentCenter).add(s.panOffset));
         }
 
         if (rawT >= 1) {
@@ -3957,7 +3974,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         );
         s.currentCenter.lerp(_scratchVec, 1 - Math.exp(-4.0 * dt));
         s.radius = camera.position.distanceTo(s.currentCenter);
-        camera.lookAt(s.currentCenter);
+        lookAtFocus(camera, s.currentCenter);
       } else {
         const rollRad = THREE.MathUtils.degToRad(s.cameraRollDeg);
         camera.up.set(Math.sin(rollRad), Math.cos(rollRad), 0).normalize();
@@ -3982,7 +3999,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           exemptIds: _repulsionExempt,
           zoomScale: s.radius / SPHERE_NETWORK_OVERVIEW_RADIUS,
         });
-        camera.lookAt(_scratchVec);
+        lookAtFocus(camera, _scratchVec);
       }
 
 
@@ -4212,6 +4229,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       hud.group.visible = !cinematicRef.current;
       hud.update(dt, curW, curH);
 
+      if (bokehPass) {
+        (bokehPass.uniforms as { focus: THREE.IUniform<number> }).focus.value = bokehParams(
+          camera.position.distanceTo(_dofFocusPoint)
+        ).focus;
+      }
       if (isSoftwareGl || !composer) {
         renderer.render(scene, camera);
       } else {

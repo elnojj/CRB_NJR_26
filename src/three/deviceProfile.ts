@@ -3,7 +3,7 @@ import { isAppleMobileWebKit } from './glassFallback';
 /**
  * Render budget per device class. Pure: the canvas reads the browser once, hands the facts in here and
  * applies the numbers. Tablets and phones trade resolution and post-processing for a clear, steady frame
- * instead of a hazy, stuttering one: lower pixel ratio, half-resolution bloom, fewer MSAA samples and a
+ * instead of a hazy, stuttering one: lower pixel ratio, fewer MSAA samples and a
  * tight cap on simultaneous video decoders.
  */
 
@@ -29,7 +29,6 @@ export interface DeviceProfile {
   initialPixelRatio: number;
   /** MSAA samples on the composer target. */
   msaaSamples: number;
-  bloomStrength: number;
   /** Small exposure lift so ACES does not read as dim on bright tablet panels in daylight. */
   exposureLift: number;
   /** Concurrent playing video textures. */
@@ -58,7 +57,6 @@ export function resolveDeviceProfile(facts: DeviceFacts): DeviceProfile {
       pixelRatioFloor: 1,
       initialPixelRatio: 1,
       msaaSamples: 0,
-      bloomStrength: 0,
       exposureLift: 0,
       maxVideoTextures: 1,
       budgetFrameMs: 80,
@@ -76,7 +74,6 @@ export function resolveDeviceProfile(facts: DeviceFacts): DeviceProfile {
         pixelRatioFloor: 1,
         initialPixelRatio: Math.min(dpr, 1.5),
         msaaSamples: 0,
-        bloomStrength: 0.3,
         exposureLift: 0.1,
         maxVideoTextures: 1,
         budgetFrameMs: 24,
@@ -90,7 +87,6 @@ export function resolveDeviceProfile(facts: DeviceFacts): DeviceProfile {
         pixelRatioFloor: 1.25,
         initialPixelRatio: Math.min(dpr, lowMemory ? 1.5 : 1.75),
         msaaSamples: 2,
-        bloomStrength: 0.34,
         exposureLift: 0.08,
         maxVideoTextures: lowMemory ? 1 : 2,
         budgetFrameMs: 22,
@@ -104,7 +100,6 @@ export function resolveDeviceProfile(facts: DeviceFacts): DeviceProfile {
         pixelRatioFloor: 1,
         initialPixelRatio: Math.min(dpr, 2),
         msaaSamples: 4,
-        bloomStrength: 0.42,
         exposureLift: 0,
         maxVideoTextures: 4,
         budgetFrameMs: 20,
