@@ -184,96 +184,9 @@
   border-bottom: 6px solid transparent;
 }
 
-.cerebro-node-card {
-  position: fixed;
-  z-index: var(--z-node-flyout);
-  left: 12px;
-  bottom: calc(150px + env(safe-area-inset-bottom, 0px));
-  width: min(300px, calc(100vw - 24px));
-  padding: 20px;
-  border-radius: 16px;
-  background: rgba(5, 5, 5, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  -webkit-backdrop-filter: blur(24px);
-  backdrop-filter: blur(24px);
-  color: #f2f6f8;
-  pointer-events: auto;
-}
-
-.cerebro-node-card header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.cerebro-node-card h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.cerebro-node-card header button {
-  min-width: 44px;
-  min-height: 44px;
-  margin: -12px -12px -12px 0;
-  border: 0;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 14px;
-  line-height: 1;
-  cursor: pointer;
-  transition: color 150ms ease;
-}
-
-.cerebro-node-card header button:hover,
-.cerebro-node-card header button:focus-visible {
-  color: #0050ff;
-}
-
-.cerebro-node-card__kind {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.cerebro-node-card__strip {
-  display: flex;
-  gap: 6px;
-  margin: 10px 0 6px;
-}
-
-.cerebro-node-card__chip {
-  margin: 6px 0 2px;
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 12px;
-  color: #f4d68c;
-}
-
-.cerebro-node-card__summary,
-.cerebro-node-card__honest {
-  margin: 4px 0 0;
-  font-size: 12.5px;
-  line-height: 1.4;
-  color: #d0dce3;
-}
-
-.cerebro-node-card__honest {
-  color: #9fb4c2;
-}
-
 @media (max-width: 820px) {
   .cerebro-node-browser {
     top: calc(64px + env(safe-area-inset-top, 0px));
-    left: 12px;
-    right: 12px;
-    width: auto;
-  }
-
-  .cerebro-node-card {
     left: 12px;
     right: 12px;
     width: auto;
@@ -370,7 +283,6 @@
   pointer-events: none;
   background: linear-gradient(120deg, rgba(255, 255, 255, 0.14), transparent 38%);
 }
-.cerebro-spatial-panel .cerebro-node-card,
 .cerebro-spatial-panel .cerebro-hq-dock {
   position: static;
   transform: none;
@@ -383,9 +295,6 @@
   box-shadow: none;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-}
-.cerebro-spatial-panel .cerebro-node-card {
-  width: 300px;
 }
 .cerebro-spatial-panel .cerebro-hq-dock {
   display: block;
@@ -421,10 +330,6 @@
 }
 .cerebro-spatial-panel[data-lod='badge'] [data-detail='true'] {
   display: none;
-}
-.cerebro-spatial-panel[data-lod='badge'] .cerebro-node-card {
-  width: 190px;
-  padding: 10px 12px;
 }
 .cerebro-spatial-panel[data-lod='badge'] .cerebro-hq-dock {
   width: 150px;

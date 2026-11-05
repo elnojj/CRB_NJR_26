@@ -158,7 +158,7 @@
 
 .cerebro-chat {
   position: relative;
-  z-index: 100;
+  z-index: var(--z-voice-widget);
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;

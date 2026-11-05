@@ -43,7 +43,7 @@
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  z-index: 60;
+  z-index: var(--z-journey-chrome);
   display: flex;
   flex-direction: column;
   gap: 2px;

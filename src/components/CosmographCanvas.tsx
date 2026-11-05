@@ -746,7 +746,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
   };
   const masterRootRef = useRef<THREE.Object3D | null>(null);
   const projectWorldHostRef = useRef<ProjectWorldHostHandle | null>(null);
-  const [labels2D, setLabels2D] = useState<AnchoredLabel2D[]>([]);
   const [webglStatus, setWebglStatus] = useState<'ACTIVE' | 'CONTEXT_LOST' | 'FALLBACK'>('ACTIVE');
   const [webglReason, setWebglReason] = useState<string>('');
   /** Bump to tear down and recreate the WebGL renderer after context loss/restore. */
@@ -4246,156 +4245,24 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
       frameCounter++;
       if (frameCounter % 2 === 0) {
-        const width = domEl.clientWidth || window.innerWidth;
-        const height = domEl.clientHeight || window.innerHeight;
-        const projected: AnchoredLabel2D[] = [];
-
-        nodeRegistryRef.current.forEach((entry) => {
-          if (entry.sphere !== s.activeSphere) return;
-
-          _scratchVec.copy(entry.worldPos);
-          const distToCam = _scratchVec.distanceTo(camera.position);
-          const centerDistToCam = s.currentCenter.distanceTo(camera.position);
-          const zDepth = distToCam - centerDistToCam;
-
-          // Hide back-facing labels (far side of the sphere).
-          const toCamX = camera.position.x - entry.worldPos.x;
-          const toCamY = camera.position.y - entry.worldPos.y;
-          const toCamZ = camera.position.z - entry.worldPos.z;
-          const outX = entry.worldPos.x - s.currentCenter.x;
-          const outY = entry.worldPos.y - s.currentCenter.y;
-          const outZ = entry.worldPos.z - s.currentCenter.z;
-          const outLen = Math.hypot(outX, outY, outZ) || 1;
-          const toLen = Math.hypot(toCamX, toCamY, toCamZ) || 1;
-          const facing =
-            (outX / outLen) * (toCamX / toLen) +
-            (outY / outLen) * (toCamY / toLen) +
-            (outZ / outLen) * (toCamZ / toLen);
-          if (facing <= 0.05 && entry.nodeType !== 'core') return;
-
-          _scratchVec.project(camera);
-          if (_scratchVec.z > 1) return;
-
-          const sx = (_scratchVec.x * 0.5 + 0.5) * width;
-          const sy = (-_scratchVec.y * 0.5 + 0.5) * height;
-
-          // Offset label radially outward from screen center so each 3D sphere remains unobstructed
-          const rx = sx - width * 0.5;
-          const ry = sy - height * 0.5;
-          const rLen = Math.hypot(rx, ry) || 1;
-          const isPhoneProj = width < 768;
-          const isTabletProj = width >= 768 && width < 1100;
-          const radial = isPhoneProj ? 22 : isTabletProj ? 28 : 34;
-          const sideBias = isPhoneProj ? 58 : isTabletProj ? 76 : 92;
-          const lift = isPhoneProj ? 18 : isTabletProj ? 22 : 26;
-          const offsetX =
-            entry.nodeType === 'core'
-              ? isPhoneProj
-                ? 10
-                : 24
-              : (rx / rLen) * radial + (rx >= 0 ? 8 : -sideBias);
-          const offsetY =
-            entry.nodeType === 'core'
-              ? isPhoneProj
-                ? -16
-                : -24
-              : (ry / rLen) * lift - (isPhoneProj ? 8 : 14);
-
-          projected.push({
-            id: entry.canonicalId,
-            label: entry.label,
-            sublabel: entry.sublabel,
-            contentLine: entry.contentLine,
-            objectCode: entry.objectCode,
-            sculptureTag: entry.sculptureTag,
-            colour: entry.colour,
-            x: sx + offsetX,
-            y: sy + offsetY,
-            anchorX: sx,
-            anchorY: sy,
-            zDepth,
-            isFocused:
-              entry.canonicalId === s.focusedNodeId ||
-              entry.canonicalId === s.tourHighlightId ||
-              entry.canonicalId === s.HoveredNodeId,
-            nodeType: entry.nodeType,
-          });
-        });
-
-        // Distance LOD — orbit shows title only; focus/macro reveals secondary metadata.
-        const macroView = s.radius < 14 || Boolean(s.focusedNodeId);
-        for (const item of projected) {
-          if (!macroView && !item.isFocused && item.nodeType !== 'core') {
-            item.sublabel = undefined;
-          }
-        }
-
-        projected.sort((a, b) => a.y - b.y);
-        // Responsive motion-graph packing — min 28px vertical displacement between anchors
-        const isPhone = width < 768;
-        const isTablet = width >= 768 && width < 1100;
-        const minLabelGapY = isPhone ? 28 : isTablet ? 32 : 40;
-        const minLabelGapX = isPhone ? 98 : isTablet ? 128 : 168;
-        const safe = unobstructedRectRef.current;
-        const dockClear = isPhone ? Math.max(128, height * 0.22) : isTablet ? 112 : 120;
-        const topClear = isPhone ? Math.max(56, height * 0.08) : 72;
-        const labelWidthReserve = isPhone ? Math.min(132, width * 0.42) : isTablet ? 160 : 195;
-        const minX = safe ? Math.max(8, safe.x + 6) : isPhone ? 6 : 20;
-        const maxX = safe
-          ? Math.max(minX + 88, safe.x + safe.w - labelWidthReserve)
-          : Math.max(minX + 88, width - labelWidthReserve);
-        // Project chips carry a long sublabel ("At risk · 68% · 17 register records…"); on a phone
-        // they need most of the viewport width, otherwise the chip is clipped by the screen edge.
-        const wideChipReserve = isPhone ? Math.min(width - 16, 380) : labelWidthReserve;
-        const maxXFor = (entry: { nodeType: string; sublabel?: string }): number =>
-          entry.nodeType === 'project' && entry.sublabel
-            ? Math.max(minX, Math.min(maxX, width - wideChipReserve - 8))
-            : maxX;
-        const minY = safe ? Math.max(topClear, safe.y + 6) : topClear;
-        const maxY = safe
-          ? Math.max(minY + 56, safe.y + safe.h - 24)
-          : Math.max(minY + 56, height - dockClear);
-
-        for (let pass = 0; pass < 6; pass++) {
-          for (let i = 0; i < projected.length; i++) {
-            for (let j = i + 1; j < projected.length; j++) {
-              const dx = Math.abs(projected[i].x - projected[j].x);
-              const dy = Math.abs(projected[i].y - projected[j].y);
-              if (dx < minLabelGapX && dy < minLabelGapY) {
-                const pushY = (minLabelGapY - dy) * 0.5 + 2;
-                projected[i].y -= pushY;
-                projected[j].y += pushY;
-                const pushX =
-                  (minLabelGapX - dx) *
-                  0.22 *
-                  (projected[i].x <= projected[j].x ? 1 : -1);
-                projected[i].x -= pushX;
-                projected[j].x += pushX;
-              }
-            }
-            if (projected[i].x < minX + 40 && projected[i].y < minY + 28) {
-              projected[i].y = minY + 36;
-            }
-            projected[i].x = THREE.MathUtils.clamp(projected[i].x, minX, maxXFor(projected[i]));
-            projected[i].y = THREE.MathUtils.clamp(projected[i].y, minY, maxY);
-          }
-        }
-
-        // Stable DOM sort order prevents React from reordering <button> elements mid-click while the sphere orbits
-        projected.sort((a, b) => `${a.nodeType}-${a.id}`.localeCompare(`${b.nodeType}-${b.id}`));
-
-        // Spatial 3D billboards for stations/dimensions/core — depth-sorted in WebGL.
+        // Every node label is a WebGL billboard sprite, depth-sorted with the scene. Stations,
+        // dimensions and cores always carry one; projects and other nodes only while focused,
+        // hovered, tour-highlighted or flagged At risk / Blocked.
         const billboardSpecs = [];
         const showBillboardMeta = s.radius < 14 || Boolean(s.focusedNodeId);
         for (const entry of nodeRegistryRef.current.values()) {
           if (entry.sphere !== s.activeSphere) continue;
-          if (
-            entry.nodeType !== 'station' &&
-            entry.nodeType !== 'dimension' &&
-            entry.nodeType !== 'core'
-          ) {
-            continue;
-          }
+          const isAnchorNode =
+            entry.nodeType === 'station' ||
+            entry.nodeType === 'dimension' ||
+            entry.nodeType === 'core';
+          const isActiveNode =
+            entry.canonicalId === s.focusedNodeId ||
+            entry.canonicalId === s.tourHighlightId ||
+            entry.canonicalId === s.HoveredNodeId;
+          const needsAttention =
+            entry.nodeType === 'project' && /At risk|Blocked/i.test(entry.sublabel ?? '');
+          if (!isAnchorNode && !isActiveNode && !needsAttention) continue;
           billboardSpecs.push({
             id: `${entry.sphere}:${entry.canonicalId}`,
             label: entry.label,
@@ -4409,14 +4276,11 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
             colour: entry.colour,
             worldPos: entry.worldPos.clone(),
             sphereCenter: s.currentCenter.clone(),
-            focused:
-              entry.canonicalId === s.focusedNodeId || entry.canonicalId === s.HoveredNodeId,
+            focused: isActiveNode,
           });
         }
         spatialBillboards.group.visible = !mediaTubeStateRef.current?.active && !cinematicRef.current;
         spatialBillboards.sync(billboardSpecs, camera);
-
-        setLabels2D(projected);
 
         const tel = buildCurrentTelemetry(s);
         callbacksRef.current.onTelemetryChange(tel);
@@ -4732,225 +4596,6 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
               {touchIndicator.mode}
             </text>
           </svg>
-        </div>
-      )}
-
-      {/* Motion-graph infographic labels — continuous tether + land-in copy, camera-driven */}
-      {!showReducedGraphicsFallback && !cinematic && (
-        <div className="cerebro-infograph-layer fixed inset-0 pointer-events-none z-(--z-world-labels)">
-          <svg className="fixed inset-0 w-full h-full pointer-events-none" aria-hidden="true">
-            {labels2D.map((item, idx) => {
-              // Cover-post density: stations/core only by default; projects only when
-              // focused or attention (At risk / Blocked) — never flood desktop with all chips.
-              const isAttentionProject =
-                item.nodeType === 'project' &&
-                !!item.sublabel &&
-                /At risk|Blocked/i.test(item.sublabel);
-              const isSpatialBillboard =
-                item.nodeType === 'station' ||
-                item.nodeType === 'dimension' ||
-                item.nodeType === 'core';
-              // WebGL sprites own station/core labels — skip SVG tethers that collide in depth.
-              if (isSpatialBillboard && webglStatus === 'ACTIVE') {
-                return null;
-              }
-              const isPrimaryStation =
-                isSpatialBillboard ||
-                (item.nodeType === 'project' && (item.isFocused || isAttentionProject));
-              if (
-                (!item.isFocused && !isPrimaryStation) ||
-                item.anchorX === undefined ||
-                item.anchorY === undefined
-              ) {
-                return null;
-              }
-              const badgeAnchorX = item.x + 14;
-              const badgeAnchorY = item.y + 19;
-              const strokeCol = item.isFocused
-                ? 'var(--token-focus, #65ACFF)'
-                : 'color-mix(in srgb, var(--token-active-ice) 42%, transparent)';
-              const dotCol = item.isFocused
-                ? 'var(--token-focus, #65ACFF)'
-                : 'var(--token-active-ice)';
-              const midX = (item.anchorX + badgeAnchorX) * 0.5;
-              const midY = (item.anchorY + badgeAnchorY) * 0.5 - 10;
-              return (
-                <g
-                  key={`tether-${activeSphere}-${item.id}-${item.nodeType}`}
-                  opacity={item.isFocused ? 0.98 : 'var(--token-cold-opacity)'}
-                  style={{ animationDelay: `${(idx % 8) * 60}ms` }}
-                >
-                  <path
-                    className={`cerebro-infograph-tether${item.isFocused ? ' is-focused' : ''}`}
-                    d={`M ${item.anchorX} ${item.anchorY} Q ${midX} ${midY} ${badgeAnchorX} ${badgeAnchorY}`}
-                    fill="none"
-                    stroke={strokeCol}
-                    strokeWidth={item.isFocused ? 1.6 : 1.15}
-                    strokeLinecap="round"
-                  />
-                  <circle
-                    cx={item.anchorX}
-                    cy={item.anchorY}
-                    r={item.isFocused ? 7 : 4.5}
-                    fill="rgba(12, 18, 28, 0.72)"
-                    stroke={strokeCol}
-                    strokeWidth={item.isFocused ? 1.5 : 1.2}
-                  />
-                  <circle
-                    cx={item.anchorX}
-                    cy={item.anchorY}
-                    r={item.isFocused ? 2.5 : 1.75}
-                    fill={dotCol}
-                  />
-                </g>
-              );
-            })}
-          </svg>
-
-          {labels2D.map((item, idx) => {
-            const isAttentionProject =
-              item.nodeType === 'project' &&
-              !!item.sublabel &&
-              /At risk|Blocked/i.test(item.sublabel);
-            const isSpatialBillboard =
-              item.nodeType === 'station' ||
-              item.nodeType === 'dimension' ||
-              item.nodeType === 'core';
-            const isPrimaryStation =
-              isSpatialBillboard ||
-              (item.nodeType === 'project' && (item.isFocused || isAttentionProject));
-            const x = Math.round(item.x);
-            const y = Math.round(item.y);
-            const isCompactChip = !item.isFocused && !isPrimaryStation;
-            // Stations/core/dimensions render as WebGL sprites — keep DOM as invisible hit targets.
-            const useHitTargetOnly = isSpatialBillboard && webglStatus === 'ACTIVE';
-            return (
-              <button
-                key={`${activeSphere}-${item.id}-${item.nodeType}`}
-                type="button"
-                data-testid={`sphere-label-${item.id}`}
-                data-object-code={item.objectCode}
-                data-chrome-state={item.isFocused ? 'active' : 'cold'}
-                data-spatial-billboard={useHitTargetOnly ? 'true' : undefined}
-                aria-label={`${item.label}${item.sublabel ? `, ${item.sublabel}` : ''} · ${item.nodeType}`}
-                aria-pressed={item.isFocused}
-                onPointerDown={(e) => e.stopPropagation()}
-                onPointerEnter={() => {
-                  stateRef.current.HoveredNodeId = item.id;
-                  callbacksRef.current.onHoverNodeChange?.(item.id);
-                  const panX = (item.x / Math.max(1, window.innerWidth)) * 2 - 1;
-                  soundEngine.playNodeHover(panX);
-                }}
-                onPointerLeave={() => {
-                  if (stateRef.current.HoveredNodeId === item.id) {
-                    stateRef.current.HoveredNodeId = null;
-                    callbacksRef.current.onHoverNodeChange?.(null);
-                  }
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const panX = (item.x / Math.max(1, window.innerWidth)) * 2 - 1;
-                  soundEngine.playNodeSelect(panX);
-                  onSelectNode(item.id, item.nodeType, activeSphere);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onSelectNode(item.id, item.nodeType, activeSphere);
-                  }
-                }}
-                style={{
-                  transform: `translate3d(${x}px, ${y}px, 0)`,
-                  borderColor: useHitTargetOnly
-                    ? 'transparent'
-                    : item.isFocused
-                      ? 'var(--token-focus, #65ACFF)'
-                      : 'color-mix(in srgb, var(--token-active-ice) 36%, transparent)',
-                  background: useHitTargetOnly ? 'transparent' : undefined,
-                  color: useHitTargetOnly ? 'transparent' : undefined,
-                  opacity: useHitTargetOnly ? 0 : undefined,
-                }}
-                className={`cerebro-focus-label cerebro-infograph-label fixed top-0 left-0 min-h-[44px] pointer-events-auto cursor-pointer px-3.5 py-1.5 rounded-full border flex items-center gap-2.5 text-left group hover:border-[color:var(--token-focus,#65ACFF)] ${
-                  useHitTargetOnly
-                    ? ''
-                    : item.isFocused
-                      ? 'is-focused opacity-100'
-                      : isAttentionProject
-                        ? 'opacity-90 hover:opacity-100 focus:opacity-100'
-                        : 'opacity-[var(--token-cold-opacity)] hover:opacity-100 focus:opacity-100'
-                }`}
-              >
-                <span className="ig-pulse" aria-hidden="true" />
-                <span
-                  className="ig-shell"
-                  style={{
-                    animationDelay: `${(idx % 10) * 55}ms, ${(idx % 10) * 55 + 720}ms`,
-                  }}
-                >
-                  <span className="relative flex items-center justify-center w-3.5 h-3.5 shrink-0">
-                    <span
-                      className="absolute inset-0 rounded-full border transition-colors"
-                      style={{
-                        borderColor: item.isFocused
-                          ? '#D4AF37'
-                          : 'rgba(180, 221, 255, 0.55)',
-                      }}
-                    />
-                    <span
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{
-                        backgroundColor: item.isFocused ? '#D4AF37' : item.colour || '#B4DDFF',
-                      }}
-                    />
-                  </span>
-                  <div className="flex flex-col min-w-0">
-                    <span className="ig-title font-sans font-medium text-[#F2F6F8]">
-                      {item.label}
-                    </span>
-                    {item.sublabel && !isCompactChip && (
-                      <span className="ig-sub font-sans text-[#D0DCE3]">
-                        {item.sublabel}
-                      </span>
-                    )}
-                    {item.contentLine && !useHitTargetOnly && (
-                      <span
-                        className="ig-sub font-mono text-[#F4D68C]"
-                        data-testid={`node-content-${item.id}`}
-                      >
-                        {item.contentLine}
-                      </span>
-                    )}
-                  </div>
-                </span>
-              </button>
-            );
-          })}
-
-          {/* Caption suppressed — Cerebro chat widget owns bottom-center copy to avoid overlap. */}
-          {false && captionBubble && (
-            <div
-              className="cerebro-infograph-caption cerebro-intro-copy fixed left-1/2 bottom-[max(7.5rem,18%)] -translate-x-1/2 z-(--z-ambient-hud) px-4 py-2.5 pointer-events-none max-w-[min(420px,88vw)]"
-              role="status"
-              aria-live="polite"
-              data-testid="caption-bubble"
-            >
-              <div className="ig-shell">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{ backgroundColor: '#D4AF37' }}
-                  />
-                  <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#B4DDFF]">
-                    Cerebro
-                  </span>
-                </div>
-                <p className="font-sans text-sm md:text-[0.95rem] text-[#F2F6F8] leading-snug text-balance">
-                  {captionBubble}
-                </p>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>

@@ -247,18 +247,6 @@ canvas {
     filter var(--motion-fast) var(--motion-ease);
 }
 
-/* WebGL billboards own station/core copy — DOM labels stay as invisible hit targets only. */
-button.cerebro-infograph-label[data-spatial-billboard='true'],
-button.cerebro-infograph-label[data-spatial-billboard='true'][data-chrome-state='cold'],
-button.cerebro-infograph-label[data-spatial-billboard='true'][data-chrome-state='active'] {
-  opacity: 0 !important;
-  color: transparent !important;
-  border-color: transparent !important;
-  background: transparent !important;
-  filter: none !important;
-  box-shadow: none !important;
-}
-
 .cj-cold:hover,
 .cj-cold:focus-visible,
 [data-chrome-state='cold']:hover,
@@ -341,7 +329,7 @@ button.cerebro-infograph-label[data-spatial-billboard='true'][data-chrome-state=
   animation: neuralPanelReveal var(--motion-base) var(--motion-ease) both;
 }
 
-/* D0 Voice/Talk Widget always on top (z-index: 100) and mobile sheet docking */
+/* D0 Voice/Talk Widget always on top (--z-voice-widget) and mobile sheet docking */
 [data-testid="voice-card"],
 .voice-talk-widget {
   z-index: var(--z-voice-widget) !important;
@@ -356,7 +344,7 @@ button.cerebro-infograph-label[data-spatial-billboard='true'][data-chrome-state=
     min-height: 48px !important;
     padding-top: 4px !important;
     padding-bottom: 4px !important;
-    z-index: 100 !important;
+    z-index: var(--z-voice-widget) !important;
   }
 }
 
@@ -963,11 +951,6 @@ button.cerebro-infograph-label[data-spatial-billboard='true'][data-chrome-state=
 }
 
 .media-transport 
-/* Floating chips never exceed the viewport (phone: long "At risk · 68% · 17 register records" copy). */
-button.cerebro-infograph-label {
-  max-width: calc(100vw - 16px);
-}
-
 /* Phone: left-align the brand lockup so it cannot sit under the floating icon toggles. */
 @media (max-width: 520px) {
   [data-testid='workspace-header'] {

@@ -24,7 +24,7 @@
 
 /* Project plan must sit above the workspace header hit-layer (z-30) so Close/Back receive clicks. */
 .spatial-health-shell[data-mode='project'] {
-  z-index: 36;
+  z-index: var(--z-project-plan);
 }
 
 .spatial-health-veil {

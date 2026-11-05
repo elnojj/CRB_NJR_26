@@ -108,7 +108,7 @@
   position: fixed;
   left: clamp(1rem, 3vw, 2.5rem);
   bottom: 3.25rem;
-  z-index: 46;
+  z-index: var(--z-editorial-optics);
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
@@ -164,7 +164,7 @@
   position: fixed;
   inset-inline: 0;
   top: 0;
-  z-index: 40;
+  z-index: var(--z-sticky-header);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -430,7 +430,7 @@
   position: fixed;
   left: clamp(1rem, 3vw, 2.5rem);
   bottom: 1rem;
-  z-index: 45;
+  z-index: var(--z-editorial-telemetry);
   font-family: var(--ed-mono);
   font-size: 0.62rem;
   letter-spacing: 0.12em;
@@ -446,7 +446,7 @@
   background: var(--ed-bone);
   color: var(--ed-ink);
   padding: 0.5rem 0.75rem;
-  z-index: 100;
+  z-index: var(--z-modal-content);
 }
 
 .editorial-skip:focus {

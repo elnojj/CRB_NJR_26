@@ -280,6 +280,8 @@ export const GUI_Z_LAYERS = {
   /** Blueprint z40 — work surfaces */
   stickyHeader: 40,
   workSurfaces: 40,
+  editorialTelemetry: 45,
+  editorialOptics: 46,
   chatTranscript: 48,
   /** Blueprint z50 — transcript + health */
   activePanel: 50,

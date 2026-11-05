@@ -50,4 +50,18 @@ describe('GUI_Z_LAYERS', () => {
     }
     assert.deepEqual(offenders, []);
   });
+
+  it('keeps app-level CSS z-index values on the scale (only 0-10 stays local to a component)', () => {
+    const offenders: string[] = [];
+    for (const file of sourceFiles(root).filter((f) => f.endsWith('.css'))) {
+      if (file.endsWith('cerebro.tokens.css')) continue;
+      const lines = readFileSync(file, 'utf8').split('\n');
+      lines.forEach((line, i) => {
+        for (const m of line.matchAll(/z-index:\s*(-?\d+)/g)) {
+          if (Number(m[1]) > 10) offenders.push(`${path.relative(root, file)}:${i + 1}`);
+        }
+      });
+    }
+    assert.deepEqual(offenders, []);
+  });
 });

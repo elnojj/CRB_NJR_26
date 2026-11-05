@@ -5,7 +5,7 @@
   pointer-events: none;
   display: grid;
   place-items: stretch;
-  z-index: 24;
+  z-index: var(--z-project-plan-stage);
   animation: ipp-cinematic-in 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 

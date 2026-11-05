@@ -112,9 +112,12 @@ describe('visual guards: phone layout (live iPhone inspection)', () => {
     assert.match(indexCss, /@media \(max-width: 520px\)[\s\S]*workspace-header[\s\S]*justify-content: flex-start/);
   });
 
-  it('long project chips are clamped inside the phone viewport', () => {
-    assert.ok(canvasSrc.includes('maxXFor(projected[i])'));
-    assert.match(indexCss, /button\.cerebro-infograph-label \{\s*max-width: calc\(100vw - 16px\)/);
+  it('node labels are WebGL billboards, with no projected DOM label buttons or node content card', () => {
+    assert.ok(!canvasSrc.includes('cerebro-focus-label'));
+    assert.ok(!canvasSrc.includes('labels2D'));
+    assert.ok(canvasSrc.includes('const needsAttention'));
+    assert.ok(!read('./NodeBrowser.tsx').includes('NodeContentCard'));
+    assert.ok(!indexCss.includes('cerebro-infograph-label'));
   });
 });
 

@@ -57,7 +57,7 @@ import { resolveNodeContent, type DirectoryEntry, type NodeContent } from './dat
 import { hqOwnerOfPanel, HQ_NODE_LABEL, PROJECTS_PANELS, type HqNodeId } from './data/hqNodeWiring';
 import { HqPanelDock } from './components/HqPanelDock';
 import type { SpatialPanelSpec } from './three/spatialPanels';
-import { NodeBrowser, NodeContentCard } from './components/NodeBrowser';
+import { NodeBrowser } from './components/NodeBrowser';
 import {
   isConnectedSphereId,
   type ConnectedSphereId,
@@ -404,7 +404,6 @@ export default function App() {
     return false;
   });
   const [nodeBrowserOpen, setNodeBrowserOpen] = useState(false);
-  const [selectedNodeContent, setSelectedNodeContent] = useState<NodeContent | null>(null);
   const [mediaTubeState, setMediaTubeState] = useState<{
     active: boolean;
     projectId: string;
@@ -2878,10 +2877,9 @@ export default function App() {
   }, [dispatchCamera, selectedProjectId]);
 
   // Every node shows what it holds: its media opens as a tube in front of the camera, and nodes
-  // without displayable media close any open tube and say why in the content card.
+  // without displayable media close any open tube (their billboard names the empty state).
   const openNodeContent = useCallback(
     (content: NodeContent | null) => {
-      setSelectedNodeContent(content);
       if (!content) return;
       const tubeKey = content.tubeKey;
       if (tubeKey === null) {
@@ -3099,17 +3097,8 @@ export default function App() {
         ),
       });
     }
-    if (selectedNodeContent) {
-      panels.push({
-        id: 'node-card',
-        nodeId: selectedNodeContent.nodeId,
-        sphere: selectedNodeContent.sphere,
-        slot: dockVisible && selectedNodeContent.sphere === 'hq' ? 1 : 0,
-        content: <NodeContentCard content={selectedNodeContent} onClose={() => setSelectedNodeContent(null)} />,
-      });
-    }
     return panels;
-  }, [activePanel, activeSphere, bootDone, executeTypedAction, hqDockNode, selectedNodeContent]);
+  }, [activePanel, activeSphere, bootDone, executeTypedAction, hqDockNode]);
 
   // Live Page State Snapshot for Developer View & `get_page_state` (cerebro-ui/4)
   const pageStateSnapshot: Record<string, unknown> = {
