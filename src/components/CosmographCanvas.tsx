@@ -118,7 +118,7 @@ import { SpatialPanelLayer, type SpatialPanelSpec } from '../three/spatialPanels
 import { SpatialHudLayer } from '../three/spatialHud';
 import { PitchStage } from '../three/beats/PitchStage';
 import { equivalentLegacyFocalMm, pitchVerticalFovDeg } from '../three/beats/pitchStageLayout';
-import { hudBridge } from '../three/hudBridge';
+import { hudBridge, spatialHudPresentation } from '../three/hudBridge';
 
 // ---------------------------------------------------------------------------
 // CEREBRO-NOJARA D0 v1.24 — SECTION 2: THREE.JS RENDERER, MATERIALS, LIGHTS
@@ -1707,9 +1707,10 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     hud.onActivate = () => soundEngine.playNodeSelect(0);
     camera.add(hud.group);
     const syncHudFromBridge = () => {
-      const snapshot = hudBridge.get();
-      hud.setMenu(snapshot.menu);
-      hud.setDock(snapshot.dock);
+      const presentation = spatialHudPresentation();
+      hud.setMenu(presentation.menu);
+      hud.setDock(presentation.dock);
+      hud.group.visible = !cinematicRef.current && !hudBridge.get().keyboardControls;
     };
     const unsubscribeHud = hudBridge.subscribe(syncHudFromBridge);
     syncHudFromBridge();
@@ -4187,7 +4188,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         camera.updateMatrixWorld();
       }
 
-      hud.group.visible = !cinematicRef.current;
+      hud.group.visible = !cinematicRef.current && !hudBridge.get().keyboardControls;
       hud.update(dt, curW, curH);
 
       if (bokehPass) {
@@ -4458,7 +4459,9 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         : (
           <div className="cerebro-spatial-fallback" data-testid="spatial-panels-fallback">
             {spatialPanels.map((panel) => (
-              <div key={panel.id} className="cerebro-spatial-panel" data-lod="full">
+              <div key={panel.id} className="cerebro-spatial-panel" data-lod="full"
+                inert={Boolean(panel.suspended)} aria-hidden={panel.suspended || undefined}
+                style={panel.suspended ? { display: 'none' } : undefined}>
                 {panel.content}
               </div>
             ))}
@@ -4466,7 +4469,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         )}
 
       {/* Reduced-Graphics Spatial View Fallback when WebGL is unavailable or forced for diagnostics */}
-      {showReducedGraphicsFallback && (
+      {showReducedGraphicsFallback && spatialPanels.length === 0 && (
         <div
           data-testid="reduced-graphics-fallback"
           className="fixed top-20 bottom-36 left-3 right-3 md:left-6 md:right-6 z-(--z-stage-caption) flex items-center justify-center pointer-events-none"

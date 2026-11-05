@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 
 export type HudDockButtonId = 'call' | 'hands' | 'chat' | 'nodes';
 
@@ -42,13 +42,22 @@ type HudState = {
   dock: HudDockSpec | null;
   /** True while the WebGL canvas owns the HUD; false means DOM fallbacks must render. */
   active: boolean;
+  keyboardControls: boolean;
 };
 
-let state: HudState = { menu: null, dock: null, active: false };
+let state: HudState = { menu: null, dock: null, active: false, keyboardControls: false };
 const listeners = new Set<() => void>();
 
 function emit(): void {
   for (const listener of listeners) listener();
+}
+
+/** One rendered control set at a time; original callbacks stay available to the DOM. */
+export function spatialHudPresentation(snapshot = state) {
+  return {
+    menu: snapshot.keyboardControls ? null : snapshot.menu,
+    dock: snapshot.keyboardControls ? null : snapshot.dock,
+  };
 }
 
 /**
@@ -76,8 +85,31 @@ export const hudBridge = {
     state = { ...state, active };
     emit();
   },
+  setKeyboardControls(keyboardControls: boolean): void {
+    if (state.keyboardControls === keyboardControls) return;
+    state = { ...state, keyboardControls };
+    emit();
+  },
 };
 
 export function useSpatialHudActive(): boolean {
-  return useSyncExternalStore(hudBridge.subscribe, () => hudBridge.get().active, () => false);
+  return useSyncExternalStore(hudBridge.subscribe, () => state.active && !state.keyboardControls, () => false);
+}
+
+/** Reveal real DOM controls for keyboard/assistive focus; never leave focus on a clipped mirror. */
+export function useSpatialHudInputMode(): void {
+  useEffect(() => {
+    const isControl = (target: EventTarget | null) => target instanceof Element && Boolean(target.closest('[data-hud-keyboard-control]'));
+    const key = (event: KeyboardEvent) => { if (event.key === 'Tab') hudBridge.setKeyboardControls(true); };
+    const focus = (event: FocusEvent) => { if (isControl(event.target)) hudBridge.setKeyboardControls(true); };
+    const pointer = (event: PointerEvent) => { if (!isControl(event.target)) hudBridge.setKeyboardControls(false); };
+    window.addEventListener('keydown', key, true);
+    window.addEventListener('focusin', focus);
+    window.addEventListener('pointerdown', pointer, true);
+    return () => {
+      window.removeEventListener('keydown', key, true);
+      window.removeEventListener('focusin', focus);
+      window.removeEventListener('pointerdown', pointer, true);
+    };
+  }, []);
 }

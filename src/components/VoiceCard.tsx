@@ -256,6 +256,26 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   }, []);
   useEffect(() => { void checkVoiceConfiguration(); }, [checkVoiceConfiguration]);
   const [chatOpen, setChatOpen] = useState(false);
+  const voiceSheetOpen = chatOpen || voiceAccessOpen || voiceRecoveryOpen;
+  const closeVoiceSheet = useCallback(() => {
+    setChatOpen(false); setVoiceAccessOpen(false); setVoiceRecoveryOpen(false);
+  }, []);
+  const toggleChat = useCallback(() => {
+    setVoiceAccessOpen(false); setVoiceRecoveryOpen(false); setChatOpen(open => !open);
+  }, []);
+  useEffect(() => {
+    window.addEventListener('cerebro:close-voice-sheet', closeVoiceSheet);
+    return () => window.removeEventListener('cerebro:close-voice-sheet', closeVoiceSheet);
+  }, [closeVoiceSheet]);
+  useEffect(() => {
+    if (!voiceSheetOpen) return;
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault(); event.stopImmediatePropagation(); closeVoiceSheet();
+    };
+    window.addEventListener('keydown', escape, true);
+    return () => window.removeEventListener('keydown', escape, true);
+  }, [voiceSheetOpen, closeVoiceSheet]);
   useEffect(() => {
     const open = () => { setVoiceRecoveryMessage(null); setVoiceAccessOpen(false); setChatOpen(false); setVoiceRecoveryOpen(true); };
     window.addEventListener('cerebro:voice-controls', open);
@@ -292,8 +312,8 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
   }, [onVoiceExpandedChange, onVoiceDragDeltaChange]);
 
   useEffect(() => {
-    onVoiceSheetExpandedChange?.(chatOpen);
-  }, [chatOpen, onVoiceSheetExpandedChange]);
+    onVoiceSheetExpandedChange?.(voiceSheetOpen);
+  }, [voiceSheetOpen, onVoiceSheetExpandedChange]);
 
   useEffect(() => {
     const bridge = createVoiceBridge({
@@ -404,7 +424,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     }
     if (CEREBRO_VOICE_PROVIDER === 'openai-realtime') {
       const configured = await checkVoiceConfiguration();
-      if (!configured || !ownerUnlocked) { setVoiceAccessOpen(true); return; }
+      if (!configured || !ownerUnlocked) { setChatOpen(false); setVoiceRecoveryOpen(false); setVoiceAccessOpen(true); return; }
     }
     setVoiceAccessOpen(false);
     setVoiceRecoveryOpen(false);
@@ -431,7 +451,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     }
   }, [chatOpen]);
 
-  useKeyboardInsetVars(chatOpen);
+  useKeyboardInsetVars(voiceSheetOpen);
 
   const send = useCallback(async () => {
     const text = draft.trim();
@@ -555,7 +575,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     buttons: [
       { id: 'call', label: callLabel, active: voiceLive, onSelect: () => void handleCall() },
       { id: 'hands', label: handsLabel, active: handsActive, onSelect: onToggleHands },
-      { id: 'chat', label: chatLabel, active: chatOpen, onSelect: () => setChatOpen((v) => !v) },
+      { id: 'chat', label: chatLabel, active: chatOpen, onSelect: toggleChat },
       ...(onOpenNodes
         ? [{ id: 'nodes' as const, label: 'Nodes', active: Boolean(nodesOpen), onSelect: onOpenNodes }]
         : []),
@@ -750,6 +770,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
       <div
         className={`cerebro-dock__capsule${hudActive ? ' cerebro-dock__capsule--mirror' : ''}`}
         role="toolbar"
+        data-hud-keyboard-control="true"
         aria-label="Cerebro controls: Call, Hands, Chat, Nodes"
       >
         <p className="cerebro-dock__status" aria-live="polite">
@@ -787,7 +808,7 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
             data-active={chatOpen ? 'true' : 'false'}
             aria-pressed={chatOpen}
             aria-label={chatLabel}
-            onClick={() => setChatOpen((v) => !v)}
+            onClick={toggleChat}
           >
             <IconChat active={chatOpen} />
             <span>{chatLabel}</span>

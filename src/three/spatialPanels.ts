@@ -11,9 +11,11 @@ export type SpatialPanelSpec = {
   /** Panels sharing a node sit side by side; slot 0 is closest to the node. */
   slot: number;
   content: ReactNode;
+  /** Preserve the React tree while a foreground surface owns input. */
+  suspended?: boolean;
 };
 
-export type SpatialPanelLayout = Pick<SpatialPanelSpec, 'id' | 'nodeId' | 'sphere' | 'slot'>;
+export type SpatialPanelLayout = Pick<SpatialPanelSpec, 'id' | 'nodeId' | 'sphere' | 'slot' | 'suspended'>;
 
 /** Camera distance (scene units) at which the detailed card is fully shown. */
 export const PANEL_FULL_DISTANCE = 11;
@@ -107,6 +109,15 @@ export class SpatialPanelLayer {
     for (const spec of specs) {
       const state = this.panels.get(spec.id);
       if (!state) continue;
+      state.host.inert = Boolean(spec.suspended);
+      state.object.visible = !spec.suspended;
+      if (spec.suspended) {
+        state.host.setAttribute('aria-hidden', 'true');
+        state.host.style.pointerEvents = 'none';
+        continue;
+      }
+      state.host.removeAttribute('aria-hidden');
+      state.host.style.display = '';
       const w = state.host.offsetWidth || 280;
       const h = state.host.offsetHeight || 200;
 

@@ -762,7 +762,7 @@ export class SpatialHudLayer {
   }
 
   hitTest(clientX: number, clientY: number): HudHit | null {
-    if (!this.hasInteractiveSurface) return null;
+    if (!this.group.visible || !this.hasInteractiveSurface) return null;
     const rect = this.domElement.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return null;
     this.ndc.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);

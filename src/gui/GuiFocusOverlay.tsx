@@ -190,20 +190,6 @@ export const GuiFocusOverlay: React.FC<GuiFocusOverlayProps> = ({
           )}
         </svg>
 
-        {/* Short Label Chip on Projected 3D Target (S02 / S03 / S04) */}
-        {projectedTarget && projectedTarget.visible && (
-          <div
-            className="cj-glass-card absolute -translate-x-1/2 pointer-events-none px-2.5 py-1 rounded-md text-[12px] font-mono tracking-wider uppercase text-[#F2F6F8] cerebro-stellar-glass"
-            style={{
-              left: `${Math.max(64, Math.min(viewportW - 64, projectedTarget.x))}px`,
-              top: `${Math.max(64, projectedTarget.y - 38)}px`,
-            }}
-          >
-            {isCameraInFlight && flightDestinationTitle
-              ? `→ ${flightDestinationTitle}`
-              : projectedTarget.label}
-          </div>
-        )}
       </div>
 
       {/* S09 Return / Resume Camera Bookmark Chip (Ambient HUD layer z-10) */}
