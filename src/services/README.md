@@ -125,3 +125,14 @@ Errors open a recovery card on mobile and desktop. Settings → Microphone contr
 Reset microphone disconnects the call and releases this tab's mic, invalidating pending acquisitions
 so a late permission grant cannot revive a stale stream or overwrite the replacement call's lease.
 It preserves the camera. Tap Call to request a new session; reset never enables the microphone itself.
+
+## OpenAI account and service errors
+
+Chat and Voice share `openai-errors.ts`. Upstream error codes are mapped to safe, specific categories:
+depleted credits, project/organization spend limits, approved usage limits, temporary rate limits,
+configuration errors, or service failures. An opaque 429 stays an unspecified limit; it does not prove
+that billing is exhausted. Provider messages, credentials and private account identifiers are discarded.
+`Retry-After` is preserved and the voice UI blocks calls until that delay expires. Account/configuration
+failures require an explicit Recheck connection action; none of these failures invalidate owner access.
+Only microphone errors show Reset microphone. Account failures link to the OpenAI dashboard instead.
+These diagnostics identify the next live rejection; configuration readiness does not test account balance.

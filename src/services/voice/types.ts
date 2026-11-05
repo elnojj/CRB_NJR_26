@@ -1,9 +1,11 @@
+import type { OpenAiFailure } from '../openai-errors';
+
 export type VoiceBridgeState =
   | 'Ready' | 'Connecting' | 'Listening' | 'Thinking' | 'Speaking'
   | 'Muted' | 'Reconnecting' | 'Disconnected' | 'Error';
 
 export interface VoiceBridgeCallbacks {
-  onStatusChange: (status: VoiceBridgeState, detail?: string) => void;
+  onStatusChange: (status: VoiceBridgeState, detail?: string, failure?: OpenAiFailure) => void;
   onTranscript: (role: 'user' | 'agent', text: string) => void;
   onClientToolCall: (
     toolName: string,

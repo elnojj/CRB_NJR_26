@@ -10,6 +10,7 @@ import {
   releaseSharedMicrophoneStream,
 } from '../media/deviceStreamCoordinator';
 import type { VoiceBridge, VoiceBridgeCallbacks, VoiceBridgeState } from '../voice/types';
+import { describeOpenAiFailure, parseOpenAiFailure, type OpenAiFailure } from '../openai-errors';
 
 type FunctionCall = { type: string; call_id?: string; name?: string; arguments?: string };
 type RealtimeEvent = {
@@ -18,8 +19,8 @@ type RealtimeEvent = {
   content_index?: number;
   transcript?: string;
   text?: string;
-  response?: { status?: string; output?: FunctionCall[] };
-  error?: { message?: string; code?: string };
+  response?: { status?: string; output?: FunctionCall[]; status_details?: { error?: { code?: string; type?: string } } };
+  error?: { message?: string; code?: string; type?: string };
 };
 type Session = {
   pc: RTCPeerConnection;
@@ -227,6 +228,8 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
       if (!this.current(session)) return;
       if (!response.ok) {
         const body = await response.json().catch(() => null) as { error?: string } | null;
+        const failure = parseOpenAiFailure(body);
+        if (failure) { this.fail(session, failure.error, failure); return; }
         throw new Error(body?.error || `OpenAI Voice could not start (${response.status}). Tap Call to retry.`);
       }
       const answer = await response.text();
@@ -313,7 +316,8 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
       case 'response.done': {
         session.responding = false;
         if (event.response?.status === 'failed') {
-          this.fail(session, 'OpenAI Voice response failed. Check model access and quota, then reconnect.');
+          const failure = describeOpenAiFailure(0, event.response.status_details?.error);
+          this.fail(session, failure.error, failure);
           return;
         }
         if (event.response?.status !== 'completed') return;
@@ -336,7 +340,7 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
       case 'error':
         // Cancelling already-finished audio is harmless and can race response.done.
         if (event.error?.code === 'response_cancel_not_active') return;
-        this.fail(session, 'OpenAI Voice session error. Check model access and reconnect.');
+        { const failure = describeOpenAiFailure(0, event.error); this.fail(session, failure.error, failure); }
         break;
     }
   }
@@ -454,11 +458,11 @@ export class OpenAiRealtimeVoiceBridge implements VoiceBridge {
     release(() => this.callbacks.onAudioLevel?.(0));
   }
 
-  private fail(session: Session, detail: string): void {
+  private fail(session: Session, detail: string, failure?: OpenAiFailure): void {
     if (!this.current(session)) return;
     this.cleanup(session);
     this.session = null;
-    this.callbacks.onStatusChange('Error', detail);
+    this.callbacks.onStatusChange('Error', detail, failure);
   }
 
   async retry(): Promise<void> {

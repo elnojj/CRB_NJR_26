@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { createOwnerAccessVerifier } from './ownerAccess';
 import { readOpenAiRealtimeServerSettings } from './settings';
 import { buildOpenAiRealtimeSession } from '../sessionConfig';
+import { readOpenAiFailure } from '../../openai-errors';
 
 type Options = {
   env?: NodeJS.ProcessEnv;
@@ -59,12 +60,9 @@ export function createOpenAiRealtimeHandler(options: Options = {}) {
       });
       if (cancelled.signal.aborted) return;
       if (!upstream.ok) {
-        // Never relay provider error bodies, tokens or server configuration to the client.
-        res.status(upstream.status === 429 ? 429 : 502).json({
-          error: upstream.status === 429
-            ? 'OpenAI Voice is busy or its quota is exhausted. Try again shortly.'
-            : 'OpenAI Voice could not start. Check the server key and Realtime model access.',
-        });
+        const failure = await readOpenAiFailure(upstream);
+        if (failure.retryAfterSeconds) res.setHeader('Retry-After', String(failure.retryAfterSeconds));
+        res.status(upstream.status === 429 ? 429 : 502).json(failure);
         return;
       }
       const answer = await upstream.text();
