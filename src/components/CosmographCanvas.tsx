@@ -119,6 +119,7 @@ import { SpatialHudLayer } from '../three/spatialHud';
 import { PitchStage } from '../three/beats/PitchStage';
 import { equivalentLegacyFocalMm, pitchVerticalFovDeg } from '../three/beats/pitchStageLayout';
 import { hudBridge, spatialHudPresentation } from '../three/hudBridge';
+import { presentFrame } from '../three/framePresentation';
 
 // ---------------------------------------------------------------------------
 // CEREBRO-NOJARA D0 v1.24 — SECTION 2: THREE.JS RENDERER, MATERIALS, LIGHTS
@@ -135,7 +136,7 @@ export function setupRenderer(canvas: HTMLCanvasElement): THREE.WebGLRenderer {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = AgX;
   renderer.toneMappingExposure = 1.05;
-  renderer.setClearColor(0x101d27, 1);
+  renderer.setClearColor(SCENE_VOID_HEX, 1);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1576,13 +1577,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         // The composer renders into its own multisampled target on a real GPU, so the canvas
         // itself only needs antialiasing on desktop; tablets and phones save the memory.
         antialias: !isSoftwareGl && deviceProfile.tier === 'desktop',
-        alpha: true,
+        alpha: false,
         powerPreference: 'high-performance',
         preserveDrawingBuffer: deviceProfile.preserveDrawingBuffer,
       },
       {
         antialias: false,
-        alpha: true,
+        alpha: false,
         powerPreference: 'default',
         preserveDrawingBuffer: false,
       },
@@ -1625,6 +1626,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     renderer.setClearColor(voidColor, 1);
     renderer.setPixelRatio(resolutionGovernor.pixelRatio);
     renderer.setSize(initW, initH);
+    renderer.clear();
     renderer.shadowMap.enabled = !isSoftwareGl;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -4196,19 +4198,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
           camera.position.distanceTo(_dofFocusPoint)
         ).focus;
       }
-      if (isSoftwareGl || !composer) {
-        renderer.render(scene, camera);
-      } else {
-        composer.render();
-      }
-
-      if (!isSoftwareGl) {
-        const nextRatio = resolutionGovernor.sample(rawFrameMs, now);
-        if (nextRatio !== null) {
-          renderer.setPixelRatio(nextRatio);
-          composer?.setPixelRatio(nextRatio);
-        }
-      }
+      presentFrame(renderer, scene, camera,
+        isSoftwareGl ? null : resolutionGovernor.sample(rawFrameMs, now), composer);
 
       panelLayer.update(
         camera,

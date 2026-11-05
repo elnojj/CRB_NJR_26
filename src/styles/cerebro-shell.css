@@ -1,6 +1,6 @@
 /* Local brand fonts when present; otherwise fall back to loaded NOJARA stack (Sora / Cairo). */
 @font-face{font-family:Jaapokki;src:url('/assets/fonts/JaapokkiSubtract-Regular.otf') format('opentype');font-weight:400;font-display:swap}
-:root{font-family:Jaapokki,Sora,"IBM Plex Sans Arabic",Cairo,sans-serif;font-synthesis:none;color:#F2F6F8;background:#03060C;color-scheme:dark;--paper:#F2F6F8;--ice:#B4DDFF;--canvas:#0B1520;--ink:#03060C;--deep:#071018;--secondary:#D0DCE3}
+:root{font-family:Jaapokki,Sora,"IBM Plex Sans Arabic",Cairo,sans-serif;font-synthesis:none;color:#F2F6F8;background:var(--scene-void,#050505);color-scheme:dark;--paper:#F2F6F8;--ice:#B4DDFF;--canvas:#0B1520;--ink:#03060C;--deep:#071018;--secondary:#D0DCE3}
 *{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{color:inherit;cursor:pointer;min-height:44px}button:focus-visible,input:focus-visible{outline:2px solid #65ACFF;outline-offset:5px}button:disabled{cursor:wait;opacity:.55}
 .intro-shell{height:100svh;display:grid;place-items:center;overflow:hidden;background:
   radial-gradient(120% 80% at 50% 38%, rgba(101,172,255,.22) 0%, transparent 46%),

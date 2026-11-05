@@ -64,6 +64,7 @@ async function main(): Promise<void> {
     ['microphoneRecovery', 'src/services/media/microphoneRecovery.test.ts'],
     ['hudBridge', 'src/three/hudBridge.test.ts'],
     ['overlayOwnership', 'src/components/overlayOwnership.test.ts'],
+    ['framePresentation', 'src/three/framePresentation.test.ts'],
     ['glassFallback', 'src/three/glassFallback.test.ts'],
     ['hudLayout', 'src/three/hudLayout.test.ts'],
     ['browserEngine', 'src/lib/browserEngine.test.ts'],
