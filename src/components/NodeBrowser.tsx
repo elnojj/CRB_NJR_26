@@ -143,14 +143,12 @@ export const NodeContentCard: React.FC<NodeContentCardProps> = ({ content, onClo
   return (
     <section className="cerebro-node-card" data-testid="node-content-card" aria-label={`${content.title} contents`}>
       <header>
-        <div>
-          <span className="cerebro-node-card__kind">{content.kindLabel}</span>
-          <h3>{content.title}</h3>
-        </div>
+        <span className="cerebro-node-card__kind">{content.kindLabel}</span>
         <button type="button" onClick={onClose} aria-label="Dismiss node details" data-testid="node-card-close">
-          ×
+          ✕
         </button>
       </header>
+      <h3>{content.title}</h3>
       {strip.length > 0 && (
         <div className="cerebro-node-card__strip" data-detail="true">
           {strip.map((thumb, idx) => (
