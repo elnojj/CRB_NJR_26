@@ -20,6 +20,8 @@ import { observeOwnerAccess, unlockOwnerAccess, lockOwnerAccess, restoreOwnerAcc
 import { forceStopSharedMicrophoneStream } from '../services/media/deviceStreamCoordinator';
 import { openAiRetryBlock, type OpenAiFailure } from '../services/openai-errors';
 import { VoiceRecovery } from './VoiceRecovery';
+import type { VoiceBridgeCallbacks } from '../services/voice/types';
+import { forwardVoiceCallbacks } from '../services/voice/liveCallbacks';
 
 export type VoiceState = VoiceBridgeState | 'Idle';
 
@@ -326,92 +328,58 @@ export const VoiceCard: React.FC<VoiceCardProps> = ({
     onVoiceSheetExpandedChange?.(voiceSheetOpen);
   }, [voiceSheetOpen, onVoiceSheetExpandedChange]);
 
+  const bridgeCallbacks: VoiceBridgeCallbacks = {
+    onStatusChange: (status, detail, failure) => {
+      setBridgeStatus(status);
+      onVoiceStateChangeRef.current?.(status);
+      if (detail) setBridgeDetail(detail);
+      setVoiceRecoveryMessage(null);
+      if (status === 'Error') {
+        setVoiceFailure(failure ?? null);
+        voiceRetryAtRef.current = Date.now() + (failure?.retryAfterSeconds ?? 0) * 1000;
+      } else if (status === 'Connecting' || status === 'Listening') {
+        setVoiceFailure(null);
+      }
+      if (status === 'Error' || (status === 'Muted' && /Microphone unavailable/.test(detail || ''))) {
+        setChatOpen(false); setVoiceAccessOpen(false); setVoiceRecoveryOpen(true);
+      }
+      if (status === 'Error' && !failure && /owner (?:access|session)|owner.*code/i.test(detail || '')) {
+        invalidateOwnerAccess();
+        setVoiceAccessError(detail || 'Unlock owner access again.');
+        setVoiceAccessOpen(true);
+        setVoiceRecoveryOpen(false);
+      }
+    },
+    onTranscript: (role, text) => {
+      if (role === 'user') {
+        const isLive = bridgeRef.current?.isLiveWebSocketOpen?.() ?? false;
+        onSimulateCommand(isLive ? `__user_voice_live__:${text}` : `__user_voice__:${text}`);
+      } else {
+        onSimulateCommand(`__agent_reply__:${text}`);
+      }
+    },
+    onClientToolCall: async (toolName, parameters) => {
+      if (onExecuteToolCall) {
+        return await onExecuteToolCall(toolName, parameters || {});
+      }
+      return JSON.stringify({ ok: false, error: 'Cerebro UI tool executor unavailable.' });
+    },
+    onAudioLevel: (rms) => {
+      bridgeRmsRef.current = rms;
+      onAudioLevelRef.current?.(rms);
+    },
+  };
+  const bridgeCallbacksRef = useRef(bridgeCallbacks);
+  bridgeCallbacksRef.current = bridgeCallbacks;
+
   useEffect(() => {
-    const bridge = createVoiceBridge({
-      onStatusChange: (status, detail, failure) => {
-        setBridgeStatus(status);
-        onVoiceStateChangeRef.current?.(status);
-        if (detail) setBridgeDetail(detail);
-        setVoiceRecoveryMessage(null);
-        if (status === 'Error') {
-          setVoiceFailure(failure ?? null);
-          voiceRetryAtRef.current = Date.now() + (failure?.retryAfterSeconds ?? 0) * 1000;
-        } else if (status === 'Connecting' || status === 'Listening') {
-          setVoiceFailure(null);
-        }
-        if (status === 'Error' || (status === 'Muted' && /Microphone unavailable/.test(detail || ''))) {
-          setChatOpen(false); setVoiceAccessOpen(false); setVoiceRecoveryOpen(true);
-        }
-        if (status === 'Error' && !failure && /owner (?:access|session)|owner.*code/i.test(detail || '')) {
-          invalidateOwnerAccess();
-          setVoiceAccessError(detail || 'Unlock owner access again.');
-          setVoiceAccessOpen(true);
-          setVoiceRecoveryOpen(false);
-        }
-      },
-      onTranscript: (role, text) => {
-        if (role === 'user') {
-          const isLive = bridgeRef.current?.isLiveWebSocketOpen?.() ?? false;
-          onSimulateCommand(isLive ? `__user_voice_live__:${text}` : `__user_voice__:${text}`);
-        } else {
-          onSimulateCommand(`__agent_reply__:${text}`);
-        }
-      },
-      onClientToolCall: async (toolName, parameters) => {
-        if (onExecuteToolCall) {
-          return await onExecuteToolCall(toolName, parameters || {});
-        }
-        return JSON.stringify({ ok: false, error: 'Cerebro UI tool executor unavailable.' });
-      },
-      onAudioLevel: (rms) => {
-        bridgeRmsRef.current = rms;
-        onAudioLevelRef.current?.(rms);
-      },
-    });
+    const bridge = createVoiceBridge(forwardVoiceCallbacks(bridgeCallbacksRef));
     bridgeRef.current = bridge;
     return () => {
       bridge.disconnect();
       bridgeRef.current = null;
     };
   }, []);
-
-  useEffect(() => {
-    bridgeRef.current?.updateCallbacks({
-      onStatusChange: (status, detail) => {
-        setBridgeStatus(status);
-        onVoiceStateChangeRef.current?.(status);
-        if (detail) setBridgeDetail(detail);
-        setVoiceRecoveryMessage(null);
-        if (status === 'Error' || (status === 'Muted' && /Microphone unavailable/.test(detail || ''))) {
-          setChatOpen(false); setVoiceAccessOpen(false); setVoiceRecoveryOpen(true);
-        }
-        if (status === 'Error' && /owner (?:access|session)|owner.*code/i.test(detail || '')) {
-          invalidateOwnerAccess();
-          setVoiceAccessError(detail || 'Unlock owner access again.');
-          setVoiceAccessOpen(true);
-          setVoiceRecoveryOpen(false);
-        }
-      },
-      onTranscript: (role, text) => {
-        if (role === 'user') {
-          const isLive = bridgeRef.current?.isLiveWebSocketOpen?.() ?? false;
-          onSimulateCommand(isLive ? `__user_voice_live__:${text}` : `__user_voice__:${text}`);
-        } else {
-          onSimulateCommand(`__agent_reply__:${text}`);
-        }
-      },
-      onClientToolCall: async (toolName, parameters) => {
-        if (onExecuteToolCall) {
-          return await onExecuteToolCall(toolName, parameters || {});
-        }
-        return JSON.stringify({ ok: false, error: 'Cerebro UI tool executor unavailable.' });
-      },
-      onAudioLevel: (rms) => {
-        bridgeRmsRef.current = rms;
-        onAudioLevelRef.current?.(rms);
-      },
-    });
-  }, [onSimulateCommand, onExecuteToolCall]);
 
   useEffect(() => {
     if (contextualUpdateJson) {

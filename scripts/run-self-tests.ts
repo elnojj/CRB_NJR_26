@@ -68,6 +68,7 @@ async function main(): Promise<void> {
     ['rememberedAccessAndChat', 'src/services/chat/chat.test.ts'],
     ['openaiProviderErrors', 'src/services/openai-errors.test.ts'],
     ['voiceRecovery', 'src/components/VoiceRecovery.test.ts'],
+    ['liveVoiceCallbacks', 'src/services/voice/liveCallbacks.test.ts'],
     ['glassFallback', 'src/three/glassFallback.test.ts'],
     ['hudLayout', 'src/three/hudLayout.test.ts'],
     ['browserEngine', 'src/lib/browserEngine.test.ts'],
