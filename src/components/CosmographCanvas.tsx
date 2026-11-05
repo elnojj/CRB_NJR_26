@@ -51,8 +51,6 @@ import { ProjectedTargetScreenCoords } from '../gui/GuiFocusOverlay';
 import {
   patchFresnelRimOnOpaqueFragment,
   createResizeSnapshot,
-  readHomeComposition,
-  executeAtomicReframe,
   IDLE_MS,
 } from '../three/camera/CameraDirector';
 import { SPHERE_SHOTS, STATION_SHOTS } from '../data/shotMediaCatalog';
@@ -83,6 +81,8 @@ import { handIsFresh, handStateRef, type HandDetectionMode } from '../three/hand
 import { IntentJitterGate, handInteractionMachine, splineJourney } from '../three/camera/CameraDirector';
 import type { JourneyBeat } from '../three/camera/journeyConfig';
 import { applyBoundingSphereRepulsion, OrbitSpringRig } from '../three/camera/orbitalSolver';
+import { OrbitPointerTracker } from '../three/camera/orbitPointerTracker';
+import { resizeCameraViewport } from '../three/camera/viewport';
 import { CONTRACT_ORBITAL_SOLVER, CONTRACT_SHELL_MATERIAL } from '../design/systemContract';
 import {
   CAMERA_MOTION_TARGETS,
@@ -3186,27 +3186,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
 
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
-    const activePointers = new Map<number, { x: number; y: number }>();
-    let lastPinchDist: number | null = null;
-    let lastTwoFingerMid: { x: number; y: number } | null = null;
-    let isDragging = false;
-    let dragMoved = false;
-    let downX = 0;
-    let downY = 0;
-    let lastX = 0;
-    let lastY = 0;
-
-    const getTwoFingerState = (): { dist: number; midX: number; midY: number } | null => {
-      if (activePointers.size < 2) return null;
-      const pts = Array.from(activePointers.values());
-      const dx = pts[0].x - pts[1].x;
-      const dy = pts[0].y - pts[1].y;
-      return {
-        dist: Math.hypot(dx, dy),
-        midX: (pts[0].x + pts[1].x) * 0.5,
-        midY: (pts[0].y + pts[1].y) * 0.5,
-      };
-    };
+    const pointerGestures = new OrbitPointerTracker();
 
     const findHitNode = (clientX: number, clientY: number) => {
       const rect = domEl.getBoundingClientRect();
@@ -3294,88 +3274,35 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       }
     };
 
+    const resetPointerGesture = () => {
+      pointerGestures.reset();
+      domEl.style.cursor = 'grab';
+      setTouchIndicator((prev) => ({ ...prev, active: false }));
+    };
+
     const onPointerDown = (e: PointerEvent) => {
-      if (!container.contains(e.target as Node)) return;
-      if (!pointerOrbitEnabledRef.current) {
-        // Hand tracking arbitration — ignore orbit-drag while MediaPipe owns camera.
-        return;
-      }
+      if (!container.contains(e.target as Node) || !pointerOrbitEnabledRef.current) return;
       soundEngine.unlock();
-      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      if (activePointers.size === 2) {
-        const tf = getTwoFingerState();
-        lastPinchDist = tf ? tf.dist : null;
-        lastTwoFingerMid = tf ? { x: tf.midX, y: tf.midY } : null;
-        dragMoved = true;
-        callbacksRef.current.onUserTouchPauseTour();
-        setTouchIndicator({ active: true, x: e.clientX, y: e.clientY, mode: 'pinch' });
-        return;
-      }
-      isDragging = true;
-      dragMoved = false;
-      downX = e.clientX;
-      downY = e.clientY;
-      lastX = e.clientX;
-      lastY = e.clientY;
+      pointerGestures.begin(e.pointerId, e.clientX, e.clientY);
+      domEl.setPointerCapture?.(e.pointerId);
+      if (pointerGestures.size > 1) callbacksRef.current.onUserTouchPauseTour();
       domEl.style.cursor = 'grabbing';
-      setTouchIndicator({ active: true, x: e.clientX, y: e.clientY, mode: 'touch' });
+      setTouchIndicator({ active: true, x: e.clientX, y: e.clientY, mode: pointerGestures.size > 1 ? 'pinch' : 'touch' });
     };
 
     const onPointerMove = (e: PointerEvent) => {
-      if (!isDragging && activePointers.size < 2) {
+      if (pointerGestures.size === 0) {
         const hudHit = hud.handlePointerMove(e);
         if (hudHit) {
           domEl.style.cursor = hudHit.zone === 'menu-item' || hudHit.zone === 'menu-close' || hudHit.zone === 'dock-button' ? 'pointer' : 'default';
           return;
         }
       }
-      if (!pointerOrbitEnabledRef.current) return;
-      if (activePointers.has(e.pointerId)) {
-        activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      }
-
-      if (activePointers.size === 2) {
-        const tf = getTwoFingerState();
-        if (tf) {
-          const s = stateRef.current;
-          captureLiveCameraPose(s, camera);
-          s.stoppedExplicitly = false;
-
-          // Two-finger drag (pan)
-          if (lastTwoFingerMid !== null) {
-            const mdx = tf.midX - lastTwoFingerMid.x;
-            const mdy = tf.midY - lastTwoFingerMid.y;
-            if (Math.abs(mdx) > 0.1 || Math.abs(mdy) > 0.1) {
-              camera.getWorldDirection(_scratchForward);
-              _scratchRight.crossVectors(_scratchForward, camera.up).normalize();
-              _scratchUp.crossVectors(_scratchRight, _scratchForward).normalize();
-              s.targetPanOffset
-                .addScaledVector(_scratchRight, -mdx * 0.025)
-                .addScaledVector(_scratchUp, mdy * 0.025);
-              setTouchIndicator({ active: true, x: tf.midX, y: tf.midY, mode: 'pan' });
-            }
-          }
-
-          // Two-finger pinch-to-zoom (9.2u to 42u on iPad/touch)
-          if (lastPinchDist !== null) {
-            const distDelta = tf.dist - lastPinchDist;
-            if (Math.abs(distDelta) > 0.2) {
-              s.targetRadius = THREE.MathUtils.clamp(
-                s.targetRadius - distDelta * 0.045,
-                3.2,
-                42.0
-              );
-              setTouchIndicator({ active: true, x: tf.midX, y: tf.midY, mode: 'pinch' });
-            }
-          }
-
-          lastPinchDist = tf.dist;
-          lastTwoFingerMid = { x: tf.midX, y: tf.midY };
-        }
+      if (!pointerOrbitEnabledRef.current) {
+        if (pointerGestures.size > 0) resetPointerGesture();
         return;
       }
-
-      if (!isDragging) {
+      if (pointerGestures.size === 0) {
         if (e.target === domEl) {
           const hit = findHitNode(e.clientX, e.clientY);
           domEl.style.cursor = hit ? 'pointer' : 'grab';
@@ -3393,54 +3320,45 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         return;
       }
 
-      const distFromDown = Math.hypot(e.clientX - downX, e.clientY - downY);
-      if (!dragMoved && distFromDown > 7) {
-        dragMoved = true;
-        callbacksRef.current.onUserTouchPauseTour();
-      }
+      const delta = pointerGestures.move(e.pointerId, e.clientX, e.clientY);
+      if (!delta) return;
+      if (delta.started) callbacksRef.current.onUserTouchPauseTour();
+      recordUserInput();
+      interruptJourney();
+      const s = stateRef.current;
+      captureLiveCameraPose(s, camera);
+      s.autoOrbit = false;
+      s.stoppedExplicitly = false;
 
-      if (dragMoved) {
-        const dx = e.clientX - lastX;
-        const dy = e.clientY - lastY;
-        lastX = e.clientX;
-        lastY = e.clientY;
-
-        const s = stateRef.current;
-        captureLiveCameraPose(s, camera);
-        s.stoppedExplicitly = false;
-
-        if (e.shiftKey || e.buttons === 2 || e.buttons === 4) {
-          camera.getWorldDirection(_scratchForward);
-          _scratchRight.crossVectors(_scratchForward, camera.up).normalize();
-          _scratchUp.crossVectors(_scratchRight, _scratchForward).normalize();
+      if (delta.mode === 'pan-pinch' || e.shiftKey || e.buttons === 2 || e.buttons === 4) {
+        camera.getWorldDirection(_scratchForward);
+        _scratchRight.crossVectors(_scratchForward, camera.up).normalize();
+        _scratchUp.crossVectors(_scratchRight, _scratchForward).normalize();
+        if (delta.mode !== 'pan-pinch' || Math.abs(delta.dx) > 0.1 || Math.abs(delta.dy) > 0.1) {
           s.targetPanOffset
-            .addScaledVector(_scratchRight, -dx * 0.025)
-            .addScaledVector(_scratchUp, dy * 0.025);
-          setTouchIndicator({ active: true, x: e.clientX, y: e.clientY, mode: 'pan' });
-        } else {
-          s.targetAzimuth -= dx * 0.0068;
-          s.targetPolar = THREE.MathUtils.clamp(
-            s.targetPolar - dy * 0.0068,
-            0.12,
-            Math.PI - 0.12
-          );
-          setTouchIndicator({ active: true, x: e.clientX, y: e.clientY, mode: 'orbit-drag' });
+            .addScaledVector(_scratchRight, -delta.dx * 0.025)
+            .addScaledVector(_scratchUp, delta.dy * 0.025);
         }
+        if (delta.mode === 'pan-pinch' && Math.abs(delta.pinchDelta) > 0.2) {
+          s.targetRadius = THREE.MathUtils.clamp(s.targetRadius - delta.pinchDelta * 0.045, 3.2, 42.0);
+        }
+        setTouchIndicator({ active: true, x: delta.x, y: delta.y, mode: delta.pinchDelta !== 0 ? 'pinch' : 'pan' });
+      } else {
+        s.targetAzimuth -= delta.dx * 0.0068;
+        s.targetPolar = THREE.MathUtils.clamp(s.targetPolar - delta.dy * 0.0068, 0.12, Math.PI - 0.12);
+        setTouchIndicator({ active: true, x: delta.x, y: delta.y, mode: 'orbit-drag' });
       }
     };
 
     const onPointerUp = (e: PointerEvent) => {
-      activePointers.delete(e.pointerId);
-      if (activePointers.size < 2) {
-        lastPinchDist = null;
-        lastTwoFingerMid = null;
-      }
-      setTouchIndicator((prev) => ({ ...prev, active: false }));
-      if (!isDragging) return;
-      isDragging = false;
-      domEl.style.cursor = 'grab';
+      const previousCount = pointerGestures.size;
+      const tap = pointerGestures.end(e.pointerId, e.type !== 'pointerup');
+      if (pointerGestures.size < previousCount) recordUserInput();
+      if (domEl.hasPointerCapture?.(e.pointerId)) domEl.releasePointerCapture?.(e.pointerId);
+      setTouchIndicator((prev) => ({ ...prev, active: pointerGestures.size > 0 }));
+      domEl.style.cursor = pointerGestures.size > 0 ? 'grabbing' : 'grab';
 
-      if (!dragMoved && e.target === domEl) {
+      if (tap && e.target === domEl) {
         // First check if 3D Media Tube is active and a tile was clicked
         if (mediaTubeStateRef.current?.active && mediaTubeGroup.visible) {
           const rect = domEl.getBoundingClientRect();
@@ -3497,6 +3415,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       callbacksRef.current.onUserTouchPauseTour();
       const s = stateRef.current;
       captureLiveCameraPose(s, camera);
+      s.autoOrbit = false;
+      s.stoppedExplicitly = false;
       s.targetRadius = THREE.MathUtils.clamp(s.targetRadius + e.deltaY * 0.012, 3.2, 42.0);
       setTouchIndicator({ active: true, x: e.clientX, y: e.clientY, mode: 'pinch' });
       window.setTimeout(() => setTouchIndicator((prev) => ({ ...prev, active: false })), 350);
@@ -3511,6 +3431,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
     window.addEventListener('pointercancel', onPointerUp);
+    domEl.addEventListener('lostpointercapture', onPointerUp);
+    window.addEventListener('blur', resetPointerGesture);
     domEl.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('keydown', recordUserInput);
 
@@ -3523,8 +3445,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       // scene for it, otherwise the 3D view squishes and jumps while typing in the chat.
       if (isEditableTarget(document.activeElement) && w === lastCanvasW) return;
       lastCanvasW = w;
-      const comp = readHomeComposition(container);
-      executeAtomicReframe(camera, w, h, comp.occludedBottomPx);
+      resizeCameraViewport(camera, w, h);
       renderer.setSize(w, h);
       panelLayer.setSize(w, h);
       if (composer) {
@@ -3652,6 +3573,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       }
 
       // Hand pipeline: glove + spatial controls first (UI_INTERACT wins), then the camera intent.
+      if (!pointerOrbitEnabledRef.current && pointerGestures.size > 0) resetPointerGesture();
       const handState = handStateRef.current;
       const handsFresh = handsActiveRef.current && handIsFresh(now);
       glove.update(dt);
@@ -3754,8 +3676,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         if (
           !s.flightActive &&
           s.activeLoopMode === 'off' &&
-          !isDragging &&
-          activePointers.size < 2 &&
+          pointerGestures.size === 0 &&
           (isUserIdle || s.autoOrbit)
         ) {
           s.targetAzimuth += s.currentAngularVel * dt;
@@ -3766,8 +3687,7 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       if (
         !s.stoppedExplicitly &&
         !s.flightActive &&
-        !isDragging &&
-        activePointers.size < 2 &&
+        pointerGestures.size === 0 &&
         !s.reducedMotion &&
         s.activeLoopMode !== 'off'
       ) {
@@ -4338,6 +4258,8 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
+      domEl.removeEventListener('lostpointercapture', onPointerUp);
+      window.removeEventListener('blur', resetPointerGesture);
       domEl.removeEventListener('wheel', onWheel);
       window.removeEventListener('keydown', recordUserInput);
       window.removeEventListener('resize', onResize);

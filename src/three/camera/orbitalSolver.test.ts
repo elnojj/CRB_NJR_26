@@ -6,6 +6,7 @@ import {
   applyBoundingSphereRepulsion,
   CONTRACT_SPRING,
   createSpringChannel,
+  OrbitSpringRig,
 } from './orbitalSolver.ts';
 
 describe('orbital spring-damper solver (nojara.cerebro.system/2.0)', () => {
@@ -49,6 +50,55 @@ describe('orbital spring-damper solver (nojara.cerebro.system/2.0)', () => {
     const ch = createSpringChannel(0);
     advanceSprings([{ channel: ch, target: 1 }], 30, 0);
     assert.ok(ch.value < 1);
+  });
+});
+
+describe('rendered orbit cadence', () => {
+  const makePose = () => ({ azimuth: 0, polar: 1, radius: 20, targetAzimuth: 1, targetPolar: 1.3, targetRadius: 12 });
+
+  it('moves on every display frame at 90 and 120 Hz after the initial physics step', () => {
+    for (const fps of [90, 120]) {
+      const rig = new OrbitSpringRig();
+      const pose = makePose();
+      const deltas: number[] = [];
+      for (let i = 0; i < fps; i++) {
+        const previous = pose.azimuth;
+        rig.step(pose, 1 / fps);
+        if (i > 3) deltas.push(pose.azimuth - previous);
+      }
+      assert.ok(deltas.every((d) => d > 0), `${fps} Hz held a camera frame`);
+      for (let i = 1; i < deltas.length; i++) {
+        assert.ok(deltas[i] / deltas[i - 1] < 1.7, `${fps} Hz doubled a camera step`);
+      }
+    }
+  });
+
+  it('keeps the same motion across 30, 60 and 120 Hz presentation', () => {
+    const at = (fps: number) => {
+      const rig = new OrbitSpringRig();
+      const pose = makePose();
+      for (let i = 0; i < fps * 2; i++) rig.step(pose, 1 / fps);
+      return pose;
+    };
+    for (const fps of [30, 120]) {
+      assert.ok(Math.abs(at(fps).azimuth - at(60).azimuth) < 1e-8);
+      assert.ok(Math.abs(at(fps).radius - at(60).radius) < 1e-8);
+    }
+  });
+
+  it('drops old momentum when a scripted pose hands control back', () => {
+    const rig = new OrbitSpringRig();
+    const pose = makePose();
+    for (let i = 0; i < 40; i++) rig.step(pose, 1 / 120);
+    pose.azimuth = pose.targetAzimuth = -0.8;
+    pose.polar = pose.targetPolar = 0.7;
+    pose.radius = pose.targetRadius = 30;
+    for (let i = 0; i < 20; i++) {
+      rig.step(pose, 1 / 120);
+      assert.equal(pose.azimuth, -0.8);
+      assert.equal(pose.polar, 0.7);
+      assert.equal(pose.radius, 30);
+    }
   });
 });
 
