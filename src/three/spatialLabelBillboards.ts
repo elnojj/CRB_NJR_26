@@ -1,9 +1,9 @@
 /**
- * Spatial 3D label billboards — canvas-textured sprites that face the camera
- * and auto depth-sort with the WebGL scene (replaces dense HTML pill overlays).
- * Back-face occlusion + distance LOD + screen-space collision (min 28px).
+ * One focused node card drawn as a camera-facing WebGL sprite.
+ * One detailed target, camera-space depth/frustum/occlusion checks, and pixel-space safe-area placement.
  */
 import * as THREE from 'three';
+import { placeCallout, projectCalloutAnchor, selectCallout, type CalloutRect, type CalloutSphere } from './calloutLayout';
 
 export type SpatialBillboardSpec = {
   id: string;
@@ -13,25 +13,16 @@ export type SpatialBillboardSpec = {
   meta?: string;
   colour: string;
   worldPos: THREE.Vector3;
-  /** Sphere / cluster center used for back-face occlusion. */
-  sphereCenter?: THREE.Vector3;
   focused?: boolean;
+  priority?: number;
+  ownerSphereId?: string;
+  target?: THREE.Object3D;
 };
 
 type SpriteEntry = {
   sprite: THREE.Sprite;
   fingerprint: string;
 };
-
-const _toCam = new THREE.Vector3();
-const _outward = new THREE.Vector3();
-const _projected = new THREE.Vector3();
-
-const MIN_LABEL_GAP_PX = 28;
-/** Label width as a share of the view height (about 210px on a 768px-tall iPad). */
-const LABEL_VIEW_SHARE = 0.28;
-/** Beyond this camera distance, hide secondary metadata (LOD). */
-const MACRO_DIST = 14;
 
 const CARD_COBALT = '#0050FF';
 const CARD_PAD_X = 20;
@@ -135,17 +126,6 @@ function roundRect(
   ctx.closePath();
 }
 
-function isFrontFacing(
-  worldPos: THREE.Vector3,
-  sphereCenter: THREE.Vector3 | undefined,
-  camera: THREE.Camera
-): boolean {
-  if (!sphereCenter) return true;
-  _toCam.copy(camera.position).sub(worldPos).normalize();
-  _outward.copy(worldPos).sub(sphereCenter).normalize();
-  return _outward.dot(_toCam) > 0.05;
-}
-
 export class SpatialLabelBillboardLayer {
   readonly group = new THREE.Group();
   private sprites = new Map<string, SpriteEntry>();
@@ -155,97 +135,54 @@ export class SpatialLabelBillboardLayer {
     this.group.renderOrder = 40;
   }
 
-  sync(specs: SpatialBillboardSpec[], camera: THREE.Camera) {
-    const seen = new Set<string>();
-    const screenAnchors: { id: string; x: number; y: number; sprite: THREE.Sprite }[] = [];
-    const camDist = camera.position.length();
-
-    for (const spec of specs) {
-      seen.add(spec.id);
-      const front = isFrontFacing(spec.worldPos, spec.sphereCenter, camera);
-      const dist = camera.position.distanceTo(spec.worldPos);
-      const showMeta = Boolean(spec.focused) || dist < MACRO_DIST || camDist < MACRO_DIST;
-      const effectiveSub = showMeta ? spec.sublabel : undefined;
-      const fingerprint = `${spec.label}|${effectiveSub ?? ''}|${spec.meta ?? ''}|${spec.colour}|${spec.focused ? 1 : 0}|${front ? 1 : 0}`;
-
-      let entry = this.sprites.get(spec.id);
-      if (!entry) {
-        const map = new THREE.CanvasTexture(
-          paintLabelCanvas(spec.label, effectiveSub, spec.meta, !!spec.focused)
-        );
-        map.colorSpace = THREE.SRGBColorSpace;
-        const mat = new THREE.SpriteMaterial({
-          map,
-          transparent: true,
-          // Drawn over the node cages so rings never cut through the text.
-          depthTest: false,
-          depthWrite: false,
-          sizeAttenuation: true,
-        });
-        const sprite = new THREE.Sprite(mat);
-        sprite.scale.set(3.6, 1.15, 1);
-        entry = { sprite, fingerprint: '' };
-        this.sprites.set(spec.id, entry);
-        this.group.add(sprite);
-      }
-
-      if (entry.fingerprint !== fingerprint) {
-        const mat = entry.sprite.material as THREE.SpriteMaterial;
-        const map = mat.map as THREE.CanvasTexture;
-        map.image = paintLabelCanvas(spec.label, effectiveSub, spec.meta, !!spec.focused);
-        map.needsUpdate = true;
-        entry.fingerprint = fingerprint;
-      }
-
-      const sprite = entry.sprite;
-      sprite.visible = front;
-      if (!front) continue;
-
-      sprite.position.copy(spec.worldPos);
-      sprite.position.y += 1.15;
-      // Constant on-screen size for any distance and lens: a label spans a fixed share of the view height.
-      const halfView = Math.tan(THREE.MathUtils.degToRad(((camera as THREE.PerspectiveCamera).fov ?? 40) / 2));
-      const s = THREE.MathUtils.clamp(dist * halfView * LABEL_VIEW_SHARE * 2, 0.08, 6);
-      sprite.scale.set(s, s * ((spec.meta ? 200 : 160) / 512), 1);
-      sprite.renderOrder = Math.round(1000 - dist);
-
-      _projected.copy(sprite.position).project(camera);
-      screenAnchors.push({
-        id: spec.id,
-        x: _projected.x,
-        y: _projected.y,
-        sprite,
-      });
-    }
-
-    // Screen-space collision: nudge overlapping labels vertically (NDC ≈ px via later scale).
-    screenAnchors.sort((a, b) => a.y - b.y);
-    for (let i = 0; i < screenAnchors.length; i++) {
-      for (let j = i + 1; j < screenAnchors.length; j++) {
-        const a = screenAnchors[i];
-        const b = screenAnchors[j];
-        const dx = Math.abs(a.x - b.x);
-        const dy = Math.abs(a.y - b.y);
-        // ~28px at typical viewport → ~0.04 NDC on 720p-tall; use conservative threshold.
-        if (dx < 0.22 && dy < 0.08) {
-          const push = (0.08 - dy) * 0.5 + 0.01;
-          a.sprite.position.y += push * 1.2;
-          b.sprite.position.y -= push * 1.2;
-          a.y += push;
-          b.y -= push;
-        }
-      }
-    }
-    void MIN_LABEL_GAP_PX;
-
+  sync(specs: SpatialBillboardSpec[], camera: THREE.PerspectiveCamera, options: {
+    viewport: { w: number; h: number }; safeRect?: CalloutRect; blocked?: readonly CalloutRect[];
+    spheres?: readonly CalloutSphere[]; occluders?: THREE.Object3D[]; maxDepth?: number;
+  }): { id: string; x: number; y: number } | null {
+    const spec = selectCallout(specs);
     for (const [id, entry] of this.sprites) {
-      if (seen.has(id)) continue;
+      if (id === spec?.id) continue;
       this.group.remove(entry.sprite);
-      const mat = entry.sprite.material as THREE.SpriteMaterial;
-      mat.map?.dispose();
-      mat.dispose();
+      const material = entry.sprite.material as THREE.SpriteMaterial;
+      material.map?.dispose(); material.dispose();
       this.sprites.delete(id);
     }
+    if (!spec) return null;
+    let entry = this.sprites.get(spec.id);
+    if (entry) entry.sprite.visible = false;
+    const anchor = projectCalloutAnchor(camera, spec.worldPos, options.viewport, {
+      spheres: options.spheres, ownerSphereId: spec.ownerSphereId,
+      occluders: options.occluders, target: spec.target, maxDepth: options.maxDepth,
+    });
+    if (!anchor) return null;
+    const safe = options.safeRect ?? { x: 0, y: 0, ...options.viewport };
+    const width = Math.min(280, safe.w - 16);
+    if (width < 256) return null;
+    const placed = placeCallout(anchor, { w: width, h: width * (spec.meta ? 200 : 160) / 512 }, safe, options.blocked);
+    if (!placed) return null;
+    const fingerprint = `${spec.label}|${spec.sublabel ?? ''}|${spec.meta ?? ''}|${spec.colour}`;
+    if (!entry) {
+      const map = new THREE.CanvasTexture(paintLabelCanvas(spec.label, spec.sublabel, spec.meta, true));
+      map.colorSpace = THREE.SRGBColorSpace;
+      const material = new THREE.SpriteMaterial({ map, transparent: true, depthTest: false, depthWrite: false, sizeAttenuation: true });
+      entry = { sprite: new THREE.Sprite(material), fingerprint };
+      this.sprites.set(spec.id, entry);
+      this.group.add(entry.sprite);
+    } else if (entry.fingerprint !== fingerprint) {
+      const map = (entry.sprite.material as THREE.SpriteMaterial).map as THREE.CanvasTexture;
+      map.image = paintLabelCanvas(spec.label, spec.sublabel, spec.meta, true);
+      map.needsUpdate = true;
+      entry.fingerprint = fingerprint;
+    }
+    const projected = spec.worldPos.clone().project(camera);
+    projected.x = ((placed.x + placed.w / 2) / options.viewport.w) * 2 - 1;
+    projected.y = 1 - ((placed.y + placed.h / 2) / options.viewport.h) * 2;
+    entry.sprite.position.copy(projected.unproject(camera));
+    const worldPerPixel = 2 * anchor.depth * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) / options.viewport.h;
+    entry.sprite.scale.set(placed.w * worldPerPixel, placed.h * worldPerPixel, 1);
+    entry.sprite.visible = true;
+    entry.sprite.renderOrder = 1000;
+    return { id: spec.id, x: anchor.x, y: anchor.y };
   }
 
   dispose() {

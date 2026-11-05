@@ -24,9 +24,10 @@ function mediaFor(beat: PitchBeat): BeatContent['media'] {
     return { kind: 'title', title: beat.mediaKind === 'prototype' ? 'Concept' : 'No media', caption: mediaStatusTag(status, 'not live') };
   }
   const first = PITCH_SOURCES[beat.sourceIds[0]];
-  const extra = beat.sourceIds.length > 1 ? ` +${beat.sourceIds.length - 1}` : '';
+  const sources = beat.sourceIds.map(id => ({ id, title: PITCH_SOURCES[id].title }));
   const status = resolveMediaProvenance({ runtimeUrl: first.runtimeUrl, posterUrl: null });
-  return { kind: 'title', title: `${first.title}${extra}`, caption: mediaStatusTag(status, 'source supplied') };
+  return { kind: 'title', title: sources.length > 1 ? `${sources.length} source files` : first.title,
+    sources: sources.length > 1 ? sources : undefined, caption: mediaStatusTag(status, 'source supplied') };
 }
 
 function honestNoteFor(beat: PitchBeat): string {

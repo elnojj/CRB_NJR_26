@@ -187,6 +187,26 @@ describe('scene teardown', () => {
 });
 
 describe('beats container', () => {
+  it('exclusive narrative content never overlaps during delayed or interrupted beat transitions', () => {
+    const slot = () => ({ object: new THREE.Group(), apply() {}, setReveal() {}, dispose() {} });
+    const playback = new MediaPlaybackManager({ maxVideos: 1, reducedMotion: () => false });
+    const container = new BeatsTimelineContainer({ playback, exclusiveContent: true, factories: {
+      createText: slot, createMedia: slot, createMetric: slot,
+      createMarker: () => ({ object: new THREE.Group(), setActivity() {}, dispose() {} }),
+    } });
+    try {
+      assert.equal(container.nodes.filter(n => n.group.visible).length, 0);
+      container.setActiveBeat(0, true);
+      assert.equal(container.nodes[0].state.reveal, 1);
+      container.setActiveBeat(1, false, 2);
+      assert.equal(container.nodes[0].group.visible, false);
+      assert.equal(container.nodes[0].state.reveal, 0);
+      container.setActiveBeat(2, false, 2);
+      assert.deepEqual(container.nodes.filter(n => n.group.visible).map(n => n.index), [2]);
+      container.setActiveBeat(null);
+      assert.equal(container.nodes.filter(n => n.group.visible).length, 0);
+    } finally { container.dispose(); playback.dispose(); }
+  });
   function fakeSlot<C>(log: string[], name: string): BeatSlot<C> {
     return {
       object: new THREE.Group(),

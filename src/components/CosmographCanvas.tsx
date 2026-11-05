@@ -4110,6 +4110,23 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         camera.updateMatrixWorld();
       }
 
+      camera.updateMatrixWorld();
+      // A pitch beat is already the sole detailed context. Ambient node cards must not sit over its copy.
+      const nodeCallout = activeEntry && pitchStage?.getActiveIndex() == null && !mediaTubeStateRef.current?.active && !cinematicRef.current
+        ? activeEntry : null;
+      if (nodeCallout) scene.updateMatrixWorld();
+      const visibleCallout = spatialBillboards.sync(nodeCallout ? [{
+        id: `${nodeCallout.sphere}:${nodeCallout.canonicalId}`, label: nodeCallout.label,
+        sublabel: nodeCallout.nodeType === 'core' ? SPHERE_CAPTION[nodeCallout.sphere] : nodeCallout.sublabel,
+        meta: nodeCallout.contentLine, colour: nodeCallout.colour, worldPos: nodeCallout.worldPos,
+        focused: true, ownerSphereId: nodeCallout.sphere, target: nodeCallout.groupMesh ?? undefined,
+      }] : [], camera, {
+        viewport: { w: curW, h: curH }, safeRect,
+        maxDepth: SPHERE_NETWORK_OVERVIEW_RADIUS * 2, spheres: SPHERE_NETWORK,
+        occluders: nodeCallout ? Array.from(nodeRegistryRef.current.values()).flatMap(entry => entry.groupMesh ? [entry.groupMesh] : []) : [],
+      });
+      spatialBillboards.group.visible = visibleCallout !== null;
+
       hud.group.visible = !cinematicRef.current && !hudBridge.get().keyboardControls;
       hud.update(dt, curW, curH);
 
@@ -4136,64 +4153,13 @@ export const CosmographCanvas: React.FC<CosmographCanvasProps> = ({
         dt
       );
 
-      // Project active 3D target (hovered, focused, or tour highlight) to 2D screen coordinates every frame for GuiFocusOverlay (z-35)
-      if (callbacksRef.current.onProjectedTargetChange) {
-        if (activeEntry) {
-          _scratchVec.copy(activeEntry.worldPos).project(camera);
-          const visible = _scratchVec.z <= 1;
-          const sx = (_scratchVec.x * 0.5 + 0.5) * curW;
-          const sy = (-_scratchVec.y * 0.5 + 0.5) * curH;
-          callbacksRef.current.onProjectedTargetChange({
-            id: activeEntry.canonicalId,
-            label: activeEntry.label,
-            x: Math.round(sx),
-            y: Math.round(sy),
-            visible,
-          });
-        } else {
-          callbacksRef.current.onProjectedTargetChange(null);
-        }
-      }
+      callbacksRef.current.onProjectedTargetChange?.(visibleCallout && activeEntry ? {
+        id: activeEntry.canonicalId, label: activeEntry.label,
+        x: Math.round(visibleCallout.x), y: Math.round(visibleCallout.y), visible: true,
+      } : null);
 
       frameCounter++;
       if (frameCounter % 2 === 0) {
-        // Every node label is a WebGL billboard sprite, depth-sorted with the scene. Stations,
-        // dimensions and cores always carry one; projects and other nodes only while focused,
-        // hovered, tour-highlighted or flagged At risk / Blocked.
-        const billboardSpecs = [];
-        const showBillboardMeta = s.radius < 14 || Boolean(s.focusedNodeId);
-        for (const entry of nodeRegistryRef.current.values()) {
-          if (entry.sphere !== s.activeSphere) continue;
-          const isAnchorNode =
-            entry.nodeType === 'station' ||
-            entry.nodeType === 'dimension' ||
-            entry.nodeType === 'core';
-          const isActiveNode =
-            entry.canonicalId === s.focusedNodeId ||
-            entry.canonicalId === s.tourHighlightId ||
-            entry.canonicalId === s.HoveredNodeId;
-          const needsAttention =
-            entry.nodeType === 'project' && /At risk|Blocked/i.test(entry.sublabel ?? '');
-          if (!isAnchorNode && !isActiveNode && !needsAttention) continue;
-          billboardSpecs.push({
-            id: `${entry.sphere}:${entry.canonicalId}`,
-            label: entry.label,
-            sublabel:
-              entry.nodeType === 'core'
-                ? SPHERE_CAPTION[entry.sphere]
-                : showBillboardMeta
-                  ? entry.sublabel
-                  : undefined,
-            meta: entry.contentLine,
-            colour: entry.colour,
-            worldPos: entry.worldPos.clone(),
-            sphereCenter: s.currentCenter.clone(),
-            focused: isActiveNode,
-          });
-        }
-        spatialBillboards.group.visible = !mediaTubeStateRef.current?.active && !cinematicRef.current;
-        spatialBillboards.sync(billboardSpecs, camera);
-
         const tel = buildCurrentTelemetry(s);
         callbacksRef.current.onTelemetryChange(tel);
         const posDiff =

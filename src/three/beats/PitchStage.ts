@@ -43,6 +43,7 @@ export class PitchStage {
       placements,
       content: pitchContentProvider,
       factories: options.factories,
+      exclusiveContent: true,
     });
     PITCH_BEATS.forEach((beat, index) => {
       const scale = resolvePitchPlacement(beat)?.contentScale ?? 1;

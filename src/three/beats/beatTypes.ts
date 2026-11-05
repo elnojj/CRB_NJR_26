@@ -60,6 +60,8 @@ export interface BeatMediaContent {
   title?: string;
   /** Small status line under the title, e.g. "Playback pending". */
   caption?: string;
+  /** Grouped provenance: one media panel lists the beat's sources, without satellite cards. */
+  sources?: readonly { id: string; title: string }[];
   /** Width / height. Defaults to 16:9. */
   aspect?: number;
   accentHex?: string;

@@ -11,7 +11,7 @@ const ACTIVE_VIDEO_PRIORITY = 10;
 
 const easeOutCubic = (t: number): number => 1 - (1 - t) ** 3;
 
-function paintTitleCard(canvas: HTMLCanvasElement, title: string, caption: string | undefined, accentHex: string): void {
+function paintTitleCard(canvas: HTMLCanvasElement, title: string, caption: string | undefined, accentHex: string, sources?: BeatMediaContent['sources']): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   const { width, height } = canvas;
@@ -25,11 +25,17 @@ function paintTitleCard(canvas: HTMLCanvasElement, title: string, caption: strin
   ctx.fillStyle = '#f2f6f8';
   ctx.font = `600 ${Math.round(height * 0.16)}px "Inter", "Helvetica Neue", sans-serif`;
   ctx.textBaseline = 'middle';
-  ctx.fillText(title, width * 0.13, height * (caption ? 0.44 : 0.5), width * 0.78);
+  const grouped = Boolean(sources?.length);
+  ctx.fillText(title, width * 0.13, height * (grouped ? 0.25 : caption ? 0.44 : 0.5), width * 0.78);
+  if (grouped) {
+    ctx.font = `500 ${Math.round(height * 0.065)}px "Inter", sans-serif`;
+    sources!.slice(0, 3).forEach((source, index) => ctx.fillText(source.title, width * 0.13, height * (0.44 + index * 0.12), width * 0.78));
+    if (sources!.length > 3) ctx.fillText(`${sources!.length - 3} additional sources`, width * 0.13, height * 0.8, width * 0.78);
+  }
   if (caption) {
     ctx.fillStyle = 'rgba(159,183,216,0.92)';
     ctx.font = `500 ${Math.round(height * 0.075)}px "JetBrains Mono", ui-monospace, monospace`;
-    ctx.fillText(caption.toUpperCase(), width * 0.13, height * 0.64, width * 0.8);
+    ctx.fillText(caption.toUpperCase(), width * 0.13, height * (grouped ? 0.92 : 0.64), width * 0.8);
   }
 }
 
@@ -91,7 +97,7 @@ export class MediaViewportSlot implements BeatSlot<BeatMediaContent> {
         const canvas = document.createElement('canvas');
         canvas.width = TITLE_TEXTURE_PX;
         canvas.height = Math.round(TITLE_TEXTURE_PX / this.aspect);
-        paintTitleCard(canvas, content.title ?? '', content.caption, content.accentHex ?? DEFAULT_ACCENT);
+        paintTitleCard(canvas, content.title ?? '', content.caption, content.accentHex ?? DEFAULT_ACCENT, content.sources);
         const texture = new THREE.CanvasTexture(canvas);
         texture.colorSpace = THREE.SRGBColorSpace;
         this.staticTexture = texture;
