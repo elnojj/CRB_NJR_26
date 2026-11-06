@@ -485,7 +485,7 @@ export class HandInteractionMachine {
 
     if (this.mode === 'one-hand') return this.evaluateOneHand(nowMs, hands, fresh);
 
-          // 2. CAMERA_TWO_HAND: Hands active for interaction only — do not move camera
+              // 2. CAMERA_TWO_HAND: Hands active for interaction only - do not move camera
     if (fresh) {
       this.twoHand.evaluate(nowMs, hands.hands, dt);
     } else {
