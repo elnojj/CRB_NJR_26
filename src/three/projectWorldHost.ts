@@ -10,7 +10,13 @@ export interface ProjectWorldHostConfig {
   onMediaSelect?: (targetId: ConnectedSphereId) => void;
 }
 
-export class ProjectWorldHost {
+export interface ProjectWorldHostHandle {
+  update: (delta?: number) => void;
+  dispose: () => void;
+  handlePointerClick?: (event: MouseEvent, camera: THREE.Camera) => ConnectedSphereId | null;
+}
+
+export class ProjectWorldHost implements ProjectWorldHostHandle {
   private scene: THREE.Scene;
   private hostGroup: THREE.Group;
   private apertureMeshes: Map<ConnectedSphereId, THREE.Mesh> = new Map();
@@ -76,7 +82,7 @@ export class ProjectWorldHost {
     return null;
   }
 
-  public update(delta: number): void {
+  public update(delta?: number): void {
     const time = Date.now() * 0.0015;
     for (const [id, mesh] of this.apertureMeshes) {
       if (mesh) {
@@ -97,6 +103,16 @@ export class ProjectWorldHost {
     this.apertureMeshes.clear();
     this.scene.remove(this.hostGroup);
   }
+}
+
+/**
+ * Fallback host when project world state is unavailable.
+ */
+export function mountUnavailableProjectWorld(..._args: any[]): ProjectWorldHostHandle {
+  return {
+    update: () => {},
+    dispose: () => {},
+  };
 }
 
 export default ProjectWorldHost;
