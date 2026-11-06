@@ -3,7 +3,7 @@ import type { DeviceProfile } from './deviceProfile';
 
 /** Approved post-processing numbers. Bloom is banned (L10); only depth of field and a vignette run. */
 export const POST_FX = {
-  depthOfField: { focalLength: 0.02, bokehScale: 2, height: 480 },
+  depthOfField: { focalLength: 0.02, bokehScale: 1, height: 480 },
   vignette: { offset: 0.1, darkness: 1.1 },
 } as const;
 
