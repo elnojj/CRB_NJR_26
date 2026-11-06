@@ -82,9 +82,10 @@ export class ProjectWorldHost {
       if (mesh) {
         mesh.visible = true;
         // Organic floating suspension effect along the spatial graph node
-        const baseNode = SPHERE_NETWORK.find(n => n.id === id);
-        if (baseNode) {
-          mesh.position.y = baseNode.center[1] + Math.sin(time + baseNode.center[0]) * 0.04;
+        const baseNode = SPX_NODE(id); // handled via lookup or fallback
+        const node = SPHERE_NETWORK.find(n => n.id === id);
+        if (node) {
+          mesh.position.y = node.center[1] + Math.sin(time + node.center[0]) * 0.04;
         }
       }
     }
