@@ -506,7 +506,6 @@ export class HandInteractionMachine {
     return idleIntent('IDLE');
   }
   
-  }
 }
 
 /**
