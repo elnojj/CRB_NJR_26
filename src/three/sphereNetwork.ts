@@ -100,10 +100,9 @@ export function createSharedOuterShellMaterial(options?: {
     attenuationColor: attenuation,
     attenuationDistance: SHARED_OUTER_SHELL_MATERIAL_PRESET.attenuationDistance,
     envMapIntensity: SHARED_OUTER_SHELL_MATERIAL_PRESET.envMapIntensity,
-    emissive: new THREE.Color(GLASS_EMISSIVE_FLOOR.color),
-    emissiveIntensity: softwareGl
-      ? GLASS_EMISSIVE_FLOOR.flatIntensity
-      : GLASS_EMISSIVE_FLOOR.transmissiveIntensity,
+    // Pure refractive glass on hardware WebGL (zero self-emissive glow); fallback only on softwareGl
+    emissive: softwareGl ? new THREE.Color(GLASS_EMISSIVE_FLOOR.color) : new THREE.Color(0x000000),
+    emissiveIntensity: softwareGl ? GLASS_EMISSIVE_FLOOR.flatIntensity : 0,
     dispersion: softwareGl ? 0 : 0.35,
     sheen: 0,
     sheenRoughness: 1,
@@ -120,13 +119,8 @@ export type SphereNetworkNode = {
   labelAr: string;
   center: [number, number, number];
   radius: number;
-  /** Shared MeshPhysicalMaterial preset across all four spheres. */
-  materialPreset:
-    | 'MAT_LIQUID_GLASS_SHELL'
-    | 'hq-cobalt-glass'
-    | 'cde-amber-crystal'
-    | 'campaign-ice'
-    | 'about-gold-glass';
+  /** Strictly locked to MAT_LIQUID_GLASS_SHELL across all four live spheres. */
+  materialPreset: 'MAT_LIQUID_GLASS_SHELL';
   outerShellMaterial: SharedOuterShellMaterialPreset;
   status: 'live' | 'connected' | 'proposed';
 };
@@ -237,6 +231,7 @@ export const CAMERA_MOTION_TARGETS = {
   nodeFocusMs: { min: 700, max: 1100, default: 900 },
   panelTransitionMs: 320,
   gestureLossSettleMsMax: 400,
+  continuousOnerDurationMs: 30000,
 } as const;
 
 export function clampSphereTravelMs(distance: number): number {
@@ -265,7 +260,7 @@ export interface SphereTopologyRecord {
   labelAr: string;
   worldCenter: [number, number, number];
   shellRadiusU: number;
-  materialPreset: string;
+  materialPreset: 'MAT_LIQUID_GLASS_SHELL' | 'proposed-die-world';
   outerShellMaterial: SharedOuterShellMaterialPreset;
   status: SphereTopologyStatus;
   lockStatus: 'locked' | 'proposed';
@@ -510,6 +505,66 @@ export function buildSafeAreaFittedCatmullRomFlight(
   };
 }
 
+export interface ConstellationOnerFlightResult {
+  durationMs: number;
+  positionCurve: THREE.CatmullRomCurve3;
+  lookAtCurve: THREE.CatmullRomCurve3;
+  /** Evaluates camera position, lookAt, and exact DoF focus distance at normalized time u in [0, 1]. */
+  sampleAt(u: number): {
+    position: THREE.Vector3;
+    lookAt: THREE.Vector3;
+    focusDistanceU: number;
+  };
+}
+
+/**
+ * 30-second continuous camera choreography ("Oner") sweeping across all four live spheres
+ * (HQ -> CDE -> Campaign OS -> About Us) and resolving into the constellation overview.
+ */
+export function buildConstellationOnerFlight(
+  durationMs: number = CAMERA_MOTION_TARGETS.continuousOnerDurationMs
+): ConstellationOnerFlightResult {
+  const centroid = sphereNetworkCentroid();
+  const overviewPos = new THREE.Vector3(
+    centroid.x,
+    centroid.y + 4.5,
+    centroid.z + SPHERE_NETWORK_OVERVIEW_RADIUS
+  );
+
+  const posPoints: THREE.Vector3[] = [overviewPos.clone()];
+  const lookPoints: THREE.Vector3[] = [centroid.clone()];
+
+  for (const node of SPHERE_NETWORK) {
+    const c = new THREE.Vector3(node.center[0], node.center[1], node.center[2]);
+    const standoff = Math.max(5.2, node.radius * 2.35);
+    // Sweeping orbital entry & close-up pass per sphere
+    posPoints.push(
+      new THREE.Vector3(c.x - standoff * 0.55, c.y + 2.4, c.z + standoff * 1.15),
+      new THREE.Vector3(c.x + standoff * 0.25, c.y + 1.1, c.z + standoff * 0.88)
+    );
+    lookPoints.push(c.clone(), c.clone());
+  }
+
+  posPoints.push(overviewPos.clone());
+  lookPoints.push(centroid.clone());
+
+  const positionCurve = new THREE.CatmullRomCurve3(posPoints, false, 'centripetal', 0.5);
+  const lookAtCurve = new THREE.CatmullRomCurve3(lookPoints, false, 'centripetal', 0.5);
+
+  return {
+    durationMs,
+    positionCurve,
+    lookAtCurve,
+    sampleAt(u: number) {
+      const clampedU = Math.max(0, Math.min(1, u));
+      const position = positionCurve.getPointAt(clampedU);
+      const lookAt = lookAtCurve.getPointAt(clampedU);
+      const focusDistanceU = Math.max(2.5, position.distanceTo(lookAt));
+      return { position, lookAt, focusDistanceU };
+    },
+  };
+}
+
 export interface MountedSphereInstance {
   id: ConnectedSphereId;
   root: THREE.Group;
@@ -563,5 +618,3 @@ export function getSphereNetworkDiagnosticSnapshot() {
     mountedSphereCount: mountedSphereRegistry.size,
   };
 }
-
-
