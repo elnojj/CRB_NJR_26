@@ -1,7 +1,6 @@
 import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
 import {
   getSharedWebcamStream,
-  forceStopSharedWebcamStream,
   releaseSharedWebcamStream,
 } from '../services/media/deviceStreamCoordinator';
 import { OneEuroFilter } from './oneEuroFilter';
@@ -389,9 +388,8 @@ export class HandTracker {
       else cancelAnimationFrame(this.frameHandle);
       v.srcObject = null;
     }
-    this.stream?.getTracks().forEach((track) => track.stop());
-    // Force-stop so iOS Safari clears the green camera indicator even if the refcount races.
-    forceStopSharedWebcamStream();
+
+    // Release the shared lease gracefully so the other camera consumer stays alive
     releaseSharedWebcamStream();
     this.stream = null;
     this.closeLandmarker();
