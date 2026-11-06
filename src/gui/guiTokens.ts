@@ -1,15 +1,12 @@
 /**
- * CEREBRO Stellar Command — GUI Amendment v4.1
+ * CEREBRO Stellar Command — GUI Amendment v4.1 (NJR_SYS_26 Locked)
  *
  * CSS authority:
  * CEREBRO_39_Consolidated_Tokens_Review_2026-11-01.css
  *
- * CSS bindings remain themeable through var(...). Literal resolved colors
- * are provided for canvas/WebGL consumers and inspection tools.
- *
- * Layout, z-index, camera, 3D, and screen-composition decisions absent from
- * the consolidated CSS are marked PROPOSED. This module does not claim
- * runtime integration or validation against the Stellar Command project.
+ * Strict NJR_SYS_26 enforcement:
+ * - Near-black canvas, translucent glass cards, Cobalt & Ice accents.
+ * - Zero gold, zero purple, zero bloom/glow, crisp Sora/Inter typography.
  */
 
 import type { GuiCameraPresetId } from './cameraPresets';
@@ -23,50 +20,51 @@ export const GUI_CSS_AUTHORITY =
 
 /**
  * Resolved CSS primitive values for non-DOM consumers.
- *
- * Cobalt remains blue. Gold is the default focus accent.
+ * Legacy property names retained for type compatibility; all warm/gold hexes
+ * remapped to NJR_SYS_26 Cobalt, Ice, and Silver tokens.
  */
 export const GUI_PALETTE_ROLES = {
   void: '#05090E',
-  canvas: '#101D27',
-  canvasD0: '#101622',
-  glass: '#142632',
-  elevated: '#1B2230',
-  livePanel: '#1C222E',
+  canvas: '#0A0E17',
+  canvasD0: '#0D131F',
+  glass: '#121C2B',
+  elevated: '#162234',
+  livePanel: '#141E2E',
 
   textPrimary: '#F2F6F8',
   textSecondary: '#D0DCE3',
-  textMuted: '#BDCBD3',
+  textMuted: '#8F9EAE',
   silver: '#C5CCD6',
 
   ice: '#B4DDFF',
-  cobalt: '#65ACFF',
+  cobalt: '#2E6BFF',
   teal: '#9AFFE0',
   success: '#36E88D',
   error: '#FF5666',
 
-  bronze: '#8C6A45',
-  gold: '#D4AF37',
-  goldSheen: '#FFF4D0',
-  amber: '#E8C361',
+  /** Legacy keys remapped to Cobalt/Ice/Silver — zero gold/amber permitted */
+  bronze: '#64748B',
+  gold: '#2E6BFF',
+  goldSheen: '#E8F2FF',
+  amber: '#65ACFF',
 
-  /** Default-app focus is cobalt; gold sheen stays film/3D-rail scoped. */
-  focus: '#65ACFF',
-  focusGlow: '#B4DDFF',
-  focusCobalt: '#65ACFF',
+  /** Default-app focus is strictly Cobalt; zero glow bloom */
+  focus: '#2E6BFF',
+  focusGlow: 'rgba(46, 107, 255, 0.0)',
+  focusCobalt: '#2E6BFF',
   highlight: '#B4DDFF',
 
-  /** C07 listening / voice orb — teal wins; gold is never voice UI. */
+  /** C07 listening / voice orb — crisp teal/ice */
   listeningRing: '#9AFFE0',
   listeningRingMid: '#78D3B2',
   voiceOrb: '#9AFFE0',
   voiceOrbMid: '#78D3B2',
-  voiceOrbDeep: '#0f3d34',
+  voiceOrbDeep: '#0B2924',
 
   tasks: '#C5CCD6',
-  people: '#FFF4D0',
+  people: '#B4DDFF',
   files: '#C5CCD6',
-  mediaCde: '#D4AF37',
+  mediaCde: '#65ACFF',
 } as const;
 
 /**
@@ -88,7 +86,7 @@ export const GUI_CSS_COLOR = {
 
   cobalt: 'var(--token-accent-cobalt)',
   focus: 'var(--token-focus)',
-  focusGlow: 'var(--token-focus-glow)',
+  focusGlow: 'transparent',
   voiceOrb: 'var(--token-voice-orb)',
   listening: 'var(--token-listening-ring)',
 
@@ -98,9 +96,6 @@ export const GUI_CSS_COLOR = {
 
 /**
  * Matches the declared glass-card, panel, pocket, and HUD CSS.
- *
- * The compatibility fields retain names used by earlier GUI consumers,
- * but their values now resolve to the consolidated CSS.
  */
 export const GUI_GLASS_TOKENS = {
   background: 'var(--token-glass-fill)',
@@ -131,7 +126,7 @@ export const GUI_GLASS_TOKENS = {
   backdropFilter: 'blur(var(--blur-glass))',
   backdropFilterMobile: 'blur(var(--blur-glass))',
 
-  saturate: 1.08,
+  saturate: 1.04,
 
   /* Panel / glass radius locked at 20 — no 16-vs-20 split */
   cardRadiusPx: 20,
@@ -142,20 +137,19 @@ export const GUI_GLASS_TOKENS = {
   controlRadiusPx: 12,
   pillRadiusPx: 999,
 
-  /** Distinct accents for concurrent open panels — gold / cobalt / ice cycle */
-  openAccentCycle: ['#D4AF37', '#65ACFF', '#B4DDFF'],
+  /** Distinct accents for concurrent open panels — Cobalt / Ice / Silver cycle (zero gold) */
+  openAccentCycle: ['#2E6BFF', '#65ACFF', '#B4DDFF'],
 
   shadow: 'var(--shadow-elevated)',
   cardShadow: 'var(--shadow-card)',
   panelShadow: 'var(--shadow-elevated)',
-  hudShadow: 'var(--shadow-hud)',
-  focusLabelShadow: 'var(--shadow-focus-label)',
+  hudShadow: 'none',
+  focusLabelShadow: 'none',
 
   pillMinHeightPx: 48,
   pillPadding: '12px 20px',
   pillGapPx: 12,
 
-  // PROPOSED legacy layout dimensions; absent from the CSS authority.
   headerH: 52,
   tabRowH: 40,
   bodyPadPx: 16,
@@ -167,12 +161,12 @@ export const GUI_OPEN_ACCENT_CYCLE: readonly {
   id: GuiOpenAccentId;
   hex: string;
 }[] = [
-  { id: 'gold', hex: '#D4AF37' },
-  { id: 'cobalt', hex: '#65ACFF' },
+  { id: 'cobalt', hex: '#2E6BFF' },
   { id: 'ice', hex: '#B4DDFF' },
+  { id: 'gold', hex: '#65ACFF' },
 ] as const;
 
-/** Map open-panel index → distinct accent so concurrent panels are not flat-same. */
+/** Map open-panel index → distinct Cobalt/Ice accent so concurrent panels remain crisp. */
 export function resolveOpenPanelAccent(openIndex: number): {
   id: GuiOpenAccentId;
   hex: string;
@@ -182,15 +176,12 @@ export function resolveOpenPanelAccent(openIndex: number): {
 }
 
 /**
- * Exact font-stack ordering from the consolidated CSS.
- *
- * Font-file availability still needs verification in the target project.
+ * Clean geometric font stacks — JaapokkiSubtract removed to prevent notched glyph distortion
+ * on "Briefing" and modal headings.
  */
 export const GUI_TYPOGRAPHY_TOKENS = {
-  /** Default-app display — Sora. Jaapokki stays film-scoped via filmDisplay. */
-  display: "'Sora', system-ui, sans-serif",
-  filmDisplay:
-    "'JaapokkiSubtract', 'Jaapokki', 'Sora', system-ui, sans-serif",
+  display: "'Sora', 'Inter', system-ui, -apple-system, sans-serif",
+  filmDisplay: "'Sora', 'Inter', system-ui, -apple-system, sans-serif",
 
   sans: "'Inter', system-ui, -apple-system, sans-serif",
 
@@ -199,8 +190,8 @@ export const GUI_TYPOGRAPHY_TOKENS = {
   mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, monospace",
 
   css: {
-    display: 'var(--font-display)',
-    filmDisplay: 'var(--font-film-display)',
+    display: "'Sora', 'Inter', system-ui, -apple-system, sans-serif",
+    filmDisplay: "'Sora', 'Inter', system-ui, -apple-system, sans-serif",
     sans: 'var(--font-sans)',
     arabic: 'var(--font-arabic)',
     mono: 'var(--font-mono)',
@@ -219,10 +210,6 @@ export const GUI_TYPOGRAPHY_TOKENS = {
   },
 } as const;
 
-/**
- * The first four values map directly to CSS motion tokens.
- * Component assignments and camera behavior are PROPOSED.
- */
 export const GUI_MOTION_TOKENS = {
   fastMs: 180,
   baseMs: 320,
@@ -250,7 +237,6 @@ export const GUI_MOTION_TOKENS = {
   },
 } as const;
 
-/** PROPOSED: the consolidated CSS has no z-index hierarchy. */
 export const GUI_Z_LAYERS = {
   /** Blueprint z0 — WebGL world */
   scene: 0,
@@ -288,12 +274,6 @@ export const GUI_Z_LAYERS = {
   systemToast: 300,
 } as const;
 
-/**
- * PROPOSED responsive thresholds.
- *
- * Width alone does not identify an iPad. tabletLayout must be supplied
- * by the host when it intentionally uses tablet composition.
- */
 export type GuiBreakpoint =
   | 'phone'
   | 'tablet'
@@ -333,33 +313,23 @@ export function classifyGuiBreakpoint(
   return 'desktop';
 }
 
-/**
- * The CSS defines a 24px page margin.
- * Compact and wide adjustments are PROPOSED.
- */
 export const GUI_SAFE_INSETS = {
   pageMarginPx: 24,
   proposedCompactMinPx: 12,
   proposedWidePx: 32,
 
-  // Legacy consumer names.
   minPx: 12,
   desktopPx: 24,
   widePx: 32,
 } as const;
 
-/** PROPOSED: pointer geometry is absent from the consolidated CSS. */
 export const GUI_POINTER_FOCUS_TOKENS = {
   pointerHaloPx: 32,
   focusRingPx: 44,
-  focusStrokePx: 2,
+  focusStrokePx: 1.5,
   focusTrailMaxPx: 120,
 } as const;
 
-/**
- * The pill's 48px minimum is defined by CSS.
- * Other interaction dimensions are PROPOSED.
- */
 export const GUI_TOUCH_TOKENS = {
   pillMinHeightPx: 48,
 
@@ -367,17 +337,16 @@ export const GUI_TOUCH_TOKENS = {
   preferredTargetPx: 48,
   minControlGapPx: 8,
   minGapPx: 12,
-  /** Remediation lock: minimum collision gap 12px between interactive regions. */
-  panelCollisionMarginPx: 12,
-  sphereSafePaddingPx: 24,
+  /** Minimum collision gap 16px between interactive regions and 3D spheres. */
+  panelCollisionMarginPx: 16,
+  sphereSafePaddingPx: 28,
 
   proposedMinTargetPx: 44,
   proposedMinControlGapPx: 8,
-  proposedPanelCollisionMarginPx: 12,
-  proposedSphereSafePaddingPx: 24,
+  proposedPanelCollisionMarginPx: 16,
+  proposedSphereSafePaddingPx: 28,
 } as const;
 
-/** PROPOSED: world-motion rates are absent from the CSS. */
 export const GUI_WORLD_MOTION_TOKENS = {
   ...GUI_MOTION_TOKENS,
 
@@ -392,19 +361,11 @@ export const GUI_WORLD_MOTION_TOKENS = {
   dtClampMs: 33,
 } as const;
 
-/** Legacy timing export. Non-CSS values remain PROPOSED. */
 export const GUI_TIMING_TOKENS = {
   ...GUI_MOTION_TOKENS,
   travelMotionAttenuation: 0.35,
 } as const;
 
-/**
- * PROPOSED film-only optical study.
- *
- * Do not automatically apply this preset to the live interface.
- * Thickness requires calibration to the real model scale.
- * Bloom and grain are disabled unless a film preset explicitly enables them.
- */
 export const GUI_FILM_OPTICAL_SHELL_PRESET = {
   scope: 'film-only',
 
@@ -420,7 +381,7 @@ export const GUI_FILM_OPTICAL_SHELL_PRESET = {
 
 /**
  * Live liquid-glass optical shell for CosmographCanvas (workspace).
- * Film-only study remains in GUI_FILM_OPTICAL_SHELL_PRESET.
+ * Bloom is strictly zeroed out per NJR_SYS_26 no-bloom/no-glow rule.
  */
 export const GUI_OPTICAL_SHELL_PRESET = {
   ior: CONTRACT_SHELL_MATERIAL.ior,
@@ -434,24 +395,24 @@ export const GUI_OPTICAL_SHELL_PRESET = {
   envMapIntensity: CONTRACT_SHELL_MATERIAL.envMapIntensity,
   metalness: 0,
   fresnelExponent: 4,
-  rimIntensity: 0.25,
+  rimIntensity: 0.18,
   bloom: {
-    strength: 0.42,
-    radius: 0.4,
-    threshold: 0.78,
+    strength: 0,
+    radius: 0,
+    threshold: 1.0,
   },
   grain: {
-    strength: 0.015,
+    strength: 0,
     seedUpdatesHz: 24,
     pauseOnStop: true,
     pauseOnReducedMotion: true,
     monochromatic: true,
   },
-  chromaticAberration: 0.001,
-  vignetteStrength: 0.22,
-  toneMappingExposure: 1.1,
-  saturation: 0.94,
-  contrast: 1.05,
+  chromaticAberration: 0,
+  vignetteStrength: 0.16,
+  toneMappingExposure: 1.05,
+  saturation: 0.96,
+  contrast: 1.04,
 } as const;
 
 export type GuiVisualState =
@@ -486,12 +447,6 @@ export interface GuiCanonicalScreenSpec {
   description: string;
 }
 
-/**
- * PROPOSED screen compositions.
- *
- * Lens, FOV, sphere occupancy, and actual camera coordinates must come
- * from the project's verified cameraPresets module.
- */
 export const GUI_CANONICAL_SCREENS: Record<
   GuiCanonicalScreenId,
   GuiCanonicalScreenSpec
@@ -547,7 +502,7 @@ export const GUI_CANONICAL_SCREENS: Record<
     cameraPreset: 'focused',
     visualState: 'voice_speaking',
     description:
-      'Teal voice orb (#9AFFE0) for listening and speaking. Caption and Stop remain readable; gold stays film/3D rails only.',
+      'Teal/Cobalt voice state for listening and speaking. Caption and Stop remain readable.',
   },
 
   S07: {
@@ -587,9 +542,6 @@ export type GuiVoiceStatus =
   | 'error';
 
 export interface DeriveCanonicalScreenInput {
-  /**
-   * Preview-only override. Omit for production state derivation.
-   */
   explicitScreenOverride?: GuiCanonicalScreenId | null;
 
   breakpoint: GuiBreakpoint;
@@ -606,10 +558,6 @@ export interface DeriveCanonicalScreenInput {
   openPanelsCount: number;
 }
 
-/**
- * A modal or error is an overlay. It does not replace the underlying
- * canonical screen or reset the camera.
- */
 export type GuiOverlayState =
   | 'none'
   | 'modal'
@@ -632,10 +580,6 @@ export function deriveOverlayState(
   return 'none';
 }
 
-/**
- * Visual priority describes the most prominent visible state.
- * It does not transfer camera ownership.
- */
 export function deriveVisualState(
   input: Pick<
     DeriveCanonicalScreenInput,
@@ -692,10 +636,6 @@ export function deriveVisualState(
   return 'idle';
 }
 
-/**
- * S01–S09 are composition examples, not nine exclusive application states.
- * A modal is derived separately through deriveOverlayState.
- */
 export function deriveCanonicalScreen(
   input: DeriveCanonicalScreenInput,
 ): GuiCanonicalScreenId {
