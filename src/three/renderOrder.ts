@@ -9,12 +9,15 @@ export const WEBGL_RENDER_ORDER = {
   refractiveGlassShell: 10,
   geodesicLattice: 11,
   orbitalRings: 12,
+  cerebroSphereFx: 12,
   cardiacSplineTubes: 15,
   cardiacPulseBeads: 16,
-  htmlAnchors: 20,
   beatsMarkers: 18,
+  htmlAnchors: 20,
   beatsContent: 21,
-  cerebroSphereFx: 12,
+  spatialHudDock: 30,
+  spatialHudControls: 31,
+  spatialHudLabels: 32,
 } as const;
 
 export type WebglRenderOrderKey = keyof typeof WEBGL_RENDER_ORDER;
