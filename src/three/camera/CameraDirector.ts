@@ -485,31 +485,25 @@ export class HandInteractionMachine {
 
     if (this.mode === 'one-hand') return this.evaluateOneHand(nowMs, hands, fresh);
 
-       // 2. CAMERA_TWO_HAND: only while both hands are tracked together. One hand never reaches this.
-    const two = fresh ? this.twoHand.evaluate(nowMs, hands.hands, dt) : (this.twoHand.reset(), null);
-    if (!two) {
-      this.state = 'IDLE';
-      return idleIntent('IDLE');
+          // 2. CAMERA_TWO_HAND: Hands active for interaction only — do not move camera
+    if (fresh) {
+      this.twoHand.evaluate(nowMs, hands.hands, dt);
+    } else {
+      this.twoHand.reset();
     }
-    this.state = 'CAMERA_TWO_HAND';
-    return {
-      state: this.state,
-      dolly: two.dolly,
-      roll: two.roll,
-      dPolar: two.pitch,
-      panX: two.panX,
-      panY: two.panY,
-      dAzimuth: 0,
-      steering: two.dolly !== 0 || two.roll !== 0 || two.pitch !== 0 || two.panX !== 0 || two.panY !== 0,
-    };
+    this.state = 'IDLE';
+    return idleIntent('IDLE');
 
-  private evaluateOneHand(nowMs: number, hands: HandState, fresh: boolean): HandCameraIntent {
+    private evaluateOneHand(nowMs: number, hands: HandState, fresh: boolean): HandCameraIntent {
     const slot = fresh ? hands.hands.find((h) => h.present) : undefined;
-    const grab = slot ? this.oneHand.evaluate(nowMs, slot, isPointingPose(slot.landmarks)) : (this.oneHand.reset(), null);
-    if (!grab) {
-      this.state = 'IDLE';
-      return idleIntent('IDLE');
+    if (slot) {
+      this.oneHand.evaluate(nowMs, slot, isPointingPose(slot.landmarks));
+    } else {
+      this.oneHand.reset();
     }
+    this.state = 'IDLE';
+    return idleIntent('IDLE');
+  }
     this.state = 'CAMERA_ONE_HAND';
     return {
       ...idleIntent(this.state),
