@@ -8,22 +8,22 @@ export const SYSTEM_CONTRACT_ID = 'nojara.cerebro.system/2.0' as const;
 
 export const CONTRACT_COLORS = {
   void: '#05090E',
-  canvas: '#101D27',
-  glassSolid: '#142632',
-  glassPanel: 'rgba(20, 38, 50, 0.88)',
-  glassLight: 'rgba(20, 38, 50, 0.44)',
-  hairline: 'rgba(242, 246, 248, 0.12)',
+  canvas: '#0A0E17',
+  glassSolid: '#121C2B',
+  glassPanel: 'rgba(18, 28, 43, 0.88)',
+  glassLight: 'rgba(18, 28, 43, 0.44)',
+  hairline: 'rgba(197, 204, 214, 0.22)',
   text: '#F2F6F8',
   textSecondary: '#D0DCE3',
-  accentGold: '#D4AF37',
-  neonCyan: '#4C8DFF',
+  accentGold: '#2E6BFF',
+  neonCyan: '#2E6BFF',
   signalBlue: '#65ACFF',
   aiPulse: '#9AFFE0',
-  error: '#E5484D',
+  error: '#FF5666',
 } as const;
 
 export const CONTRACT_TYPOGRAPHY = {
-  display: 'Jaapokki Subtract, Sora, sans-serif',
+  display: 'Sora, Inter, sans-serif',
   body: 'Inter, sans-serif',
   metadata: 'JetBrains Mono, monospace',
   arabic: 'Cairo, Tajawal, sans-serif',
@@ -66,11 +66,11 @@ export type ContractSphere = {
 };
 
 export const CONTRACT_SPHERES: readonly ContractSphere[] = [
-  { id: 'hq', center: [0, 0, 0], radius: 6.2, skin: 'cobalt-glass', status: 'IMPLEMENTED' },
-  { id: 'cde', center: [38, 4, -22], radius: 6.2, skin: 'amber-crystal', status: 'IMPLEMENTED' },
-  { id: 'campaign-os', center: [14, 2.5, 8], radius: 4.4, skin: 'emerald-plasma', status: 'IMPLEMENTED' },
-  { id: 'about-us', center: [-14, 1.8, 5], radius: 4.4, skin: 'pearl-iridescent', status: 'IMPLEMENTED' },
-  { id: 'industry-istanba', center: [18, -5, -12], radius: 4.4, skin: 'istanba-die', status: 'PROPOSED_NOT_IMPLEMENTED' },
+  { id: 'hq', center: [-16, 0, 0], radius: 6.2, skin: 'cobalt-glass', status: 'IMPLEMENTED' },
+  { id: 'cde', center: [16, 2, -10], radius: 6.2, skin: 'amber-crystal', status: 'IMPLEMENTED' },
+  { id: 'campaign-os', center: [0, 4, 12], radius: 4.4, skin: 'emerald-plasma', status: 'IMPLEMENTED' },
+  { id: 'about-us', center: [-28, -2, 8], radius: 4.4, skin: 'pearl-iridescent', status: 'IMPLEMENTED' },
+  { id: 'industry-istanba', center: [28, -3, 6], radius: 4.4, skin: 'istanba-die', status: 'PROPOSED_NOT_IMPLEMENTED' },
 ] as const;
 
 export const CONTRACT_MEDIA_DECOUPLING = {
@@ -86,24 +86,24 @@ export const MEDIA_PROVENANCE_STATUSES = ['loading', 'poster', 'unavailable', 'e
 export type MediaProvenanceStatus = (typeof MEDIA_PROVENANCE_STATUSES)[number];
 
 export const CONTRACT_GLASS_CSS = {
-  background: 'rgba(20, 38, 50, 0.88)',
+  background: 'rgba(18, 28, 43, 0.88)',
   backdropFilter: 'blur(20px)',
-  border: '1px solid rgba(242, 246, 248, 0.12)',
+  border: '1px solid rgba(197, 204, 214, 0.22)',
   borderRadius: '20px',
   perspective: '1200px',
   transformStyle: 'preserve-3d',
-  panelTransform: 'rotateX(12deg) rotateY(-8deg) translateZ(40px)',
-  panelHoverTransform: 'rotateX(12deg) rotateY(-8deg) translateZ(58px)',
-  hoverTranslateZ: '58px',
+  panelTransform: 'rotateX(0deg) rotateY(0deg) translateZ(0px)',
+  panelHoverTransform: 'rotateX(0deg) rotateY(0deg) translateZ(0px)',
+  hoverTranslateZ: '0px',
   hoverTransition: 'transform 320ms cubic-bezier(0.22, 1, 0.36, 1)',
 } as const;
 
 export const CONTRACT_INTERACTIVE = {
   pill: {
-    minHeightPx: 36,
-    minHitTargetPx: 44,
-    borderRadiusPx: 18,
-    glowRing: '0 0 0 2px rgba(76, 141, 255, 0.45), 0 0 22px rgba(76, 141, 255, 0.65)',
+    minHeightPx: 48,
+    minHitTargetPx: 48,
+    borderRadiusPx: 24,
+    glowRing: '0 0 0 2px rgba(46, 107, 255, 0.45), 0 0 22px rgba(46, 107, 255, 0.25)',
   },
   card: { paddingPx: 24, gapPx: 16, zIdle: 20, zHover: 35, expandMs: 320 },
 } as const;
@@ -112,8 +112,8 @@ export const CONTRACT_HUD = {
   pill: {
     maxWidthPx: 480,
     backdropFilter: 'blur(16px)',
-    background: 'rgba(20, 38, 50, 0.78)',
-    border: '1px solid rgba(242, 246, 248, 0.12)',
+    background: 'rgba(18, 28, 43, 0.78)',
+    border: '1px solid rgba(197, 204, 214, 0.22)',
     borderRadius: '9999px',
     wordRevealStaggerMs: 40,
     ariaLive: 'polite',
@@ -121,9 +121,9 @@ export const CONTRACT_HUD = {
   keyboard: {
     keyTokenSizePx: 30,
     keyTokenBackground: 'rgba(255, 255, 255, 0.08)',
-    keyTokenBorder: '1px solid rgba(255, 255, 255, 0.15)',
+    keyTokenBorder: '1px solid rgba(197, 204, 214, 0.22)',
     ai: '#9AFFE0',
-    operator: '#4C8DFF',
+    operator: '#2E6BFF',
     handMeshRendering: false,
   },
 } as const;
@@ -151,3 +151,4 @@ export type ContextSurfaceHost = (typeof CONTEXT_SURFACE_HOSTS)[number];
 
 export const CONTRACT_PHONE_SHEET_PX = { peek: 72, default: 264, expanded: 480 } as const;
 export const CONTRACT_INSPECTOR_PX = { portrait: 304, landscapeEach: 288 } as const;
+ 
