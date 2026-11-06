@@ -3,11 +3,7 @@
  * inside the shared liquid glass shell constellation (NJR_SYS_26).
  */
 import * as THREE from 'three';
-import { 
-  SPHERE_NETWORK, 
-  getMountedSphereInstance, 
-  type ConnectedSphereId 
-} from './sphereNetwork';
+import { CONTRACT_SPHERES, type ContractSphereId } from '../design/systemContract';
 
 export interface ProjectWorldHostConfig {
   scene: THREE.Scene;
@@ -17,7 +13,7 @@ export interface ProjectWorldHostConfig {
 export class ProjectWorldHost {
   private scene: THREE.Scene;
   private hostGroup: THREE.Group;
-  private apertureMeshes: Map<ConnectedSphereId, THREE.Mesh> = new Map();
+  private apertureMeshes: Map<ContractSphereId, THREE.Mesh> = new Map();
 
   constructor(config: ProjectWorldHostConfig) {
     this.scene = config.scene;
@@ -28,7 +24,7 @@ export class ProjectWorldHost {
   }
 
   private initApertures(): void {
-    for (const node of SPHERE_NETWORK) {
+    for (const node of CONTRACT_SPHERES) {
       const geometry = new THREE.PlaneGeometry(3.2, 5.6); // 9:16 aspect ratio framing
       const material = new THREE.MeshBasicMaterial({
         color: 0x101D27,
@@ -48,13 +44,11 @@ export class ProjectWorldHost {
   }
 
   public update(delta: number): void {
-    // Sync aperture rotations and fade states with mounted sphere instances
+    // Sync aperture rotations and floating states
     for (const [id, mesh] of this.apertureMeshes) {
-      const inst = getMountedSphereInstance(id);
-      if (inst) {
+      if (mesh) {
         mesh.visible = true;
-        // Subtle depth float calculation aligned with spring solver
-        mesh.position.y = inst.root.position.y + Math.sin(Date.now() * 0.0015) * 0.15;
+        mesh.position.y += Math.sin(Date.now() * 0.0015 + mesh.position.x) * 0.002;
       }
     }
   }
