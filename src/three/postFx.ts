@@ -13,6 +13,7 @@ export const SCENE_VOID_HEX = '#050505';
 /** BokehPass works in world units; these scales convert the normalized focalLength/bokehScale values. */
 const APERTURE_PER_FOCAL_LENGTH = 0.0125;
 const MAX_BLUR_PER_BOKEH_SCALE = 0.005;
+const MIN_FOCUS_DISTANCE = 0.1;
 
 export interface PostFxPlan {
   depthOfField: boolean;
@@ -35,20 +36,23 @@ export interface BokehParams {
 }
 
 export function bokehParams(focusDistance: number): BokehParams {
+  const focus = Number.isFinite(focusDistance)
+    ? Math.max(MIN_FOCUS_DISTANCE, focusDistance)
+    : MIN_FOCUS_DISTANCE;
   return {
-    focus: Math.max(0.1, focusDistance),
+    focus,
     aperture: POST_FX.depthOfField.focalLength * APERTURE_PER_FOCAL_LENGTH,
     maxblur: POST_FX.depthOfField.bokehScale * MAX_BLUR_PER_BOKEH_SCALE,
   };
 }
 
-/** Same falloff as the non-Eskil vignette in postprocessing's VignetteEffect. */
+/** Same falloff as the non-Eskil vignette in postprocessing's VignetteEffect, with defined smoothstep edges. */
 export const VignetteShader = {
   name: 'VignetteShader',
   uniforms: {
     tDiffuse: { value: null as THREE.Texture | null },
-    offset: { value: POST_FX.vignette.offset },
-    darkness: { value: POST_FX.vignette.darkness },
+    offset: { value: POST_FX.vignette.offset as number },
+    darkness: { value: POST_FX.vignette.darkness as number },
   },
   vertexShader: /* glsl */ `
     varying vec2 vUv;
@@ -65,7 +69,9 @@ export const VignetteShader = {
     void main() {
       vec4 color = texture2D(tDiffuse, vUv);
       float d = distance(vUv, vec2(0.5));
-      color.rgb *= smoothstep(0.8, offset * 0.799, d * (darkness + offset));
+      float v = d * (darkness + offset);
+      // edge0 < edge1 is required by the GLSL spec; 1.0 - smoothstep(a, b, x) equals smoothstep(b, a, x).
+      color.rgb *= 1.0 - smoothstep(offset * 0.799, 0.8, v);
       gl_FragColor = color;
     }
   `,
