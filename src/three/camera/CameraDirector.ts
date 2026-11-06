@@ -506,13 +506,6 @@ export class HandInteractionMachine {
     return idleIntent('IDLE');
   }
   
-  this.state = 'CAMERA_ONE_HAND';
-    return {
-      ...idleIntent(this.state),
-      dAzimuth: grab.dAzimuth,
-      dPolar: grab.dPolar,
-      steering: grab.dAzimuth !== 0 || grab.dPolar !== 0,
-    };
   }
 }
 
