@@ -485,7 +485,7 @@ export class HandInteractionMachine {
 
     if (this.mode === 'one-hand') return this.evaluateOneHand(nowMs, hands, fresh);
 
-    // 2. CAMERA_TWO_HAND: only while both hands are tracked together. One hand never reaches this.
+       // 2. CAMERA_TWO_HAND: only while both hands are tracked together. One hand never reaches this.
     const two = fresh ? this.twoHand.evaluate(nowMs, hands.hands, dt) : (this.twoHand.reset(), null);
     if (!two) {
       this.state = 'IDLE';
@@ -502,7 +502,6 @@ export class HandInteractionMachine {
       dAzimuth: 0,
       steering: two.dolly !== 0 || two.roll !== 0 || two.pitch !== 0 || two.panX !== 0 || two.panY !== 0,
     };
-  }
 
   private evaluateOneHand(nowMs: number, hands: HandState, fresh: boolean): HandCameraIntent {
     const slot = fresh ? hands.hands.find((h) => h.present) : undefined;
