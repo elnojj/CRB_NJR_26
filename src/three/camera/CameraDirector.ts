@@ -485,7 +485,7 @@ export class HandInteractionMachine {
 
     if (this.mode === 'one-hand') return this.evaluateOneHand(nowMs, hands, fresh);
 
-              // 2. CAMERA_TWO_HAND: Hands active for interaction only - do not move camera
+    // 2. CAMERA_TWO_HAND: Hands active for interaction only - do not move camera
     if (fresh) {
       this.twoHand.evaluate(nowMs, hands.hands, dt);
     } else {
@@ -493,8 +493,9 @@ export class HandInteractionMachine {
     }
     this.state = 'IDLE';
     return idleIntent('IDLE');
+  }
 
-    private evaluateOneHand(nowMs: number, hands: HandState, fresh: boolean): HandCameraIntent {
+  private evaluateOneHand(nowMs: number, hands: HandState, fresh: boolean): HandCameraIntent {
     const slot = fresh ? hands.hands.find((h) => h.present) : undefined;
     if (slot) {
       this.oneHand.evaluate(nowMs, slot, isPointingPose(slot.landmarks));
@@ -504,7 +505,8 @@ export class HandInteractionMachine {
     this.state = 'IDLE';
     return idleIntent('IDLE');
   }
-    this.state = 'CAMERA_ONE_HAND';
+  
+  this.state = 'CAMERA_ONE_HAND';
     return {
       ...idleIntent(this.state),
       dAzimuth: grab.dAzimuth,
